@@ -7,7 +7,7 @@ import {
     SidebarFooter,
     SidebarHeader,
     SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/Components/ui/sidebar"
 import { NavEnrollment } from "./NavEnrollment"
 
 export function AppSidebar({ ...props }) {

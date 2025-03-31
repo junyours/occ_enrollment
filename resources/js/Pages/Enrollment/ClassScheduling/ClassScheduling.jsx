@@ -3,9 +3,9 @@ import axios from 'axios';
 import PreLoader from '@/Components/preloader/PreLoader';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import React, { useEffect, useState, useRef } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
+import { ToggleGroup, ToggleGroupItem } from "@/Components/ui/toggle-group"
 import { Pencil, Trash, Megaphone, Check, FileDown, ImageDown, } from 'lucide-react';
 import { convertToAMPM, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
@@ -16,7 +16,7 @@ import { Label } from '@/Components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/Components/ui/command"
 import { cn } from '@/Lib/Utils';
 import { useToast } from '@/hooks/use-toast';
 import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';

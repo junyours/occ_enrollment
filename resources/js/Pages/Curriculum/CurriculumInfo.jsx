@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import axios from "axios";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card";
+import { Button } from "@/Components/ui/button";
 import { SquarePlus, X } from "lucide-react"; // Close icon for modal
 import CurriculumTable from "./CurriculumTable";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/Components/ui/dialog";
 import { Head, useForm } from "@inertiajs/react";
 import { useToast } from "@/hooks/use-toast";
 import PreLoader from "@/Components/preloader/PreLoader";

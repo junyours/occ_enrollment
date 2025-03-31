@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/Components/ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/Components/ui/table';
 import { Button } from '@/Components/ui/button';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Head } from '@inertiajs/react';
@@ -17,7 +17,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/Components/ui/alert-dialog"
 import {
     Select,
     SelectContent,
@@ -26,7 +26,7 @@ import {
     SelectLabel,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/Components/ui/select"
 import { Skeleton } from '@/Components/ui/skeleton';
 
 export default function CoursesCurriculumLists() {

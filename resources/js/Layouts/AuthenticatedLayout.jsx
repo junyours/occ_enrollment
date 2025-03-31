@@ -1,11 +1,11 @@
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/Components/ui/toaster"
 import { AppSidebar } from "../Components/AppSidebar"
 
 import {
     SidebarInset,
     SidebarTrigger,
     SidebarProvider,
-} from "@/components/ui/sidebar"
+} from "@/Components/ui/sidebar"
 
 export default function AuthenticatedLayout({ children }) {
     return (

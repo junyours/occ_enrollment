@@ -4,7 +4,7 @@ import OCC_LOGO from '../../images/OCC_LOGO.png'
 import {
     SidebarMenuButton,
     useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/Components/ui/sidebar";
 
 export function TeamSwitcher() {
     const { isMobile } = useSidebar();

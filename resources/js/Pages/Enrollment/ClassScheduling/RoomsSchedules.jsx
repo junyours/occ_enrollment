@@ -9,7 +9,7 @@ import {
     Tabs,
     TabsList,
     TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/Components/ui/tabs"
 import TimeTable from "@/Pages/ScheduleFormats/TimeTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import { Switch } from "@/Components/ui/switch";

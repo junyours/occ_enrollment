@@ -1,5 +1,5 @@
 import React from "react";
-import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/ui/table";
+import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/Components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card";
 
 const CurriculumTable = ({ data, yearlevel }) => {

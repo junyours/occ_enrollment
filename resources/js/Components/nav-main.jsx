@@ -8,7 +8,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/Components/ui/sidebar";
 
 export function NavMain() {
     const { user } = usePage().props.auth;

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { usePage, useForm } from "@inertiajs/react";
 import { cn } from "@/Lib/Utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Button } from "@/Components/ui/button"
+import { Input } from "@/Components/ui/input"
+import { Label } from "@/Components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "@inertiajs/react";
 import {
@@ -14,7 +14,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from "@/Components/ui/table"
 import {
     Dialog,
     DialogContent,
@@ -22,18 +22,18 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/Components/ui/dialog"
 
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/Components/ui/card"
 import { Head } from '@inertiajs/react';
 import axios from "axios";
 import PreLoader from "@/Components/preloader/PreLoader";
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/Components/ui/separator"
 import { PageTitle } from "@/Components/ui/PageTitle";
 
 export default function EnrollmentCourseSection() {

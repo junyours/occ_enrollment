@@ -10,9 +10,9 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+} from "@/Components/ui/card";
+import { Input } from "@/Components/ui/input";
+import { Button } from "@/Components/ui/button";
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
