@@ -6,7 +6,7 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/Components/ui/chart';
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, XAxis } from 'recharts';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { GraduationCap, TrendingUp } from 'lucide-react';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { UserCheck } from "lucide-react";
@@ -141,6 +141,8 @@ export default function Dashboard() {
             return totals;
         }, {});
 
+        console.log(enrollmentTotals)
+
         return Object.entries(enrollmentTotals).map(([date, totalStudents]) => ({
             date,
             total_students: totalStudents
@@ -190,21 +192,21 @@ export default function Dashboard() {
         return (
             <Card className="items-center flex flex-col justify-center">
                 {/* <div> */}
-                    <CardHeader className="flex items-center justify-between">
-                        <CardTitle>Total Enrolled</CardTitle>
-                        <UserCheck className="w-6 h-6 text-gray-500" />
-                    </CardHeader>
+                <CardHeader className="flex items-center justify-between">
+                    <CardTitle>Total Enrolled</CardTitle>
+                    <UserCheck className="w-6 h-6 text-gray-500" />
+                </CardHeader>
 
-                    <CardContent className="flex flex-col items-center gap-2 pt-4">
-                        {reports.length > 0 ? (
-                            <>
-                                <AnimatedCount target={totalEnrolled} />
-                                <span className="text-gray-500 text-sm">students enrolled</span>
-                            </>
-                        ) : (
-                            <span className="text-gray-400 text-sm">No data available</span>
-                        )}
-                    </CardContent>
+                <CardContent className="flex flex-col items-center gap-2 pt-4">
+                    {reports.length > 0 ? (
+                        <>
+                            <AnimatedCount target={totalEnrolled} />
+                            <span className="text-gray-500 text-sm">students enrolled</span>
+                        </>
+                    ) : (
+                        <span className="text-gray-400 text-sm">No data available</span>
+                    )}
+                </CardContent>
                 {/* </div> */}
             </Card>
         );
@@ -308,14 +310,20 @@ export default function Dashboard() {
                                     left: 12,
                                     right: 12,
                                 }}
+                                className='overflow-visible'
                             >
                                 <CartesianGrid vertical={false} />
+                                <YAxis
+                                    width={20}
+                                    tickCount={5}
+                                />
                                 <XAxis
                                     dataKey="date"
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
-                                    // minTickGap={32}
+
+                                    interval={0}
                                     tickFormatter={(value) => {
                                         const date = new Date(value);
                                         return date.toLocaleDateString("en-US", {
@@ -324,6 +332,7 @@ export default function Dashboard() {
                                         });
                                     }}
                                 />
+
                                 <ChartTooltip
                                     content={
                                         <ChartTooltipContent

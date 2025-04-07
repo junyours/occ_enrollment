@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,8 +23,10 @@ class EnrollmentPermission
             return redirect()->route('login');
         }
 
-        if ($userRole != 'program_head' && $userRole != 'registrar' && $userRole != 'evaluator' && $userRole != 'student') {
-            abort(403);
+        if ($userRole != 'program_head' && $userRole != 'registrar' && $userRole != 'evaluator') {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 403,
+            ])->toResponse($request)->setStatusCode(404);
         }
 
         return $next($request);

@@ -14,10 +14,13 @@ import TimeTable from "@/Pages/ScheduleFormats/TimeTable";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import { Switch } from "@/Components/ui/switch";
 import { Label } from "@/Components/ui/label";
-import { FileDown, ImageDown } from "lucide-react";
+import { Check, FileDown, ImageDown } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import { convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from "@/Lib/Utils";
+import { cn, convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from "@/Lib/Utils";
 import TabularSchedule from "@/Pages/ScheduleFormats/TabularSchedule";
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Input } from '@/Components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 
 export default function RoomSchedules() {
     const [rooms, setRooms] = useState([]);
@@ -25,6 +28,7 @@ export default function RoomSchedules() {
     const [colorful, setColorful] = useState(true);
     const [selectedRoom, setSelectedRoom] = useState("All");
     const [scheduleType, setScheduleType] = useState('timetable');
+    const [openRoomPopover, setOpenRoomPopover] = useState(false);
 
     const getEnrollmentRoomSchedules = async () => {
         axios.post("api/get-enrollment-rooms-schedules")
@@ -96,7 +100,6 @@ export default function RoomSchedules() {
     return (
         <div className="space-y-4">
             <Head title="Room Schedules" />
-            {/* <Button onClick={() => console.log(rooms)}>Log</Button> */}
             <Card>
                 <CardContent className="p-2">
                     <div className="flex gap-2 w-min">
@@ -107,20 +110,62 @@ export default function RoomSchedules() {
                             </TabsList>
                         </Tabs>
 
-                        <Select value={selectedRoom} onValueChange={(value) => setSelectedRoom(value)}>
-                            <SelectTrigger className="w-48 truncate overflow-hidden">
-                                <SelectValue placeholder="Select a room" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem defaultValue value="All">All</SelectItem>
-                                {rooms.map(room => (
-                                    <SelectItem key={`room-${room.id}`} value={room.id}>
-                                        {room.room_name} ({room.schedLength})
-                                    </SelectItem>
-                                ))}
+                        <Popover open={openRoomPopover} onOpenChange={setOpenRoomPopover}>
+                            <PopoverTrigger asChild>
+                                {(() => {
+                                    const selectedRoomObj = rooms.find(room => room.id === selectedRoom);
+                                    return (
+                                        <Input
+                                            placeholder=""
+                                            readOnly
+                                            value={selectedRoomObj
+                                                ? `${selectedRoomObj.room_name} (${selectedRoomObj.schedLength})`
+                                                : "All"}
+                                            className="cursor-pointer text-start border w-60 truncate overflow-hidden"
+                                        />
+                                    );
+                                })()}
+                            </PopoverTrigger>
+                            <PopoverContent className="w-60 p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search room..." className="h-9 border-0 outline-none p-0" />
+                                    <CommandList>
+                                        <CommandEmpty>No room found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <CommandItem
+                                                key="all-rooms"
+                                                value="All"
+                                                onSelect={() => {
+                                                    setSelectedRoom("All");
+                                                    setOpenRoomPopover(false);
+                                                }}
+                                            >
+                                                All
+                                            </CommandItem>
+                                            {rooms.map(room => (
+                                                <CommandItem
+                                                    key={`room-${room.id}`}
+                                                    value={room.id}
+                                                    onSelect={() => {
+                                                        setSelectedRoom(room.id);
+                                                        setOpenRoomPopover(false);
+                                                    }}
+                                                >
+                                                    {room.room_name} ({room.schedLength})
+                                                    <Check
+                                                        className={cn(
+                                                            "ml-auto",
+                                                            selectedRoom == room.id ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
 
-                            </SelectContent>
-                        </Select>
                         <Button className="bg-green-600 hover:bg-green-500" variant="">
                             <FileDown />
                             Excel
@@ -155,7 +200,7 @@ export default function RoomSchedules() {
                                     {scheduleType == "timetable" ? (
                                         <TimeTable data={room.schedules} colorful={colorful} />
                                     ) : (
-                                        <TabularSchedule data={room.schedules} type="room"/>
+                                        <TabularSchedule data={room.schedules} type="room" />
                                     )}
                                 </CardContent>
                             </Card>

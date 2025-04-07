@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Enrollment;
 
 use App\Http\Controllers\Controller;
-use App\Models\Course;
 use App\Models\CurriculumTerm;
 use App\Models\CurriculumTermSubject;
+use App\Models\EnrolledStudent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\SchoolYear;
 use App\Models\Semester;
+use App\Models\User;
 use App\Models\YearLevel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -188,9 +189,51 @@ class EnrollmentCourseSectionController extends Controller
         );
     }
 
-    public function viewStudents()
+    public function viewStudents($hashedCourseId, $yearlevel, Request $request)
     {
-        return Inertia::render('Enrollment/EnrolledStudentList');
+        $course = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $hashedCourseId)
+            ->first();
+
+        $section = $request->query('section');
+
+        $yearLevels = [
+            'First-Year' => '1',
+            'Second-Year' => '2',
+            'Third-Year' => '3',
+            'Fourth-Year' => '4'
+        ];
+
+        $yearLevelNumber = $yearLevels[$yearlevel] ?? '';
+
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        $yearSection = YearSection::where('school_year_id', '=', $schoolYear->id)
+            ->where('course_id', '=', $course->id)
+            ->where('year_level_id', '=', $yearLevelNumber)
+            ->where('section', '=', $section)
+            ->first();
+
+        return Inertia::render('Enrollment/EnrolledStudentList', [
+            'courseId' => $course->id,
+            'yearlevel' => $yearLevelNumber,
+            'section' => $section,
+            'yearSectionId' =>  $yearSection->id,
+            'courseName' => $course->course_name_abbreviation,
+            'hashedCourseId' => $hashedCourseId,
+        ]);
+    }
+
+    public function getEnrolledStudentList(Request $request)
+    {
+        $students = EnrolledStudent::select('enrolled_students.id', 'enrolled_students.student_id', 'first_name', 'middle_name', 'last_name', 'user_id_no', 'email_address')
+            ->where('year_section_id', '=', $request->yearSectionId)
+            ->join('users', 'enrolled_students.student_id', '=', 'users.id') // Join with the 'users' table
+            ->join('user_information', 'users.id', '=', 'user_information.user_id') // Join with the 'user_informations' table
+            ->orderBy('user_information.last_name', 'asc')
+            ->get();
+
+        return response()->json($students);
     }
 
     public function enrollStudent($hashedCourseId, $yearlevel, Request $request)
@@ -217,6 +260,7 @@ class EnrollmentCourseSectionController extends Controller
             ->where('year_level_id', '=', $yearLevelNumber)
             ->where('section', '=', $section)
             ->first();
+
         return Inertia::render(
             'Enrollment/EnrollStudent',
             [
@@ -227,6 +271,70 @@ class EnrollmentCourseSectionController extends Controller
                 'courseName' => $course->course_name_abbreviation,
             ]
         );
+    }
+
+    public function viewStudentSubjects($id, $yearlevel, Request $request)
+    {
+
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        $course = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $id)
+            ->first();
+
+        if (!$course) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'URL Error',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $section = $request->query('section');
+
+        $studentIdNo = $request->query('id-no');
+
+        $student = User::select('first_name', 'last_name', 'middle_name', 'user_id_no')
+            ->where('user_id_no', '=', $studentIdNo)
+            ->join('user_information', 'users.id', 'user_information.user_id')
+            ->first();
+
+        if (!$student) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'Student Not Found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $yearLevels = [
+            'First-Year' => '1',
+            'Second-Year' => '2',
+            'Third-Year' => '3',
+            'Fourth-Year' => '4'
+        ];
+
+        $yearLevelNumber = $yearLevels[$yearlevel] ?? '';
+
+        return Inertia::render(
+            'Enrollment/StudentSubjects',
+            [
+                'yearlevel' => $yearLevelNumber,
+                'section' => $section,
+                'schoolYear' => $schoolYear,
+                'student' => $student,
+                'courseName' => $course->course_name_abbreviation,
+            ]
+        );
+    }
+
+    public function getStudentSubjects(){
+        $student = User::select('first_name', 'last_name', 'middle_name', 'user_id_no')
+            ->where('user_id_no', '=', $studentIdNo)
+            ->join('user_information', 'users.id', 'user_information.user_id')
+            ->first();
+
+        EnrolledStudent::where();
     }
 
     private function getPreparingOrOngoingSchoolYear()

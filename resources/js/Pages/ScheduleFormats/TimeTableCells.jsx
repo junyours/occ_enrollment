@@ -11,16 +11,14 @@ function timeToRowIndex(time) {
 }
 
 // Helper function to map days to column indices
-function dayToColumnIndex(day) {
-    const dayMap = {
-        Monday: 2,
-        Tuesday: 3,
-        Wednesday: 4,
-        Thursday: 5,
-        Friday: 6,
-        Saturday: 7,
-    };
-    return dayMap[day] || 0;
+const dayToColumnIndex = {
+    Monday: 2,
+    Tuesday: 3,
+    Wednesday: 4,
+    Thursday: 5,
+    Friday: 6,
+    Saturday: 7,
+    Sunday: 8,
 }
 
 const colors = [
@@ -65,7 +63,7 @@ export default function TimeTableCells({ data, colorful }) {
         const { id, start_time, end_time, descriptive_title, room_name, first_name, middle_name, last_name, class_code, student_count } = classData;
         const rowStart = timeToRowIndex(start_time);
         const rowEnd = timeToRowIndex(end_time);
-        const colStart = dayToColumnIndex(day);
+        const colStart = dayToColumnIndex[day];
 
         const cellSchedule = { id: id, day: day, start_time: start_time, end_time: end_time }
         const conflict = isConflict(cellSchedule, 'main')
@@ -97,7 +95,7 @@ export default function TimeTableCells({ data, colorful }) {
 
         const rowStart = start_time ? timeToRowIndex(start_time) : null;
         const rowEnd = end_time ? timeToRowIndex(end_time) : null;
-        const colStart = day ? dayToColumnIndex(day) : null;
+        const colStart = day ? dayToColumnIndex[day] : null;
 
         const cellSchedule = {
             id: id, day: day, start_time: classData.secondary_schedule.start_time, end_time: classData.secondary_schedule.end_time
@@ -134,7 +132,8 @@ export default function TimeTableCells({ data, colorful }) {
                 }}
             >
                 <span>{schedData.class_code || ''}</span>
-                <span>{schedData.descriptive_title}</span>
+                <span className={`${schedData.rowEnd - schedData.rowStart <= 4 ? 'line-clamp-2' : ''} overflow-hidden text-ellipsis`}>{schedData.descriptive_title}</span>
+
                 <span>{schedData.room_name || ""}</span>
                 <span>{schedData.first_name ? formatFullName(schedData) : ""}</span>
                 {schedData.student_count &&

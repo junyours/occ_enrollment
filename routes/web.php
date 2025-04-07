@@ -14,16 +14,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 });
 
-Route::middleware(['auth', 'EnrollmentPrepOngoing', 'EnrollmentPermission'])->group(function () {
-    Route::get('/enrollment/{id}', [EnrollmentCourseSectionController::class, 'view'])->name('enrollment.view');
-    Route::post('/enrollment/{id}', [EnrollmentCourseSectionController::class, 'getEnrollmentCourseSections'])->name('get.enrollment.course.section');
-    Route::get('/enrollment/{id}/class/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewClass'])->name('enrollment.view.class');
-    Route::get('/dashboard', [EnrollmentDashboardController::class, 'view'])->name('dashboard');
-    Route::get('/enrollment/{id}/students/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewStudents'])->name('enrollment.view.students');
-    Route::get('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'enrollStudent'])->name('enrollment.view.enroll-student');
-    Route::post('/api/get-enrollment-dashboard-data', [EnrollmentDashboardController::class, 'getEnrollmentDashboardData'])->name('get.enrollment.dashboard.data');
-});
-
 Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(function () {
     Route::post('api/add/new/section', [EnrollmentCourseSectionController::class, 'addNewSection'])->name('add.new.section');
 
@@ -49,3 +39,4 @@ require __DIR__ . '/RegistrarRoute.php';
 require __DIR__ . '/ClassesRoute.php';
 require __DIR__ . '/UserManagementRoute.php';
 require __DIR__ . '/SchoolyearManagementRoute.php';
+require __DIR__ . '/EnrollmentRoute.php';

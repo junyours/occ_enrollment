@@ -8,13 +8,15 @@ import React, { useEffect, useState } from 'react'
 import { formatFullName } from '@/Lib/Utils';
 import { Badge } from '@/Components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import DataTable from '@/Components/ui/DataTable';
+import { PageTitle } from '@/Components/ui/PageTitle';
 
 const FacultyList = () => {
     const [faculty, setFaculty] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openPopovers, setOpenPopovers] = useState({});
     const [openPopoversEvaluator, setOpenPopoversEvaluator] = useState({});
-    
+
     const getFacultyList = async () => {
         await axios.post(route('api/get.faculty.list'))
             .then(response => {
@@ -29,14 +31,20 @@ const FacultyList = () => {
         getFacultyList();
     }, []);
 
+    const [pageIndex, setPageIndex] = useState(0); // Move pageIndex state here
+
     const activeOnChange = async (id, value) => {
+        const currentPage = pageIndex; // Get the current page from state
+
         const updatedFaculties = faculty.map(fac =>
             fac.id === id ? { ...fac, active: value } : fac
         );
         setFaculty(updatedFaculties);
+        setPageIndex(currentPage); // Ensure page index stays the same
+
         setOpenPopovers(prev => ({ ...prev, [id]: false }));
 
-        axios.patch('api/set-faculty-actice-status', { id: id, active: value })
+        await axios.patch('api/set-faculty-active-status', { id, active: value });
     };
 
     const evaluatorOnChange = async (id, value) => {
@@ -51,105 +59,138 @@ const FacultyList = () => {
 
     if (loading) return <PreLoader title="Faculty List" />;
 
+    const columns = [
+        {
+            colName: "ID no.",
+            accessorKey: "user_id_no",
+            header: "ID no.",
+            headerClassName: 'w-32',
+        },
+        {
+            colName: "Name",
+            accessorKey: "name",
+            header: "Name",
+            headerClassName: 'w-52',
+            filterValue: (row) => {
+                const { first_name, middle_name, last_name } = row;
+                return formatFullName({ first_name, middle_name, last_name }).toLowerCase();
+            },
+            cell: ({ row }) => {
+                const { first_name, middle_name, last_name } = row.original;
+                const formattedName = formatFullName({ first_name, middle_name, last_name });
+                return <div className="font-medium">{formattedName}</div>;
+            },
+        },
+        {
+            colName: "Email",
+            accessorKey: "email_address",
+            header: "Email",
+        },
+        {
+            colName: "Status",
+            header: "Status",
+            cellClassName: 'text-right w-32 hidden sm:table-cell',
+            headerClassName: 'text-right w-32 hidden sm:table-cell',
+            cell: ({ row }) => {
+                const { active, id } = row.original;
+                return (
+                    <Popover
+                        open={!!openPopovers[id]}
+                        onOpenChange={(isOpen) =>
+                            setOpenPopovers(prev => ({ ...prev, [id]: isOpen }))
+                        }
+                    >
+                        <PopoverTrigger>
+                            <Badge
+                                className={`${active ? 'bg-green-200 text-green-700 hover:bg-green-200 hover:text-green-700' : 'bg-red-200 text-red-700 hover:bg-red-200 hover:text-red-700'} cursor-pointer`}
+                            >
+                                {active ? 'Active' : 'Inactive'}
+                            </Badge>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0 border-none w-min bg-transparent" sideOffset={0}>
+                            {active ? (
+                                <Badge
+                                    onClick={() => activeOnChange(id, 0)}
+                                    className='shadow-xl bg-red-200 text-red-700 hover:bg-red-200 hover:text-red-700 cursor-pointer'>
+                                    Inactive
+                                </Badge>
+                            ) : (
+                                <Badge
+                                    onClick={() => activeOnChange(id, 1)}
+                                    className='shadow-xl bg-green-200 text-green-700 hover:bg-green-200 hover:text-green-700 cursor-pointer'>
+                                    Active
+                                </Badge>
+                            )}
+                        </PopoverContent>
+                    </Popover>
+                );
+            },
+        }, {
+            colName: "Evaluator",
+            header: "Evaluator",
+            cellClassName: 'text-right w-32 hidden sm:table-cell',
+            headerClassName: 'text-right w-32 hidden sm:table-cell',
+            cell: ({ row }) => {
+                const { user_role, id } = row.original;
+                return (
+                    <>
+                        {user_role === 'program_head' || user_role === 'registrar' ? (
+                            <span className="px-2 py-1 rounded-full text-xs font-medium text-purple-500">
+                                {user_role === 'program_head' ? 'Program Head' : 'Registrar'}
+                            </span>
+                        ) : (
+                            <Popover
+                                open={!!openPopoversEvaluator[id]}
+                                onOpenChange={(isOpen) =>
+                                    setOpenPopoversEvaluator(prev => ({ ...prev, [id]: isOpen }))
+                                }
+                            >
+                                <PopoverTrigger>
+                                    <Badge
+                                        className={`${user_role === 'evaluator' ? 'bg-gray-200 text-blue-700 hover:bg-gray-200 hover:text-blue-700' : 'bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800'} cursor-pointer`}
+                                    >
+                                        {user_role === 'evaluator' ? 'Evaluator' : 'Non-Evaluator'}
+                                    </Badge>
+                                </PopoverTrigger>
+                                <PopoverContent className="p-0 border-none w-max bg-transparent" sideOffset={0}>
+                                    {user_role == 'evaluator' ? (
+                                        <Badge
+                                            onClick={() => evaluatorOnChange(id, 'faculty')}
+                                            className='shadow-xl bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 cursor-pointer'>
+                                            Non-Evaluator
+                                        </Badge>
+                                    ) : (
+                                        <Badge
+                                            onClick={() => evaluatorOnChange(id, 'evaluator')}
+                                            className='shadow-xl bg-gray-200 text-blue-700 hover:bg-gray-200 hover:text-blue-700 cursor-pointer'>
+                                            Evaluator
+                                        </Badge>
+                                    )}
+                                </PopoverContent>
+                            </Popover>
+                        )
+                        }
+                    </>
+                );
+            },
+        },
+    ];
+
     return (
-        <div>
+        <div className="space-y-4">
             <Head title="Faculty List" />
+            <PageTitle align="center">Faculty List</PageTitle>
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-2xl">Faculty List</CardTitle>
+                    <CardTitle className="text-2xl"></CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-8">#</TableHead>
-                                <TableHead className="w-28">ID no.</TableHead>
-                                <TableHead className="w-48">Name</TableHead>
-                                <TableHead className="hidden sm:table-cell">Email</TableHead>
-                                <TableHead className="text-end w-32 hidden sm:table-cell">Status</TableHead>
-                                <TableHead className="text-end w-32 hidden sm:table-cell">Evaluator</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {faculty.map((fac, index) => (
-                                <TableRow key={fac.id}>
-                                    <TableCell>{index + 1}.</TableCell>
-                                    <TableCell>{fac.user_id_no}</TableCell>
-                                    <TableCell>{formatFullName(fac)}</TableCell>
-                                    <TableCell className="hidden sm:table-cell">{fac.email_address}</TableCell>
-                                    <TableCell className="text-end hidden sm:table-cell">
-                                        <Popover
-                                            open={!!openPopovers[fac.id]}
-                                            onOpenChange={(isOpen) =>
-                                                setOpenPopovers(prev => ({ ...prev, [fac.id]: isOpen }))
-                                            }
-                                        >
-                                            <PopoverTrigger>
-                                                <Badge
-                                                    className={`${fac.active ? 'bg-green-200 text-green-700 hover:bg-green-200 hover:text-green-700' : 'bg-red-200 text-red-700 hover:bg-red-200 hover:text-red-700'} cursor-pointer`}
-                                                >
-                                                    {fac.active ? 'Active' : 'Inactive'}
-                                                </Badge>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="p-0 border-none w-min bg-transparent" sideOffset={0}>
-                                                {fac.active ? (
-                                                    <Badge
-                                                        onClick={() => activeOnChange(fac.id, 0)}
-                                                        className='shadow-xl bg-red-200 text-red-700 hover:bg-red-200 hover:text-red-700 cursor-pointer'>
-                                                        Inactive
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge
-                                                        onClick={() => activeOnChange(fac.id, 1)}
-                                                        className='shadow-xl bg-green-200 text-green-700 hover:bg-green-200 hover:text-green-700 cursor-pointer'>
-                                                        Active
-                                                    </Badge>
-                                                )}
-                                            </PopoverContent>
-                                        </Popover>
-                                    </TableCell>
-                                    <TableCell className="text-end hidden sm:table-cell">
-                                        {fac.user_role === 'program_head' || fac.user_role === 'registrar' ? (
-                                            <span className="px-2 py-1 rounded-full text-xs font-medium text-purple-500">
-                                                {fac.user_role === 'program_head' ? 'Program Head' : 'Registrar'}
-                                            </span>
-                                        ) : (
-                                            <Popover
-                                                open={!!openPopoversEvaluator[fac.id]}
-                                                onOpenChange={(isOpen) =>
-                                                    setOpenPopoversEvaluator(prev => ({ ...prev, [fac.id]: isOpen }))
-                                                }
-                                            >
-                                                <PopoverTrigger>
-                                                    <Badge
-                                                        className={`${fac.user_role === 'evaluator' ? 'bg-gray-200 text-blue-700 hover:bg-gray-200 hover:text-blue-700' : 'bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800'} cursor-pointer`}
-                                                    >
-                                                        {fac.user_role === 'evaluator' ? 'Evaluator' : 'Non-Evaluator'}
-                                                    </Badge>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="p-0 border-none w-max bg-transparent" sideOffset={0}>
-                                                    {fac.user_role == 'evaluator' ? (
-                                                        <Badge
-                                                            onClick={() => evaluatorOnChange(fac.id, 'faculty')}
-                                                            className='shadow-xl bg-gray-200 text-gray-800 hover:bg-gray-200 hover:text-gray-800 cursor-pointer'>
-                                                            Non-Evaluator
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge
-                                                            onClick={() => evaluatorOnChange(fac.id, 'evaluator')}
-                                                                    className='shadow-xl bg-gray-200 text-blue-700 hover:bg-gray-200 hover:text-blue-700 cursor-pointer'>
-                                                            Evaluator
-                                                        </Badge>
-                                                    )}
-                                                </PopoverContent>
-                                            </Popover>
-                                        )}
-
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <DataTable
+                        columns={columns}
+                        data={faculty}
+                        pageIndex={pageIndex}
+                        setPageIndex={setPageIndex}
+                    />
                 </CardContent>
             </Card>
         </div>

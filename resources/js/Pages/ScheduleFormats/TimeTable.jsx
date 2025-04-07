@@ -1,13 +1,9 @@
 import React from "react";
-import { convertToAMPM, formatFullName, identifyDayType } from "../../Lib/Utils";
-import { PiStudent } from "react-icons/pi";
+import { convertToAMPM } from "../../Lib/Utils";
 import TimeTableCells from "./TimeTableCells";
 
-
-const dayMapping = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
 function TimeTable({ data, colorful }) {
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     const timeSlots = Array.from({ length: 27 }, (_, i) => {
         const startHour = 7;
@@ -22,47 +18,9 @@ function TimeTable({ data, colorful }) {
         return `${formattedStart} - ${nextHour}:${nextMinute.toString().padStart(2, "0")}`;
     }).filter(Boolean); // Filter out the null value
 
-    const expandDayRange = (range) => {
-        const days = range.split("-");
-
-        if (days.length === 1) return [dayMapping.find(day => day.startsWith(days[0]))];
-
-        const startIndex = dayMapping.findIndex(day => day.startsWith(days[0]));
-        const endIndex = dayMapping.findIndex(day => day.startsWith(days[1]));
-
-        if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) return [];
-
-        return dayMapping.slice(startIndex, endIndex + 1);
-    };
-
-    const expandDays = (input) => {
-        let result = [];
-
-        input.split(",").forEach(part => {
-            part = part.trim();
-
-            if (part.includes("-")) {
-                // Handle consecutive range (e.g., "Mon-Thu")
-                const [start, end] = part.split("-");
-                const startIndex = dayMapping.findIndex(day => day.startsWith(start));
-                const endIndex = dayMapping.findIndex(day => day.startsWith(end));
-
-                if (startIndex !== -1 && endIndex !== -1 && startIndex <= endIndex) {
-                    result.push(...dayMapping.slice(startIndex, endIndex + 1));
-                }
-            } else {
-                // Handle single days (e.g., "Mon", "Wed")
-                const fullDay = dayMapping.find(day => day.startsWith(part));
-                if (fullDay) result.push(fullDay);
-            }
-        });
-
-        return [...new Set(result)]; // Remove duplicates and return the final array
-    };
-
     return (
         <div
-            className={`grid w-full border-2 border-[hsl(var(--timetable-outside-border))]  grid-cols-[120px_repeat(6,_1fr)] grid-rows-[30px_repeat(${timeSlots.length},_25px)]`}
+            className={`grid w-full border-2 border-[hsl(var(--timetable-outside-border))]  grid-cols-[120px_repeat(7,_1fr)] grid-rows-[30px_repeat(${timeSlots.length},_25px)]`}
         >
             {/* Header Row */}
             <div className="bg-[hsl(var(--timetable-header-bg))] font-bold flex items-center justify-center border border-t-0 border-l-0 border-r-[hsl(var(--timetable-outside-border))]  border-b-[hsl(var(--timetable-outside-border))]">
@@ -111,7 +69,7 @@ function TimeTable({ data, colorful }) {
                     </React.Fragment>
                 );
             })}
-
+            {/* Time table cells */}
             <TimeTableCells data={data} colorful={colorful} />
         </div>
     );

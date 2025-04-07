@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 use Carbon\Carbon;
 use App\Models\SchoolYear;
@@ -20,7 +21,11 @@ class EnrollmentStatus
         $schoolYear = $this->getPreparingOrOngoingSchoolYear();
 
         if (!$schoolYear['status']) {
-            abort(403);
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'No Enrollment',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
         }
 
         return $next($request);

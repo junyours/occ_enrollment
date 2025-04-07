@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PreLoader from '@/Components/preloader/PreLoader';
-import { expandAlternatingDays, expandConsecutiveDays, identifyDayType } from '@/Lib/Utils';
+import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Button } from '@/Components/ui/button';
-import { FileDown, ImageDown } from 'lucide-react';
+import { Check, FileDown, ImageDown } from 'lucide-react';
 import { Switch } from '@/Components/ui/switch';
 import { Label } from '@/Components/ui/label';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import TabularSchedule from '@/Pages/ScheduleFormats/TabularSchedule';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Input } from '@/Components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 
 export default function SubjectsSchedules() {
     const [subjects, setSubjects] = useState([]);
@@ -19,6 +22,7 @@ export default function SubjectsSchedules() {
     const [colorful, setColorful] = useState(true);
     const [selectedSubject, setSelectedSubject] = useState("All");
     const [scheduleType, setScheduleType] = useState('timetable');
+    const [openSubjectPopover, setOpenSubjectPopover] = useState(false);
 
     const getEnrollmentSubjectsSchedules = async () => {
         axios.post("api/get-enrollment-subjects-schedules")
@@ -114,19 +118,64 @@ export default function SubjectsSchedules() {
                             </TabsList>
                         </Tabs>
 
-                        <Select value={selectedSubject} onValueChange={(value) => setSelectedSubject(value)}>
-                            <SelectTrigger className="w-40 truncate overflow-hidden">
-                                <SelectValue placeholder="Select a faculty" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem defaultValue value="All">All</SelectItem>
-                                {subjects.map(subject => (
-                                    <SelectItem key={`faculty-${subject.id}`} value={subject.id}>
-                                        {subject.descriptive_title} ({subject.schedLength})
-                                    </SelectItem >
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Popover open={openSubjectPopover} onOpenChange={setOpenSubjectPopover}>
+                            <PopoverTrigger asChild>
+                                {(() => {
+                                    const selectedSubjectObj = subjects.find(subject => subject.id === selectedSubject);
+                                    return (
+                                        <Input
+                                            placeholder=""
+                                            readOnly
+                                            value={selectedSubjectObj
+                                                ? `${selectedSubjectObj.descriptive_title} (${selectedSubjectObj.schedLength})`
+                                                : "All"}
+                                            className="cursor-pointer text-start border w-60 truncate overflow-hidden"
+                                        />
+                                    );
+                                })()}
+                            </PopoverTrigger>
+
+                            <PopoverContent className="w-60 p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search subject..." className="h-9 border-0 outline-none p-0" />
+                                    <CommandList>
+                                        <CommandEmpty>No subject found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <CommandItem
+                                                key="all-subjects"
+                                                value="All"
+                                                onSelect={() => {
+                                                    setSelectedSubject("All");
+                                                    setOpenSubjectPopover(false);
+                                                }}
+                                            >
+                                                All
+                                            </CommandItem>
+                                            {subjects.map(subject => (
+                                                <CommandItem
+                                                    key={`subject-${subject.id}`}
+                                                    value={subject.id}
+                                                    onSelect={() => {
+                                                        setSelectedSubject(subject.id);
+                                                        setOpenSubjectPopover(false);
+                                                    }}
+                                                >
+                                                    {subject.descriptive_title} ({subject.schedLength})
+
+                                                    <Check
+                                                        className={cn(
+                                                            "ml-auto",
+                                                            selectedSubject == subject.id ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+
                         <Button className="bg-green-600 hover:bg-green-500" variant="">
                             <FileDown />
                             Excel

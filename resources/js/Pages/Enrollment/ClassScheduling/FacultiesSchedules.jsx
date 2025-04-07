@@ -13,6 +13,9 @@ import { Switch } from '@/Components/ui/switch';
 import { Label } from '@/Components/ui/label';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import TabularSchedule from '@/Pages/ScheduleFormats/TabularSchedule';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Input } from '@/Components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 
 export default function FacultySchedules() {
     const [faculties, setFaculties] = useState([]);
@@ -20,6 +23,7 @@ export default function FacultySchedules() {
     const [colorful, setColorful] = useState(true);
     const [selectedFaculty, setSelectedFaculty] = useState("All");
     const [scheduleType, setScheduleType] = useState('timetable');
+    const [openFacultyPopover, setOpenFacultyPopover] = useState(false);
 
     const getEnrollmentFacultiesSchedules = async () => {
         axios.post("api/get-enrollment-faculties-schedules")
@@ -116,19 +120,56 @@ export default function FacultySchedules() {
                             </TabsList>
                         </Tabs>
 
-                        <Select value={selectedFaculty} onValueChange={(value) => setSelectedFaculty(value)}>
-                            <SelectTrigger className="w-40 truncate overflow-hidden">
-                                <SelectValue placeholder="Select a faculty" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem defaultValue value="All">All</SelectItem>
-                                {faculties.map(faculty => (
-                                    <SelectItem key={`faculty-${faculty.id}`} value={faculty.id}>
-                                        {formatFullName(faculty)} ({faculty.schedLength})
-                                    </SelectItem >
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Popover open={openFacultyPopover} onOpenChange={setOpenFacultyPopover}>
+                            <PopoverTrigger asChild>
+                                {(() => {
+                                    const selectedFacultyObj = faculties.find(faculty => faculty.id === selectedFaculty);
+                                    return (
+                                        <Input
+                                            placeholder=""
+                                            readOnly
+                                            value={selectedFacultyObj
+                                                ? `${formatFullName(selectedFacultyObj)} (${selectedFacultyObj.schedLength})`
+                                                : "All"}
+                                            className="cursor-pointer text-start border w-60 truncate overflow-hidden"
+                                        />
+                                    );
+                                })()}
+                            </PopoverTrigger>
+                            <PopoverContent className="w-60 p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search faculty..." className="h-9 border-0 outline-none p-0" />
+                                    <CommandList>
+                                        <CommandEmpty>No faculty found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <CommandItem
+                                                key="all-faculties"
+                                                value="All"
+                                                onSelect={() => {
+                                                    setSelectedFaculty("All");
+                                                    setOpenFacultyPopover(false);
+                                                }}
+                                            >
+                                                All
+                                            </CommandItem>
+                                            {faculties.map(faculty => (
+                                                <CommandItem
+                                                    key={`faculty-${faculty.id}`}
+                                                    value={faculty.id}
+                                                    onSelect={() => {
+                                                        setSelectedFaculty(faculty.id);
+                                                        setOpenFacultyPopover(false);
+                                                    }}
+                                                >
+                                                    {formatFullName(faculty)} ({faculty.schedLength})
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+
                         <Button className="bg-green-600 hover:bg-green-500" variant="">
                             <FileDown />
                             Excel

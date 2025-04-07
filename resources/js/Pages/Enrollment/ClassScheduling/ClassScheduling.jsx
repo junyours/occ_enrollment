@@ -23,7 +23,7 @@ import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
 import { Switch } from '@/Components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const dayNumber = {
     'Mon': 1,
@@ -32,6 +32,7 @@ const dayNumber = {
     'Thu': 4,
     'Fri': 5,
     'Sat': 6,
+    'Sun': 7,
 }
 
 const dayAccToCom = {
@@ -41,6 +42,7 @@ const dayAccToCom = {
     'Thu': "Thursday",
     'Fri': "Friday",
     'Sat': "Saturday",
+    'Sun': "Sunday",
 }
 
 const hours = [
@@ -646,7 +648,7 @@ export default function ClassScheduling() {
                                                         <SelectValue placeholder="Select a day" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
+                                                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
                                                             <SelectItem key={day} value={day}>
                                                                 {day}
                                                             </SelectItem>

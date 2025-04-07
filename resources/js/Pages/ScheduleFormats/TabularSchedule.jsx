@@ -50,18 +50,18 @@ function TabularSchedule({ data, type }) {
                             {type != "subject" &&
                                 <TableCell>{sched.descriptive_title}</TableCell>
                             }
-                            <TableCell className="w-40 max-w-40">{sched.day}</TableCell>
+                            <TableCell className="w-40 max-w-40">{sched.day == "TBA" ? '-' : sched.day}</TableCell>
                             <TableCell className="w-48 max-w-48">
-                                {sched.start_time === "TBA" ? "TBA" : `${convertToAMPM(sched.start_time)} - ${convertToAMPM(sched.end_time)}`}
+                                {sched.start_time === "-" ? "-" : `${convertToAMPM(sched.start_time)} - ${convertToAMPM(sched.end_time)}`}
                             </TableCell>
                             {type != "faculty" &&
                                 <TableCell className="w-48 truncate max-w-48 overflow-hidden whitespace-nowrap">
-                                    {sched.first_name ? formatFullName(sched) : "TBA"}
+                                    {sched.first_name ? formatFullName(sched) : "-"}
                                 </TableCell>
                             }
                             {type != "room" &&
                                 <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
-                                    {sched.room_name || "TBA"}
+                                    {sched.room_name || "-"}
                                 </TableCell>
                             }
                             {type == "faculty" &&
