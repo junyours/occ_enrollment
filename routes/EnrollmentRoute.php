@@ -20,6 +20,11 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'EnrollmentPermission'])->gr
     Route::post('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'getEnrolledStudentList'])->name('get.enrolled.student.list');
 
     Route::post('/api/get-enrollment-dashboard-data', [EnrollmentDashboardController::class, 'getEnrollmentDashboardData'])->name('get.enrollment.dashboard.data');
-});
 
-Route::post('/api/get-student-subjects', [EnrollmentCourseSectionController::class, 'getStudentSubjects'])->name('get.student.subjects');
+    Route::post('/api/enrollment/get-student-subjects', [EnrollmentCourseSectionController::class, 'getStudentSubjects'])->name('get.student.subjects');
+    Route::post('/api/enrollment/add/subject/{schoolYearId}/{studentId}/{classId}', [EnrollmentCourseSectionController::class, 'addSubject'])->name('enrollment.add.subject');
+    Route::delete('/api/enrollment/delete/subject/{studentSubjectId}', [EnrollmentCourseSectionController::class, 'deleteSubject'])->name('enrollment.delete.subject');
+    Route::post('/api/enrollment/student-info/{schoolYearId}/{studentID}', [EnrollmentCourseSectionController::class, 'studentInfo'])->name('enrollment.student.info');
+
+    Route::post('/api/subjects-classes', [EnrollmentCourseSectionController::class, 'subjectClasses'])->name('subject.classes');
+});

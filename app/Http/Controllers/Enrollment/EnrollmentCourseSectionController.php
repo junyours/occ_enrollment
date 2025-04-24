@@ -10,7 +10,9 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\SchoolYear;
 use App\Models\Semester;
+use App\Models\StudentSubject;
 use App\Models\User;
+use App\Models\UserInformation;
 use App\Models\YearLevel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -103,7 +105,7 @@ class EnrollmentCourseSectionController extends Controller
                 'faculty_id' => null,
                 'room_id' => null,
                 'subject_id' => $subject->subject_id,
-                'class_code' => $request->year_level_id . $request->section . $course->course_name_abbreviation . '-' . ($index + 1),
+                'class_code' =>  $course->course_name_abbreviation . '-' . $request->year_level_id . $request->section,
                 'day' => 'TBA',
                 'start_time' => 'TBA',
                 'end_time' => 'TBA',
@@ -189,6 +191,24 @@ class EnrollmentCourseSectionController extends Controller
         );
     }
 
+    public function studentInfo($schoolYearId, $studentID)
+    {
+        $studentId = User::select('id')
+            ->orWhere('user_id_no', 'like', '%' . $studentID)
+            ->first();
+
+        if (!$studentId) {
+            return response()->json(['message' => 'no student found'], 400);
+        }
+
+        $student = UserInformation::select('user_id_no', 'user_id', 'first_name', 'middle_name', 'last_name')
+            ->join('users', 'users.id', '=', 'user_information.user_id')
+            ->where('user_id', '=', $studentId->id)
+            ->first();
+
+        return response()->json(['student' => $student], 200);
+    }
+
     public function viewStudents($hashedCourseId, $yearlevel, Request $request)
     {
         $course = DB::table('course')
@@ -264,6 +284,7 @@ class EnrollmentCourseSectionController extends Controller
         return Inertia::render(
             'Enrollment/EnrollStudent',
             [
+                'schoolYear' => $schoolYear,
                 'courseId' => $course->id,
                 'yearlevel' => $yearLevelNumber,
                 'section' => $section,
@@ -328,13 +349,111 @@ class EnrollmentCourseSectionController extends Controller
         );
     }
 
-    public function getStudentSubjects(){
-        $student = User::select('first_name', 'last_name', 'middle_name', 'user_id_no')
-            ->where('user_id_no', '=', $studentIdNo)
-            ->join('user_information', 'users.id', 'user_information.user_id')
+    public function getStudentSubjects(Request $request)
+    {
+        $student = User::where('user_id_no', '=', $request->studentId)
             ->first();
 
-        EnrolledStudent::where();
+        if (!$student) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'Student Not Found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->where('school_year_id', '=', $request->schoolYearId)
+            ->where('student_id', '=', $student->id)
+            ->first();
+
+        $classes = YearSectionSubjects::select(
+            'year_section_subjects.id',
+            'student_subjects.id as student_subject_id',
+            'subject_code',
+            'descriptive_title',
+            'day',
+            'start_time',
+            'end_time',
+            'credit_units'
+        )
+            ->where("enrolled_students_id", '=',  $enrolledStudent->id)
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->leftJoin('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->with('SecondarySchedule')
+            ->get();
+
+        return response()->json($classes);
+    }
+
+    public function subjectClasses(Request $request)
+    {
+        $request->validate([
+            'subjectCode' => 'required|string',
+            'schoolYearId' => 'required|integer',
+        ]);
+
+        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'class_code', 'subject_code', 'descriptive_title', 'day', 'start_time', 'end_time', 'credit_units')
+            ->where('subject_code', $request->subjectCode)
+            ->where('school_year_id', $request->schoolYearId)
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->with('SecondarySchedule')
+            ->get();
+
+        if ($subjects->isEmpty()) {
+            return response()->json(['message' => 'no classes found'], 404);
+        }
+
+        return response()->json($subjects, 200);
+    }
+
+    public function addSubject($schoolyearId, $studentId, $classId)
+    {
+
+        $student = User::where('user_id_no', '=', $studentId)
+            ->first();
+
+        $enrolledStudent = EnrolledStudent::select('enrolled_students.id')
+            ->where('student_id', '=', $student->id)
+            ->where('school_year_id', '=', $schoolyearId)
+            ->join('year_section', 'year_section.id', 'enrolled_students.year_section_id')
+            ->first();
+
+        $addedClass = StudentSubject::create([
+            'enrolled_students_id' => $enrolledStudent->id,
+            'year_section_subjects_id' => $classId,
+        ]);
+
+        $class = YearSectionSubjects::select(
+            'year_section_subjects.id',
+            'student_subjects.id as student_subject_id',
+            'subject_code',
+            'descriptive_title',
+            'day',
+            'start_time',
+            'end_time',
+            'credit_units'
+        )
+            ->where("student_subjects.id", '=',  $addedClass->id)
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->leftJoin('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->with('SecondarySchedule')
+            ->get();
+
+        return response()->json([
+            'message' => 'success',
+            'class' => $class,
+        ], 200);
+    }
+
+    public function deleteSubject($studentSubjectId)
+    {
+        StudentSubject::where('id', '=', $studentSubjectId)
+            ->delete();
+
+        return response()->json(['message' => 'success'], 200);
     }
 
     private function getPreparingOrOngoingSchoolYear()

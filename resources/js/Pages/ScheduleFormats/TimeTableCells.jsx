@@ -34,7 +34,7 @@ const colors = [
 
 export default function TimeTableCells({ data, colorful }) {
 
-    const isConflict = (cellSchedule, schedType) => {
+    const isConflict = (cellSchedule) => {
         if (cellSchedule.day == "TBA" || cellSchedule.start_time == "TBA") return false
 
         let conflict = false

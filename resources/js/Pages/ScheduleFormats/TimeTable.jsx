@@ -2,7 +2,7 @@ import React from "react";
 import { convertToAMPM } from "../../Lib/Utils";
 import TimeTableCells from "./TimeTableCells";
 
-function TimeTable({ data, colorful }) {
+function TimeTable({ data, colorful = true }) {
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     const timeSlots = Array.from({ length: 27 }, (_, i) => {
