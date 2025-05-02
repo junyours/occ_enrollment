@@ -18,11 +18,11 @@ export function NavEnrollment() {
     const { setOpenMobile } = useSidebar();
 
     return (
-        <SidebarGroup>
+        <>
             {(user.user_role == "registrar" || user.user_role == "evaluator" || user.user_role == "program_head") && (
                 <>
                     {(enrollment_status == 'ongoing' || enrollment_status == 'preparing') &&
-                        <>
+                        <SidebarGroup>
                             <SidebarGroupLabel>Enrollment {enrollment_status} </SidebarGroupLabel>
                             <SidebarMenu>
                                 {courses.map((course) => {
@@ -110,10 +110,10 @@ export function NavEnrollment() {
                                     </>
                                 )}
                             </SidebarMenu>
-                        </>
+                        </SidebarGroup>
                     }
                 </>
             )}
-        </SidebarGroup>
+        </>
     );
 }

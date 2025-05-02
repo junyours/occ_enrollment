@@ -587,7 +587,6 @@ export default function ClassScheduling() {
                             })()}
                         </>
                     )}
-
                 </CardContent>
             </Card>
 

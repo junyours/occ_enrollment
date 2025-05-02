@@ -201,12 +201,35 @@ class EnrollmentCourseSectionController extends Controller
             return response()->json(['message' => 'no student found'], 400);
         }
 
-        $student = UserInformation::select('user_id_no', 'user_id', 'first_name', 'middle_name', 'last_name')
+        $student = UserInformation::select('users.id', 'user_id_no', 'user_id', 'first_name', 'middle_name', 'last_name')
             ->join('users', 'users.id', '=', 'user_information.user_id')
             ->where('user_id', '=', $studentId->id)
             ->first();
 
-        return response()->json(['student' => $student], 200);
+        $enrolledAlready = false;
+
+        $enrolled = EnrolledStudent::where('school_year_id', $schoolYearId)
+            ->where('student_id', $student->id)
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->first();
+
+        // if (EnrolledStudent::select('student_id', 'year_section_id', 'school_year_id')
+        //     ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+        //     ->where('student_id', '=', $studentId)
+        //     ->where('school_year_id', '=', $schoolYearId)
+        //     ->exists()
+        // ) {
+        //     return response(['message' => 'student already enrolled']);
+        // }
+        if ($enrolled) {
+            $enrolledAlready = true;
+        }
+
+        return response()->json([
+            'student' => $student,
+            'enrolled' => $enrolledAlready,
+            'message' => 'success'
+        ], 200);
     }
 
     public function viewStudents($hashedCourseId, $yearlevel, Request $request)

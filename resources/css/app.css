@@ -31,6 +31,10 @@
         --destructive-hover: 0 84.2% 50%;
         --destructive-foreground: 210 40% 98%;
 
+        --warning: 40 100% 50%;
+        --warning-hover: 40 100% 45%;
+        --warning-foreground: 210 40% 98%;
+
         --border: 214.3 31.8% 85%;
         --input: 214.3 31.8% 85%;
 
@@ -110,6 +114,11 @@
         /* Alerts */
         --destructive: 0 62.8% 40%;
         --destructive-foreground: 0 0% 100%;
+
+        --warning: hsl(40, 100%, 50%);
+        --warning-hover: hsl(40, 100%, 45%);
+        --warning-foreground: hsl(210, 40%, 98%);
+
         --success: 142.1 61.8% 35%;
         --success-foreground: 0 0% 100%;
 
