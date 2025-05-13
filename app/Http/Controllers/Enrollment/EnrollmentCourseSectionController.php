@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Support\Facades\Redirect;
+use function Symfony\Component\Clock\now;
 
 class EnrollmentCourseSectionController extends Controller
 {
@@ -279,7 +280,7 @@ class EnrollmentCourseSectionController extends Controller
         return response()->json($students);
     }
 
-    public function enrollStudent($hashedCourseId, $yearlevel, Request $request)
+    public function viewEnrollStudent($hashedCourseId, $yearlevel, Request $request)
     {
         $course = DB::table('course')
             ->where(DB::raw('MD5(id)'), '=', $hashedCourseId)
@@ -521,5 +522,42 @@ class EnrollmentCourseSectionController extends Controller
             'preparation' => $preparation,
             'school_year' => $schoolYear
         ];
+    }
+
+    public function enrollStudent($studID, $yearSectionID, $typeID, $startDate, Request $request)
+    {
+
+
+        $studentInfo = UserInformation::select('first_name', 'middle_name', 'last_name')
+            ->where('id', '=', $studID)
+            ->first();
+
+        $firstInitial = $studentInfo->first_name[0] ?? '';
+        $middleInitial = $studentInfo->middle_name[0] ?? '';
+        $lastInitial = $studentInfo->last_name[0] ?? '';
+        $yearLastTwoDigits = substr($startDate, 2, 2);
+
+        $regNo = $firstInitial . $middleInitial . $lastInitial . $yearLastTwoDigits . rand(100, 999);
+
+        $evaluatorId = $request->user()->id;
+
+        $enrolledStudent = EnrolledStudent::create([
+            'student_id' => $studID,
+            'year_section_id' => $yearSectionID,
+            'enroll_type' => 'on-time',
+            'student_type_id' => $typeID,
+            'evaluator_id' => $evaluatorId,
+            'registration_number' => $regNo,
+            'date_enrolled' => now()
+        ]);
+
+        foreach ($request->classID as $subjectID) {
+            StudentSubject::create([
+                'enrolled_students_id' => $enrolledStudent->id,
+                'year_section_subjects_id' => $subjectID,
+            ]);
+        }
+
+        return response()->json(['message' => 'success']);
     }
 }

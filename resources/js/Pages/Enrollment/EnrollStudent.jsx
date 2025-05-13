@@ -20,21 +20,24 @@ import Checkbox from '@/Components/Checkbox';
 
 export default function EnrollStudent() {
     const { yearSectionId, courseName, yearlevel, section, schoolYear } = usePage().props;
+
     const [studentType, setstudentType] = useState('');
     const [studentID, setStudentID] = useState('');
     const [subjectCode, setSubjectCode] = useState('');
-    const [searchingStudent, setSearchingStudent] = useState(false);
-    const [studentInfo, setStudentInfo] = useState([]);
-    const [searchedClasses, setSearchedClasses] = useState([]);
-    const [studentFound, setStudentFound] = useState(true);
-    const [loading, setLoading] = useState(true);
+
     const [studentAlreadyEnrrolled, setStudentAlreadyEnrrolled] = useState(false);
-    const [classes, setClasses] = useState([]);
-    const [defaultClasses, setDefaultClasses] = useState([]);
+    const [searchingStudent, setSearchingStudent] = useState(false);
     const [gettingCLasses, setGettingCLasses] = useState(false);
     const [addingSubject, setAddingSubject] = useState(false);
+    const [submitting, ssetSubmitting] = useState(false);
+    const [studentFound, setStudentFound] = useState(true);
+    const [loading, setLoading] = useState(true);
 
-    const [errors, setErrors] = useState([])
+    const [errors, setErrors] = useState([]);
+    const [classes, setClasses] = useState([]);
+    const [defaultClasses, setDefaultClasses] = useState([]);
+    const [studentInfo, setStudentInfo] = useState([]);
+    const [searchedClasses, setSearchedClasses] = useState([]);
 
     const topRef = useRef(null);
 
@@ -182,28 +185,6 @@ export default function EnrollStudent() {
             })
     }
 
-    const enrollStudent = async () => {
-        if (studentAlreadyEnrrolled) {
-            alreadyEnrolledAlert();
-            return
-        }
-
-        const errors = {};
-
-        if (!studentType) errors.studentType = true;
-        if (!studentInfo.id) errors.studentID = true;
-
-        if (Object.keys(errors).length > 0) {
-            setErrors(errors);
-            topRef.current?.scrollIntoView({ behavior: "smooth" });
-            toast({
-                description: "Student info incomplete!",
-                variant: "destructive",
-            })
-            return;
-        }
-    }
-
     const removeSubject = (id) => {
         const newClasses = classes.filter(classInfo => classInfo.id != id);
         setClasses(newClasses);
@@ -239,6 +220,53 @@ export default function EnrollStudent() {
         return conflict
     }
 
+    const enrollStudent = async () => {
+        ssetSubmitting(true);
+        if (studentAlreadyEnrrolled) {
+            ssetSubmitting(false);
+            alreadyEnrolledAlert();
+            topRef.current?.scrollIntoView({ behavior: "smooth" });
+            return
+        }
+
+        const errors = {};
+
+        if (!studentType) errors.studentType = true;
+        if (!studentInfo.id) errors.studentID = true;
+
+        if (Object.keys(errors).length > 0) {
+            setErrors(errors);
+            topRef.current?.scrollIntoView({ behavior: "smooth" });
+            toast({
+                description: "Student info incomplete!",
+                variant: "destructive",
+            })
+            ssetSubmitting(false);
+            return;
+        }
+        const classID = classes.map(cls => cls.id);
+
+        await axios.post(`/enrollment/enroll-student/${studentInfo.id}/${yearSectionId}/${studentType}/${schoolYear.start_date}`, {
+            classID: classID
+        })
+            .then(response => {
+                if (response.data.message == 'success') {
+                    toast({
+                        description: "Student enrolled successfully",
+                        variant: "success",
+                    })
+                    setClasses(defaultClasses);
+                    setstudentType('');
+                    setStudentInfo([]);
+                    setStudentID('')
+                }
+            })
+            .finally(() => {
+                ssetSubmitting(false);
+                topRef.current?.scrollIntoView({ behavior: "smooth" });
+            })
+    }
+
     if (loading) return <PreLoader title="Enroll" />
 
     return (
@@ -269,9 +297,14 @@ export default function EnrollStudent() {
                                 <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent>
-                                {['Freshman', 'Transferee', 'Old', 'Returnee'].map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                        {type}
+                                {[
+                                    { value: 1, name: 'Freshman' },
+                                    { value: 2, name: 'Transferee' },
+                                    { value: 3, name: 'Old' },
+                                    { value: 4, name: 'Returnee' },
+                                ].map((type) => (
+                                    <SelectItem key={type.value} value={type.value}>
+                                        {type.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -389,7 +422,7 @@ export default function EnrollStudent() {
                         <TimeTable data={classes} />
                     )}
                     <Button
-                        disabled={classes.length < 1}
+                        disabled={classes.length < 1 || submitting}
                         className="disabled:cursor-not-allowed mt-2"
                         onClick={enrollStudent}
                     >
