@@ -11,9 +11,14 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function view()
+    public function viewFaculty()
     {
         return Inertia::render('UserManagement/FacultyList');
+    }
+
+    public function viewStudent()
+    {
+        return Inertia::render('UserManagement/StudentList');
     }
 
     public function getFacultyList()

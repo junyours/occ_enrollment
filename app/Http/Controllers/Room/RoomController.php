@@ -7,6 +7,7 @@ use App\Models\Faculty;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class RoomController extends Controller
 {
@@ -22,5 +23,10 @@ class RoomController extends Controller
             ->where('department_id', '=', $deptId)
             ->orderBy('room_name', 'ASC')
             ->get();
+    }
+
+    public function view()
+    {
+        return Inertia::render('Rooms/Rooms');
     }
 }

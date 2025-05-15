@@ -3,10 +3,8 @@
 use App\Http\Controllers\Enrollment\ClassScheduling\EnrollmentClassSchedulingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
-use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -40,3 +38,6 @@ require __DIR__ . '/ClassesRoute.php';
 require __DIR__ . '/UserManagementRoute.php';
 require __DIR__ . '/SchoolyearManagementRoute.php';
 require __DIR__ . '/EnrollmentRoute.php';
+require __DIR__ . '/DepartmentRoute.php';
+require __DIR__ . '/Room.php';
+require __DIR__ . '/SchoolYear.php';
