@@ -9,16 +9,15 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import {
     Sheet,
-    SheetClose,
     SheetContent,
     SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/Components/ui/sheet"
+
+import { Input } from "@/Components/ui/input"
+import { Label } from "@/Components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 export default function SchoolYear() {
