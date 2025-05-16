@@ -22,7 +22,7 @@ export function NavMain() {
 
     // Define menu items based on user role
     const menuItems = [
-        ...(user.user_role === "registrar" || user.user_role === "program_head"
+        ...(user.user_role === "registrar"
             ? [
                 { name: "Department", route: "department", icon: Building },
                 { name: "School year", route: "school-year", icon: Calendar1 },
