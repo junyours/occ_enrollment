@@ -53,27 +53,37 @@ class SchoolYearController extends Controller
 
     public function addSchoolYear(Request $request)
     {
-        SchoolYear::create([
+        $schoolYear = SchoolYear::create([
             'semester_id' => $request->semester_id,
             'start_year' => $request->start_year,
             'end_year' => $request->end_year,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'is_current' => 0,
+            'is_current' => $request->is_current,
         ]);
+
+        if ($schoolYear->is_current) {
+            SchoolYear::whereNot('id', '=',  $schoolYear->id)
+                ->update(['is_current' => 0]);
+        }
 
         return response()->json(['message' => 'success'], 200);
     }
 
     public function editSchoolYear(Request $request, $id)
     {
+        if ($request->is_current) {
+            SchoolYear::whereNot('id', '=',  $id)
+                ->update(['is_current' => 0]);
+        }
+
         SchoolYear::where('id', $id)->update([
             'semester_id' => $request->semester_id,
             'start_year' => $request->start_year,
             'end_year' => $request->end_year,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'is_current' => 0,
+            'is_current' => $request->is_current,
         ]);
 
         return response()->json(['message' => 'success'], 200);

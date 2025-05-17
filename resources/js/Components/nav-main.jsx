@@ -35,6 +35,7 @@ export function NavMain() {
         ),
         ...(user.user_role === "program_head"
             ? [
+                { name: "Classes", route: "classes", icon: Presentation },
                 { name: "Curriculum", route: "curriculum", icon: BookOpen },
                 { name: "Faculty List", route: "faculty-list", icon: User },
             ]

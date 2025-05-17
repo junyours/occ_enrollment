@@ -30,6 +30,14 @@ const ViewClasses = () => {
 
     if (loading) return <PreLoader title="Classes" />
 
+    if (!currentSchoolYear) {
+        return (
+            <div className="flex items-center justify-center rounded-md shadow-sm">
+                Current School Year not set yet
+            </div>
+        );
+    }
+
     return (
         <div className='space-y-4'>
             <Head title="Classes" />

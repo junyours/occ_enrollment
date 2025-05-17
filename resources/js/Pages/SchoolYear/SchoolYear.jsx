@@ -15,15 +15,26 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/Components/ui/sheet"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/Components/ui/dialog"
 
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import Checkbox from '@/Components/Checkbox';
 
 export default function SchoolYear() {
     const [action, setAction] = useState('adding');
-    const [openSheet, setOpenSheet] = useState(false);
 
+    const [submitting, setSubmitting] = useState(false);
+    const [openSheet, setOpenSheet] = useState(false);
     const [showAll, setShowAll] = useState(false);
 
     const [formErrors, setFormErrors] = useState({});
@@ -36,6 +47,16 @@ export default function SchoolYear() {
         end_year: '',
         start_date: '',
         end_date: '',
+        is_current: 0,
+    });
+
+    const [nextYear, setNextYear] = useState({
+        semester_id: '',
+        start_year: '',
+        end_year: '',
+        start_date: '',
+        end_date: '',
+        is_current: 0,
     });
 
     const [loading, setLoading] = useState(true);
@@ -54,12 +75,24 @@ export default function SchoolYear() {
                             start_year: lastSchoolYear.end_year,
                             end_year: Number(lastSchoolYear.end_year) + 1,
                         }));
+                        setNextYear(prev => ({
+                            ...prev,
+                            semester_id: 1,
+                            start_year: lastSchoolYear.end_year,
+                            end_year: Number(lastSchoolYear.end_year) + 1,
+                        }));
                     } else {
                         setForm(prev => ({
                             ...prev,
                             semester_id: Number(lastSchoolYear.semester_id) + 1,
                             start_year: lastSchoolYear.start_year,
                             end_year: lastSchoolYear.end_year,
+                        }));
+                        setNextYear(prev => ({
+                            ...prev,
+                            semester_id: 1,
+                            start_year: lastSchoolYear.end_year,
+                            end_year: Number(lastSchoolYear.end_year) + 1,
                         }));
                     }
                 }
@@ -102,7 +135,7 @@ export default function SchoolYear() {
     };
 
     const handleSubmit = async () => {
-        console.log(form.id)
+        setSubmitting(true);
         const errors = {};
         if (!form.semester_id) errors.semester_id = true;
         if (!form.start_year) errors.start_year = true;
@@ -112,7 +145,7 @@ export default function SchoolYear() {
 
         setFormErrors(errors);
 
-        if (Object.keys(errors).length > 0) return; // Prevent submission
+        if (Object.keys(errors).length > 0) return setSubmitting(false);
 
         const url = action === 'adding'
             ? route('add.school-year')
@@ -127,6 +160,7 @@ export default function SchoolYear() {
                 })
                 .finally(() => {
                     getSchoolYears();
+                    setSubmitting(false);
                 });
 
             setOpenSheet(false);
@@ -150,6 +184,8 @@ export default function SchoolYear() {
                     onClick={() => {
                         setOpenSheet(true)
                         setAction('adding')
+                        setForm(nextYear);
+                        setFormErrors({});
                     }}
                 >
                     Add School Year
@@ -193,7 +229,9 @@ export default function SchoolYear() {
                                             end_year: sy.end_year,
                                             start_date: sy.start_date,
                                             end_date: sy.end_date,
+                                            is_current: sy.is_current,
                                         })
+                                        setFormErrors({});
                                     }}
                                     className="py-0 h-max mt-0"
                                 >
@@ -206,7 +244,7 @@ export default function SchoolYear() {
             </div>
 
             {/* add and edit school year */}
-            <Sheet open={openSheet} onOpenChange={setOpenSheet}>
+            <Sheet>
                 <SheetContent>
                     <SheetHeader>
                         <SheetTitle>{action === 'adding' ? 'Adding' : 'Editing'} School Year</SheetTitle>
@@ -215,9 +253,53 @@ export default function SchoolYear() {
                         </SheetDescription>
                     </SheetHeader>
 
-                    <div className="grid gap-4 py-4">
+
+                    <SheetFooter>
+                        <Button type="button" onClick={handleSubmit}>Save changes</Button>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
+
+            <Dialog open={openSheet} onOpenChange={setOpenSheet}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>{action === 'adding' ? 'Adding' : 'Editing'} School Year</DialogTitle>
+                        <DialogDescription>
+                            Fill out the details below. Click save when you're done.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-2">
+                        {/* School Year */}
+                        <div className="">
+                            <Label htmlFor="start_year" className="text-right">
+                                School Year
+                            </Label>
+                            <div className='col-span-3 flex gap-1'>
+                                <Input
+                                    name="start_year"
+                                    disabled={action == 'editing'}
+                                    id="start_year"
+                                    type="number"
+                                    value={form.start_year}
+                                    onChange={handleFormChange}
+                                    className={`${formErrors.start_year ? 'border-red-500' : ''}`}
+                                />
+                                <div className="flex items-center h-9">
+                                    <p className="">-</p>
+                                </div>
+                                <Input
+                                    disabled={action == 'editing'}
+                                    id="end_year"
+                                    type="number"
+                                    value={form.end_year}
+                                    onChange={(e) => setForm({ ...form, end_year: e.target.value })}
+                                    className={`${formErrors.end_year ? 'border-red-500' : ''}`}
+                                />
+                            </div>
+                        </div>
+
                         {/* Semester */}
-                        <div className="grid grid-cols-4 items-center gap-4">
+                        <div className="">
                             <Label htmlFor="semester_id" className="text-right">
                                 Semester
                             </Label>
@@ -237,73 +319,58 @@ export default function SchoolYear() {
                             </Select>
                         </div>
 
-                        {/* Start Year */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="start_year" className="text-right">
-                                Start Year
-                            </Label>
-                            <Input
-                                name="start_year"
-                                disabled={action == 'editing'}
-                                id="start_year"
-                                type="number"
-                                value={form.start_year}
-                                onChange={handleFormChange}
-                                className={`col-span-3 ${formErrors.start_year ? 'border-red-500' : ''}`}
-                            />
-                        </div>
-
-                        {/* End Year */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="end_year" className="text-right">
-                                End Year
-                            </Label>
-                            <Input
-                                disabled={action == 'editing'}
-                                id="end_year"
-                                type="number"
-                                value={form.end_year}
-                                onChange={(e) => setForm({ ...form, end_year: e.target.value })}
-                                className={`col-span-3 ${formErrors.end_year ? 'border-red-500' : ''}`}
-
-                            />
-                        </div>
-
-                        {/* Start Date */}
-                        <div className="grid grid-cols-4 items-center gap-4">
+                        {/* DATE */}
+                        <div className="">
                             <Label htmlFor="start_date" className="text-right">
-                                Start Date
+                                Date
                             </Label>
-                            <Input
-                                id="start_date"
-                                type="date"
-                                value={form.start_date}
-                                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                className={`col-span-3 ${formErrors.start_date ? 'border-red-500' : ''}`}
-                            />
+                            <div className='col-span-3 flex gap-1'>
+                                <Input
+                                    id="start_date"
+                                    type="date"
+                                    value={form.start_date}
+                                    onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                    className={`${formErrors.start_date ? 'border-red-500' : ''}`}
+                                />
+                                <div className="flex items-center h-9">
+                                    <p className="">-</p>
+                                </div>
+                                <Input
+                                    min={form.start_date ? addDays(form.start_date, 20) : ''}
+                                    id="end_date"
+                                    type="date"
+                                    value={form.end_date}
+                                    onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+                                    className={`${formErrors.end_date ? 'border-red-500' : ''}`}
+                                />
+                            </div>
                         </div>
 
-                        {/* End Date */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="end_date" className="text-right">
-                                End Date
-                            </Label>
-                            <Input
-                                min={form.start_date ? addDays(form.start_date, 20) : ''}
-                                id="end_date"
-                                type="date"
-                                value={form.end_date}
-                                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                                className={`col-span-3 ${formErrors.end_date ? 'border-red-500' : ''}`}
+                        <div className="flex items-center space-x-2">
+                            <label
+                                htmlFor="current"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Current
+                            </label>
+                            <Checkbox
+                                checked={form.is_current}
+                                onChange={(e) => {
+                                    setForm((prev) => ({
+                                        ...prev,
+                                        is_current: e.target.checked ? 1 : 0,
+                                    }));
+                                }}
+                                id="current"
+                                className='h-full'
                             />
                         </div>
                     </div>
-
-                    <SheetFooter>
-                        <Button type="button" onClick={handleSubmit}>Save changes</Button>
-                    </SheetFooter>
-                </SheetContent>
-            </Sheet>
+                    <DialogFooter>
+                        <Button onClick={handleSubmit} disabled={submitting}>Save changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
