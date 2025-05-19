@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'EnrollmentPermission' => \App\Http\Middleware\EnrollmentPermission::class,
             'ClassesPermission' => \App\Http\Middleware\ClassesPermission::class,
             'UserManagementPermission' => \App\Http\Middleware\UserManagementPermission::class,
+            'ProgrameadRegistrar' => \App\Http\Middleware\ProgramheadRegistrar::class,
         ]);
         //
     })

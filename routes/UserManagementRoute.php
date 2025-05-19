@@ -13,3 +13,8 @@ Route::middleware(['auth', 'UserManagementPermission', 'program_head'])->group(f
     Route::patch('/api/set-faculty-active-status', [UserController::class, 'setFacultyActiveStatus'])->name('set.faculty.actice.status');
     Route::patch('/api/set-faculty-role', [UserController::class, 'setFacultyRole'])->name('set.faculty.role');
 });
+
+Route::middleware(['auth', 'registrar'])->group(function () {
+    Route::post('/api/department-faculties/{id}', [UserController::class, 'departmentFaculties'])->name('department.faculties');
+    Route::post('/api/assign-department-head/{deptID}/{facID}', [UserController::class, 'assignDeptHead'])->name('assign.department.head');
+});

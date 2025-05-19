@@ -16,7 +16,6 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(func
     Route::post('api/add/new/section', [EnrollmentCourseSectionController::class, 'addNewSection'])->name('add.new.section');
 
     Route::get('/enrollment/{id}/class/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewClass'])->name('enrollment.view.class');
-    Route::post('/api/enrollment/get-classes', [EnrollmentClassSchedulingController::class, 'enrollmentGetClasses'])->name('enrollment.get.classes');
     Route::post('/api/enrollment/update-main-class', [EnrollmentClassSchedulingController::class, 'enrollmentUpdateMainClass'])->name('enrollment.update.main.class');
     Route::post('/api/enrollment/update-second-class', [EnrollmentClassSchedulingController::class, 'enrollmentUpdateSecondClass'])->name('enrollment.update.second.class');
 
@@ -31,13 +30,17 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(func
     Route::post('/api/get-enrollment-subjects-schedules', [EnrollmentClassSchedulingController::class, 'getEnrollmentSubjectsSchedules'])->name('enrollment.get.subjects-schedules');
 });
 
+Route::middleware(['auth', 'EnrollmentPrepOngoing', 'ProgrameadRegistrar'])->group(function () {
+    Route::post('/api/enrollment/get-classes', [EnrollmentClassSchedulingController::class, 'enrollmentGetClasses'])->name('enrollment.get.classes');
+});
+
 require __DIR__ . '/auth.php';
+require __DIR__ . '/ClassesRoute.php';
+require __DIR__ . '/DepartmentRoute.php';
+require __DIR__ . '/EnrollmentRoute.php';
 require __DIR__ . '/ProgramHeadRoute.php';
 require __DIR__ . '/RegistrarRoute.php';
-require __DIR__ . '/ClassesRoute.php';
-require __DIR__ . '/UserManagementRoute.php';
-require __DIR__ . '/SchoolyearManagementRoute.php';
-require __DIR__ . '/EnrollmentRoute.php';
-require __DIR__ . '/DepartmentRoute.php';
 require __DIR__ . '/Room.php';
-require __DIR__ . '/SchoolYear.php';
+require __DIR__ . '/SchoolyearManagementRoute.php';
+require __DIR__ . '/SchoolYearRoute.php';
+require __DIR__ . '/UserManagementRoute.php';

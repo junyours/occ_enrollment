@@ -264,7 +264,7 @@ class EnrollmentDashboardController extends Controller
                             ->join('enrolled_students', 'year_section.id',  '=',  'enrolled_students.year_section_id');
                     },
                 ])
-                ->with(['YearSection' => function ($query) {
+                ->with(['YearSection' => function ($query) use ($schoolYearId) {
                     $query->join('enrolled_students', 'year_section.id', '=', 'enrolled_students.year_section_id')
                         ->join('course', 'course.id', '=', 'year_section.course_id')
                         ->select(
@@ -273,6 +273,7 @@ class EnrollmentDashboardController extends Controller
                             'course_name_abbreviation',
                             DB::raw('COUNT(enrolled_students.id) as total_students')
                         )
+                        ->where('school_year_id', '=', $schoolYearId)
                         ->groupBy('enrolled_students.date_enrolled', 'course_id', 'course_name_abbreviation'); // Group by date and course
                 }])
                 ->get();

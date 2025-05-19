@@ -63,7 +63,7 @@ const ViewClasses = () => {
                                     <TableRow>
                                         <TableCell>{classInfo.day == "TBA" ? '-' : classInfo.day}</TableCell>
                                         <TableCell>{classInfo.descriptive_title}</TableCell>
-                                        <TableCell>{classInfo.start_time == 'TBA' ? '-' : convertToAMPM(classInfo.start_time, classInfo.end_time)}</TableCell>
+                                        <TableCell>{classInfo.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} - ${convertToAMPM(classInfo.end_time)}`}</TableCell>
                                         <TableCell>{classInfo.room_name || '-'}</TableCell>
                                         <TableCell>
                                             <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`}>

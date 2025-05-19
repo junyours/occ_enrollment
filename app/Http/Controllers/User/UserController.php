@@ -62,4 +62,29 @@ class UserController extends Controller
         User::findOrFail($request->id)
             ->update(['user_role' => $request->role]);
     }
+
+    public function departmentFaculties($id)
+    {
+        $data = Faculty::where('department_id', '=', $id)
+            ->select('users.id', 'first_name', 'middle_name', 'last_name', 'user_role')
+            ->join('users', 'users.id', '=', 'faculty.faculty_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('last_name', 'ASC')
+            ->get();
+
+        return response()->json($data, 200);
+    }
+
+    public function assignDeptHead($deptID, $facID)
+    {
+        User::where('user_role', '=', 'program_head')
+            ->where('department_id', '=', $deptID)
+            ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
+            ->update(['user_role' => 'faculty']);
+
+        User::where('id', '=', $facID)
+            ->update(['user_role' => 'program_head']);
+
+        return response()->json(['message' => 'success']);
+    }
 }
