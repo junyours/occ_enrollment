@@ -2,7 +2,7 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { formatFullName } from '@/Lib/Utils';
@@ -12,13 +12,23 @@ import DataTable from '@/Components/ui/DataTable';
 import { PageTitle } from '@/Components/ui/PageTitle';
 
 const FacultyList = () => {
+    const { user } = usePage().props.auth;
+    const userRole = user.user_role
+
     const [faculty, setFaculty] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openPopovers, setOpenPopovers] = useState({});
     const [openPopoversEvaluator, setOpenPopoversEvaluator] = useState({});
 
     const getFacultyList = async () => {
-        await axios.post(route('api/get.faculty.list'))
+        let url
+        if (userRole == 'registrar') {
+            url = 'get.faculty.list'
+        } else {
+            url = 'get.faculty.list.department'
+        }
+
+        await axios.post(route(url))
             .then(response => {
                 setFaculty(response.data);
             })
@@ -57,36 +67,8 @@ const FacultyList = () => {
         axios.patch('api/set-faculty-role', { id: id, role: value })
     };
 
-    if (loading) return <PreLoader title="Faculty List" />;
-
-    const columns = [
-        {
-            colName: "ID no.",
-            accessorKey: "user_id_no",
-            header: "ID no.",
-            headerClassName: 'w-32',
-        },
-        {
-            colName: "Name",
-            accessorKey: "name",
-            header: "Name",
-            headerClassName: 'w-52',
-            filterValue: (row) => {
-                const { first_name, middle_name, last_name } = row;
-                return formatFullName({ first_name, middle_name, last_name }).toLowerCase();
-            },
-            cell: ({ row }) => {
-                const { first_name, middle_name, last_name } = row.original;
-                const formattedName = formatFullName({ first_name, middle_name, last_name });
-                return <div className="font-medium">{formattedName}</div>;
-            },
-        },
-        {
-            colName: "Email",
-            accessorKey: "email_address",
-            header: "Email",
-        },
-        {
+    const cols = {
+        'program_head': [{
             colName: "Status",
             header: "Status",
             cellClassName: 'text-right w-32 hidden sm:table-cell',
@@ -173,8 +155,52 @@ const FacultyList = () => {
                     </>
                 );
             },
+        }],
+        'registrar':
+        {
+            colName: "Department",
+            accessorKey: "department_name_abbreviation",
+            header: "Department",
         },
+    }
+
+    const extraCols = Array.isArray(cols[userRole])
+        ? cols[userRole]
+        : cols[userRole]
+            ? [cols[userRole]]
+            : [];
+
+    const columns = [
+        {
+            colName: "ID no.",
+            accessorKey: "user_id_no",
+            header: "ID no.",
+            headerClassName: 'w-32',
+        },
+        {
+            colName: "Name",
+            accessorKey: "name",
+            header: "Name",
+            headerClassName: 'w-52',
+            filterValue: (row) => {
+                const { first_name, middle_name, last_name } = row;
+                return formatFullName({ first_name, middle_name, last_name }).toLowerCase();
+            },
+            cell: ({ row }) => {
+                const { first_name, middle_name, last_name } = row.original;
+                const formattedName = formatFullName({ first_name, middle_name, last_name });
+                return <div className="font-medium">{formattedName}</div>;
+            },
+        },
+        {
+            colName: "Email",
+            accessorKey: "email_address",
+            header: "Email",
+        },
+        ...extraCols
     ];
+
+    if (loading) return <PreLoader title="Faculty List" />;
 
     return (
         <div className="space-y-4">

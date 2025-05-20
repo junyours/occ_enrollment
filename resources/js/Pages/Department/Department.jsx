@@ -164,11 +164,11 @@ export default function Department() {
         });
     }
 
-    if (loading) return <PreLoader title="Departments" />
+    if (loading) return <PreLoader title="Department" />
 
     return (
         <div className='space-y-4'>
-            <Head title='Departments' />
+            <Head title='Department' />
             {departments.map((dept) => (
                 <Card key={dept.id}>
                     <CardHeader>

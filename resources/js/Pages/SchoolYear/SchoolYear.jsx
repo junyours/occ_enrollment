@@ -27,6 +27,7 @@ import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import Checkbox from '@/Components/Checkbox';
+import { Head } from '@inertiajs/react';
 
 export default function SchoolYear() {
     const [action, setAction] = useState('adding');
@@ -176,6 +177,7 @@ export default function SchoolYear() {
 
     return (
         <div>
+            <Head title={'School year'} />
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">School Years</h2>
                 <Button
