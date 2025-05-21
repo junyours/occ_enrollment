@@ -40,7 +40,7 @@ require __DIR__ . '/DepartmentRoute.php';
 require __DIR__ . '/EnrollmentRoute.php';
 require __DIR__ . '/ProgramHeadRoute.php';
 require __DIR__ . '/RegistrarRoute.php';
-require __DIR__ . '/Room.php';
 require __DIR__ . '/SchoolyearManagementRoute.php';
 require __DIR__ . '/SchoolYearRoute.php';
 require __DIR__ . '/UserManagementRoute.php';
+require __DIR__ . '/RoomsRoute.php';

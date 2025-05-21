@@ -77,4 +77,3 @@ class User extends Authenticatable
         return $this->hasMany(StudentAttendance::class, 'student_id');
     }
 }
-

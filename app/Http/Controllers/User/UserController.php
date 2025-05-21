@@ -115,4 +115,22 @@ class UserController extends Controller
 
         return response()->json(['message' => 'success']);
     }
+
+    public function students()
+    {
+        $data = User::select(
+            'users.id',
+            'user_id_no',
+            'email_address',
+            'contact_number',
+            'user_information.first_name',
+            'user_information.middle_name',
+            'user_information.last_name',
+        )
+            ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+            ->where('users.user_role', '=', 'student')
+            ->get();
+
+        return response()->json($data, 200);
+    }
 }

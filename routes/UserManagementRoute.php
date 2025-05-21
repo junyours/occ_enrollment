@@ -18,4 +18,5 @@ Route::middleware(['auth', 'UserManagementPermission', 'program_head'])->group(f
 Route::middleware(['auth', 'registrar'])->group(function () {
     Route::post('/api/department-faculties/{id}', [UserController::class, 'departmentFaculties'])->name('department.faculties');
     Route::post('/api/assign-department-head/{deptID}/{facID}', [UserController::class, 'assignDeptHead'])->name('assign.department.head');
+    Route::post('/api/students', [UserController::class, 'students'])->name('students');
 });
