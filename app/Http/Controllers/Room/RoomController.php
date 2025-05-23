@@ -54,4 +54,26 @@ class RoomController extends Controller
 
         return response()->json(['message' => 'success'], 200);
     }
+
+    public function add(Request $request)
+    {
+        $request->validate([
+            'room_name' => 'required|string|max:255'
+        ]);
+
+        $roomExist = Room::where('room_name', $request->room_name)->first();
+
+        if ($roomExist) {
+            return back()->withErrors([
+                'room_name' => 'Room name already exists.',
+            ]);
+        }
+
+        Room::create([
+            'room_name' => $request->room_name
+        ]);
+
+        return response()->noContent(); // 👈 This fixes the Inertia error
+    }
+
 }

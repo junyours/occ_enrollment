@@ -526,8 +526,6 @@ class EnrollmentCourseSectionController extends Controller
 
     public function enrollStudent($studID, $yearSectionID, $typeID, $startDate, Request $request)
     {
-
-
         $studentInfo = UserInformation::select('first_name', 'middle_name', 'last_name')
             ->where('id', '=', $studID)
             ->first();

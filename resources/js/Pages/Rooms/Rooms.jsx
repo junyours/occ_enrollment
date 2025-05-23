@@ -3,25 +3,32 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Componen
 import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { CircleMinus, CirclePlus, LoaderCircle } from 'lucide-react';
+import { CircleMinus, CirclePlus } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Label } from '@/Components/ui/label';
+import { Input } from '@/Components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Rooms() {
     const [rooms, setRooms] = useState([])
     const [loading, setLoading] = useState(true);
+    const [openAddRoom, setOpenAddRoom] = useState(false);
     const [deptId, setDeptId] = useState(0)
-    const [assigningRoom, setAssigningRoom] = useState(false);
     const [departments, setDepartments] = useState([]);
-    const [unAssigningRoom, setUnAssigningRoom] = useState(false);
+    const { toast } = useToast()
+
+    const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
+        room_name: '',
+    });
 
     const getRooms = async () => {
         await axios.post(route('rooms'))
             .then(response => {
                 setRooms(response.data.rooms);
                 setDepartments(response.data.department)
-                console.log(response.data.rooms)
             })
             .finally(() => {
                 setLoading(false);
@@ -71,6 +78,37 @@ export default function Rooms() {
             });
     };
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        if (value.trim() === '') {
+            setError(name, { message: 'Required' });
+        } else {
+            clearErrors(name);
+        }
+        setData(name, value);
+    }
+
+    const submit = async () => {
+        if (!data.room_name) return setError('room_name', { message: 'Required' })
+
+        await post(route('rooms.add'), {
+            onSuccess: () => {
+                reset();
+                getRooms();
+                toast({
+                    description: "Room added successfully",
+                    variant: "success",
+                });
+                setOpenAddRoom(false);
+            },
+            onError: (errors) => {
+                if (errors.room_name) {
+                    setError('room_name', { message: errors.room_name });
+                }
+            },
+            preserveScroll: true,
+        });
+    };
 
     return (
         <div>
@@ -103,11 +141,7 @@ export default function Rooms() {
                                                                 variant="icon"
                                                                 style={{ color: '#00FF1A' }}
                                                                 onClick={() => { assignRoom(room.id) }}>
-                                                                {(assigningRoom && roomId == room.id) ? (
-                                                                    <LoaderCircle className="size-6 inline-block animate-spin ml-1 cursor-not-allowed" />
-                                                                ) : (
-                                                                    <CirclePlus size={15} />
-                                                                )}
+                                                                <CirclePlus size={15} />
                                                             </Button>
                                                         ) : (
                                                             <Button
@@ -126,7 +160,16 @@ export default function Rooms() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className='w-full'>Add Room</Button>
+                        <Button
+                            onClick={() => {
+                                setOpenAddRoom(true);
+                                setData('room_name', '');
+                                clearErrors();
+                            }}
+                            className='w-full'
+                        >
+                            Add Room
+                        </Button>
                     </CardFooter>
                 </Card>
 
@@ -154,35 +197,60 @@ export default function Rooms() {
                         </div>
 
                         <CardContent className="space-y-2">
-
                             <Table>
                                 <TableBody>
-                                    {rooms.filter(room => room.department_id == department.id)
-                                        .map((room, index) => (
-                                            <TableRow key={index} className='gap-1'>
-                                                <TableCell
-                                                    key={index}
-                                                    className="flex justify-between items-center p-0">
-                                                    <span>{room.room_name}</span>
-                                                    <Button
-                                                        variant="icon"
-                                                        style={{ color: "#C82333" }}
-                                                        onClick={() => { unAssignRoom(room.id) }}>
-                                                        {(unAssigningRoom && roomId == room.id) ? (
-                                                            <LoaderCircle className="size-6 inline-block animate-spin ml-1" />
-                                                        ) : (
-                                                            <CircleMinus onClick={() => remove} size={18} />
-                                                        )}
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                    {rooms.filter(room => room.department_id == department.id).length > 0 ? (
+                                        rooms
+                                            .filter(room => room.department_id == department.id)
+                                            .map((room, index) => (
+                                                <TableRow key={index} className="gap-1">
+                                                    <TableCell className="flex justify-between items-center p-0">
+                                                        <span>{room.room_name}</span>
+                                                        <Button
+                                                            variant="icon"
+                                                            style={{ color: "#C82333" }}
+                                                            onClick={() => { unAssignRoom(room.id) }}
+                                                        >
+                                                            <CircleMinus size={18} />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell className="text-center italic text-gray-500" colSpan={1}>
+                                                No rooms assigned
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
                     </Card>
                 ))}
             </div>
+            <Dialog open={openAddRoom} onOpenChange={setOpenAddRoom}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Add Room</DialogTitle>
+                    </DialogHeader>
+                    <div className="max-h-64">
+                        <Label>Name:</Label>
+                        <Input
+                            name="room_name"
+                            value={data.room_name}
+                            onChange={handleChange}
+                            className={`mb-2 ${errors.room_name && 'border-red-500'}`}
+                        />
+                        {errors.room_name && (
+                            <p className="text-red-500 text-sm mt-1">{errors.room_name.message}</p>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button disabled={processing} onClick={submit} type="submit">Save changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

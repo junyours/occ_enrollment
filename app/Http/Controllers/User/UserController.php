@@ -3,10 +3,16 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\StudentCredentialsMail;
 use App\Models\Faculty;
+use App\Models\SchoolYear;
 use App\Models\User;
+use App\Models\UserInformation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -129,8 +135,128 @@ class UserController extends Controller
         )
             ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
             ->where('users.user_role', '=', 'student')
+            ->orderBy('user_id_no', 'desc')
             ->get();
 
         return response()->json($data, 200);
+    }
+
+    public function addStudent(Request $request)
+    {
+        $studentExist = UserInformation::where('first_name', '=', $request->first_name)
+            ->where('last_name', '=', $request->last_name)
+            ->first();
+
+        if ($studentExist) {
+            return back()->withErrors([
+                'student' => 'Student already exists.',
+            ]);
+        }
+
+        $userId = User::select('user_id_no')
+            ->where('user_role', '=', 'student')
+            ->orderBy('user_id_no', 'desc')
+            ->first();
+
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        $lastFive = substr($userId->user_id_no, -5);      // "04567"
+        $studLastFiveDigits = str_pad(((int) $lastFive + 1), 5, '0', STR_PAD_LEFT);
+
+        $studentID = $schoolYear->start_year . '-' . $schoolYear->semester_id . '-' . $studLastFiveDigits;
+
+        $password = $this->generateRandomPassword();
+
+        $user = User::create([
+            'user_id_no' => $studentID,
+            'password' => Hash::make($password),
+            'user_role' => 'student',
+        ]);
+
+        UserInformation::create([
+            'user_id' => $user->id,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'middle_name' => $request->middle_name,
+            'gender' => $request->gender,
+            'birthday' => $request->birthday,
+            'contact_number' => $request->contact_number,
+            'email_address' => $request->email_address,
+            'present_address' => $request->present_address,
+            'zip_code' => $request->zip_code,
+        ]);
+
+        $student = [
+            "first_name" => $request->first_name,
+            "middle_name" => $request->middle_name,
+            "last_name" => $request->last_name,
+            "user_id_no" => $studentID
+        ];
+
+        if ($request->email_address) {
+            Mail::to($request->email_address)->send(new StudentCredentialsMail($student, $password));
+        }
+    }
+
+    private function generateRandomPassword()
+    {
+        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        $numbers = '0123456789';
+
+        $password = $uppercase[random_int(0, strlen($uppercase) - 1)] .
+            $lowercase[random_int(0, strlen($lowercase) - 1)] .
+            $numbers[random_int(0, strlen($numbers) - 1)];
+
+        $allCharacters = $uppercase . $lowercase . $numbers;
+        for ($i = 3; $i < 8; $i++) {
+            $password .= $allCharacters[random_int(0, strlen($allCharacters) - 1)];
+        }
+
+        return str_shuffle($password);
+    }
+
+    private function getPreparingOrOngoingSchoolYear()
+    {
+        $today = Carbon::now(); // Get today's date
+        $twoWeeksBeforeToday = $today->copy()->subWeeks(2); // 2 weeks before today, stored separately
+        $twoWeeksAfterToday = $today->copy()->addWeeks(2); // 2 weeks after today, stored separately
+
+        // Check if enrollment preparation is within 2 weeks before today and today
+        $enrollmentPreparation = SchoolYear::whereDate('start_date', '>=', $today->toDateString())
+            ->whereDate('start_date', '<=', $twoWeeksAfterToday->toDateString())
+            ->first();
+
+        // Check if enrollment is ongoing (start_date <= today <= end_date)
+        $enrollmentOngoing = SchoolYear::whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
+            ->first();
+
+        $schoolYear = null;
+        $status = null;
+        $preparation = false;
+
+        // Determine the status and set the school year accordingly
+        if ($enrollmentOngoing) {
+            // If enrollment is ongoing, set preparation to false
+            $status = 'ongoing';
+            $schoolYear = $enrollmentOngoing;
+            $preparation = false;
+        } elseif ($enrollmentPreparation) {
+            // If enrollment is in preparation, set status to preparing
+            $status = 'preparing';
+            $schoolYear = $enrollmentPreparation;
+            $preparation = true;
+        } else {
+            // No enrollment preparation or ongoing, set status to false
+            $status = false;
+        }
+
+        // Return status, preparation, and school year
+        return [
+            'status' => $status,
+            'preparation' => $preparation,
+            'school_year' => $schoolYear
+        ];
     }
 }
