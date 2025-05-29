@@ -175,21 +175,21 @@ class UserController extends Controller
 
         UserInformation::create([
             'user_id' => $user->id,
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'middle_name' => $request->middle_name,
+            'first_name' => strtoupper($request->first_name),
+            'last_name' => strtoupper($request->last_name),
+            'middle_name' => strtoupper($request->middle_name),
             'gender' => $request->gender,
             'birthday' => $request->birthday,
             'contact_number' => $request->contact_number,
             'email_address' => $request->email_address,
-            'present_address' => $request->present_address,
+            'present_address' => strtoupper($request->present_address),
             'zip_code' => $request->zip_code,
         ]);
 
         $student = [
-            "first_name" => $request->first_name,
-            "middle_name" => $request->middle_name,
-            "last_name" => $request->last_name,
+            "first_name" => ucwords(strtolower($request->first_name)),
+            "middle_name" => ucwords(strtolower($request->middle_name)),
+            "last_name" => ucwords(strtolower($request->last_name)),
             "user_id_no" => $studentID
         ];
 

@@ -79,8 +79,6 @@ export default function Dashboard() {
             { Freshman: 0, Old: 0, Returnee: 0, Transferee: 0 }
         );
 
-        console.log(Object.entries(studentTypeTotals).map(([name, count]) => ({ name, count })))
-
         return Object.entries(studentTypeTotals).map(([name, count]) => ({ name, count }));
     };
 
@@ -130,8 +128,6 @@ export default function Dashboard() {
         const filteredCourses = reports
             .filter(course => course.id == selectedCourse || selectedCourse == 0);
 
-        console.log(filteredCourses)
-
         const enrollmentTotals = filteredCourses.reduce((totals, course) => {
             course.year_section.forEach(entry => {
                 const date = entry.date_enrolled;
@@ -140,8 +136,6 @@ export default function Dashboard() {
 
             return totals;
         }, {});
-
-        console.log(enrollmentTotals)
 
         return Object.entries(enrollmentTotals).map(([date, totalStudents]) => ({
             date,

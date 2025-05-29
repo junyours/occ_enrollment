@@ -234,7 +234,7 @@ function AddStudent({ open, setOpen }) {
                                                     }
                                                 >
                                                     <SelectTrigger
-                                                        className={`focus:ring-0 ${errors.gender ? 'border-red-500' : ''}`}
+                                                        className={`${errors.gender ? 'border-red-500' : ''}`}
                                                     >
                                                         <SelectValue placeholder="Select..." />
                                                     </SelectTrigger>

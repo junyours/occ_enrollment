@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Student Account Credentials - Opol Community College</title>
+    <title>Your Faculty Account Credentials - Opol Community College</title>
     <style>
         * {
             margin: 0;
@@ -407,7 +407,7 @@
             .support-links {
                 flex-direction: column;
                 align-items: center;
-            }   
+            }
         }
 
         .cta-button {
@@ -461,11 +461,11 @@
         <!-- Main Content -->
         <div class="content">
             <div class="greeting">
-                Hello {{ $student['first_name'] }} {{ $student['middle_name'] }} {{ $student['last_name'] }}! 👋
+                Hello {{ $faculty['first_name'] }} {{ $faculty['middle_name'] }} {{ $faculty['last_name'] }}! 👋
             </div>
 
             <div class="welcome-message">
-                Congratulations! Your student account has been successfully created at <strong>Opol Community College</strong>.
+                Congratulations! Your faculty account has been successfully created at <strong>Opol Community College</strong>.
                 You're now ready to access our enrollment system and begin your academic journey with us.
             </div>
 
@@ -474,8 +474,8 @@
                 <div class="credentials-title">Your Login Credentials</div>
 
                 <div class="credential-item">
-                    <span class="credential-label">Student ID</span>
-                    <span class="credential-value">{{ $student['user_id_no'] }}</span>
+                    <span class="credential-label">faculty ID</span>
+                    <span class="credential-value">{{ $faculty['user_id_no'] }}</span>
                 </div>
 
                 <div class="credential-item">
@@ -496,22 +496,12 @@
             <a href="https://occ.edu.ph" class="cta-button">
                 🚀 Access Your Account Now
             </a>
-
-            <!-- Support Section -->
-            <!-- <div class="support-section">
-                <h3>Need Help?</h3>
-                <p>Our support team is here to assist you with any questions or technical issues.</p>
-                <div class="support-links">
-                    <a href="occ@occ.edu.ph" class="support-link">📧 Email Support</a>
-                    <a href="tel:+1234567890" class="support-link">📞 Call Us</a>
-                </div>
-            </div> -->
         </div>
 
         <!-- Footer -->
         <div class="footer">
             <p><strong>Opol Community College</strong></p>
-            <p>Building futures, one student at a time</p>
+            <p>Building futures, one faculty at a time</p>
             <p>&copy; {{ date('Y') }} Opol Community College. All rights reserved.</p>
         </div>
     </div>
