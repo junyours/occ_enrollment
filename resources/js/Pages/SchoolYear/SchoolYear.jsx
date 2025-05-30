@@ -288,7 +288,7 @@ export default function SchoolYear() {
                                     <p className="">-</p>
                                 </div>
                                 <Input
-                                    disabled={action == 'editing'}
+                                    disabled={true}
                                     id="end_year"
                                     type="number"
                                     value={form.end_year}

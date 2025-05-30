@@ -1,6 +1,6 @@
 import { usePage } from "@inertiajs/react";
 import { LayoutDashboard, BookOpen } from "lucide-react";
-import { cn } from "@/Lib/Utils"; // Ensure you have a utility for class merging
+import { cn, formatDateShort } from "@/Lib/Utils"; // Ensure you have a utility for class merging
 import { Link } from "@inertiajs/react";
 import {
     SidebarGroup,
@@ -13,9 +13,11 @@ import {
 import { DoorClosed, User, NotebookText } from "lucide-react";
 
 export function NavEnrollment() {
-    const { user, courses, enrollment_status } = usePage().props.auth;
+    const { user, courses, enrollment_status, schoolYear } = usePage().props.auth;
     const currentUrl = usePage().url; // Get the current route
     const { setOpenMobile } = useSidebar();
+
+    console.log(schoolYear)
 
     return (
         <>
@@ -23,7 +25,16 @@ export function NavEnrollment() {
                 <>
                     {(enrollment_status == 'ongoing' || enrollment_status == 'preparing') &&
                         <SidebarGroup>
-                            <SidebarGroupLabel>Enrollment {enrollment_status} </SidebarGroupLabel>
+                            <SidebarGroupLabel>
+                                <div>
+                                    <div>
+                                        Enrollment {enrollment_status}
+                                    </div>
+                                    <div>
+                                        {schoolYear.start_year}-{schoolYear.end_year} {schoolYear.semester.semester_name} Semester
+                                    </div>
+                                </div>
+                            </SidebarGroupLabel>
                             <SidebarMenu>
                                 {courses.map((course) => {
                                     const courseUrl = route("enrollment.view", course.hashed_course_id);

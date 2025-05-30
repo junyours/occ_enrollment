@@ -6,7 +6,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/Components/ui/toggle-group"
-import { Pencil, Trash, Megaphone, Check, FileDown, ImageDown, } from 'lucide-react';
+import { Pencil, Trash, Megaphone, Check, FileDown, ImageDown, Loader2 } from 'lucide-react';
 import { convertToAMPM, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
 import { Input } from '@/Components/ui/input';
@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
 import { Switch } from '@/Components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import html2canvas from 'html2canvas';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -69,6 +70,7 @@ export default function ClassScheduling() {
 
     const [editing, setEditing] = useState(false);
     const [editingSecondSchedule, setEditingSecondSchedule] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const [open, setOpen] = React.useState(false)
 
@@ -434,6 +436,40 @@ export default function ClassScheduling() {
 
     };
 
+
+    const downloadImage = async () => {
+        setIsDownloading(true);
+
+        try {
+            // Small delay to let the UI update and show the spinner
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const filename = `${courseName} - ${yearlevel}${section} classes.png`;
+            const element = document.getElementById(`section-schedule`);
+
+            if (element) {
+                const style = document.createElement("style");
+                document.head.appendChild(style);
+                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
+                style.sheet?.insertRule('td div > svg { display: none !important; }');
+
+                const canvas = await html2canvas(element, { scale: 5 });
+                const imageUrl = canvas.toDataURL("image/png");
+
+                const link = document.createElement("a");
+                link.href = imageUrl;
+                link.download = filename;
+                link.click();
+
+                style.remove();
+            }
+        } catch (error) {
+            console.error('Error downloading image:', error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     if (fetching) return <PreLoader title="Class" />
 
     return (
@@ -452,8 +488,16 @@ export default function ClassScheduling() {
                             <FileDown />
                             Excel
                         </Button>
-                        <Button className="bg-blue-700 hover:bg-blue-600" variant="">
-                            <ImageDown />
+                        <Button
+                            className="bg-blue-700 hover:bg-blue-600"
+                            onClick={downloadImage}
+                            disabled={isDownloading}
+                        >
+                            {isDownloading ? (
+                                <Loader2 className="animate-spin" />
+                            ) : (
+                                <ImageDown />
+                            )}
                             Image
                         </Button>
 
@@ -469,7 +513,7 @@ export default function ClassScheduling() {
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card id={`section-schedule`}>
                 <CardHeader className="px-6 mt-4">
                     <CardTitle className="text-4xl font-bold" >{courseName} - {yearlevel}{section}</CardTitle>
                 </CardHeader>
@@ -485,7 +529,7 @@ export default function ClassScheduling() {
                                     <TableHead className="w-40">Time</TableHead>
                                     <TableHead className="w-14">Room</TableHead>
                                     <TableHead className="w-32">Instructor</TableHead>
-                                    <TableHead className="w-12"></TableHead>
+                                    {!isDownloading && <TableHead className="w-12"></TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -510,15 +554,17 @@ export default function ClassScheduling() {
                                                 <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
                                                     {classInfo.instructor ? formatFullName(classInfo.instructor.instructor_info) : "TBA"}
                                                 </TableCell>
-                                                <TableCell>
-                                                    <div className="flex justify-start space-x-1 h-full">
-                                                        <Pencil
-                                                            onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
-                                                            size={15}
-                                                            className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                                        />
-                                                    </div>
-                                                </TableCell>
+                                                {!isDownloading && (
+                                                    <TableCell>
+                                                        <div className="flex justify-start space-x-1 h-full">
+                                                            <Pencil
+                                                                onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
+                                                                size={15}
+                                                                className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                            />
+                                                        </div>
+                                                    </TableCell>
+                                                )}
                                             </TableRow>
 
                                             {classInfo.secondary_schedule && (
@@ -537,19 +583,22 @@ export default function ClassScheduling() {
                                                     <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
                                                         {classInfo.instructor ? formatFullName(classInfo.instructor.instructor_info) : "TBA"}
                                                     </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex justify-evenly space-x-1 h-full">
-                                                            <Pencil
-                                                                onClick={() => { if (!editing) editSchedule(classInfo, 'second') }}
-                                                                size={15}
-                                                                className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                                            />
-                                                            <Trash
-                                                                onClick={() => { if (!editing) deleteSecondSchedule(classInfo.secondary_schedule.id) }}
-                                                                size={15}
-                                                                className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`} />
-                                                        </div>
-                                                    </TableCell>
+                                                    {!isDownloading && (
+                                                        <TableCell>
+                                                            <div className="flex justify-evenly space-x-1 h-full">
+                                                                <Pencil
+                                                                    onClick={() => { if (!editing) editSchedule(classInfo, 'second') }}
+                                                                    size={15}
+                                                                    className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                                />
+                                                                <Trash
+                                                                    onClick={() => { if (!editing) deleteSecondSchedule(classInfo.secondary_schedule.id) }}
+                                                                    size={15}
+                                                                    className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
+                                                                />
+                                                            </div>
+                                                        </TableCell>
+                                                    )}
                                                 </TableRow>
                                             )}
                                         </React.Fragment>
@@ -607,26 +656,26 @@ export default function ClassScheduling() {
                                             <div className='flex justify-between w-full'>
                                                 <Label htmlFor="text-end">Day</Label>
                                                 {/* {schoolYear.semester_id == 3 && */}
-                                                    <RadioGroup
-                                                        disabled={data.day == 'TBA'}
-                                                        value={dayType}
-                                                        defaultValue={dayType}
-                                                        onValueChange={(value) => changeDayType(value)}
-                                                        className="flex">
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="Single" id="r1" />
-                                                            <Label htmlFor="r1">Single</Label>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="Consecutive" id="r2" />
-                                                            <Label htmlFor="r2">Consecutive</Label>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="Alternating" id="r3" />
-                                                            <Label htmlFor="r3">Alternating</Label>
-                                                        </div>
-                                                    </RadioGroup>
-                                                 {/* } */}
+                                                <RadioGroup
+                                                    disabled={data.day == 'TBA'}
+                                                    value={dayType}
+                                                    defaultValue={dayType}
+                                                    onValueChange={(value) => changeDayType(value)}
+                                                    className="flex">
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="Single" id="r1" />
+                                                        <Label htmlFor="r1">Single</Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="Consecutive" id="r2" />
+                                                        <Label htmlFor="r2">Consecutive</Label>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <RadioGroupItem value="Alternating" id="r3" />
+                                                        <Label htmlFor="r3">Alternating</Label>
+                                                    </div>
+                                                </RadioGroup>
+                                                {/* } */}
                                             </div>
                                             <Megaphone className='self-center text-transparent' />
                                         </div>
@@ -917,11 +966,15 @@ export default function ClassScheduling() {
                                                 <SelectValue placeholder="Select room..." />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {rooms.map(room => (
-                                                    <SelectItem key={room.id} value={room.id}>
-                                                        {room.room_name}
-                                                    </SelectItem>
-                                                ))}
+                                                {rooms && rooms.length > 0 ? (
+                                                    rooms.map(room => (
+                                                        <SelectItem key={room.id} value={room.id}>
+                                                            {room.room_name}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <SelectItem disabled>No rooms are assigned to your department</SelectItem>
+                                                )}
                                                 {data.room_id == null &&
                                                     <SelectItem value={null}>
                                                         TBA

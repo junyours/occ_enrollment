@@ -66,4 +66,8 @@ class DepartmentController extends Controller
             'department_name_abbreviation' => $request->department_name_abbreviation,
         ]);
     }
+
+    public function getDepartments() {
+        return Department::all();
+    }
 }

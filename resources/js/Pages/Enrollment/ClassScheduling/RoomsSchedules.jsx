@@ -5,22 +5,17 @@ import PreLoader from "@/Components/preloader/PreLoader";
 import { Head } from "@inertiajs/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
-import {
-    Tabs,
-    TabsList,
-    TabsTrigger,
-} from "@/Components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/Components/ui/tabs"
 import TimeTable from "@/Pages/ScheduleFormats/TimeTable";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 import { Switch } from "@/Components/ui/switch";
 import { Label } from "@/Components/ui/label";
-import { Check, FileDown, ImageDown } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import { cn, convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from "@/Lib/Utils";
+import { Check, FileDown, ImageDown, Loader2 } from "lucide-react";
+import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from "@/Lib/Utils";
 import TabularSchedule from "@/Pages/ScheduleFormats/TabularSchedule";
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
+import html2canvas from "html2canvas";
 
 export default function RoomSchedules() {
     const [rooms, setRooms] = useState([]);
@@ -29,6 +24,8 @@ export default function RoomSchedules() {
     const [selectedRoom, setSelectedRoom] = useState("All");
     const [scheduleType, setScheduleType] = useState('timetable');
     const [openRoomPopover, setOpenRoomPopover] = useState(false);
+    const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
     const getEnrollmentRoomSchedules = async () => {
         axios.post("api/get-enrollment-rooms-schedules")
@@ -96,6 +93,56 @@ export default function RoomSchedules() {
     }, []);
 
     if (loading) return <PreLoader title="Room schedules" />;
+
+    const downloadAllRoomImagesWithProgress = async () => {
+        setIsDownloadingAll(true);
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const filteredRooms = rooms.filter((room) =>
+                room.id == selectedRoom || selectedRoom == "All"
+            );
+
+            setDownloadProgress({ current: 0, total: filteredRooms.length });
+
+            for (let i = 0; i < filteredRooms.length; i++) {
+                const room = filteredRooms[i];
+                setDownloadProgress({ current: i + 1, total: filteredRooms.length });
+
+                const element = document.getElementById(room.id);
+
+                if (element) {
+                    const style = document.createElement("style");
+                    document.head.appendChild(style);
+                    style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
+                    style.sheet?.insertRule('td div > svg { display: none !important; }');
+
+                    try {
+                        const canvas = await html2canvas(element, { scale: 3 });
+                        const imageUrl = canvas.toDataURL("image/png");
+
+                        const filename = `${room.room_name} - Schedule.png`;
+                        const link = document.createElement("a");
+                        link.href = imageUrl;
+                        link.download = filename;
+                        link.click();
+
+                        if (i < filteredRooms.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    } finally {
+                        style.remove();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error downloading room images:', error);
+        } finally {
+            setIsDownloadingAll(false);
+            setDownloadProgress({ current: 0, total: 0 });
+        }
+    };
 
     return (
         <div className="space-y-4">
@@ -170,9 +217,23 @@ export default function RoomSchedules() {
                             <FileDown />
                             Excel
                         </Button>
-                        <Button className="bg-blue-700 hover:bg-blue-600" variant="">
-                            <ImageDown />
-                            Image
+                        <Button
+                            className="bg-blue-700 hover:bg-blue-600"
+                            variant=""
+                            onClick={downloadAllRoomImagesWithProgress}
+                            disabled={isDownloadingAll}
+                        >
+                            {isDownloadingAll ? (
+                                <>
+                                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                                    {downloadProgress.current}/{downloadProgress.total}
+                                </>
+                            ) : (
+                                <>
+                                    <ImageDown />
+                                    Image
+                                </>
+                            )}
                         </Button>
 
                         <div className="flex items-center space-x-2">
@@ -192,7 +253,7 @@ export default function RoomSchedules() {
                     {rooms
                         .filter((room) => room.id == selectedRoom || selectedRoom == "All")
                         .map((room) => (
-                            <Card className="w-full" key={room.id}>
+                            <Card id={room.id} className="w-full" key={room.id}>
                                 <CardHeader>
                                     <CardTitle className="text-4xl">{room.room_name} <span className="italic font-thin">({room.schedLength})</span></CardTitle>
                                 </CardHeader>
@@ -204,7 +265,8 @@ export default function RoomSchedules() {
                                     )}
                                 </CardContent>
                             </Card>
-                        ))}
+                        ))
+                    }
                 </div>
             ) : (
                 <p className="text-center text-gray-500">No room schedules available.</p>

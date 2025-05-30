@@ -87,6 +87,10 @@ class HandleInertiaRequests extends Middleware
                 ->get();
         }
 
+        $schoolYear = SchoolYear::where('id', '=', $schoolYear->id)
+            ->with('Semester')
+            ->first();
+
         return [
             ...parent::share($request),
             'auth' => [

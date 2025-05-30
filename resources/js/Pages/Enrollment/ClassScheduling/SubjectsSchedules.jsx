@@ -176,7 +176,7 @@ export default function SubjectsSchedules() {
                             </PopoverContent>
                         </Popover>
 
-                        <Button className="bg-green-600 hover:bg-green-500" variant="">
+                        {/* <Button className="bg-green-600 hover:bg-green-500" variant="">
                             <FileDown />
                             Excel
                         </Button>
@@ -192,7 +192,7 @@ export default function SubjectsSchedules() {
                                 id="color"
                             />
                             <Label htmlFor="airplane-mode">Color</Label>
-                        </div>
+                        </div> */}
                     </div>
                 </CardContent>
             </Card>

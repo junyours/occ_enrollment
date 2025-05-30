@@ -407,7 +407,7 @@
             .support-links {
                 flex-direction: column;
                 align-items: center;
-            }   
+            }
         }
 
         .cta-button {
@@ -493,7 +493,7 @@
             </div>
 
             <!-- Call to Action -->
-            <a href="https://occ.edu.ph" class="cta-button">
+            <a href="{{ config('app.url') . '/login' }}" class="cta-button">
                 🚀 Access Your Account Now
             </a>
 

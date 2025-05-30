@@ -11,3 +11,7 @@ Route::middleware(['auth', 'registrar'])->group(function () {
     Route::post('/department/add-program', [DepartmentController::class, 'addProgram'])->name('department.add.program');
     Route::post('/department/add-department', [DepartmentController::class, 'addDepartment'])->name('department.add.department');
 });
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/api/departments', [DepartmentController::class, 'getDepartments'])->name('departments');
+});

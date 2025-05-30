@@ -21,4 +21,5 @@ Route::middleware(['auth', 'registrar'])->group(function () {
     Route::post('/api/students', [UserController::class, 'students'])->name('students');
 
     Route::post('/student/add', [UserController::class, 'addStudent'])->name('student.add');
+    Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
 });

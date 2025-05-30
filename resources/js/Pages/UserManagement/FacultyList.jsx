@@ -10,6 +10,8 @@ import { Badge } from '@/Components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import DataTable from '@/Components/ui/DataTable';
 import { PageTitle } from '@/Components/ui/PageTitle';
+import AddFaculty from './AddFaculty';
+import { Button } from '@/Components/ui/button';
 
 const FacultyList = () => {
     const { user } = usePage().props.auth;
@@ -19,6 +21,7 @@ const FacultyList = () => {
     const [loading, setLoading] = useState(true);
     const [openPopovers, setOpenPopovers] = useState({});
     const [openPopoversEvaluator, setOpenPopoversEvaluator] = useState({});
+    const [open, setOpen] = useState(false);
 
     const getFacultyList = async () => {
         let url
@@ -206,6 +209,9 @@ const FacultyList = () => {
         <div className="space-y-4">
             <Head title="Faculty List" />
             <PageTitle align="center">Faculty List</PageTitle>
+            {userRole == 'registrar' && (
+                <Button onClick={() => setOpen(true)}>Add Faculty</Button>
+            )}
             <Card>
                 <CardHeader>
                     <CardTitle className="text-2xl"></CardTitle>
@@ -219,6 +225,9 @@ const FacultyList = () => {
                     />
                 </CardContent>
             </Card>
+            {userRole == 'registrar' && (
+                <AddFaculty open={open} setOpen={setOpen} />
+            )}
         </div>
     );
 };

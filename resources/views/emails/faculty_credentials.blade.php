@@ -493,7 +493,7 @@
             </div>
 
             <!-- Call to Action -->
-            <a href="https://occ.edu.ph" class="cta-button">
+            <a href="{{ config('app.url') . '/login' }}" class="cta-button">
                 🚀 Access Your Account Now
             </a>
         </div>
@@ -501,7 +501,7 @@
         <!-- Footer -->
         <div class="footer">
             <p><strong>Opol Community College</strong></p>
-            <p>Building futures, one faculty at a time</p>
+            <p>Building futures, one student at a time</p>
             <p>&copy; {{ date('Y') }} Opol Community College. All rights reserved.</p>
         </div>
     </div>

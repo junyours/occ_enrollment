@@ -29,7 +29,7 @@ export default function EnrollStudent() {
     const [searchingStudent, setSearchingStudent] = useState(false);
     const [gettingCLasses, setGettingCLasses] = useState(false);
     const [addingSubject, setAddingSubject] = useState(false);
-    const [submitting, ssetSubmitting] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [studentFound, setStudentFound] = useState(true);
     const [loading, setLoading] = useState(true);
 
@@ -93,6 +93,7 @@ export default function EnrollStudent() {
 
     const handleStudentIdChange = (e) => {
         const value = e.target.value;
+        setStudentAlreadyEnrrolled(false);
 
         if (value.includes(' ')) return;
 
@@ -221,9 +222,9 @@ export default function EnrollStudent() {
     }
 
     const enrollStudent = async () => {
-        ssetSubmitting(true);
+        setSubmitting(true);
         if (studentAlreadyEnrrolled) {
-            ssetSubmitting(false);
+            setSubmitting(false);
             alreadyEnrolledAlert();
             topRef.current?.scrollIntoView({ behavior: "smooth" });
             return
@@ -241,7 +242,7 @@ export default function EnrollStudent() {
                 description: "Student info incomplete!",
                 variant: "destructive",
             })
-            ssetSubmitting(false);
+            setSubmitting(false);
             return;
         }
         const classID = classes.map(cls => cls.id);
@@ -262,7 +263,7 @@ export default function EnrollStudent() {
                 }
             })
             .finally(() => {
-                ssetSubmitting(false);
+                setSubmitting(false);
                 topRef.current?.scrollIntoView({ behavior: "smooth" });
             })
     }

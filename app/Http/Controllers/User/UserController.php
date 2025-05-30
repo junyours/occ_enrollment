@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\FacultyCredentialsMail;
 use App\Mail\StudentCredentialsMail;
 use App\Models\Faculty;
 use App\Models\SchoolYear;
@@ -195,6 +196,67 @@ class UserController extends Controller
 
         if ($request->email_address) {
             Mail::to($request->email_address)->send(new StudentCredentialsMail($student, $password));
+        }
+    }
+
+    public function addFaculty(Request $request){
+        $facultyExist = UserInformation::where('first_name', '=', $request->first_name)
+            ->where('last_name', '=', $request->last_name)
+            ->first();
+
+        if ($facultyExist) {
+            return back()->withErrors([
+                'faculty' => 'Faculty already exists.',
+            ]);
+        }
+
+        $yearLastTwoDigits = date('y');
+
+        do {
+            $randomNumber = rand(0, 999);
+            $randomNumberPadded = str_pad($randomNumber, 3, '0', STR_PAD_LEFT);
+            $userId = "FAC-" . $yearLastTwoDigits . $randomNumberPadded;
+            $userIdExist = User::where('user_id_no', $userId)->first();
+        } while ($userIdExist);
+
+        // Generate a random password
+        $password = $this->generateRandomPassword();
+
+        $user = User::create([
+            'user_id_no' => $userId,
+            'password' => Hash::make($password),
+            'user_role' => 'faculty',
+        ]);
+
+        UserInformation::create([
+            'user_id' => $user->id,
+            'password' => Hash::make($request->password),
+            'user_role' => $request->user_role,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'middle_name' => $request->middle_name,
+            'gender' => $request->gender,
+            'birthday' => $request->birthday,
+            'contact_number' => $request->contact_number,
+            'email_address' => $request->email_address,
+            'present_address' => $request->present_address,
+            'zip_code' => $request->zip_code,
+        ]);
+
+        Faculty::create([
+            'faculty_id' => $user->id,
+            'department_id' => $request->department_id,
+        ]);
+
+        $faculty = [
+            "first_name" => ucwords(strtolower($request->first_name)),
+            "middle_name" => ucwords(strtolower($request->middle_name)),
+            "last_name" => ucwords(strtolower($request->last_name)),
+            "user_id_no" => $userId
+        ];
+
+        if ($request->email_address) {
+            Mail::to($request->email_address)->send(new FacultyCredentialsMail($faculty, $password));
         }
     }
 

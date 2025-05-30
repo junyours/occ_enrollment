@@ -5,10 +5,8 @@ import { Head } from '@inertiajs/react';
 import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { Select, SelectTrigger } from '@/Components/ui/select';
-import { SelectContent, SelectItem, SelectValue } from '@/Components/ui/select';
 import { Button } from '@/Components/ui/button';
-import { FileDown, ImageDown } from 'lucide-react';
+import { FileDown, ImageDown, Loader2 } from 'lucide-react';
 import { Switch } from '@/Components/ui/switch';
 import { Label } from '@/Components/ui/label';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
@@ -16,6 +14,7 @@ import TabularSchedule from '@/Pages/ScheduleFormats/TabularSchedule';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
+import html2canvas from "html2canvas";
 
 export default function FacultySchedules() {
     const [faculties, setFaculties] = useState([]);
@@ -23,7 +22,9 @@ export default function FacultySchedules() {
     const [colorful, setColorful] = useState(true);
     const [selectedFaculty, setSelectedFaculty] = useState("All");
     const [scheduleType, setScheduleType] = useState('timetable');
+    const [isDownloadingAll, setIsDownloadingAll] = useState(false);
     const [openFacultyPopover, setOpenFacultyPopover] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
     const getEnrollmentFacultiesSchedules = async () => {
         axios.post("api/get-enrollment-faculties-schedules")
@@ -107,6 +108,57 @@ export default function FacultySchedules() {
     }, []);
 
     if (loading) return <PreLoader title="Faculty schedules" />;
+
+    const downloadAllFacultyImagesWithProgress = async () => {
+        setIsDownloadingAll(true);
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const filteredFaculties = faculties.filter((faculty) =>
+                faculty.id == selectedFaculty || selectedFaculty == "All"
+            );
+
+            setDownloadProgress({ current: 0, total: filteredFaculties.length });
+
+            for (let i = 0; i < filteredFaculties.length; i++) {
+                const faculty = filteredFaculties[i];
+                setDownloadProgress({ current: i + 1, total: filteredFaculties.length });
+
+                const element = document.getElementById(faculty.id);
+
+                if (element) {
+                    const style = document.createElement("style");
+                    document.head.appendChild(style);
+                    style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
+                    style.sheet?.insertRule('td div > svg { display: none !important; }');
+
+                    try {
+                        const canvas = await html2canvas(element, { scale: 3 });
+                        const imageUrl = canvas.toDataURL("image/png");
+
+                        const filename = `${formatFullName(faculty)} - Schedule.png`;
+                        const link = document.createElement("a");
+                        link.href = imageUrl;
+                        link.download = filename;
+                        link.click();
+
+                        if (i < filteredFaculties.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    } finally {
+                        style.remove();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error downloading room images:', error);
+        } finally {
+            setIsDownloadingAll(false);
+            setDownloadProgress({ current: 0, total: 0 });
+        }
+    };
+
     return (
         <div className='space-y-4'>
             <Head title="Faculty schedules" />
@@ -174,9 +226,23 @@ export default function FacultySchedules() {
                             <FileDown />
                             Excel
                         </Button>
-                        <Button className="bg-blue-700 hover:bg-blue-600" variant="">
-                            <ImageDown />
-                            Image
+                        <Button
+                            className="bg-blue-700 hover:bg-blue-600"
+                            variant=""
+                            onClick={downloadAllFacultyImagesWithProgress}
+                            disabled={isDownloadingAll}
+                        >
+                            {isDownloadingAll ? (
+                                <>
+                                    <Loader2 className="animate-spin w-4 h-4 mr-2" />
+                                    {downloadProgress.current}/{downloadProgress.total}
+                                </>
+                            ) : (
+                                <>
+                                    <ImageDown />
+                                    Image
+                                </>
+                            )}
                         </Button>
 
                         <div className="flex items-center space-x-2">
@@ -196,7 +262,7 @@ export default function FacultySchedules() {
                     {faculties
                         .filter((faculty) => faculty.id == selectedFaculty || selectedFaculty == "All")
                         .map((faculty) => (
-                            <Card className="w-full" key={faculty.id}>
+                            <Card id={faculty.id} className="w-full" key={faculty.id}>
                                 <CardHeader>
                                     <CardTitle className="text-4xl">{formatFullName(faculty)} <span className="italic font-thin">({faculty.schedLength})</span></CardTitle>
                                 </CardHeader>

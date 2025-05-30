@@ -22,9 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('year_section_subjects', function (Blueprint $table) {
-            // Revert the room_id column to not nullable
-            $table->unsignedBigInteger('room_id')->nullable(false)->change();
-        });
+        // Schema::table('year_section_subjects', function (Blueprint $table) {
+        //     // Revert the room_id column to not nullable
+        //     $table->unsignedBigInteger('room_id')->nullable(false)->change();
+        // });
     }
 };
