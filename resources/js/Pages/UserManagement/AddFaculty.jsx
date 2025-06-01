@@ -181,8 +181,16 @@ function AddFaculty({ open, setOpen }) {
                 });
             },
             onError: (errors) => {
+
                 if (errors.faculty) {
                     setErrorMessage(errors.faculty);
+                    setError('first_name', { error: true })
+                    setError('last_name', { error: true })
+                    setPage(1);
+                } else if (errors.email) {
+                    setErrorMessage(errors.email);
+                    setError('email_address', { error: true })
+                    setPage(2);
                 }
             }
         })

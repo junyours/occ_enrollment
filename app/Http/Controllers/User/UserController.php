@@ -154,6 +154,15 @@ class UserController extends Controller
             ]);
         }
 
+        $emailExist = user::where('email', '=', $request->email_address)
+            ->first();
+
+        if ($emailExist) {
+            return back()->withErrors([
+                'email' => 'The email address is already registered.',
+            ]);
+        }
+
         $userId = User::select('user_id_no')
             ->where('user_role', '=', 'student')
             ->orderBy('user_id_no', 'desc')
@@ -171,6 +180,7 @@ class UserController extends Controller
         $user = User::create([
             'user_id_no' => $studentID,
             'password' => Hash::make($password),
+            'email' => $request->email_address,
             'user_role' => 'student',
         ]);
 
@@ -199,7 +209,8 @@ class UserController extends Controller
         }
     }
 
-    public function addFaculty(Request $request){
+    public function addFaculty(Request $request)
+    {
         $facultyExist = UserInformation::where('first_name', '=', $request->first_name)
             ->where('last_name', '=', $request->last_name)
             ->first();
@@ -207,6 +218,15 @@ class UserController extends Controller
         if ($facultyExist) {
             return back()->withErrors([
                 'faculty' => 'Faculty already exists.',
+            ]);
+        }
+
+        $emailExist = user::where('email', '=', $request->email_address)
+            ->first();
+
+        if ($emailExist) {
+            return back()->withErrors([
+                'email' => 'The email address is already registered.',
             ]);
         }
 

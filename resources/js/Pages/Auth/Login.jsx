@@ -13,6 +13,8 @@ import {
 } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
+import { Alert, AlertTitle } from '@/Components/ui/alert';
+import { CheckCircle2Icon } from 'lucide-react';
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -40,8 +42,15 @@ export default function Login({ status }) {
         <GuestLayout>
             <Head title="Login" />
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
+                <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
+                    <Alert className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg backdrop-blur-sm border-l-4 border-l-green-500">
+                        <div className='flex gap-2 items-center'>
+                            <CheckCircle2Icon className="h-4 w-4 text-green-600" />
+                            <AlertTitle className="text-green-700 font-medium mb-0">
+                                {status}
+                            </AlertTitle>
+                        </div>
+                    </Alert>
                 </div>
             )}
             <Card className='md:grid md:grid-cols-2 gap-4 p-0 md:p-6 border-0 shadow-2xl'>
@@ -110,12 +119,14 @@ export default function Login({ status }) {
                             </Button>
                         </form>
                         <div className="mt-4 text-sm text-center">
-                            <button
-                                onClick={() => console.log("Forgot Password clicked")}
-                                className="text-blue-600 dark:text-blue-400 hover:underline"
-                            >
-                                FORGOT PASSWORD?
-                            </button>
+                            <a href="/forgot-password">
+                                <Button
+                                    variant="link"
+                                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                                >
+                                    FORGOT PASSWORD?
+                                </Button>
+                            </a>
                         </div>
                     </CardContent>
                 </Card>
