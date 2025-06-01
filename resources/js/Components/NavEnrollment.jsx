@@ -17,8 +17,6 @@ export function NavEnrollment() {
     const currentUrl = usePage().url; // Get the current route
     const { setOpenMobile } = useSidebar();
 
-    console.log(schoolYear)
-
     return (
         <>
             {(user.user_role == "registrar" || user.user_role == "evaluator" || user.user_role == "program_head") && (

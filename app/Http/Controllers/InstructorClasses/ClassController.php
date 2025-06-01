@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\InstructorClasses;
 
 use App\Http\Controllers\Controller;
+use App\Models\EnrolledStudent;
 use App\Models\SchoolYear;
+use App\Models\StudentSubject;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,5 +68,59 @@ class ClassController extends Controller
             ->get();
 
         return response()->json($classes);
+    }
+
+    public function getStudentClasses(Request $request)
+    {
+        $studentId = Auth::id(); // cleaner than Auth::user()->id
+
+
+        $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->where('school_year_id', '=', $request->schoolYearId)
+            ->where('student_id', '=', $studentId)
+            ->first();
+
+
+        if (!$enrolledStudent) {
+            return response()->json([
+                'error' => 'You are not currently enrolled in this school year.',
+            ], 403);
+        }
+
+        $classes = StudentSubject::where('enrolled_students_id', '=', $enrolledStudent->id)
+            ->select(
+                'first_name',
+                'last_name',
+                'middle_name',
+                'room_name',
+                'descriptive_title',
+                'year_section_subjects.start_time',
+                'year_section_subjects.end_time',
+                'year_section_subjects.day',
+                'subject_secondary_schedule.start_time as secondstart_time',
+                'subject_secondary_schedule.end_time as secondend_time',
+                'subject_secondary_schedule.day as secondday',
+            )
+            ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->leftJoin('subject_secondary_schedule', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->get();
+
+        return response()->json($classes);
+    }
+
+
+    public function recordView()
+    {
+        return Inertia::render('StudentClasses/EnrollmentRecord');
+    }
+
+    public function getStudentEnrollmentRecord()
+    {
+        return response()->json(['message' => 'success'], 200);
     }
 }

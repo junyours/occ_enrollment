@@ -99,7 +99,6 @@ function AddFaculty({ open, setOpen }) {
     };
 
     const nextPage = () => {
-        console.log(data)
         let hasError = false;
 
         if (page == 1) {

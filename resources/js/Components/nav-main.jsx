@@ -44,6 +44,7 @@ export function NavMain() {
         ...(user.user_role === "student"
             ? [
                 { name: "Classes", route: "classes", icon: Presentation },
+                { name: "Enrollment Record", route: "enrollment-record", icon: Presentation },
             ]
             : []
         ),

@@ -392,7 +392,6 @@ export default function ClassScheduling() {
         if (instructors.length > 0) return
         await axios.post('/api/get-instructors')
             .then(response => {
-                console.log(response.data)
                 setInstructors(response.data)
             })
     }
