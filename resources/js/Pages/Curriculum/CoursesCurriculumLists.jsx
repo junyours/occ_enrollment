@@ -162,7 +162,7 @@ export default function CoursesCurriculumLists() {
             <AlertDialog open={currActiveOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle onClick={() => console.log(activeCurriculums)}>Active Curriculum</AlertDialogTitle>
+                        <AlertDialogTitle>Active Curriculum</AlertDialogTitle>
                         <AlertDialogDescription>
                             {selectedCourse.course_name} ({selectedCourse.course_name_abb})
                         </AlertDialogDescription>

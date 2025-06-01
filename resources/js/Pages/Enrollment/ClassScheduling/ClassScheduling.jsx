@@ -6,7 +6,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/Components/ui/toggle-group"
-import { Pencil, Trash, Megaphone, Check, FileDown, ImageDown, Loader2 } from 'lucide-react';
+import { Pencil, Trash, Megaphone, Check, FileDown, ImageDown, Loader2, AlertTriangle } from 'lucide-react';
 import { convertToAMPM, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
 import { Input } from '@/Components/ui/input';
@@ -23,6 +23,7 @@ import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
 import { Switch } from '@/Components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import html2canvas from 'html2canvas';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -245,8 +246,40 @@ export default function ClassScheduling() {
         }
     }
 
-    const deleteSecondSchedule = (id) => {
+    const [classIdToDelete, setClassIdToDelete] = useState(0);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [classType, setClassType] = useState('main');
 
+    const deleteClass = async () => {
+        console.log('hello')
+        if (classType == 'main') {
+            await axios.post(route('delete-main-class', { id: classIdToDelete }))
+                .then(response => {
+                    if (response.data.message) {
+                        getCLasses();
+                        setOpenDeleteDialog(false);
+                        setClassIdToDelete(0);
+                        toast({
+                            description: "Class deleted",
+                            variant: "success",
+                        })
+                    }
+                })
+        } else if (classType == 'second') {
+            await axios.post(route('delete-second-class', { id: classIdToDelete }))
+                .then(response => {
+                    if (response.data.message) {
+                        getCLasses();
+                        setOpenDeleteDialog(false);
+                        setClassIdToDelete(0);
+                        toast({
+                            description: "Class deleted",
+                            variant: "success",
+                        })
+                    }
+                })
+
+        }
     }
 
     const dayOnchange = (day) => {
@@ -561,6 +594,17 @@ export default function ClassScheduling() {
                                                                 size={15}
                                                                 className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
                                                             />
+                                                            <Trash
+                                                                onClick={() => {
+                                                                    if (!editing) {
+                                                                        setClassIdToDelete(classInfo.id);
+                                                                        setClassType('main');
+                                                                        setOpenDeleteDialog(true);
+                                                                    }
+                                                                }}
+                                                                size={15}
+                                                                className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
+                                                            />
                                                         </div>
                                                     </TableCell>
                                                 )}
@@ -591,7 +635,13 @@ export default function ClassScheduling() {
                                                                     className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
                                                                 />
                                                                 <Trash
-                                                                    onClick={() => { if (!editing) deleteSecondSchedule(classInfo.secondary_schedule.id) }}
+                                                                    onClick={() => {
+                                                                        if (!editing) {
+                                                                            setClassIdToDelete(classInfo.secondary_schedule.id);
+                                                                            setClassType('second');
+                                                                            setOpenDeleteDialog(true);
+                                                                        }
+                                                                    }}
                                                                     size={15}
                                                                     className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
                                                                 />
@@ -1098,6 +1148,40 @@ export default function ClassScheduling() {
                     </CardContent>
                 </Card>
             }
+
+            <AlertDialog open={openDeleteDialog} setOpen={setOpenDeleteDialog}>
+                <AlertDialogContent className="">
+                    <AlertDialogHeader className="flex items-start gap-3">
+                        <AlertTriangle className="text-red-600 mt-1" size={24} />
+                        <div>
+                            <AlertDialogTitle className="text-red-700 text-xl font-bold">
+                                Confirm Deletion
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-sm text-gray-700 mt-1">
+                                This action <span className="font-semibold text-red-600">cannot be undone</span>.
+                                Are you sure you want to permanently delete this item? All related data will be lost.
+                            </AlertDialogDescription>
+                        </div>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter className="mt-6">
+                        <Button
+                            onClick={deleteClass}
+                            variant="destructive"
+                            className="w-full sm:w-auto"
+                        >
+                            Yes, delete permanently
+                        </Button>
+                        <Button
+                            onClick={() => setOpenDeleteDialog(false)}
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                        >
+                            Cancel
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div >
     )
 }

@@ -36,6 +36,7 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'ProgrameadRegistrar'])->gro
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/ClassesRoute.php';
+require __DIR__ . '/ClassSchedulingRoute.php';
 require __DIR__ . '/DepartmentRoute.php';
 require __DIR__ . '/EnrollmentRoute.php';
 require __DIR__ . '/ProgramHeadRoute.php';

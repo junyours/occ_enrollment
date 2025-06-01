@@ -11,6 +11,7 @@ use Inertia\Inertia;
 use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\StudentSubject;
+use App\Models\SubjectSecondarySchedule;
 use App\Models\User;
 use App\Models\UserInformation;
 use App\Models\YearLevel;
@@ -475,6 +476,23 @@ class EnrollmentCourseSectionController extends Controller
     public function deleteSubject($studentSubjectId)
     {
         StudentSubject::where('id', '=', $studentSubjectId)
+            ->delete();
+
+        return response()->json(['message' => 'success'], 200);
+    }
+
+    public function deleteMainSchedule($id)
+    {
+        StudentSubject::where('year_section_subjects_id', '=', $id)->delete();
+        YearSectionSubjects::where('id', '=', $id)
+            ->delete();
+
+        return response()->json(['message' => 'success'], 200);
+    }
+
+    public function deleteSecondSchedule($id)
+    {
+        SubjectSecondarySchedule::where('id', '=', $id)
             ->delete();
 
         return response()->json(['message' => 'success'], 200);
