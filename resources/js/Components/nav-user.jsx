@@ -66,7 +66,7 @@ export function NavUser() {
                     >
                         <Link
                             className='cursor-pointer'
-                            href={route('profile.edit')}
+                            href={route('profile')}
                         >
                             <DropdownMenuLabel className="p-0 font-normal cursor-pointer">
                                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">

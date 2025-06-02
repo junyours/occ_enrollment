@@ -49,7 +49,7 @@ export default function ForgotPassword({ status, user_found, user_data }) {
                 <div className="w-full max-w-md space-y-6">
                     <Card className="">
                         <CardHeader className="text-center space-y-2 pb-6">
-                            <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                                 <Mail className="w-6 h-6 text-blue-600" />
                             </div>
                             <CardTitle className="text-2xl font-bold">

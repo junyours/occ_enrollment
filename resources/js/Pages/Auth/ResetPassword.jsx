@@ -68,7 +68,7 @@ export default function ResetPassword({ token, email }) {
                 <div className="w-full max-w-md space-y-6">
                     <Card className="">
                         <CardHeader className="text-center space-y-2 pb-6">
-                            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                                 <Shield className="w-6 h-6 text-green-600" />
                             </div>
                             <CardTitle className="text-2xl font-bold">
@@ -82,7 +82,7 @@ export default function ResetPassword({ token, email }) {
                         <CardContent className="space-y-6">
                             <div className="space-y-4">
                                 {/* Email Field */}
-                                <div className="space-y-2">
+                                {/* <div className="space-y-2">
                                     <Label htmlFor="email" className="text-sm font-medium">
                                         Email Address
                                     </Label>
@@ -99,13 +99,15 @@ export default function ResetPassword({ token, email }) {
                                             readOnly
                                         />
                                     </div>
-                                    {errors.email && (
-                                        <p className="text-sm text-red-600 mt-1 flex items-center">
-                                            <AlertCircle className="w-4 h-4 mr-2" />
-                                            {errors.email}
-                                        </p>
-                                    )}
-                                </div>
+
+                                </div> */}
+
+                                {errors.email && (
+                                    <p className="text-sm text-red-600 mt-1 flex items-center">
+                                        <AlertCircle className="w-4 h-4 mr-2" />
+                                        {errors.email}
+                                    </p>
+                                )}
 
                                 {/* New Password Field */}
                                 <div className="space-y-2">
@@ -174,7 +176,7 @@ export default function ResetPassword({ token, email }) {
                                         <button
                                             type="button"
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2"
                                         >
                                             {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
@@ -247,12 +249,12 @@ export default function ResetPassword({ token, email }) {
                     </Card>
 
                     {/* Security Note */}
-                    <div className="text-center">
+                    {/* <div className="text-center">
                         <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
                             Your password will be encrypted and stored securely.
                             You'll be automatically signed in after resetting.
                         </p>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </GuestLayout>

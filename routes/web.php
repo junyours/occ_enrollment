@@ -8,10 +8,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index']);
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-});
-
 Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(function () {
     Route::post('api/add/new/section', [EnrollmentCourseSectionController::class, 'addNewSection'])->name('add.new.section');
 
@@ -39,6 +35,7 @@ require __DIR__ . '/ClassesRoute.php';
 require __DIR__ . '/ClassSchedulingRoute.php';
 require __DIR__ . '/DepartmentRoute.php';
 require __DIR__ . '/EnrollmentRoute.php';
+require __DIR__ . '/ProfileRoute.php';
 require __DIR__ . '/ProgramHeadRoute.php';
 require __DIR__ . '/RegistrarRoute.php';
 require __DIR__ . '/SchoolyearManagementRoute.php';

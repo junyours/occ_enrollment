@@ -58,7 +58,7 @@ function Header({ toggleSidebar, user }) {
 
                         <Dropdown.Content>
                             <Dropdown.Link
-                                href={route('profile.edit')}
+                                href={route('profile')}
                             >
                                 Profile
                             </Dropdown.Link>
@@ -79,4 +79,3 @@ function Header({ toggleSidebar, user }) {
 }
 
 export default Header;
-

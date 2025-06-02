@@ -8,8 +8,6 @@ import LoginStudents from '../../../images/Login_Students.png';
 import {
     Card,
     CardContent,
-    CardHeader,
-    CardTitle,
 } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
