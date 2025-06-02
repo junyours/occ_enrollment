@@ -18,7 +18,9 @@ export default function AuthenticatedLayout({ children }) {
                     </div>
                 </header>
                 <div className="flex-grow p-4 overflow-auto">
-                    {children}
+                    <div className="container mx-auto max-w-6xl">
+                        {children}
+                    </div>
                 </div>
                 <Toaster />
             </SidebarInset>

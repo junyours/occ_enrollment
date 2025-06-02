@@ -143,7 +143,7 @@ export default function EnrollmentCourseSection() {
     if (error) return
 
     return (
-        <div className="container mx-auto max-w-6xl">
+        <div className="container">
             <Head title="Sections" />
             <PageTitle className="mb-4" align="center">{course.course_name}</PageTitle>
 

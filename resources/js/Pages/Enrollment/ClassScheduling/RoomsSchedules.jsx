@@ -145,7 +145,7 @@ export default function RoomSchedules() {
     };
 
     return (
-        <div className="space-y-4 container mx-auto max-w-6xl">
+        <div className="space-y-4">
             <Head title="Room Schedules" />
             <Card>
                 <CardContent className="p-2">

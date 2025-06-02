@@ -66,7 +66,7 @@ export default function StudentList() {
     ];
 
     return (
-        <div className="space-y-4 container mx-auto max-w-6xl">
+        <div className="space-y-4">
             <Head title="Student List" />
             <PageTitle align="center">Student List</PageTitle>
             <Button onClick={() => setOpen(true)}>Add Student</Button>

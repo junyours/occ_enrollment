@@ -206,7 +206,7 @@ const FacultyList = () => {
     if (loading) return <PreLoader title="Faculty List" />;
 
     return (
-        <div className="space-y-4 container mx-auto max-w-6xl">
+        <div className="space-y-4">
             <Head title="Faculty List" />
             <PageTitle align="center">Faculty List</PageTitle>
             {userRole == 'registrar' && (

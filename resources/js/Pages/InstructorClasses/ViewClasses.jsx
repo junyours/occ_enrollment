@@ -39,7 +39,7 @@ const ViewClasses = () => {
     }
 
     return (
-        <div className='space-y-4 container mx-auto max-w-6xl'>
+        <div className='space-y-4'>
             <Head title="Classes" />
             <PageTitle align="center" className=''>{currentSchoolYear.start_year}-{currentSchoolYear.end_year} {currentSchoolYear.semester_name} Semester</PageTitle>
             <Card>
