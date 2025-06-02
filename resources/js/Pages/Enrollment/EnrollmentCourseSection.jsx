@@ -143,7 +143,7 @@ export default function EnrollmentCourseSection() {
     if (error) return
 
     return (
-        <>
+        <div className="container mx-auto max-w-6xl">
             <Head title="Sections" />
             <PageTitle className="mb-4" align="center">{course.course_name}</PageTitle>
 
@@ -275,7 +275,7 @@ export default function EnrollmentCourseSection() {
                 </DialogContent>
             </Dialog>
 
-        </>
+        </div>
     );
 }
 

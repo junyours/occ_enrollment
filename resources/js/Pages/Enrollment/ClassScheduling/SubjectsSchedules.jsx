@@ -106,7 +106,7 @@ export default function SubjectsSchedules() {
 
     if (loading) return <PreLoader title="Subject schedules" />;
     return (
-        <div className='space-y-4'>
+        <div className='space-y-4 container mx-auto max-w-6xl'>
             <Head title="Subject schedules" />
             <Card>
                 <CardContent className="p-2">

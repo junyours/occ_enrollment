@@ -167,7 +167,7 @@ export default function Department() {
     if (loading) return <PreLoader title="Department" />
 
     return (
-        <div className='space-y-4'>
+        <div className='space-y-4 container mx-auto max-w-6xl'>
             <Head title='Department' />
             {departments.map((dept) => (
                 <Card key={dept.id}>

@@ -160,7 +160,7 @@ export default function FacultySchedules() {
     };
 
     return (
-        <div className='space-y-4'>
+        <div className='space-y-4 container mx-auto max-w-6xl'>
             <Head title="Faculty schedules" />
             <Card>
                 <CardContent className="p-2">

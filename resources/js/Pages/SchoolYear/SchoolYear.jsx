@@ -176,7 +176,7 @@ export default function SchoolYear() {
     };
 
     return (
-        <div>
+        <div className='container mx-auto max-w-6xl'>
             <Head title={'School year'} />
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">School Years</h2>
