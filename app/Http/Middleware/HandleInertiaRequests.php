@@ -68,6 +68,14 @@ class HandleInertiaRequests extends Middleware
             } elseif ($schoolYearStatus['status'] == 'ongoing') {
                 $enrollmentOngoing = true;
             }
+        } else {
+            return [
+                ...parent::share($request),
+                'auth' => [
+                    'user' => $userData,
+                    'schoolYear' => $schoolYearStatus,
+                ],
+            ];
         }
 
         $courses = [];

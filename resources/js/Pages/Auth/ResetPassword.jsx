@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Lock, Mail, Eye, EyeOff, Shield, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Progress } from '@/Components/ui/progress';
 import GuestLayout from '@/Layouts/GuestLayout';
 
 export default function ResetPassword({ token, email }) {
