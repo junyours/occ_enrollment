@@ -11,6 +11,7 @@ use App\Models\YearLevel;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 
 class CurriculumController extends Controller
 {
@@ -113,5 +114,38 @@ class CurriculumController extends Controller
             ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
             ->where('curriculum.id', '=', $request->curriculumId)
             ->update(['active' => 1]);
+    }
+
+
+    public function addSchoolYear(Request $request)
+    {
+        // You already have course_id as MD5(id), so match on that
+        $exist = Curriculum::where('course_id', $request->course_id)
+            ->where('school_year_start', $request->school_year_start)
+            ->where('school_year_end', $request->school_year_end)
+            ->first();
+
+        if ($exist) {
+            return Redirect::back()->withErrors([
+                'school_year' => 'This curriculum school year already existed.'
+            ]);
+        }
+
+        // Save the curriculum
+        Curriculum::create([
+            'course_id' => $request->course_id,
+            'school_year_start' => $request->school_year_start,
+            'school_year_end' => $request->school_year_end,
+        ]);
+
+        // Format the school year range
+        $schoolYear = $request->school_year_start . '-' . $request->school_year_end;
+
+        $course = Course::addSelect(DB::raw("MD5(course.id) as hashed_course_id"))
+            ->where('id', '=', $request->course_id)
+            ->first();
+
+        // Redirect to curriculum view
+        return Redirect::to("/curriculum/{$course->hashed_course_id}/{$schoolYear}");
     }
 }

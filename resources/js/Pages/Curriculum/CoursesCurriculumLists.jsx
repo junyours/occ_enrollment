@@ -5,29 +5,27 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/Componen
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/Components/ui/table';
 import { Button } from '@/Components/ui/button';
 import PreLoader from '@/Components/preloader/PreLoader';
-import { Head } from '@inertiajs/react';
-import { Eye, SquarePlus, LoaderCircle } from 'lucide-react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { Eye, SquarePlus } from 'lucide-react';
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from "@/Components/ui/alert-dialog"
 import {
     Select,
     SelectContent,
-    SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "@/Components/ui/select"
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
 
 export default function CoursesCurriculumLists() {
     const [coursesCurriculums, setCoursesCurriculums] = useState([]);
@@ -36,6 +34,7 @@ export default function CoursesCurriculumLists() {
     const [fetching, setFetching] = useState(true);
     const [gettingSchoolYear, setGettingSchoolYear] = useState(true);
     const [currActiveOpen, setCurrActiveOpen] = useState(false)
+    const [currAddOpen, setCurrAddOpen] = useState(false)
 
     const [selectedCourse, serSelectedCourse] = useState({
         courseId: 0,
@@ -43,10 +42,18 @@ export default function CoursesCurriculumLists() {
         course_name_abb: ''
     })
 
+    const { data, setData, post, processing, errors, reset } = useForm({
+        course_id: '',
+        school_year_start: '',
+        school_year_end: '',
+        course_name: '',
+        course_name_abb: ''
+    });
+
     const yearLevels = ["First Year", "Second Year", "Third Year", "Fourth Year"];
 
-    useEffect(() => {
-        axios.post(route('courses.curriculum.list'))
+    const getCurrs = async () => {
+        await axios.post(route('courses.curriculum.list'))
             .then(response => {
                 setCoursesCurriculums(response.data);
             })
@@ -54,6 +61,10 @@ export default function CoursesCurriculumLists() {
                 setFetching(false);
             })
             .catch(error => console.error("Error fetching data:", error));
+    }
+
+    useEffect(() => {
+        getCurrs();
     }, []);
 
     const openActiveCurriculum = async (courseId, course_name, course_name_abb) => {
@@ -73,6 +84,28 @@ export default function CoursesCurriculumLists() {
             .finally(() => {
                 setGettingSchoolYear(false)
             })
+    }
+
+    const openAddCurriculum = async (courseId, course_name, course_name_abb) => {
+        const currentYear = new Date().getFullYear();
+        const nextYear = currentYear + 1;
+
+        setData('course_id', courseId);
+        setData('course_name', course_name);
+        setData('course_name_abb', course_name_abb);
+        setData('school_year_start', currentYear);
+        setData('school_year_end', nextYear);
+
+        setCurrAddOpen(true)
+    }
+
+    const submit = async () => {
+        await post(route('curr.schoolyear'), {
+            onSuccess: () => {
+                setCurrAddOpen(false);
+                getCurrs();
+            },
+        })
     }
 
     const setActiveCurr = async (name, value) => {
@@ -141,7 +174,7 @@ export default function CoursesCurriculumLists() {
                                     <Button
                                         variant="default"
                                         size="sm"
-                                        onClick={() => openActiveCurriculum(course.id, course.course_name, course.course_name_abbreviation)}>
+                                        onClick={() => openAddCurriculum(course.id, course.course_name, course.course_name_abbreviation)}>
                                         Add Curriculum
                                         <SquarePlus className="w-5 h-5" />
                                     </Button>
@@ -194,13 +227,80 @@ export default function CoursesCurriculumLists() {
                                 </div>
                             ))}
                         </div>
-                    )
-                    }
+                    )}
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setCurrActiveOpen(false)}>Done</AlertDialogCancel>
                     </AlertDialogFooter>
                 </AlertDialogContent >
             </AlertDialog >
+
+            <Dialog open={currAddOpen} onOpenChange={setCurrAddOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Curriculum School Year</DialogTitle>
+                        <DialogDescription>{data.course_name} ({data.course_name_abb})</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="ghost"
+                            type="button"
+                            onClick={() => {
+                                setData('school_year_start', Number(data.school_year_start) - 1)
+                                setData('school_year_end', Number(data.school_year_end) - 1)
+                            }}
+                            className="px-2 py-1 border rounded-l"
+                            disabled={data.school_year_start <= 1900}
+                        >
+                            -
+                        </Button>
+                        <div className="flex items-center">
+                            <Input
+                                readOnly={true}
+                                name="school_year_start"
+                                value={data.school_year_start}
+                                min="1900"
+                                max="2100"
+                                placeholder="YYYY"
+                                className="rounded-none text-center"
+                            />
+                        </div>
+
+                        <span className="text-center">-</span>
+
+                        <div className="flex items-center">
+                            <Input
+                                readOnly={true}
+                                name="school_year_end"
+                                value={data.school_year_end}
+                                min="1900"
+                                max="2100"
+                                placeholder="YYYY"
+                                className="rounded text-center"
+                            />
+                        </div>
+                        <Button
+                            variant="ghost"
+                            type="button"
+                            onClick={() => {
+                                setData('school_year_start', Number(data.school_year_start) + 1)
+                                setData('school_year_end', Number(data.school_year_end) + 1)
+                            }}
+                            className="px-2 py-1 border rounded-r"
+                            disabled={data.school_year_start >= 2100}
+                        >
+                            +
+                        </Button>
+                    </div>
+                    {errors.school_year && (
+                        <div className="text-red-500 text-sm">
+                            {errors.school_year}
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button disabled={processing} onClick={submit} type="submit">Submit</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

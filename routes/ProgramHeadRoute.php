@@ -21,4 +21,6 @@ Route::middleware(['auth', 'program_head'])->group(function () {
 
     Route::post('/api/get-own-department-rooms', [RoomController::class, 'getOwnDepartmentRooms'])->name('get.own.department.rooms');
     Route::post('/api/get-instructors', [InstructorsController::class, 'getInstructors'])->name('get.instructors');
+
+    Route::post('/curriculum/schoolyear', [CurriculumController::class, 'addSchoolYear'])->name('curr.schoolyear');
 });
