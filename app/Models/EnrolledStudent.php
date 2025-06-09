@@ -18,6 +18,7 @@ class EnrolledStudent extends Model
         'enroll_type',
         'date_enrolled',
         'registration_number',
+        'evaluated',
     ];
 
     protected $hidden = [
@@ -41,6 +42,11 @@ class EnrolledStudent extends Model
     }
 
     public function StudentSubject()
+    {
+        return $this->hasMany(StudentSubject::class, 'enrolled_students_id');
+    }
+
+    public function Subjects()
     {
         return $this->hasMany(StudentSubject::class, 'enrolled_students_id');
     }

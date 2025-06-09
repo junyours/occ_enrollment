@@ -1,6 +1,6 @@
 
 import { usePage } from "@inertiajs/react";
-import { CalendarRange, BookOpen, User, Presentation, Building, Calendar1, User2 } from "lucide-react";
+import { BookOpen, User, Presentation, Building, Calendar1, User2, Library } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
 import {
@@ -44,7 +44,7 @@ export function NavMain() {
         ...(user.user_role === "student"
             ? [
                 { name: "Classes", route: "classes", icon: Presentation },
-                { name: "Enrollment Record", route: "enrollment-record", icon: Presentation },
+                { name: "Enrollment Record", route: "enrollment-record", icon: Library },
             ]
             : []
         ),

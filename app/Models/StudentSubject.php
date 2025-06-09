@@ -13,6 +13,10 @@ class StudentSubject extends Model
     protected $fillable = [
         'enrolled_students_id',
         'year_section_subjects_id',
+        'dropped',
+        'midterm_grade',
+        'final_grade',
+        'remarks',
     ];
 
     protected $hidden = [
