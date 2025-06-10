@@ -1,13 +1,13 @@
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { CircleMinus, CirclePlus } from 'lucide-react';
+import { AlertCircle, Building2, Check, CircleMinus, CirclePlus, Loader2, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Label } from '@/Components/ui/label';
 import { Input } from '@/Components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -113,44 +113,58 @@ export default function Rooms() {
     return (
         <div>
             <Head title='Rooms' />
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:h-full">
-                <Card className="w-full md:w-full min-h-min max-h-full">
-                    <CardHeader>
-                        <CardTitle className="text-2xl">Rooms</CardTitle>
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {/* Rooms Card - Fixed height with better scrolling */}
+                <Card className="flex flex-col h-full max-h-[calc(100vh-7rem)] min-h-[calc(100vh-7rem)]">
+                    <CardHeader className="flex-shrink-0">
+                        <CardTitle className="text-2xl">Available Rooms</CardTitle>
+                        {deptId > 0 && (
+                            <p className="text-sm text-gray-600">
+                                Click <span className="text-green-500">+</span> to assign rooms
+                            </p>
+                        )}
                     </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-col h-full gap-2 overflow-y-auto">
+
+                    <CardContent className="flex-1 min-h-0">
+                        <div className="h-full overflow-y-auto">
                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Room Name</TableHead>
+                                        <TableHead>Dept</TableHead>
+                                        <TableHead className="w-12">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
                                 <TableBody>
                                     {rooms.map((room, index) => (
-                                        <TableRow key={index} className='gap-1'>
-                                            <TableCell className='p-0'>{room.room_name}</TableCell>
-                                            <TableCell className='py-0 px-2'>{room.department_name_abbreviation}</TableCell>
-                                            <TableCell className='p-0'>
+                                        <TableRow key={room.id || index}>
+                                            <TableCell className="font-medium">{room.room_name}</TableCell>
+                                            <TableCell>
+                                                <span className={`px-2 py-1 rounded text-xs ${room.department_name_abbreviation
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-gray-100 text-gray-500'
+                                                    }`}>
+                                                    {room.department_name_abbreviation || 'None'}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
                                                 {room.department_name_abbreviation ? (
                                                     <Button
                                                         disabled={true}
-                                                        variant="icon"
-                                                        className="cursor-not-allowed text-gray-600">
-                                                        <CirclePlus size={15} />
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="cursor-not-allowed text-gray-400 hover:bg-transparent">
+                                                        <CirclePlus size={16} />
                                                     </Button>
                                                 ) : (
-                                                    <>
-                                                        {deptId ? (
-                                                            <Button
-                                                                variant="icon"
-                                                                style={{ color: '#00FF1A' }}
-                                                                onClick={() => { assignRoom(room.id) }}>
-                                                                <CirclePlus size={15} />
-                                                            </Button>
-                                                        ) : (
-                                                            <Button
-                                                                variant="icon"
-                                                                className="text-gray-500 cursor-not-allowed">
-                                                                <CirclePlus size={15} />
-                                                            </Button>
-                                                        )}
-                                                    </>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        disabled={!deptId}
+                                                        className={`${deptId ? 'text-green-600 hover:text-green-700 hover:bg-green-50' : 'text-gray-400 cursor-not-allowed'}`}
+                                                        onClick={() => deptId && assignRoom(room.id)}>
+                                                        <CirclePlus size={16} />
+                                                    </Button>
                                                 )}
                                             </TableCell>
                                         </TableRow>
@@ -159,7 +173,8 @@ export default function Rooms() {
                             </Table>
                         </div>
                     </CardContent>
-                    <CardFooter>
+
+                    <CardFooter className="flex-shrink-0 border-t pt-4">
                         <Button
                             onClick={() => {
                                 setOpenAddRoom(true);
@@ -168,86 +183,148 @@ export default function Rooms() {
                             }}
                             className='w-full'
                         >
-                            Add Room
+                            <CirclePlus size={16} className="mr-2" />
+                            Add New Room
                         </Button>
                     </CardFooter>
                 </Card>
 
+                {/* Department Cards */}
                 {departments.map((department, index) => (
                     <Card
-                        key={index}
-                        className={`w-full md:w-full shadow-light ${department.id == deptId ? 'ring-2 ring-[#00ff1a]' : ''}`}>
-                        <div className="flex justify-between items-center">
-                            <CardHeader className='w-full flex-row justify-between space-y-0'>
-                                <CardTitle className="text-2xl">{department.department_name_abbreviation}</CardTitle>
+                        key={department.id || index}
+                        className={`flex flex-col h-full max-h-[calc(100vh-7rem)] min-h-[calc(100vh-7rem)] transition-all duration-200 ${department.id == deptId
+                                ? 'ring-2 ring-green-500 shadow-lg'
+                                : 'hover:shadow-md'
+                            }`}>
+
+                        <CardHeader className="flex-shrink-0">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-xl">{department.department_name_abbreviation}</CardTitle>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {rooms.filter(room => room.department_id == department.id).length} rooms assigned
+                                    </p>
+                                </div>
                                 {department.id == deptId ? (
                                     <Button
-                                        onClick={() => { setDeptId(0) }}
-                                        className="bg-green-500 hover:bg-green-600 px-2 py-1 h-max opacity-75 cursor-pointer m-0">
+                                        onClick={() => setDeptId(0)}
+                                        size="sm"
+                                        className="bg-green-500 hover:bg-green-500">
+                                        <Check size={14} className="mr-1" />
                                         Selected
                                     </Button>
                                 ) : (
                                     <Button
-                                        onClick={() => { setDeptId(department.id) }}
-                                        className="bg-blue-500 px-2 py-1 h-max hover:bg-blue-600 transition duration-150 ease-in-out m-0">
+                                        onClick={() => setDeptId(department.id)}
+                                        size="sm"
+                                        variant="outline">
                                         Select
                                     </Button>
                                 )}
-                            </CardHeader>
-                        </div>
+                            </div>
+                        </CardHeader>
 
-                        <CardContent className="space-y-2">
-                            <Table>
-                                <TableBody>
-                                    {rooms.filter(room => room.department_id == department.id).length > 0 ? (
-                                        rooms
-                                            .filter(room => room.department_id == department.id)
-                                            .map((room, index) => (
-                                                <TableRow key={index} className="gap-1">
-                                                    <TableCell className="flex justify-between items-center p-0">
-                                                        <span>{room.room_name}</span>
-                                                        <Button
-                                                            variant="icon"
-                                                            style={{ color: "#C82333" }}
-                                                            onClick={() => { unAssignRoom(room.id) }}
-                                                        >
-                                                            <CircleMinus size={18} />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell className="text-center italic text-gray-500" colSpan={1}>
-                                                No rooms assigned
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                        <CardContent className="flex-1 min-h-0">
+                            <div className="h-full overflow-y-auto">
+                                <Table>
+                                    <TableBody>
+                                        {rooms.filter(room => room.department_id == department.id).length > 0 ? (
+                                            rooms
+                                                .filter(room => room.department_id == department.id)
+                                                .map((room, roomIndex) => (
+                                                    <TableRow key={room.id || roomIndex}>
+                                                        <TableCell className="flex justify-between items-center py-2">
+                                                            <span className="font-medium">{room.room_name}</span>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                onClick={() => unAssignRoom(room.id)}
+                                                            >
+                                                                <CircleMinus size={16} />
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell className="text-center py-8">
+                                                    <div className="text-gray-400">
+                                                        <Building2 size={32} className="mx-auto mb-2 opacity-50" />
+                                                        <p className="text-sm italic">No rooms assigned</p>
+                                                        {deptId == department.id && (
+                                                            <p className="text-xs text-blue-600 mt-1">
+                                                                Select rooms from the left panel
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </CardContent>
                     </Card>
                 ))}
             </div>
+
+            {/* Add Room Dialog */}
             <Dialog open={openAddRoom} onOpenChange={setOpenAddRoom}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Add Room</DialogTitle>
+                        <DialogTitle>Add New Room</DialogTitle>
+                        <DialogDescription>
+                            Create a new room that can be assigned to departments.
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="max-h-64">
-                        <Label>Name:</Label>
-                        <Input
-                            name="room_name"
-                            value={data.room_name}
-                            onChange={handleChange}
-                            className={`mb-2 ${errors.room_name && 'border-red-500'}`}
-                        />
-                        {errors.room_name && (
-                            <p className="text-red-500 text-sm mt-1">{errors.room_name.message}</p>
-                        )}
+
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="room_name" className="text-sm font-medium">
+                                Room Name <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                                id="room_name"
+                                name="room_name"
+                                value={data.room_name}
+                                onChange={handleChange}
+                                placeholder="Enter room name..."
+                                className={`mt-1 ${errors.room_name ? 'border-red-500 focus:ring-red-500' : ''}`}
+                            />
+                            {errors.room_name && (
+                                <p className="text-red-500 text-sm mt-1 flex items-center">
+                                    <AlertCircle size={14} className="mr-1" />
+                                    {errors.room_name.message}
+                                </p>
+                            )}
+                        </div>
                     </div>
+
                     <DialogFooter>
-                        <Button disabled={processing} onClick={submit} type="submit">Save changes</Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setOpenAddRoom(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            disabled={processing || !data.room_name?.trim()}
+                            onClick={submit}
+                        >
+                            {processing ? (
+                                <>
+                                    <Loader2 size={14} className="mr-2 animate-spin" />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Plus size={14} className="mr-2" />
+                                    Create Room
+                                </>
+                            )}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

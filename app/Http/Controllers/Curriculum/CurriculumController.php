@@ -39,11 +39,19 @@ class CurriculumController extends Controller
     {
         $years = explode('-', $schoolYear);
 
-        $courseID = DB::table('course')
-            ->where(DB::raw('MD5(id)'), '=', $courseId)
-            ->first()->id;
+        $courseRecord = Course::where(DB::raw('MD5(id)'), '=', $courseId)
+            ->first();
 
-        $course = Course::find($courseID)->first();
+        if (!$courseRecord) {
+            // Handle case where course is not found
+            abort(404, 'Course not found');
+        }
+
+        $course = Course::find($courseRecord->id);
+
+        if (!$course) {
+            abort(404, 'Course not found');
+        }
 
         return Inertia::render('Curriculum/CurriculumInfo', [
             'course_name' => $course->course_name,

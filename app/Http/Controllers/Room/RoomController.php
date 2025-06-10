@@ -72,8 +72,5 @@ class RoomController extends Controller
         Room::create([
             'room_name' => $request->room_name
         ]);
-
-        return response()->noContent(); // 👈 This fixes the Inertia error
     }
-
 }
