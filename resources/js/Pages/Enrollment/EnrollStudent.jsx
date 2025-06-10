@@ -245,27 +245,33 @@ export default function EnrollStudent() {
             setSubmitting(false);
             return;
         }
+
         const classID = classes.map(cls => cls.id);
 
         await axios.post(`/enrollment/enroll-student/${studentInfo.id}/${yearSectionId}/${studentType}/${schoolYear.start_date}`, {
             classID: classID
         })
             .then(response => {
-                if (response.data.message == 'success') {
+                if (response.data.message === 'success') {
                     toast({
                         description: "Student enrolled successfully",
                         variant: "success",
-                    })
+                    });
+
+                    // Do local UI resets
                     setClasses(defaultClasses);
                     setstudentType('');
                     setStudentInfo([]);
-                    setStudentID('')
+                    setStudentID('');
+
+                    // 🚀 Now redirect to the COR page
+                    window.location.href = response.data.redirect;
                 }
             })
             .finally(() => {
                 setSubmitting(false);
-                topRef.current?.scrollIntoView({ behavior: "smooth" });
-            })
+            });
+
     }
 
     if (loading) return <PreLoader title="Enroll" />

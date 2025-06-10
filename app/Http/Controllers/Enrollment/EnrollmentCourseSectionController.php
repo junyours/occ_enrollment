@@ -636,6 +636,19 @@ class EnrollmentCourseSectionController extends Controller
             ]);
         }
 
-        return response()->json(['message' => 'success']);
+        $yearSection = YearSection::where('id', '=', $yearSectionID)->first();
+
+        $course = Course::addSelect(DB::raw("MD5(course.id) as hashed_course_id"))
+            ->where('id', '=', $yearSection->course_id)
+            ->first();
+
+        $yearLevel = str_replace(' ', '-', YearLevel::where('year_level', '=', $yearSection->year_level_id)->first()->year_level_name);
+
+        $studIdNo = User::where('id', '=', $studID)->first()->user_id_no;
+
+        return response()->json([
+            'message' => 'success',
+            'redirect' => "/enrollment/{$course->hashed_course_id}/students/{$yearLevel}/cor?id-no={$studIdNo}&section=" . urlencode($yearSection->section),
+        ]);
     }
 }
