@@ -3,14 +3,29 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
-import { SquarePlus, X } from "lucide-react"; // Close icon for modal
+import { LogOut, Replace, SquarePlus, X } from "lucide-react"; // Close icon for modal
 import CurriculumTable from "./CurriculumTable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/Components/ui/dialog";
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import { useToast } from "@/hooks/use-toast";
 import PreLoader from "@/Components/preloader/PreLoader";
+import { PageTitle } from "@/Components/ui/PageTitle";
 
 export default function CurriculumInfo() {
+    const { course_name, course_name_abbreviation, years } = usePage().props
+    const [adding, setAdding] = useState(false);
+
+    const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
+        curriculum_term_id: '',
+        year_level: '',
+        semester_id: '',
+        subject_code: '',
+        descriptive_title: '',
+        credit_units: 3,
+        lecture_hours: 3,
+        laboratory_hours: 0,
+    });
+
     const yearLevels = {
         firstYear: "First Year",
         secondYear: "Second Year",
@@ -38,7 +53,7 @@ export default function CurriculumInfo() {
     const [selectedYear, setSelectedYear] = useState(null);
     const [nextSemester, setNextSemester] = useState(1);
 
-    const { data: semesterData, setData: setSemesterData, post: semesterPost, processing: semesterProcessing, errors, reset: semesterReset } = useForm({
+    const { data: semesterData, setData: setSemesterData, post: semesterPost, processing: semesterProcessing, errors: semesterErrors, reset: semesterReset } = useForm({
         semester_id: '',
         year_level_id: '',
         curr_id: '',
@@ -134,14 +149,57 @@ export default function CurriculumInfo() {
         });
     };
 
+    const addSubject = (termId, yearLevel, semesterId) => {
+        setAdding(true);
+        setData('curriculum_term_id', termId)
+        setData('year_level', yearLevel)
+        setData('semester_id', semesterId)
+    }
+
+    const submit = async () => {
+        console.log(data);
+
+        let error
+        if (!data.subject_code) {
+            setError('subject_code', { error: true })
+            error = true
+        }
+        if (!data.descriptive_title) {
+            setError('descriptive_title', { error: true })
+            error = true
+        }
+
+        if (error) return
+
+        await post(route('curr.addsubject'), {
+            onSuccess: () => {
+                getCurriculumInfo();
+                setAdding(false);
+            },
+        })
+
+    }
+
+    const onChange = (e) => {
+        const { name, value } = e.target;
+        if (name == 'subject_code' && value.includes(' ')) return;
+        setData(name, value);
+        clearErrors(name);
+        if (!value) setError(name, { error: true });
+    }
+
+    const onNumberFormChange = (name) => (value) => {
+        if (name === 'subject_code' && value.includes(' ')) return;
+        setData(name, value);
+        console.log('change');
+    };
+
     if (fetching) return <PreLoader title="Curriculum" />
 
     return (
         <div className="p-6 space-y-6">
-            <Head title="Curriculum" />
-            <h1 className="text-2xl font-bold" onClick={() => console.log(curriculumData)}>
-                Curriculum Information
-            </h1>
+            <Head title={course_name_abbreviation + ' Curriculum'} />
+            <PageTitle align='center' >CURRICULUM: {course_name_abbreviation}  {years.join('-')}</PageTitle>
 
             {Object.entries(yearLevels).map(([yearKey, yearName]) => (
                 <Card key={yearKey}>
@@ -151,13 +209,13 @@ export default function CurriculumInfo() {
                     <CardContent className="space-y-4">
                         {curriculumData[yearKey].length > 0 ? (
                             curriculumData[yearKey].map((term) => (
-                                <CurriculumTable key={term.id} data={term} yearlevel={yearName} />
+                                <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={yearName} semesterId={term.semester_id} adding={adding} addSubject={addSubject} form={data} setAdding={setAdding} submit={submit} onChange={onChange} onNumberFormChange={onNumberFormChange} errors={errors} processing={processing} />
                             ))
                         ) : (
                             <p className="text-gray-500">No data available</p>
                         )}
 
-                        {curriculumData[yearKey].length < 3 && (
+                        {(curriculumData[yearKey].length < 3 && !adding) && (
                             <div className="w-full flex justify-center">
                                 <Button
                                     size="lg"
@@ -174,7 +232,7 @@ export default function CurriculumInfo() {
                 </Card>
             ))}
 
-            {/* MODAL COMPONENT */}
+            {/* ADD SEMESTER */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -193,7 +251,7 @@ export default function CurriculumInfo() {
                                 onClick={handleCloseModal}>
                                 Cancel
                             </Button>
-                            
+
                             {/* Submit button first so Enter triggers it */}
                             <Button
                                 type="submit"

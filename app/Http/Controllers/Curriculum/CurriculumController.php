@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Curriculum;
 use App\Models\CurriculumTerm;
+use App\Models\CurriculumTermSubject;
 use App\Models\Faculty;
+use App\Models\Subject;
 use App\Models\YearLevel;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -17,7 +19,7 @@ class CurriculumController extends Controller
 {
     public function view()
     {
-        return Inertia::render('Curriculum/CoursesCurriculumLists');
+        return Inertia::render('Curriculum/CoursesCurriculumLists', []);
     }
 
     public function getCoursesCurriculum(Request $request)
@@ -33,9 +35,21 @@ class CurriculumController extends Controller
             ->get();
     }
 
-    public function CurriculumInfoView()
+    public function CurriculumInfoView($courseId, $schoolYear)
     {
-        return Inertia::render('Curriculum/CurriculumInfo');
+        $years = explode('-', $schoolYear);
+
+        $courseID = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $courseId)
+            ->first()->id;
+
+        $course = Course::find($courseID)->first();
+
+        return Inertia::render('Curriculum/CurriculumInfo', [
+            'course_name' => $course->course_name,
+            'course_name_abbreviation' => $course->course_name_abbreviation,
+            'years' => $years
+        ]);
     }
 
     public function getCurriculumInfo($courseId, $schoolYear)
@@ -147,5 +161,38 @@ class CurriculumController extends Controller
 
         // Redirect to curriculum view
         return Redirect::to("/curriculum/{$course->hashed_course_id}/{$schoolYear}");
+    }
+
+    public function addSubject(Request $request)
+    {
+        $subjectExist = Subject::where('subject_code', '=', $request->subject_code)->first();
+
+        if (!$subjectExist) {
+            // Create new subject if it doesn't exist
+            $subject = Subject::create([
+                'subject_code' => $request->subject_code,
+                'descriptive_title' => $request->descriptive_title,
+                'credit_units' => $request->credit_units,
+                'lecture_hours' => $request->lecture_hours,
+                'laboratory_hours' => $request->laboratory_hours,
+            ]);
+
+            $subjectId = $subject->id;
+        } else {
+            // Use existing subject
+            $subjectId = $subjectExist->id;
+        }
+
+        // Check if this curriculum term subject combination already exists
+        $curriculumTermSubjectExists = CurriculumTermSubject::where('curriculum_term_id', $request->curriculum_term_id)
+            ->where('subject_id', $subjectId)
+            ->exists();
+
+        if (!$curriculumTermSubjectExists) {
+            CurriculumTermSubject::create([
+                'curriculum_term_id' => $request->curriculum_term_id,
+                'subject_id' => $subjectId,
+            ]);
+        }
     }
 }

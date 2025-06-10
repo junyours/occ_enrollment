@@ -23,4 +23,5 @@ Route::middleware(['auth', 'program_head'])->group(function () {
     Route::post('/api/get-instructors', [InstructorsController::class, 'getInstructors'])->name('get.instructors');
 
     Route::post('/curriculum/schoolyear', [CurriculumController::class, 'addSchoolYear'])->name('curr.schoolyear');
+    Route::post('/curriculum/subject', [CurriculumController::class, 'addSubject'])->name('curr.addsubject');
 });
