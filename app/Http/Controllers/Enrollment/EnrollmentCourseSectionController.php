@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Enrollment;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\CurriculumTerm;
 use App\Models\CurriculumTermSubject;
 use App\Models\EnrolledStudent;
@@ -372,6 +373,67 @@ class EnrollmentCourseSectionController extends Controller
                 'courseName' => $course->course_name_abbreviation,
             ]
         );
+    }
+
+    public function viewStudentCor($courseId, $yearlevel, Request $request)
+    {
+        $section = $request->query('section');
+
+        $course = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $courseId)
+            ->first();
+
+        $studentIdNo = $request->query('id-no');
+
+        return Inertia::render(
+            'Enrollment/StudentCor',
+            [
+                'courseId' => $course->id,
+                'section' => $section,
+                'yearlevel' => $yearlevel,
+                'studentIdNo' => $studentIdNo,
+            ]
+        );
+    }
+
+    public function getStudentEnrollmentInfo($courseId, $section, $yearlevel, $studentIdNo)
+    {
+        $yearLevels = [
+            'First-Year' => '1',
+            'Second-Year' => '2',
+            'Third-Year' => '3',
+            'Fourth-Year' => '4'
+        ];
+
+        $yearLevelNumber = $yearLevels[$yearlevel] ?? '';
+
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        $yearSectionId = YearSection::where('course_id', '=', $courseId)
+            ->where('year_level_id', '=', $yearLevelNumber)
+            ->where('school_year_id', '=', $schoolYear->id)
+            ->where('section', '=', $section)
+            ->first()->id;
+
+        $studentId = User::where('user_id_no', '=', $studentIdNo)->first()->id;
+
+        $studentInfo = EnrolledStudent::where('year_section_id', '=', $yearSectionId)
+            ->with(
+                'Evaluator.EvaluatorInformation',
+                'StudentType',
+                'YearSection.Course',
+                'YearSection.YearLevel',
+                'YearSection.SchoolYear.Semester',
+                'StudentSubject.YearSectionSubjects.Subject',
+                'StudentSubject.YearSectionSubjects.Instructor.InstructorInformation',
+                'StudentSubject.YearSectionSubjects.Room',
+                'StudentSubject.YearSectionSubjects.SubjectSecondarySchedule.Room',
+                'Student.StudentInformation'
+            )
+            ->where('student_id', '=', $studentId)
+            ->first();
+
+        return response()->json($studentInfo, 200);
     }
 
     public function getStudentSubjects(Request $request)

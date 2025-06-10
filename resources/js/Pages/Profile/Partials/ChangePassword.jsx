@@ -92,7 +92,7 @@ export default function ChangePassword() {
                                     Current Password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" />
                                     <Input
                                         id="current_password"
                                         type={showCurrentPassword ? 'text' : 'password'}
@@ -106,9 +106,9 @@ export default function ChangePassword() {
                                     <button
                                         type="button"
                                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
                                     >
-                                        {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        {showCurrentPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                     </button>
                                 </div>
                                 {errors.current_password && (
@@ -125,7 +125,7 @@ export default function ChangePassword() {
                                     New Password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" />
                                     <Input
                                         id="new_password"
                                         type={showNewPassword ? 'text' : 'password'}
@@ -139,9 +139,9 @@ export default function ChangePassword() {
                                     <button
                                         type="button"
                                         onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
                                     >
-                                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        {showNewPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                     </button>
                                 </div>
                                 {data.password && (
@@ -170,7 +170,7 @@ export default function ChangePassword() {
                                     Confirm New Password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" />
                                     <Input
                                         id="confirm_password"
                                         type={showConfirmPassword ? 'text' : 'password'}
@@ -184,9 +184,9 @@ export default function ChangePassword() {
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2"
                                     >
-                                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        {showConfirmPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                     </button>
                                 </div>
                                 {data.password_confirmation && (

@@ -78,7 +78,7 @@ export default function EnrolledStudentList() {
                             </Button>
                         </Link>
                         <Link
-                            href={`${route('enrollment.view.student.subjects', {
+                            href={`${route('enrollment.view.student.cor', {
                                 id: hashedCourseId,
                                 yearlevel: yearLevelName ? yearLevelName.replace(/\s+/g, '-') : 'First-Year'
                             })}?section=${encodeURIComponent(section)}&id-no=${user_id_no}`}
