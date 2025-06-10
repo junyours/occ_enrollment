@@ -263,9 +263,13 @@ class UserController extends Controller
             'zip_code' => $request->zip_code,
         ]);
 
+        $headID = Auth::id();
+
+        $deptID = Faculty::where('faculty_id', '=', $headID)->first()->department_id;
+
         Faculty::create([
             'faculty_id' => $user->id,
-            'department_id' => $request->department_id,
+            'department_id' => $deptID,
         ]);
 
         $faculty = [

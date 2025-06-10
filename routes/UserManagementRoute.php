@@ -23,3 +23,7 @@ Route::middleware(['auth', 'registrar'])->group(function () {
     Route::post('/student/add', [UserController::class, 'addStudent'])->name('student.add');
     Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
 });
+
+Route::middleware(['auth', 'program_head'])->group(function () {
+    Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
+});

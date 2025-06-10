@@ -106,7 +106,7 @@ class ClassController extends Controller
             ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->get();
 
         return response()->json($classes);

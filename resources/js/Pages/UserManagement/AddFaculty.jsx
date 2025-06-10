@@ -50,7 +50,6 @@ function AddFaculty({ open, setOpen }) {
         email_address: '',
         present_address: '',
         zip_code: '',
-        department_id: 0,
     });
 
     const handleChange = (e) => {
@@ -109,11 +108,6 @@ function AddFaculty({ open, setOpen }) {
 
             if (!data.last_name) {
                 setError('last_name', { error: true });
-                hasError = true;
-            }
-
-            if (!data.department_id) {
-                setError('department_id', { error: true });
                 hasError = true;
             }
 
@@ -206,7 +200,7 @@ function AddFaculty({ open, setOpen }) {
                         <div className='flex flex-col justify-between h-72'>
                             <div>
                                 {page == 1 && (
-                                    <div className=''>
+                                    <div className='flex flex-col gap-2'>
                                         <div>
                                             <Label>First name</Label>
                                             <Input
@@ -234,33 +228,11 @@ function AddFaculty({ open, setOpen }) {
                                                 className={`${errors.last_name && 'border-red-500'}`}
                                             />
                                         </div>
-
-                                        <div>
-                                            <Label>Department</Label>
-                                            <Select
-                                                name="department_id"
-                                                value={data.department_id}
-                                                onValueChange={(value) =>
-                                                    handleChange({ target: { name: 'department_id', value } })
-                                                }
-                                            >
-                                                <SelectTrigger
-                                                    className={`${errors.department_id ? 'border-red-500' : ''}`}
-                                                >
-                                                    <SelectValue placeholder="Select..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {departments.map(dept => (
-                                                        <SelectItem value={dept.id}>{dept.department_name} - {dept.department_name_abbreviation}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
                                     </div>
                                 )}
 
                                 {page == 2 && (
-                                    <div className='flex flex-col'>
+                                    <div className='flex flex-col gap-2'>
                                         <div className='flex flex-col gap-2'>
                                             <div>
                                                 <Label>Email</Label>

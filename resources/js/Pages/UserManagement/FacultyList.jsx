@@ -209,7 +209,7 @@ const FacultyList = () => {
         <div className="space-y-4">
             <Head title="Faculty List" />
             <PageTitle align="center">Faculty List</PageTitle>
-            {userRole == 'registrar' && (
+            {userRole == 'program_head' && (
                 <Button onClick={() => setOpen(true)}>Add Faculty</Button>
             )}
             <Card>
@@ -225,7 +225,7 @@ const FacultyList = () => {
                     />
                 </CardContent>
             </Card>
-            {userRole == 'registrar' && (
+            {userRole == 'program_head' && (
                 <AddFaculty open={open} setOpen={setOpen} />
             )}
         </div>
