@@ -70,8 +70,8 @@ function StudentCor() {
                 <p className="content-center text-gray-500 text-sm">or Press "P" on your keyboard to print</p>
             </div>
 
-            <div className="shadow-heavy rounded-2xl w-full flex justify-center">
-                <div ref={componentRef}>
+            <div ref={componentRef} className="shadow-heavy rounded-2xl w-full flex justify-center">
+                <div>
                     <CorGenerator data={data} />
                 </div>
             </div>

@@ -7,7 +7,8 @@ Route::middleware(['auth', 'ClassesPermission'])->group(function () {
     Route::get('/classes', [ClassController::class, 'view'])->name('classes');
     Route::post('/api/get-faculty-classes', [ClassController::class, 'getFacultyClasses'])->name('get.faculty.classes');
 
-    Route::get('/classes/classroom/{id}', [ClassController::class, 'view'])->name('classes.classroom.yearsection');
+    Route::get('/classes/classroom/{id}', [ClassController::class, 'viewClass'])->name('classes.classroom.yearsection');
+    Route::post('/classes/classroom/{id}/students', [ClassController::class, 'getStudents'])->name('class.students');
 });
 
 Route::middleware(['auth', 'student'])->group(function () {

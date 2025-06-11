@@ -221,10 +221,12 @@ function CorGenerator({ data }) {
                                 <span class="text-xs">50.00</span>
                             </div>
 
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs text-gray-600">Computer Fee:</span>
-                                <span class="text-xs">200.00</span>
-                            </div>
+                            {data.year_section.course.course_name_abbreviation == 'BSIT' && (
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs text-gray-600">Computer Fee:</span>
+                                    <span class="text-xs">200.00</span>
+                                </div>
+                            )}
 
                             <div class="flex justify-between items-center">
                                 <span class="text-xs text-gray-600">Handbook:</span>

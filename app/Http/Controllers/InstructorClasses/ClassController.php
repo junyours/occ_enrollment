@@ -33,6 +33,10 @@ class ClassController extends Controller
         }
     }
 
+    public function viewClass(){
+        return Inertia::render('InstructorClasses/OpenClass');
+    }
+
     public function getFacultyClasses()
     {
         $facultyId = Auth::user()->id;
