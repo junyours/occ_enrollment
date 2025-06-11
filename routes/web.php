@@ -26,7 +26,7 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(func
     Route::post('/api/get-enrollment-subjects-schedules', [EnrollmentClassSchedulingController::class, 'getEnrollmentSubjectsSchedules'])->name('enrollment.get.subjects-schedules');
 });
 
-Route::middleware(['auth', 'EnrollmentPrepOngoing', 'ProgrameadRegistrar'])->group(function () {
+Route::middleware(['auth', 'EnrollmentPrepOngoing'])->group(function () {
     Route::post('/api/enrollment/get-classes', [EnrollmentClassSchedulingController::class, 'enrollmentGetClasses'])->name('enrollment.get.classes');
 });
 
