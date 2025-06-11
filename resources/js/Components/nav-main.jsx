@@ -48,6 +48,12 @@ export function NavMain() {
             ]
             : []
         ),
+        ...(user.user_role === "faculty"
+            ? [
+                { name: "Classes", route: "classes", icon: Presentation },
+            ]
+            : []
+        ),
         ...(["registrar", "program_head", "evaluator", "faculty"].includes(user.user_role)
             ? [
             ]
