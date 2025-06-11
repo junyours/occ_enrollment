@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EnrolledStudent;
 use App\Models\SchoolYear;
 use App\Models\StudentSubject;
+use App\Models\Subject;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,8 +34,30 @@ class ClassController extends Controller
         }
     }
 
-    public function viewClass(){
-        return Inertia::render('InstructorClasses/OpenClass');
+    public function viewClass($id)
+    {
+        $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(id, 256) = ?", [$id])->first();
+
+        $subject = Subject::where('id', '=', $yearSectionSubjects->subject_id)->first();
+
+        return Inertia::render('InstructorClasses/OpenClass', [
+            'id' => $yearSectionSubjects->id,
+            'subjectCode' => $subject->subject_code,
+            'descriptiveTitle' => $subject->descriptive_title,
+        ]);
+    }
+
+    public function getStudents($id)
+    {
+        $students = StudentSubject::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'user_id', 'gender',)
+            ->where('year_section_subjects_id', '=', $id)
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('last_name', 'ASC')
+            ->get();
+
+        return response()->json($students, 200);
     }
 
     public function getFacultyClasses()
