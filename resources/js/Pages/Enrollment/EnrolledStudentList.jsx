@@ -13,10 +13,10 @@ export default function EnrolledStudentList() {
     const [students, ssetStudents] = useState([]);
 
     const yearLevelName =
-        yearlevel === 1 ? 'First year' :
-            yearlevel === 2 ? 'Second year' :
-                yearlevel === 3 ? 'Third year' :
-                    yearlevel === 4 ? 'Fourth year' : '';
+        yearlevel == 1 ? 'First Year' :
+            yearlevel == 2 ? 'Second Year' :
+                yearlevel == 3 ? 'Third Year' :
+                    yearlevel == 4 ? 'Fourth Year' : '';
 
     const getEnrolledStudentList = async () => {
         await axios.post(route('get.enrolled.student.list', { id: courseId, yearlevel: yearlevel, yearSectionId: yearSectionId }))
