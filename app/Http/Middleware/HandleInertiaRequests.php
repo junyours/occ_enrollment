@@ -35,6 +35,15 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        if (!$user || $user->user_role == 'super_admin' || $user->user_role == 'mis') {
+            return [
+                ...parent::share($request),
+                'auth' => [
+                    'user' => $user,
+                ],
+            ];
+        }
+
         // Perform a JOIN to get first_name and last_name
         $userData = $user ? DB::table('users')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')

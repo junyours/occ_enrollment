@@ -54,6 +54,20 @@ export function NavMain() {
             ]
             : []
         ),
+        ...(user.user_role === "super_admin"
+            ? [
+                { name: "Users", route: "users", icon: Presentation },
+            ]
+            : []
+        ),
+        ...(user.user_role === "mis"
+            ? [
+                { name: "Faculty", route: "classes", icon: Presentation },
+                { name: "Student", route: "classes", icon: Presentation },
+                { name: "Recycle Bin", route: "classes", icon: Presentation },
+            ]
+            : []
+        ),
         ...(["registrar", "program_head", "evaluator", "faculty"].includes(user.user_role)
             ? [
             ]

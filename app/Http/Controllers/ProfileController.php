@@ -17,7 +17,13 @@ class ProfileController extends Controller
      */
     public function profile(Request $request): Response
     {
-        $userId = Auth::user()->id;
+        $user = Auth::user();
+
+        if ($user->user_role == 'super_admin' || $user->user_role == 'mis') {
+            return Inertia::render('Profile/Index', [
+                'user' => $user
+            ]);
+        }
 
         $user = User::select(
             'user_id_no',
@@ -32,7 +38,7 @@ class ProfileController extends Controller
             'present_address',
             'zip_code'
         )
-            ->where('users.id', '=', $userId)
+            ->where('users.id', '=', $user->id)
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->first();
 

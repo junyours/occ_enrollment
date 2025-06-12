@@ -44,12 +44,12 @@ export default function Index() {
                         <div className="flex items-center space-x-4">
                             <Avatar className="w-20 h-20">
                                 <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
-                                    {getInitials()}
+                                    {(user.user_role != 'mis' && user.user_role != 'super_admin') ? getInitials() : user.user_role.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="space-y-1">
                                 <CardTitle className="text-2xl">
-                                    {userInfo.first_name} {userInfo.middle_name} {userInfo.last_name}
+                                    {(user.user_role != 'mis' && user.user_role != 'super_admin') ? `${userInfo.first_name} ${userInfo.middle_name} ${userInfo.last_name}` : user.user_role.replace(/_/g, ' ').toUpperCase()}
                                 </CardTitle>
                                 <CardDescription className="flex items-center gap-2">
                                     <Mail className="w-4 h-4" />
