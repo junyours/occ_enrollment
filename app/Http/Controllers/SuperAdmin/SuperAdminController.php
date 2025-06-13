@@ -59,4 +59,12 @@ class SuperAdminController extends Controller
 
         return redirect('/'); // or wherever the impersonated user should land
     }
+
+    public function stopImpersonate()
+    {
+        if (Session::has('impersonator_id')) {
+            $originalId = Session::pull('impersonator_id');
+            Auth::loginUsingId($originalId);
+        }
+    }
 }

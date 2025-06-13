@@ -29,4 +29,6 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'EnrollmentPermission'])->gr
     Route::post('/api/enrollment/student-info/{schoolYearId}/{studentID}', [EnrollmentCourseSectionController::class, 'studentInfo'])->name('enrollment.student.info');
 
     Route::post('/api/subjects-classes', [EnrollmentCourseSectionController::class, 'subjectClasses'])->name('subject.classes');
+
+    Route::delete('/enrollment/unenroll/{id}', [EnrollmentCourseSectionController::class, 'unenroll'])->name('enrollment.unenroll');
 });

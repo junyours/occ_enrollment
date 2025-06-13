@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Course;
 use Carbon\Carbon;
 use App\Models\SchoolYear;
+use Illuminate\Support\Facades\Session;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -56,6 +57,7 @@ class HandleInertiaRequests extends Middleware
                 ...parent::share($request),
                 'auth' => [
                     'user' => $userData,
+                    'impersonating' => Session::has('impersonator_id'),
                 ],
             ];
         }
@@ -82,6 +84,7 @@ class HandleInertiaRequests extends Middleware
                 ...parent::share($request),
                 'auth' => [
                     'user' => $userData,
+                    'impersonating' => Session::has('impersonator_id'),
                 ],
             ];
         }
@@ -114,6 +117,7 @@ class HandleInertiaRequests extends Middleware
                 'enrollment_status' => $schoolYearStatus['status'],
                 'courses' => $courses,
                 'schoolYear' => $schoolYear,
+                'impersonating' => Session::has('impersonator_id'),
             ],
         ];
     }

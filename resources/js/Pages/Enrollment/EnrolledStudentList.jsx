@@ -6,11 +6,18 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { formatFullName } from '@/Lib/Utils';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Card, CardContent, CardHeader } from '@/Components/ui/card';
+import { Trash, UserMinus } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import StudentActions from './StudentActions';
+import { useToast } from "@/hooks/use-toast";
+import { router } from '@inertiajs/react';
+
 export default function EnrolledStudentList() {
     const { hashedCourseId, courseId, yearlevel, section, yearSectionId, courseName } = usePage().props;
     const [loading, setLoading] = useState(true);
-    const [students, ssetStudents] = useState([]);
+    const [students, setStudents] = useState([]);
+    const { toast } = useToast()
 
     const yearLevelName =
         yearlevel == 1 ? 'First Year' :
@@ -21,7 +28,7 @@ export default function EnrolledStudentList() {
     const getEnrolledStudentList = async () => {
         await axios.post(route('get.enrolled.student.list', { id: courseId, yearlevel: yearlevel, yearSectionId: yearSectionId }))
             .then(response => {
-                ssetStudents(response.data)
+                setStudents(response.data)
             })
             .finally(() => {
                 setLoading(false);
@@ -31,6 +38,46 @@ export default function EnrolledStudentList() {
     useEffect(() => {
         getEnrolledStudentList();
     }, [])
+
+
+    // state to control modal
+    const [studentToUnenroll, setStudentToUnenroll] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+
+    const unEnrollStudent = async (id) => {
+        try {
+            await router.delete(route('enrollment.unenroll', id), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Remove the student from the list
+                    setStudents(prev => prev.filter(student => student.id !== id));
+
+                    // Close the modal
+                    setShowModal(false);
+
+                    // Show success message
+                    toast({
+                        description: "Student Unenrolled.",
+                        variant: "success",
+                    });
+                },
+            });
+        } catch (error) {
+            console.error("Unenrollment failed", error);
+        }
+    };
+
+    const openUnenrollModal = (studentId) => {
+        const student = students.find(student => student.id == studentId)
+        setStudentToUnenroll(student);
+        setShowModal(true);
+    };
+
+    const handleUnenroll = () => {
+        if (studentToUnenroll) {
+            unEnrollStudent(studentToUnenroll.id);
+        }
+    };
 
     const columns = [
         {
@@ -64,7 +111,7 @@ export default function EnrolledStudentList() {
             header: "Actions",
             headerClassName: 'w-32 text-right',
             cell: ({ row }) => {
-                const { user_id_no } = row.original;
+                const { user_id_no, id } = row.original;
                 return (
                     <div className="flex justify-end">
                         <Link
@@ -87,6 +134,18 @@ export default function EnrolledStudentList() {
                                 COR
                             </Button>
                         </Link>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={() => openUnenrollModal(id)}
+                                    variant="icon"
+                                    className="text-red-500 py-0 h-min"
+                                >
+                                    <UserMinus />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Unenroll student</TooltipContent>
+                        </Tooltip>
                     </div>
                 );
             },
@@ -112,6 +171,15 @@ export default function EnrolledStudentList() {
                     />
                 </CardContent>
             </Card>
+            {studentToUnenroll && (
+                <StudentActions
+                    show={showModal}
+                    setShowModal={setShowModal}
+                    onCancel={() => setShowModal(false)}
+                    onConfirm={handleUnenroll}
+                    student={studentToUnenroll}
+                />
+            )}
         </div>
     )
 }

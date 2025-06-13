@@ -651,4 +651,12 @@ class EnrollmentCourseSectionController extends Controller
             'redirect' => "/enrollment/{$course->hashed_course_id}/students/{$yearLevel}/cor?id-no={$studIdNo}&section=" . urlencode($yearSection->section),
         ]);
     }
+
+    public function unenroll($id)
+    {
+        StudentSubject::where('enrolled_students_id', '=', $id)->delete();
+        EnrolledStudent::where('id', '=', $id)->delete();
+
+        return back()->with('message', 'Student unenrolled successfully.');
+    }
 }
