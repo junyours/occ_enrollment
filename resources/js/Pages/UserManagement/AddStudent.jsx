@@ -5,9 +5,10 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { formatPhoneNumber } from '@/Lib/Utils';
 import { useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { CircleHelp, LoaderCircle } from 'lucide-react';
 import React, { useState } from 'react'
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 
 const requiredFields = [
     'first_name',
@@ -26,6 +27,7 @@ function AddStudent({ open, setOpen }) {
     const { toast } = useToast()
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
+        user_id_no: '',
         first_name: '',
         middle_name: '',
         last_name: '',
@@ -42,6 +44,11 @@ function AddStudent({ open, setOpen }) {
 
         if (requiredFields.includes(name) && value.trim() == '') {
             setError(name, { error: true });
+        } else if (name == 'user_id_no') {
+            if (value.length > 12) return
+            const cleanedValue = value.replace(/[^0-9-]/g, '');
+            setData(name, cleanedValue);
+            return
         } else {
             clearErrors(name);
         }
@@ -168,6 +175,10 @@ function AddStudent({ open, setOpen }) {
                     setErrorMessage(errors.email);
                     setError('email_address', { error: true })
                     setPage(2);
+                } else if (errors.user_id_no) {
+                    setErrorMessage(errors.user_id_no);
+                    setError('user_id_no', { error: true })
+                    setPage(1);
                 }
             }
         })
@@ -181,10 +192,33 @@ function AddStudent({ open, setOpen }) {
                         <DialogTitle>Add Student</DialogTitle>
                     </DialogHeader>
                     <div className='flex flex-col justify-between h-full gap-0'>
-                        <div className='flex flex-col justify-between h-72'>
+                        <div className='flex flex-col justify-between h-80'>
                             <div>
                                 {page == 1 && (
                                     <div className='flex flex-col gap-2'>
+                                        <div>
+                                            <Label>ID number</Label>
+                                            <div className='flex gap-2 items-center'>
+
+                                                <Input
+                                                    name="user_id_no"
+                                                    value={data.user_id_no}
+                                                    onChange={handleChange}
+                                                    className={`${errors.user_id_no && 'border-red-500'}`}
+                                                />
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" size="icon" onClick={() => loginAs(user)}>
+                                                            <CircleHelp className='text-blue-500 cursor-pointer' />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        Use this only for old students who don’t have records in the system.
+                                                    </TooltipContent>
+                                                </Tooltip>
+
+                                            </div>
+                                        </div>
                                         <div>
                                             <Label>First name</Label>
                                             <Input

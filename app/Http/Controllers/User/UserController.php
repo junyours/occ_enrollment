@@ -154,6 +154,17 @@ class UserController extends Controller
             ]);
         }
 
+        if ($request->user_id_no) {
+            $userIdExist = User::where('user_id_no', '=', $request->user_id_no)
+                ->first();
+
+            if ($userIdExist) {
+                return back()->withErrors([
+                    'user_id_no' => 'ID number already exists.',
+                ]);
+            }
+        }
+
         $emailExist = user::where('email', '=', $request->email_address)
             ->first();
 
@@ -170,7 +181,7 @@ class UserController extends Controller
 
         $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
 
-        $lastFive = substr($userId->user_id_no, -5);      // "04567"
+        $lastFive = substr($userId->user_id_no, -5);
         $studLastFiveDigits = str_pad(((int) $lastFive + 1), 5, '0', STR_PAD_LEFT);
 
         $studentID = $schoolYear->start_year . '-' . $schoolYear->semester_id . '-' . $studLastFiveDigits;
@@ -178,7 +189,7 @@ class UserController extends Controller
         $password = $this->generateRandomPassword();
 
         $user = User::create([
-            'user_id_no' => $studentID,
+            'user_id_no' => $request->user_id_no ?? $studentID,
             'password' => Hash::make($password),
             'email' => $request->email_address,
             'user_role' => 'student',
@@ -201,7 +212,7 @@ class UserController extends Controller
             "first_name" => ucwords(strtolower($request->first_name)),
             "middle_name" => ucwords(strtolower($request->middle_name)),
             "last_name" => ucwords(strtolower($request->last_name)),
-            "user_id_no" => $studentID
+            "user_id_no" => $request->user_id_no ?? $studentID
         ];
 
         if ($request->email_address) {
