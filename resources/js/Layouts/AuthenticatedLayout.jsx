@@ -10,13 +10,16 @@ import {
 import { usePage } from "@inertiajs/react"
 import { Button } from "@/Components/ui/button";
 import axios from "axios";
+import { useState } from "react";
 
 export default function AuthenticatedLayout({ children }) {
 
     const { impersonating } = usePage().props.auth;
+    const [loading, setLoading] = useState(false)
 
     const stopImpersonate = async () => {
-        await axios.post(route('stop-impersonate'));
+        setLoading(true);
+        await axios.post(route('stop-impersonate'))
         window.location.href = '/users';
     }
 
@@ -29,16 +32,18 @@ export default function AuthenticatedLayout({ children }) {
                         <SidebarTrigger className="-ml-1" />
                     </div>
                     <div>
-                        
+
                     </div>
                     {impersonating && (
                         <Button
+                            disabled={loading}
                             onClick={stopImpersonate}
                             type="submit"
                             variant="destructive"
                             size="sm"
+                            className='w-32'
                         >
-                            Stop Impersonating
+                            {loading ? 'Returning...' : 'Stop Impersonating'}
                         </Button>
                     )}
                 </header>

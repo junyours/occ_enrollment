@@ -158,8 +158,8 @@ function Users({ users, filters }) {
                                                 <div className="flex justify-end gap-2">
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Button variant="ghost" size="icon" onClick={() => loginAs(user)}>
-                                                                <LogIn className="h-4 w-4" />
+                                                            <Button variant="ghost" className="h-max" size="icon" onClick={() => loginAs(user)}>
+                                                                <LogIn  />
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>

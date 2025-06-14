@@ -23,9 +23,34 @@ class UserController extends Controller
         return Inertia::render('UserManagement/FacultyList');
     }
 
-    public function viewStudent()
+    public function viewStudent(Request $request)
     {
-        return Inertia::render('UserManagement/StudentList');
+        $students = User::select(
+            'users.id',
+            'user_id_no',
+            'email_address',
+            'contact_number',
+            'user_information.first_name',
+            'user_information.middle_name',
+            'user_information.last_name',
+        )->when($request->search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('user_id_no', 'like', '%' . $search . '%');
+            });
+        })
+            ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+            ->where('users.user_role', '=', 'student')
+            ->orderBy('user_id_no', 'desc')
+            ->paginate(10) // paginate with 10 students per page
+            ->withQueryString(); // preserve query params like ?page=
+
+        return Inertia::render('UserManagement/StudentList', [
+            'students' => $students,
+            'filters' => $request->only(['search'])
+        ]);
     }
 
     public function getFacultyListDepartment()
