@@ -21,22 +21,24 @@ const requiredFields = [
     'zip_code',
 ];
 
-function AddStudent({ open, setOpen }) {
+function AddStudent({ open, setOpen, student, editing, setEditing, setStudent }) {
     const [page, setPage] = useState(1);
     const [errorMessage, setErrorMessage] = useState('');
     const { toast } = useToast()
+    console.log(student.id);
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
-        user_id_no: '',
-        first_name: '',
-        middle_name: '',
-        last_name: '',
-        gender: '',
-        birthday: '',
-        contact_number: '09',
-        email_address: '',
-        present_address: '',
-        zip_code: '',
+        id: editing ? student.id : 0,
+        user_id_no: editing ? student.user_id_no : '',
+        first_name: editing ? student.first_name : '',
+        middle_name: editing ? student.middle_name : '',
+        last_name: editing ? student.last_name : '',
+        gender: editing ? student.gender : '',
+        birthday: editing ? student.birthday : '',
+        contact_number: editing ? student.contact_number : '09',
+        email_address: editing ? student.email_address : '',
+        present_address: editing ? student.present_address : '',
+        zip_code: editing ? student.zip_code : '',
     });
 
     const handleChange = (e) => {
@@ -103,6 +105,11 @@ function AddStudent({ open, setOpen }) {
                 hasError = true;
             }
 
+            if (!data.user_id_no && editing) {
+                setError('user_id_no', { error: true });
+                hasError = true;
+            }
+
             if (hasError) return;
         } else if (page == 2) {
             if (data.email_address == '') {
@@ -135,6 +142,9 @@ function AddStudent({ open, setOpen }) {
     }
 
     const submit = async () => {
+
+        console.log(data);
+
         let hasError = false;
 
         if (!data.contact_number || data.contact_number.length != 11) {
@@ -154,7 +164,9 @@ function AddStudent({ open, setOpen }) {
 
         if (hasError) return;
 
-        await post(route('student.add'), {
+        const routeName = editing ? 'student.edit' : 'student.add'
+
+        await post(route(routeName), {
             onSuccess: () => {
                 reset();
                 setPage(1);
@@ -186,10 +198,10 @@ function AddStudent({ open, setOpen }) {
 
     return (
         <div>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={() => { setOpen(false), setEditing(false), setStudent([]) }}>
                 <DialogContent className="">
                     <DialogHeader>
-                        <DialogTitle>Add Student</DialogTitle>
+                        <DialogTitle>{editing ? 'Edit' : 'Add'} Student</DialogTitle>
                     </DialogHeader>
                     <div className='flex flex-col justify-between h-full gap-0'>
                         <div className='flex flex-col justify-between h-80'>
@@ -352,7 +364,7 @@ function AddStudent({ open, setOpen }) {
                             type="submit"
                         >
                             <span className="text-center">
-                                {processing ? 'Submitting' : 'Submit'}
+                                {processing ? 'Submitting' : editing ? 'Confirm edit' : 'Submit'}
                             </span>
                             {processing && (
                                 <LoaderCircle className="animate-spin" />

@@ -79,7 +79,7 @@ function Users({ users, filters }) {
 
     return (
         <div>
-            <Head title='Users'/>
+            <Head title='Users' />
             <Card>
                 <CardHeader>
                     <CardTitle className="text-2xl font-bold">Users</CardTitle>
@@ -117,8 +117,13 @@ function Users({ users, filters }) {
                             </Select>
 
 
-                            <Button type="submit" variant="default">
-                                Search
+                            <Button
+                                type="submit"
+                                variant="default"
+                                className="flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+                            >
+                                <Search className="h-4 w-4" />
+                                <span className="hidden sm:inline">Search</span>
                             </Button>
                             {(search || role) && (
                                 <Button type="button" onClick={handleReset} variant="outline">
@@ -159,7 +164,7 @@ function Users({ users, filters }) {
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button variant="ghost" className="h-max" size="icon" onClick={() => loginAs(user)}>
-                                                                <LogIn  />
+                                                                <LogIn />
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>

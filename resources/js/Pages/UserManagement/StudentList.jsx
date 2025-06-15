@@ -7,15 +7,22 @@ import { ChevronLeft, ChevronRight, Edit3Icon, Plus, Search, X } from 'lucide-re
 import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatFullName } from '@/Lib/Utils';
 import AddStudent from './AddStudent';
 import { Input } from '@/Components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import axios from 'axios';
 
 export default function StudentList({ students, filters }) {
+
     const [search, setSearch] = useState(filters.search || '');
     const [open, setOpen] = useState(false);
+
+    const [editMode, setEditMode] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+
+    const [studentEdit, setStudentEdit] = useState([]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -34,8 +41,15 @@ export default function StudentList({ students, filters }) {
     };
 
     const editStudent = async (id) => {
-        console.log(id);
-    }
+        await axios.post(`/api/student-info/${id}`)
+            .then(response => {
+                setStudentEdit(response.data);
+            })
+            .finally(() => {
+                setEditMode(true)
+                setOpen(true);
+            });
+    };
 
     return (
         <div className="space-y-4">
@@ -55,7 +69,7 @@ export default function StudentList({ students, filters }) {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSearch} className="mb-4 mt-2">
-                        <div className="flex flex-col sm:flex-row gap-2 w-96">
+                        <div className="flex flex-col sm:flex-row gap-2 w-full max-w-xl">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                                 <Input
@@ -68,19 +82,29 @@ export default function StudentList({ students, filters }) {
                             </div>
 
                             <div className="flex gap-2 w-full sm:w-auto">
-                                <Button type="submit" variant="default" className="flex-1 sm:flex-initial">
-                                    Search
+                                <Button
+                                    type="submit"
+                                    variant="default"
+                                    className="flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+                                >
+                                    <Search className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Search</span>
                                 </Button>
-                                {(search) && (
-                                    <Button type="button" onClick={handleReset} variant="outline" className="flex-1 sm:flex-initial">
-                                        <X className="h-4 w-4 mr-2" />
-                                        Reset
+
+                                {search && (
+                                    <Button
+                                        type="button"
+                                        onClick={handleReset}
+                                        variant="outline"
+                                        className="flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+                                    >
+                                        <X className="h-4 w-4" />
+                                        <span className="hidden sm:inline">Reset</span>
                                     </Button>
                                 )}
                             </div>
                         </div>
                     </form>
-
                     {/* Mobile Card View */}
                     <div className="block sm:hidden space-y-3">
                         {students.data.length > 0 ? (
@@ -145,9 +169,9 @@ export default function StudentList({ students, filters }) {
                                                                 variant="ghost"
                                                                 className="h-max w-max text-green-500"
                                                                 size="icon"
-                                                                onClick={() => editStudent(student.id)}
+                                                                onClick={() => editStudent(student.user_id_no)}
                                                             >
-                                                                <Edit3Icon />
+                                                                <Edit3Icon className="w-4 h-4" />
                                                             </Button>
                                                         </TooltipTrigger>
                                                         <TooltipContent>
@@ -233,8 +257,9 @@ export default function StudentList({ students, filters }) {
                     </div>
                 </CardContent>
             </Card>
-
-            <AddStudent open={open} setOpen={setOpen} />
+            {(editMode || open) && (
+                <AddStudent open={open} setOpen={setOpen} student={studentEdit} editing={editMode} setEditing={setEditMode} setStudent={setStudentEdit} />
+            )}
         </div>
     );
 }

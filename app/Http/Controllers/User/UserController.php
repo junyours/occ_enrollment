@@ -53,6 +53,28 @@ class UserController extends Controller
         ]);
     }
 
+    public function studentInfo($id)
+    {
+        $student = User::select(
+            'users.id',
+            'user_id_no',
+            'user_id',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'gender',
+            'birthday',
+            'contact_number',
+            'email_address',
+            'present_address',
+            'zip_code',
+        )
+            ->where('user_id_no', '=', $id)
+            ->join('user_information', 'users.id', 'user_information.user_id')
+            ->first();
+
+        return response()->json($student, 200);
+    }
     public function getFacultyListDepartment()
     {
         $userId = Auth::user()->id;
@@ -169,16 +191,6 @@ class UserController extends Controller
 
     public function addStudent(Request $request)
     {
-        $studentExist = UserInformation::where('first_name', '=', $request->first_name)
-            ->where('last_name', '=', $request->last_name)
-            ->first();
-
-        if ($studentExist) {
-            return back()->withErrors([
-                'student' => 'Student already exists.',
-            ]);
-        }
-
         if ($request->user_id_no) {
             $userIdExist = User::where('user_id_no', '=', $request->user_id_no)
                 ->first();
@@ -188,6 +200,16 @@ class UserController extends Controller
                     'user_id_no' => 'ID number already exists.',
                 ]);
             }
+        }
+
+        $studentExist = UserInformation::where('first_name', '=', $request->first_name)
+            ->where('last_name', '=', $request->last_name)
+            ->first();
+
+        if ($studentExist) {
+            return back()->withErrors([
+                'student' => 'Student already exists.',
+            ]);
         }
 
         $emailExist = user::where('email', '=', $request->email_address)
@@ -243,6 +265,50 @@ class UserController extends Controller
         if ($request->email_address) {
             Mail::to($request->email_address)->send(new StudentCredentialsMail($student, $password));
         }
+    }
+
+    public function editStudent(Request $request)
+    {
+        // Check if the user ID number already exists for another user
+        $userIdExist = User::where('user_id_no', $request->user_id_no)
+            ->whereNot('id', '=', $request->id)
+            ->first();
+
+        if ($userIdExist) {
+            return back()->withErrors([
+                'user_id_no' => 'ID number already exists.',
+            ]);
+        }
+
+        $studentExist = UserInformation::where('first_name', '=', $request->first_name)
+            ->where('last_name', '=', $request->last_name)
+            ->whereNot('user_id', '=', $request->id)
+            ->first();
+
+        if ($studentExist) {
+            return back()->withErrors([
+                'student' => 'Student already exists.',
+            ]);
+        }
+
+        User::where('id', '=', $request->id)
+            ->update([
+                'user_id_no' => $request->user_id_no,
+                'email' => $request->email_address
+            ]);
+
+        UserInformation::where('user_id', '=', $request->id)
+            ->update([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name,
+                'gender' => $request->gender,
+                'birthday' => $request->birthday,
+                'contact_number' => $request->contact_number,
+                'email_address' => $request->email_address,
+                'present_address' => $request->present_address,
+                'zip_code' => $request->zip_code,
+            ]);
     }
 
     public function addFaculty(Request $request)

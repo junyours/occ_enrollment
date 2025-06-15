@@ -8,6 +8,8 @@ Route::middleware(['auth', 'UserManagementPermission'])->group(function () {
     Route::get('/student-list', [UserController::class, 'viewStudent'])->name('student-list');
     Route::post('/api/get/faculty-list-department', [UserController::class, 'getFacultyListDepartment'])->name('get.faculty.list.department');
     Route::post('/api/get/faculty-list', [UserController::class, 'getFacultyList'])->name('get.faculty.list');
+
+    Route::post('/api/student-info/{id}', [UserController::class, 'studentInfo'])->name('student-info');
 });
 
 Route::middleware(['auth', 'UserManagementPermission', 'program_head'])->group(function () {
@@ -21,6 +23,7 @@ Route::middleware(['auth', 'registrar'])->group(function () {
     Route::post('/api/students', [UserController::class, 'students'])->name('students');
 
     Route::post('/student/add', [UserController::class, 'addStudent'])->name('student.add');
+    Route::post('/student/edit', [UserController::class, 'editStudent'])->name('student.edit');
     Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
 });
 
