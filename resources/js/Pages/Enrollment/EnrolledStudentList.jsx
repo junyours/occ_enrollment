@@ -4,14 +4,19 @@ import DataTable from "@/Components/ui/DataTable";
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { Head, Link, usePage } from '@inertiajs/react';
 import PreLoader from '@/Components/preloader/PreLoader';
-import { formatFullName } from '@/Lib/Utils';
+import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
-import { Trash, UserMinus } from 'lucide-react';
+import { MoveRightIcon, Trash, UserMinus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import StudentActions from './StudentActions';
 import { useToast } from "@/hooks/use-toast";
 import { router } from '@inertiajs/react';
+import axios from 'axios';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Label } from '@/Components/ui/label';
+import { Input } from '@/Components/ui/input';
+import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table';
 
 export default function EnrolledStudentList() {
     const { hashedCourseId, courseId, yearlevel, section, yearSectionId, courseName } = usePage().props;
@@ -29,6 +34,7 @@ export default function EnrolledStudentList() {
         await axios.post(route('get.enrolled.student.list', { id: courseId, yearlevel: yearlevel, yearSectionId: yearSectionId }))
             .then(response => {
                 setStudents(response.data)
+                console.log(response.data)
             })
             .finally(() => {
                 setLoading(false);
@@ -79,6 +85,43 @@ export default function EnrolledStudentList() {
         }
     };
 
+    const [sections, setSections] = useState([]);
+    const [studentToMove, setstudentToMove] = useState({});
+    const [movingStudent, setMovingStudent] = useState(false);
+    const [processing, setProcessing] = useState(false);
+
+    const openMoveStudentModal = async (student) => {
+        setstudentToMove(student);
+        setMovingStudent(true);
+
+        if (!sections.length > 0) {
+            axios.post(route('yearlevel.sections', { yearSectionId: yearSectionId }))
+                .then(response => {
+                    setSections(response.data);
+                    console.log(response.data);
+                })
+        }
+    }
+
+    const moveStudent = async (id) => {
+        setProcessing(true);
+        axios.post(route('move.student', { enrolledStudentId: studentToMove.id, yearSectionId: id }))
+            .then(response => {
+                if (response.data.message == 'success') {
+                    toast({
+                        description: "Moving success.",
+                        variant: "success",
+                    });
+                    getEnrolledStudentList();
+                }
+            })
+            .finally(() => {
+                setstudentToMove({});
+                setMovingStudent(false);
+                setProcessing(false);
+            })
+    }
+
     const columns = [
         {
             colName: "Student ID no.",
@@ -112,8 +155,9 @@ export default function EnrolledStudentList() {
             headerClassName: 'w-32 text-right',
             cell: ({ row }) => {
                 const { user_id_no, id } = row.original;
+                const student = row.original;
                 return (
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2 items-center">
                         <Link
                             href={`${route('enrollment.view.student.subjects', {
                                 id: hashedCourseId,
@@ -124,6 +168,7 @@ export default function EnrolledStudentList() {
                                 Subjects
                             </Button>
                         </Link>
+
                         <Link
                             href={`${route('enrollment.view.student.cor', {
                                 id: hashedCourseId,
@@ -134,6 +179,20 @@ export default function EnrolledStudentList() {
                                 COR
                             </Button>
                         </Link>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={() => openMoveStudentModal(student)}
+                                    variant="icon"
+                                    className="text-yellow-500 py-0 h-min"
+                                >
+                                    <MoveRightIcon className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Move student</TooltipContent>
+                        </Tooltip>
+
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
@@ -141,7 +200,7 @@ export default function EnrolledStudentList() {
                                     variant="icon"
                                     className="text-red-500 py-0 h-min"
                                 >
-                                    <UserMinus />
+                                    <UserMinus className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>Unenroll student</TooltipContent>
@@ -180,6 +239,53 @@ export default function EnrolledStudentList() {
                     student={studentToUnenroll}
                 />
             )}
+
+            {/* Dialog Component (Outside of the Map Loop) */}
+            <Dialog open={movingStudent} onOpenChange={setMovingStudent}>
+                <DialogContent className="sm:max-w-[350px]">
+                    <DialogHeader>
+                        <DialogTitle>Move student</DialogTitle>
+                        <DialogDescription>
+                            {formatFullNameFML(studentToMove)}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="w-full max-w-sm h-72 overflow-auto">
+                        <Table>
+                            <TableBody>
+                                {sections.map((sectionDetails) => (
+                                    <TableRow key={sectionDetails.id} className="border-b group">
+                                        <TableCell className="py-2">
+                                            {sectionDetails.year_level_id}-{sectionDetails.section}
+                                        </TableCell>
+                                        <TableCell className="py-2 text-right hidden group-hover:table-cell">
+                                            <Button
+                                                disabled={processing || (sectionDetails.section == section && sectionDetails.year_level_id == yearlevel)}
+                                                onClick={() => moveStudent(sectionDetails.id)}
+                                                className="py-1 disabled:cursor-not-allowed"
+                                            >
+                                                Move
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            className='w-full'
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setMovingStudent(false)
+                                setstudentToMove({})
+                            }}>
+                            Cancel
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

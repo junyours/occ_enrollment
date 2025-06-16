@@ -659,4 +659,101 @@ class EnrollmentCourseSectionController extends Controller
 
         return back()->with('message', 'Student unenrolled successfully.');
     }
+
+    public function getSections($yearSectionId)
+    {
+        $yearSection = YearSection::where('id', '=', $yearSectionId)->first();
+
+        return YearSection::select('id', 'year_level_id', 'section')
+            ->where('course_id', '=', $yearSection->course_id)
+            ->where('school_year_id', '=', $yearSection->school_year_id)
+            ->orderBy('year_level_id', 'ASC')
+            ->orderBy('section', 'ASC')
+            ->get();
+    }
+
+    // Option 1: Only enroll in subjects that match between old and new sections
+    public function moveStudent($enrolledStudentId, $newYearSectionId)
+    {
+        try {
+            DB::beginTransaction();
+
+            // 1. Get the student's current year section
+            $enrolledStudent = EnrolledStudent::findOrFail($enrolledStudentId);
+            $currentYearSectionId = $enrolledStudent->year_section_id;
+
+            // 2. Get ALL student's current subjects
+            $allStudentSubjects = StudentSubject::with('yearSectionSubjects')
+                ->where('enrolled_students_id', '=', $enrolledStudentId)
+                ->get();
+
+            // 3. Separate subjects by section
+            $subjectsFromCurrentSection = $allStudentSubjects->where('yearSectionSubjects.year_section_id', $currentYearSectionId);
+            $subjectsFromOtherSections = $allStudentSubjects->where('yearSectionSubjects.year_section_id', '!=', $currentYearSectionId);
+
+            // 4. Get subject IDs from current section only
+            $currentSectionSubjectIds = $subjectsFromCurrentSection->pluck('yearSectionSubjects.subject_id')->toArray();
+
+            // 5. Get available subjects in the new section
+            $newSectionSubjects = YearSectionSubjects::where('year_section_id', '=', $newYearSectionId)->get();
+            $newSectionSubjectIds = $newSectionSubjects->pluck('subject_id')->toArray();
+
+            // 6. Find matching subjects between current section and new section
+            $matchingSubjectIds = array_intersect($currentSectionSubjectIds, $newSectionSubjectIds);
+            $matchingNewSectionSubjects = $newSectionSubjects->whereIn('subject_id', $matchingSubjectIds);
+
+            // 7. Create grades map for preservation (only from current section subjects)
+            $subjectGrades = [];
+            foreach ($subjectsFromCurrentSection as $studentSubject) {
+                $subjectId = $studentSubject->yearSectionSubjects->subject_id;
+                $subjectGrades[$subjectId] = [
+                    'dropped' => $studentSubject->dropped,
+                    'midterm_grade' => $studentSubject->midterm_grade,
+                    'final_grade' => $studentSubject->final_grade,
+                    'remarks' => $studentSubject->remarks,
+                ];
+            }
+
+            // 8. Update student's year section
+            $enrolledStudent->update(['year_section_id' => $newYearSectionId]);
+
+            // 9. Remove ONLY subjects from the current section (keep subjects from other sections)
+            StudentSubject::where('enrolled_students_id', '=', $enrolledStudentId)
+                ->whereHas('yearSectionSubjects', function ($query) use ($currentYearSectionId) {
+                    $query->where('year_section_id', $currentYearSectionId);
+                })
+                ->delete();
+
+            // 10. Enroll student in matching subjects from new section
+            foreach ($matchingNewSectionSubjects as $yearSectionSubject) {
+                $subjectId = $yearSectionSubject->subject_id;
+                $preservedGrades = $subjectGrades[$subjectId];
+
+                StudentSubject::create([
+                    'enrolled_students_id' => $enrolledStudentId,
+                    'year_section_subjects_id' => $yearSectionSubject->id,
+                    'dropped' => $preservedGrades['dropped'],
+                    'midterm_grade' => $preservedGrades['midterm_grade'],
+                    'final_grade' => $preservedGrades['final_grade'],
+                    'remarks' => $preservedGrades['remarks'],
+                ]);
+            }
+
+            DB::commit();
+
+            // Calculate what happened
+            $currentSectionSubjectsNotMoved = array_diff($currentSectionSubjectIds, $matchingSubjectIds);
+
+            return response()->json([
+                'message' => 'success'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return response()->json([
+                'message' => 'Failed to move student',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

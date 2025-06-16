@@ -20,6 +20,8 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'EnrollmentPermission'])->gr
     Route::get('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewEnrollStudent'])->name('enrollment.view.enroll-student');
     Route::post('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'getEnrolledStudentList'])->name('get.enrolled.student.list');
     Route::post('/enrollment/enroll-student/{studID}/{yearSectionId}/{typeID}/{startDate}', [EnrollmentCourseSectionController::class, 'enrollStudent'])->name('enroll-student');
+    Route::post('/enrollment/yearlevel/sections/{yearSectionId}', [EnrollmentCourseSectionController::class, 'getSections'])->name('yearlevel.sections');
+    Route::post('/enrollment/move-student/{enrolledStudentId}/{yearSectionId}', [EnrollmentCourseSectionController::class, 'moveStudent'])->name('move.student');
 
     Route::post('/api/get-enrollment-dashboard-data', [EnrollmentDashboardController::class, 'getEnrollmentDashboardData'])->name('get.enrollment.dashboard.data');
 
