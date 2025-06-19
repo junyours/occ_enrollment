@@ -18,10 +18,104 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function viewFaculty()
+    public function viewFaculty(Request $request)
     {
-        return Inertia::render('UserManagement/FacultyList');
+        $userId = Auth::id();
+
+        $user = User::where('id', '=', $userId)->first();
+
+        if ($user->user_role == 'registrar') {
+
+            $faculties = Faculty::select(
+                'users.id',
+                'user_id_no',
+                'email_address',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
+                'department_name_abbreviation',
+                'active'
+            )->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('user_id_no', 'like', '%' . $search . '%');
+                });
+            })
+                ->join('users', 'users.id', '=', 'faculty.faculty_id')
+                ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+                ->join('department', 'department.id', '=', 'faculty.department_id')
+                ->orderBy('user_id_no', 'desc')
+                ->paginate(10) // paginate with 10 students per page
+                ->withQueryString(); // preserve query params like ?page=
+
+            return Inertia::render('UserManagement/FacultyList', [
+                'faculties' => $faculties,
+                'filters' => $request->only(['search'])
+            ]);
+        } elseif ($user->user_role == 'program_head') {
+            $phInfo = Faculty::where('faculty_id', '=', $userId)->first();
+
+            $faculties = Faculty::select(
+                'users.id',
+                'user_id_no',
+                'user_role',
+                'email_address',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
+                'department_name_abbreviation',
+                'active'
+            )->when($request->search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', '%' . $search . '%')
+                        ->orWhere('last_name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%')
+                        ->orWhere('user_id_no', 'like', '%' . $search . '%');
+                });
+            })
+                ->join('users', 'users.id', '=', 'faculty.faculty_id')
+                ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+                ->join('department', 'department.id', '=', 'faculty.department_id')
+                ->where('department_id', '=', $phInfo->department_id)
+                ->orderBy('user_id_no', 'desc')
+                ->paginate(10) // paginate with 10 students per page
+                ->withQueryString(); // preserve query params like ?page=
+
+            return Inertia::render('UserManagement/FacultyList', [
+                'faculties' => $faculties,
+                'filters' => $request->only(['search'])
+            ]);
+        }
     }
+
+    public function updateActiveStatus(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:users,id',
+            'active' => 'required|boolean',
+        ]);
+
+        Faculty::where('faculty_id', $request->id)->update(['active' => $request->active]);
+
+        return back();
+    }
+
+    public function updateRole(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:users,id',
+            'user_role' => 'required|string|in:faculty,evaluator',
+        ]);
+
+        User::where('id', $request->id)->update([
+            'user_role' => $request->user_role,
+        ]);
+
+        return back();
+    }
+
 
     public function viewStudent(Request $request)
     {
@@ -75,6 +169,30 @@ class UserController extends Controller
 
         return response()->json($student, 200);
     }
+
+    public function facultyInfo($id)
+    {
+        $student = User::select(
+            'users.id',
+            'user_id_no',
+            'user_id',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'gender',
+            'birthday',
+            'contact_number',
+            'email_address',
+            'present_address',
+            'zip_code',
+        )
+            ->where('user_id_no', '=', $id)
+            ->join('user_information', 'users.id', 'user_information.user_id')
+            ->first();
+
+        return response()->json($student, 200);
+    }
+
     public function getFacultyListDepartment()
     {
         $userId = Auth::user()->id;
@@ -204,6 +322,8 @@ class UserController extends Controller
 
         $studentExist = UserInformation::where('first_name', '=', $request->first_name)
             ->where('last_name', '=', $request->last_name)
+            ->join('users', 'users.id', '=', 'user_information.user_id')
+            ->where('user_role', '=', 'student')
             ->first();
 
         if ($studentExist) {
@@ -283,11 +403,23 @@ class UserController extends Controller
         $studentExist = UserInformation::where('first_name', '=', $request->first_name)
             ->where('last_name', '=', $request->last_name)
             ->whereNot('user_id', '=', $request->id)
+            ->join('users', 'users.id', '=', 'user_information.user_id')
+            ->where('user_role', '=', 'student')
             ->first();
 
         if ($studentExist) {
             return back()->withErrors([
                 'student' => 'Student already exists.',
+            ]);
+        }
+
+        $emailExist = user::where('email', '=', $request->email_address)
+            ->whereNot('id', '=', $request->id)
+            ->first();
+
+        if ($emailExist) {
+            return back()->withErrors([
+                'email' => 'The email address is already registered.',
             ]);
         }
 
@@ -384,6 +516,45 @@ class UserController extends Controller
         if ($request->email_address) {
             Mail::to($request->email_address)->send(new FacultyCredentialsMail($faculty, $password));
         }
+    }
+
+    public function editFaculty(Request $request)
+    {
+        $facultyExist = UserInformation::where('first_name', '=', $request->first_name)
+            ->where('last_name', '=', $request->last_name)
+            ->whereNot('user_id', '=', $request->id)
+            ->join('users', 'users.id', '=', 'user_information.user_id')
+            ->whereNot('user_role', '=', 'student')
+            ->first();
+
+        if ($facultyExist) {
+            return back()->withErrors([
+                'faculty' => 'Faculty already exists.',
+            ]);
+        }
+
+        $emailExist = user::where('email', '=', $request->email_address)
+            ->whereNot('id', '=', $request->id)
+            ->first();
+
+        if ($emailExist) {
+            return back()->withErrors([
+                'email' => 'The email address is already registered.',
+            ]);
+        }
+
+        UserInformation::where('user_id', '=', $request->id)
+            ->update([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'middle_name' => $request->middle_name,
+                'gender' => $request->gender,
+                'birthday' => $request->birthday,
+                'contact_number' => $request->contact_number,
+                'email_address' => $request->email_address,
+                'present_address' => $request->present_address,
+                'zip_code' => $request->zip_code,
+            ]);
     }
 
     private function generateRandomPassword()

@@ -172,6 +172,8 @@ function AddStudent({ open, setOpen, student, editing, setEditing, setStudent })
                 setPage(1);
                 setOpen(false);
                 setErrorMessage('');
+                setStudent([])
+                setEditing(false);
                 toast({
                     description: "Student added successfully",
                     variant: "success",
@@ -198,7 +200,7 @@ function AddStudent({ open, setOpen, student, editing, setEditing, setStudent })
 
     return (
         <div>
-            <Dialog open={open} onOpenChange={() => { setOpen(false), setEditing(false), setStudent([]) }}>
+            <Dialog open={open} onOpenChange={() => { setOpen(false), setEditing(false), setStudent([]), reset() }}>
                 <DialogContent className="">
                     <DialogHeader>
                         <DialogTitle>{editing ? 'Edit' : 'Add'} Student</DialogTitle>

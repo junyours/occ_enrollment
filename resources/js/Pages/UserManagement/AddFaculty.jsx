@@ -20,7 +20,7 @@ const requiredFields = [
     'zip_code',
 ];
 
-function AddFaculty({ open, setOpen }) {
+function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty }) {
     const { toast } = useToast()
 
     const [page, setPage] = useState(1);
@@ -41,15 +41,16 @@ function AddFaculty({ open, setOpen }) {
     }, [])
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
-        first_name: '',
-        middle_name: '',
-        last_name: '',
-        gender: '',
-        birthday: '',
-        contact_number: '09',
-        email_address: '',
-        present_address: '',
-        zip_code: '',
+        id: editing ? faculty.id : 0,
+        first_name: editing ? faculty.first_name : '',
+        middle_name: editing ? faculty.middle_name : '',
+        last_name: editing ? faculty.last_name : '',
+        gender: editing ? faculty.gender : '',
+        birthday: editing ? faculty.birthday : '',
+        contact_number: editing ? faculty.contact_number : '09',
+        email_address: editing ? faculty.email_address : '',
+        present_address: editing ? faculty.present_address : '',
+        zip_code: editing ? faculty.zip_code : '',
     });
 
     const handleChange = (e) => {
@@ -162,12 +163,17 @@ function AddFaculty({ open, setOpen }) {
 
         if (hasError) return;
 
-        await post(route('faculty.add'), {
+        const routeName = editing ? 'faculty.edit' : 'faculty.add'
+
+        await post(route(routeName), {
             onSuccess: () => {
                 reset();
                 setPage(1);
                 setOpen(false);
                 setErrorMessage('');
+                setFaculty([])
+                setEditing(false);
+                reset();
                 toast({
                     description: "Faculty added successfully",
                     variant: "success",
@@ -191,10 +197,10 @@ function AddFaculty({ open, setOpen }) {
 
     return (
         <div>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={() => { setOpen(false), setEditing(false), setFaculty([]), reset() }}>
                 <DialogContent className="">
                     <DialogHeader>
-                        <DialogTitle>Add Faculty</DialogTitle>
+                        <DialogTitle>{editing ? 'Edit' : 'Add'} Faculty</DialogTitle>
                     </DialogHeader>
                     <div className='flex flex-col justify-between h-full gap-0'>
                         <div className='flex flex-col justify-between h-72'>
@@ -334,7 +340,7 @@ function AddFaculty({ open, setOpen }) {
                             type="submit"
                         >
                             <span className="text-center">
-                                {processing ? 'Submitting' : 'Submit'}
+                                {processing ? 'Submitting' : editing ? 'Confirm edit' : 'Submit'}
                             </span>
                             {processing && (
                                 <LoaderCircle className="animate-spin" />

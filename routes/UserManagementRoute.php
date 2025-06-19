@@ -10,6 +10,10 @@ Route::middleware(['auth', 'UserManagementPermission'])->group(function () {
     Route::post('/api/get/faculty-list', [UserController::class, 'getFacultyList'])->name('get.faculty.list');
 
     Route::post('/api/student-info/{id}', [UserController::class, 'studentInfo'])->name('student-info');
+    Route::post('/api/faculty-info/{id}', [UserController::class, 'facultyInfo'])->name('faculty-info');
+
+    Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
+    Route::post('/faculty/edit', [UserController::class, 'editFaculty'])->name('faculty.edit');
 });
 
 Route::middleware(['auth', 'UserManagementPermission', 'program_head'])->group(function () {
@@ -24,9 +28,9 @@ Route::middleware(['auth', 'registrar'])->group(function () {
 
     Route::post('/student/add', [UserController::class, 'addStudent'])->name('student.add');
     Route::post('/student/edit', [UserController::class, 'editStudent'])->name('student.edit');
-    Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
 });
 
 Route::middleware(['auth', 'program_head'])->group(function () {
-    Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
+    Route::patch('/set-faculty-active-status', [UserController::class, 'updateActiveStatus']);
+    Route::patch('/set-faculty-role', [UserController::class, 'updateRole']);
 });
