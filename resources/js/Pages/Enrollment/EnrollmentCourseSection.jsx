@@ -35,9 +35,12 @@ import axios from "axios";
 import PreLoader from "@/Components/preloader/PreLoader";
 import { Separator } from "@/Components/ui/separator"
 import { PageTitle } from "@/Components/ui/PageTitle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/Components/ui/tooltip";
+import { Download } from "lucide-react";
+import EnhancedDownloadDialog from "./EnhancedDownloadDialog";
 
 export default function EnrollmentCourseSection() {
-    const { courseId, error, course } = usePage().props;
+    const { courseId, error, course, schoolYearId } = usePage().props;
     const user = usePage().props.auth.user;
 
     const [yearLevels, setYearLevels] = useState([]);
@@ -45,6 +48,8 @@ export default function EnrollmentCourseSection() {
 
     const { toast } = useToast()
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         course_id: courseId,
@@ -142,6 +147,53 @@ export default function EnrollmentCourseSection() {
 
     if (error) return
 
+    const handleDownload = async (yearlevel, section) => {
+        setIsDownloading(true); // open your modal
+
+        try {
+            const response = await axios.get(
+                route('download.section.students', {
+                    schoolYearId,
+                    courseId,
+                    yearlevel,
+                    section,
+                }),
+                {
+                    responseType: 'blob',
+                }
+            );
+
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = 'students.xlsx';
+
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (match) {
+                    filename = match[1];
+                }
+            }
+
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.setAttribute('download', filename);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (err) {
+            toast({
+                description: "Failed to download file.",
+                variant: "destructive",
+            });
+        } finally {
+            setTimeout(() => setIsDownloading(false), 1000); // close modal
+        }
+    };
+
     return (
         <div className="container">
             <Head title="Sections" />
@@ -191,6 +243,25 @@ export default function EnrollmentCourseSection() {
                                                     {section.student_count}/{section.max_students}
                                                 </TableCell>
                                                 <TableCell className="text-right">
+                                                    {(user.user_role == "registrar" || user.user_role == "program_head") && (
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    disabled={!section.student_count}
+                                                                    variant="icon"
+                                                                    className={`py-0 h-min ${section.student_count ? 'text-yellow-500' : ''}`}
+                                                                    onClick={() => handleDownload(section.year_level_id, section.section)}
+                                                                >
+                                                                    <Download className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            {section.student_count ? (
+                                                                <TooltipContent>Download Students</TooltipContent>
+                                                            ) : (
+                                                                <></>
+                                                            )}
+                                                        </Tooltip>
+                                                    )}
                                                     {user.user_role == "program_head" && (
                                                         <Link href={route('enrollment.view.class', {
                                                             id: courseId,
@@ -274,7 +345,10 @@ export default function EnrollmentCourseSection() {
                     </form>
                 </DialogContent>
             </Dialog>
-
+            <EnhancedDownloadDialog
+                isDownloading={isDownloading}
+                setIsDownloading={setIsDownloading}
+            />
         </div>
     );
 }

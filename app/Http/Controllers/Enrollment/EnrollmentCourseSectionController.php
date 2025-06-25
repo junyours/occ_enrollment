@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\StudentSubject;
+use App\Models\Subject;
 use App\Models\SubjectSecondarySchedule;
 use App\Models\User;
 use App\Models\UserInformation;
@@ -22,6 +23,8 @@ use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Support\Facades\Redirect;
 use function Symfony\Component\Clock\now;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class EnrollmentCourseSectionController extends Controller
 {
@@ -35,11 +38,14 @@ class EnrollmentCourseSectionController extends Controller
             return Inertia::render('Enrollment/EnrollmentCourseSection', ['error' => true]);
         }
 
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
         return Inertia::render(
             'Enrollment/EnrollmentCourseSection',
             [
                 'courseId' => $hashedCourseId,
                 'course' => $course,
+                'schoolYearId' => $schoolYear->id,
             ]
         );
     }
@@ -755,5 +761,136 @@ class EnrollmentCourseSectionController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function downloadSectionStudents($schoolYearId, $courseId, $yearlevel, $section)
+    {
+        $course = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $courseId)
+            ->first();
+
+        $yearSection = YearSection::where('school_year_id', $schoolYearId)
+            ->where('course_id', $course->id)
+            ->where('year_level_id', $yearlevel)
+            ->where('section', $section)
+            ->first();
+
+        $students = EnrolledStudent::where('year_section_id', $yearSection->id)
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->select('user_id_no', 'last_name', 'first_name', 'middle_name')
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Headers
+        $sheet->setCellValue('A1', 'ID Number');
+        $sheet->setCellValue('B1', 'Last Name');
+        $sheet->setCellValue('C1', 'First Name');
+        $sheet->setCellValue('D1', 'Middle Name');
+
+        $sheet->getColumnDimension('A')->setWidth(20); // ID Number
+        $sheet->getColumnDimension('B')->setWidth(25); // Last Name
+        $sheet->getColumnDimension('C')->setWidth(25); // First Name
+        $sheet->getColumnDimension('D')->setWidth(25); // Middle Name
+
+        // Data
+        $row = 2;
+        foreach ($students as $student) {
+            $sheet->setCellValue("A$row", $student->user_id_no);
+            $sheet->setCellValue("B$row", $student->last_name);
+            $sheet->setCellValue("C$row", $student->first_name);
+            $sheet->setCellValue("D$row", $student->middle_name);
+            $row++;
+        }
+
+        $filename = "{$course->course_name_abbreviation}-{$yearlevel}{$section}.xlsx";
+
+        $writer = new Xlsx($spreadsheet);
+
+        $tempPath = tempnam(sys_get_temp_dir(), $filename);
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    public function viewSubjectList()
+    {
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        return Inertia::render(
+            'Enrollment/SubjectsList',
+            [
+                'schoolYearId' => $schoolYear->id,
+            ]
+        );
+    }
+
+    public function getSubjects($schoolYearId)
+    {
+        return YearSection::where('school_year_id', $schoolYearId)
+            ->join('year_section_subjects', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->select('subjects.id', 'subjects.subject_code', 'subjects.descriptive_title')
+            ->distinct()
+            ->get();
+    }
+
+    public function downloadSubjectStudents($schoolYearId, $subjectId)
+    {
+        $subject = Subject::findOrFail($subjectId);
+
+        $students = YearSectionSubjects::query()
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->where('year_section_subjects.subject_id', $subjectId)
+            ->where('year_section.school_year_id', $schoolYearId) // ✅ Moved here
+            ->select('user_id_no', 'last_name', 'first_name', 'middle_name')
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->distinct()
+            ->get();
+
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set headers
+        $sheet->setCellValue('A1', 'ID Number');
+        $sheet->setCellValue('B1', 'Last Name');
+        $sheet->setCellValue('C1', 'First Name');
+        $sheet->setCellValue('D1', 'Middle Name');
+
+        // Set column widths
+        $sheet->getColumnDimension('A')->setWidth(20);
+        $sheet->getColumnDimension('B')->setWidth(25);
+        $sheet->getColumnDimension('C')->setWidth(25);
+        $sheet->getColumnDimension('D')->setWidth(25);
+
+        // Fill data
+        $row = 2;
+        foreach ($students as $student) {
+            $sheet->setCellValue("A{$row}", $student->user_id_no);
+            $sheet->setCellValue("B{$row}", $student->last_name);
+            $sheet->setCellValue("C{$row}", $student->first_name);
+            $sheet->setCellValue("D{$row}", $student->middle_name);
+            $row++;
+        }
+
+        // Sanitize filename
+        $filename = ("{$subject->subject_code} - {$subject->descriptive_title}") . '.xlsx';
+
+        // Save to temporary path
+        $tempPath = tempnam(sys_get_temp_dir(), 'subject_');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 }
