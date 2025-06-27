@@ -6,7 +6,7 @@ import { Pencil, Trash } from 'lucide-react';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { usePage } from '@inertiajs/react';
 
-function ClassList({ scheduleType, isDownloading, classes, editing, mainScheduleConflictList, editSchedule, data, editingSecondSchedule, setClassIdToDelete, colorful, setClassType, setOpenDeleteDialog }) {
+function ClassList({ scheduleType, isDownloading, classes, editing, mainScheduleConflictList, editSchedule, data, editingSecondSchedule, setClassIdToDelete, colorful, setClassType, setOpenDeleteDialog, secondScheduleConflictList }) {
     const { courseName, yearlevel, section } = usePage().props;
 
     return (
