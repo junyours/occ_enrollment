@@ -10,7 +10,10 @@ use App\Models\Subject;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ClassController extends Controller
 {
@@ -49,15 +52,25 @@ class ClassController extends Controller
 
     public function getStudents($id)
     {
-        $students = StudentSubject::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'user_id', 'gender',)
+        $students = StudentSubject::select(
+            'users.id',
+            'user_id_no',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'email_address',
+            'contact_number',
+            'user_id',
+            'gender'
+        )
             ->where('year_section_subjects_id', '=', $id)
             ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->orderBy('last_name', 'ASC')
-            ->get();
+            ->paginate(10); // 👈 10 per page
 
-        return response()->json($students, 200);
+        return response()->json($students);
     }
 
     public function getFacultyClasses()
@@ -185,5 +198,71 @@ class ClassController extends Controller
         }
 
         return response()->json($data, 200);
+    }
+
+    public function downloadStudentsExcel($id)
+    {
+        $section = YearSectionSubjects::with('yearSection')->findOrFail($id)->yearSection;
+
+        $students = YearSectionSubjects::query()
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->where('year_section_subjects.id', $id)
+            ->select(
+                'user_id_no',
+                'last_name',
+                'first_name',
+                'middle_name',
+                'email_address',
+                'contact_number',
+                'gender'
+            )
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->distinct()
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set headers
+        $headers = ['ID Number', 'Name', 'Email', 'Contact Number', 'Gender'];
+        $sheet->fromArray([$headers], null, 'A1');
+
+        // Set column widths
+        foreach (range('A', 'E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Fill rows
+        $row = 2;
+        foreach ($students as $student) {
+            // Ensure proper casing
+            $lastName = Str::ucfirst(Str::lower($student->last_name));
+            $firstName = Str::ucfirst(Str::lower($student->first_name));
+            $middleInitial = $student->middle_name
+                ? Str::upper(Str::substr($student->middle_name, 0, 1)) . '.'
+                : '';
+
+            $fullName = "{$lastName}, {$firstName} {$middleInitial}";
+
+            $sheet->setCellValue("A{$row}", $student->user_id_no);
+            $sheet->setCellValue("B{$row}", $fullName);
+            $sheet->setCellValue("C{$row}", $student->email_address);
+            $sheet->setCellValue("D{$row}", $student->contact_number);
+            $sheet->setCellValue("E{$row}", $student->gender);
+            $row++;
+        }
+
+        $filename = "Enrolled Students - {$section->year_level}{$section->section_name}.xlsx";
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'students_');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 }

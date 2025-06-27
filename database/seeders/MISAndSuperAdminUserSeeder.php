@@ -23,7 +23,7 @@ class MISAndSuperAdminUserSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        
+
         User::create([
             'user_id_no' => 'ADMIN001',
             'password' => Hash::make('adminsecure'),

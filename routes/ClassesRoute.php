@@ -9,6 +9,8 @@ Route::middleware(['auth', 'ClassesPermission'])->group(function () {
 
     Route::get('/classes/classroom/{id}', [ClassController::class, 'viewClass'])->name('classes.classroom.yearsection');
     Route::post('/classes/classroom/{id}/students', [ClassController::class, 'getStudents'])->name('class.students');
+
+    Route::get('/classes/classroom/{id}/students/download', [ClassController::class, 'downloadStudentsExcel'])->name('class.students.download');
 });
 
 Route::middleware(['auth', 'student'])->group(function () {

@@ -48,4 +48,9 @@ class YearSection extends Model
     {
         return $this->EnrolledStudents()->count();
     }
+
+    public function Classes()
+    {
+        return $this->hasMany(YearSectionSubjects::class, 'year_section_id');
+    }
 }

@@ -39,7 +39,7 @@ function SubjectsList() {
     if (loading) return <PreLoader title="Subject List" />;
 
     return (
-        <div className="p-6 space-y-4">
+        <div className="space-y-4">
             <Head title="Subject List" />
             <PageTitle align='center'>Subjects List</PageTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

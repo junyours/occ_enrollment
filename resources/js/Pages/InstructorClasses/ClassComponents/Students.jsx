@@ -2,29 +2,39 @@ import { Avatar } from '@/Components/ui/avatar';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Button } from '@/Components/ui/button';
 import { formatFullName } from '@/Lib/Utils';
-import { usePage } from '@inertiajs/react';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react'
+import React from 'react';
+import { Download } from 'lucide-react'; // Optional: download icon
+import { router, usePage } from '@inertiajs/react';
 
-function Students({ students, setStudents }) {
+function Students({ getClassStudents, students, currentPage, setPage }) {
+    const currentStudents = students.data || [];
+    const totalPages = students.last_page || 1;
     const { id } = usePage().props;
 
-    const getClassStudents = async () => {
-        await axios.post(route('class.students', { id: id }))
-            .then(response => {
-                setStudents(response.data)
-                console.log(response.data)
-            })
-    }
-
-    useEffect(() => {
-        getClassStudents();
-    }, [])
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setPage(newPage);
+        }
+        getClassStudents(newPage)
+    };
 
     return (
-        <div className="w-full">
-            {/* Desktop/Tablet Table View */}
+        <div className="w-full space-y-4">
+            <div className="flex justify-end">
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                        window.open(route('class.students.download', { id }), '_blank');
+                    }}
+                >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Students
+                </Button>
+            </div>
+
+            {/* Table View */}
             <div className="hidden md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
@@ -38,17 +48,15 @@ function Students({ students, setStudents }) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {students.map((student, index) => (
+                        {currentStudents.map((student, index) => (
                             <TableRow key={student.user_id_no || index}>
-                                <TableCell className="font-medium">{index + 1}.</TableCell>
-                                <TableCell className="font-mono text-sm">{student.user_id_no}</TableCell>
-                                <TableCell className="font-medium">{formatFullName(student)}</TableCell>
-                                <TableCell className="hidden sm:table-cell text-sm">{student.email_address}</TableCell>
-                                <TableCell className="hidden lg:table-cell text-sm">{student.contact_number}</TableCell>
+                                <TableCell>{(currentPage - 1) * 10 + index + 1}.</TableCell>
+                                <TableCell>{student.user_id_no}</TableCell>
+                                <TableCell>{formatFullName(student)}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{student.email_address}</TableCell>
+                                <TableCell className="hidden lg:table-cell">{student.contact_number}</TableCell>
                                 <TableCell className="hidden sm:table-cell">
-                                    <Badge variant='outline'>
-                                        {student.gender}
-                                    </Badge>
+                                    <Badge variant="outline">{student.gender}</Badge>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -58,34 +66,27 @@ function Students({ students, setStudents }) {
 
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
-                {students.map((student, index) => (
+                {currentStudents.map((student, index) => (
                     <Card key={student.user_id_no || index}>
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center space-x-2">
                                     <Avatar className="inline-flex items-center justify-center text-xs font-medium border">
-                                        {index + 1}
+                                        {(currentPage - 1) * 10 + index + 1}
                                     </Avatar>
                                     <span className="text-xs font-mono">ID: {student.user_id_no}</span>
                                 </div>
-                                <Badge variant='outline'>
-                                    {student.gender}
-                                </Badge>
+                                <Badge variant="outline">{student.gender}</Badge>
                             </div>
-
                             <div className="space-y-2">
-                                <div>
-                                    <h3 className="font-semibold">{formatFullName(student)}</h3>
-                                </div>
-
+                                <h3 className="font-semibold">{formatFullName(student)}</h3>
                                 <div className="space-y-1">
-                                    <div className="flex items-start">
-                                        <span className="text-xs w-16 flex-shrink-0">Email:</span>
+                                    <div className="flex">
+                                        <span className="text-xs w-16">Email:</span>
                                         <span className="text-sm break-all">{student.email_address}</span>
                                     </div>
-
-                                    <div className="flex items-center">
-                                        <span className="text-xs w-16 flex-shrink-0">Contact:</span>
+                                    <div className="flex">
+                                        <span className="text-xs w-16">Contact:</span>
                                         <span className="text-sm">{student.contact_number}</span>
                                     </div>
                                 </div>
@@ -94,8 +95,33 @@ function Students({ students, setStudents }) {
                     </Card>
                 ))}
             </div>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center gap-2">
+                <Button
+                    size="sm"
+                    className="w-20"
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    Previous
+                </Button>
+
+                <span className="text-sm px-2 py-1">Page {currentPage} of {totalPages}</span>
+
+                <Button
+                    size="sm"
+                    className="w-20"
+                    variant="outline"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                </Button>
+            </div>
         </div>
-    )
+    );
 }
 
-export default Students
+export default Students;

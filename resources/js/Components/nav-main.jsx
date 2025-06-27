@@ -54,6 +54,12 @@ export function NavMain() {
             ]
             : []
         ),
+        ...(user.user_role === "evaluator"
+            ? [
+                { name: "Classes", route: "classes", icon: Presentation },
+            ]
+            : []
+        ),
         ...(user.user_role === "super_admin"
             ? [
                 { name: "Users", route: "users", icon: UsersIcon },

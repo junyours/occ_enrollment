@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 // Import components
 import Students from './ClassComponents/Students'
@@ -15,8 +15,28 @@ import { PageTitle } from '@/Components/ui/PageTitle'
 
 function OpenClass() {
     const [tab, setTab] = useState('students')
-    const [students, setStudents] = useState([])
-    const { subjectCode, descriptiveTitle } = usePage().props;
+    const { subjectCode, descriptiveTitle, id } = usePage().props;
+    const [students, setStudents] = useState({
+        data: [],
+        current_page: 1,
+        last_page: 1
+    });
+
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const getClassStudents = async (page = 1) => {
+        try {
+            const response = await axios.post(route('class.students', { id }), { page });
+            setStudents(response.data);
+            setCurrentPage(response.data.current_page);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        getClassStudents(currentPage);
+    }, []);
 
     return (
         <div className="space-y-4">
@@ -56,7 +76,7 @@ function OpenClass() {
             </div>
 
             <div className="mt-4">
-                {tab === 'students' && <Students students={students} setStudents={setStudents} />}
+                {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} />}
                 {tab === 'attendance' && <Attendance />}
                 {tab === 'grades' && <Grades />}
                 {tab === 'assignments' && <Assignments />}

@@ -844,17 +844,26 @@ class EnrollmentCourseSectionController extends Controller
         $subject = Subject::findOrFail($subjectId);
 
         $students = YearSectionSubjects::query()
-            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('year_section as subject_section', 'subject_section.id', '=', 'year_section_subjects.year_section_id') // for school year filtering
             ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
             ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('year_section as student_section', 'student_section.id', '=', 'enrolled_students.year_section_id') // actual section of student
+            ->join('course', 'course.id', '=', 'student_section.course_id')
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->where('year_section_subjects.subject_id', $subjectId)
-            ->where('year_section.school_year_id', $schoolYearId) // ✅ Moved here
-            ->select('user_id_no', 'last_name', 'first_name', 'middle_name')
+            ->where('subject_section.school_year_id', $schoolYearId)
+            ->select([
+                'user_id_no',
+                'last_name',
+                'first_name',
+                'middle_name',
+                'student_section.section',
+                'student_section.year_level_id',
+                'course.course_name_abbreviation',
+            ])
             ->orderBy('last_name')
             ->orderBy('first_name')
-            ->distinct()
             ->get();
 
 
@@ -866,12 +875,16 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->setCellValue('B1', 'Last Name');
         $sheet->setCellValue('C1', 'First Name');
         $sheet->setCellValue('D1', 'Middle Name');
+        $sheet->setCellValue('E1', 'Course');
+        $sheet->setCellValue('F1', 'Year & Section');
 
         // Set column widths
         $sheet->getColumnDimension('A')->setWidth(20);
         $sheet->getColumnDimension('B')->setWidth(25);
         $sheet->getColumnDimension('C')->setWidth(25);
         $sheet->getColumnDimension('D')->setWidth(25);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(15);
 
         // Fill data
         $row = 2;
@@ -880,6 +893,8 @@ class EnrollmentCourseSectionController extends Controller
             $sheet->setCellValue("B{$row}", $student->last_name);
             $sheet->setCellValue("C{$row}", $student->first_name);
             $sheet->setCellValue("D{$row}", $student->middle_name);
+            $sheet->setCellValue("E{$row}", $student->course_name_abbreviation);
+            $sheet->setCellValue("F{$row}", $student->year_level_id . $student->section);
             $row++;
         }
 

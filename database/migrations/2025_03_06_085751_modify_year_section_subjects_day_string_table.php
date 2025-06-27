@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('year_section_subjects', function (Blueprint $table) {
-            $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'TBA'])->change();
-        });
+        // Schema::table('year_section_subjects', function (Blueprint $table) {
+        //     $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'TBA'])->change();
+        // });
     }
 };
