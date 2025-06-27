@@ -468,6 +468,7 @@ export default function ClassScheduling() {
             <ScheduleToolbar scheduleType={scheduleType} downloadImage={downloadImage} isDownloading={isDownloading} colorful={colorful} setColorful={setColorful} setScheduleType={setScheduleType} />
 
             <ClassList
+                secondScheduleConflictList={secondScheduleConflictList}
                 scheduleType={scheduleType}
                 isDownloading={isDownloading}
                 classes={classes}
