@@ -825,8 +825,8 @@ class EnrollmentCourseSectionController extends Controller
             $sheet->setCellValue("B$row", $student->last_name);
             $sheet->setCellValue("C$row", $student->first_name);
             $sheet->setCellValue("D$row", $student->middle_name);
-            $sheet->setCellValue("E$row", $totalLecture);
-            $sheet->setCellValue("F$row", $totalLab);
+            $sheet->setCellValue("E$row", $totalLecture == 0 ? '' : $totalLecture);
+            $sheet->setCellValue("F$row", $totalLab == 0 ? '' : $totalLab);
             $formatted = number_format(($totalLecture + $totalLab) * 150, 2);
             $sheet->setCellValueExplicit("G$row", $formatted, DataType::TYPE_STRING);
             $row++;

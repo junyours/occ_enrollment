@@ -190,7 +190,7 @@ export default function EnrollmentCourseSection() {
                 variant: "destructive",
             });
         } finally {
-            setTimeout(() => setIsDownloading(false), 1000); // close modal
+            setTimeout(() => setIsDownloading(false), 500); // close modal
         }
     };
 
