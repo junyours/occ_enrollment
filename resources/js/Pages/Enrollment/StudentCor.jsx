@@ -2,10 +2,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react'
-import CorGenerator from './CorGenerator';
+import CorGenerator from '../COR/CorGenerator';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Button } from '@/Components/ui/button';
-import { CircleArrowOutUpLeft } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 
 function StudentCor() {

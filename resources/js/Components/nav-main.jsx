@@ -24,20 +24,21 @@ export function NavMain() {
     const menuItems = [
         ...(user.user_role === "registrar"
             ? [
-                { name: "Department", route: "department", icon: Building },
-                { name: "School year", route: "school-year", icon: Calendar1 },
-                { name: "Classes", route: "classes", icon: Presentation },
+                { name: "School Year", route: "school-year", icon: Calendar1 },
                 { name: "Faculty-list", route: "faculty-list", icon: User2 },
                 { name: "Student-list", route: "student-list", icon: PiStudent },
+                { name: "Classes", route: "classes", icon: Presentation },
                 { name: "Rooms", route: "rooms", icon: MdOutlineMeetingRoom },
+                { name: "Department", route: "department", icon: Building },
             ]
             : []
         ),
         ...(user.user_role === "program_head"
             ? [
-                { name: "Classes", route: "classes", icon: Presentation },
+                { name: "School Year", route: "school-year", icon: Calendar1 },
                 { name: "Curriculum", route: "curriculum", icon: BookOpen },
                 { name: "Faculty List", route: "faculty-list", icon: User },
+                { name: "Classes", route: "classes", icon: Presentation },
             ]
             : []
         ),

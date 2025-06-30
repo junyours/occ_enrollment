@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Support\Facades\Redirect;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use function Symfony\Component\Clock\now;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -778,9 +779,10 @@ class EnrollmentCourseSectionController extends Controller
         $students = EnrolledStudent::where('year_section_id', $yearSection->id)
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->select('user_id_no', 'last_name', 'first_name', 'middle_name')
+            ->select('enrolled_students.id', 'user_id_no', 'last_name', 'first_name', 'middle_name')
             ->orderBy('last_name', 'ASC')
             ->orderBy('first_name', 'ASC')
+            ->with('Subjects.Section.Subject')
             ->get();
 
         $spreadsheet = new Spreadsheet();
@@ -791,19 +793,42 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->setCellValue('B1', 'Last Name');
         $sheet->setCellValue('C1', 'First Name');
         $sheet->setCellValue('D1', 'Middle Name');
+        $sheet->setCellValue('E1', 'Lec Hours');
+        $sheet->setCellValue('F1', 'Lab Hours');
+        $sheet->setCellValue('G1', 'Tuition Fee');
 
         $sheet->getColumnDimension('A')->setWidth(20); // ID Number
         $sheet->getColumnDimension('B')->setWidth(25); // Last Name
         $sheet->getColumnDimension('C')->setWidth(25); // First Name
         $sheet->getColumnDimension('D')->setWidth(25); // Middle Name
+        $sheet->getColumnDimension('E')->setWidth(10); // Middle Name
+        $sheet->getColumnDimension('F')->setWidth(10); // Middle Name
+        $sheet->getColumnDimension('G')->setWidth(20); // Middle Name
+        $sheet->getStyle('G')->getNumberFormat()->setFormatCode('#,##0.00');
+
 
         // Data
         $row = 2;
         foreach ($students as $student) {
+            $totalLecture = 0;
+            $totalLab = 0;
+
+            foreach ($student->subjects as $subj) {
+                $subject = $subj->section->subject ?? null;
+                if ($subject) {
+                    $totalLecture += $subject->lecture_hours;
+                    $totalLab += $subject->laboratory_hours;
+                }
+            }
+
             $sheet->setCellValue("A$row", $student->user_id_no);
             $sheet->setCellValue("B$row", $student->last_name);
             $sheet->setCellValue("C$row", $student->first_name);
             $sheet->setCellValue("D$row", $student->middle_name);
+            $sheet->setCellValue("E$row", $totalLecture);
+            $sheet->setCellValue("F$row", $totalLab);
+            $formatted = number_format(($totalLecture + $totalLab) * 150, 2);
+            $sheet->setCellValueExplicit("G$row", $formatted, DataType::TYPE_STRING);
             $row++;
         }
 

@@ -293,3 +293,10 @@ export function expandAlternatingDays(input) {
 
     return [...new Set(result)]; // Remove duplicates and return the final array
 };
+
+export function toTwoDecimals(number) {
+    return number.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
