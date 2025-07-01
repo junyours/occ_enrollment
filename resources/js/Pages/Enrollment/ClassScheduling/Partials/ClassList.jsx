@@ -27,9 +27,11 @@ function ClassList({
     const { courseName, yearlevel, section } = usePage().props;
 
     const [adding, setAdding] = useState(false);
+    const [subjectId, setSubjectId] = useState(0);
 
     const addSecondSchedule = async (id) => {
-        setAdding(true)
+        setAdding(true);
+        setSubjectId(id);
 
         await axios.post(`/api/add-second-schedule/${id}`)
             .then(response => {
@@ -39,6 +41,7 @@ function ClassList({
             })
             .finally(() => {
                 setAdding(false)
+                setSubjectId(0);
             })
     }
 
@@ -91,16 +94,16 @@ function ClassList({
                                                         {(classInfo.subject.laboratory_hours && !classInfo.secondary_schedule) ? (
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    {!adding ? (
+                                                                    {(adding && subjectId == classInfo.id) ? (
+                                                                        <LoaderCircle
+                                                                            size={15}
+                                                                            className='cursor-pointer animate-spin'
+                                                                        />
+                                                                    ) : (
                                                                         <AlarmClockPlus
                                                                             onClick={() => { if (!adding) addSecondSchedule(classInfo.id) }}
                                                                             size={15}
                                                                             className={`${adding ? '' : 'cursor-pointer'} text-green-500`}
-                                                                        />
-                                                                    ) : (
-                                                                        <LoaderCircle
-                                                                            size={15}
-                                                                            className='cursor-pointer animate-spin'
                                                                         />
                                                                     )}
                                                                 </TooltipTrigger>

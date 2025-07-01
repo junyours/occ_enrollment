@@ -567,6 +567,21 @@ class EnrollmentCourseSectionController extends Controller
         return response()->json(['message' => 'success'], 200);
     }
 
+    public function addSecondSchedule($id)
+    {
+        $schedule = SubjectSecondarySchedule::create([
+            'year_section_subjects_id' => $id,
+            'day' => 'TBA',
+            'start_time' => 'TBA',
+            'end_time' => 'TBA',
+        ]);
+
+        return response()->json([
+            'message' => 'success',
+        ]);
+    }
+
+
     private function getPreparingOrOngoingSchoolYear()
     {
         $today = Carbon::now(); // Get today's date
