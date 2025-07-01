@@ -2,18 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
 import PreLoader from '@/Components/preloader/PreLoader';
 import React, { useEffect, useState, useRef } from 'react'
-import { Card, CardContent } from "@/Components/ui/card"
-import { FileDown, ImageDown, Loader2, AlertTriangle } from 'lucide-react';
 import { identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
-import { Button } from '@/Components/ui/button';
-import { Label } from '@/Components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
-import { Switch } from '@/Components/ui/switch';
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import html2canvas from 'html2canvas';
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog';
 import ClassList from './Partials/ClassList';
 import Scheduling from './Partials/Scheduling';
 import DeletionDialog from './Partials/DeletionDialog';
@@ -23,7 +15,7 @@ export default function ClassScheduling() {
     const { toast } = useToast()
 
     const [fetching, setFetching] = useState(true);
-    const { yearSectionId, courseName, yearlevel, section } = usePage().props;
+    const { yearSectionId } = usePage().props;
 
     const bottomRef = useRef(null);
 
@@ -207,37 +199,6 @@ export default function ClassScheduling() {
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
     const [classType, setClassType] = useState('main');
 
-    const deleteClass = async () => {
-        console.log('hello')
-        if (classType == 'main') {
-            await axios.post(route('delete-main-class', { id: classIdToDelete }))
-                .then(response => {
-                    if (response.data.message) {
-                        getCLasses();
-                        setOpenDeleteDialog(false);
-                        setClassIdToDelete(0);
-                        toast({
-                            description: "Class deleted",
-                            variant: "success",
-                        })
-                    }
-                })
-        } else if (classType == 'second') {
-            await axios.post(route('delete-second-class', { id: classIdToDelete }))
-                .then(response => {
-                    if (response.data.message) {
-                        getCLasses();
-                        setOpenDeleteDialog(false);
-                        setClassIdToDelete(0);
-                        toast({
-                            description: "Class deleted",
-                            variant: "success",
-                        })
-                    }
-                })
-
-        }
-    }
 
     const dayOnchange = (day) => {
         collectConflictSchedules({ day: day, start_time: data.start_time, end_time: data.end_time, id: data.id })
@@ -422,42 +383,8 @@ export default function ClassScheduling() {
             },
             preserveScroll: true,
         });
-
     };
 
-
-    const downloadImage = async () => {
-        setIsDownloading(true);
-
-        try {
-            // Small delay to let the UI update and show the spinner
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            const filename = `${courseName} - ${yearlevel}${section} classes.png`;
-            const element = document.getElementById(`section-schedule`);
-
-            if (element) {
-                const style = document.createElement("style");
-                document.head.appendChild(style);
-                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
-                style.sheet?.insertRule('td div > svg { display: none !important; }');
-
-                const canvas = await html2canvas(element, { scale: 5 });
-                const imageUrl = canvas.toDataURL("image/png");
-
-                const link = document.createElement("a");
-                link.href = imageUrl;
-                link.download = filename;
-                link.click();
-
-                style.remove();
-            }
-        } catch (error) {
-            console.error('Error downloading image:', error);
-        } finally {
-            setIsDownloading(false);
-        }
-    };
 
     if (fetching) return <PreLoader title="Class" />
 
@@ -465,7 +392,7 @@ export default function ClassScheduling() {
         <div className='space-y-4'>
             <Head title="Class" />
 
-            <ScheduleToolbar scheduleType={scheduleType} downloadImage={downloadImage} isDownloading={isDownloading} colorful={colorful} setColorful={setColorful} setScheduleType={setScheduleType} />
+            <ScheduleToolbar scheduleType={scheduleType} isDownloading={isDownloading} colorful={colorful} setColorful={setColorful} setScheduleType={setScheduleType} setIsDownloading={setIsDownloading} />
 
             <ClassList
                 secondScheduleConflictList={secondScheduleConflictList}
@@ -481,6 +408,7 @@ export default function ClassScheduling() {
                 colorful={colorful}
                 setClassType={setClassType}
                 setOpenDeleteDialog={setOpenDeleteDialog}
+                getCLasses={getCLasses}
             />
 
             {editing &&
@@ -515,7 +443,10 @@ export default function ClassScheduling() {
             <DeletionDialog
                 openDeleteDialog={openDeleteDialog}
                 setOpenDeleteDialog={setOpenDeleteDialog}
-                deleteClass={deleteClass}
+                classType={classType}
+                classIdToDelete={classIdToDelete}
+                getCLasses={getCLasses}
+                setClassIdToDelete={setClassIdToDelete}
             />
         </div >
     )

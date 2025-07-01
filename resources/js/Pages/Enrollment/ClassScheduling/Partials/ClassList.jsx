@@ -1,13 +1,47 @@
-import React from 'react'
+import React, { useState } from 'react'
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
-import { Pencil, Trash } from 'lucide-react';
+import { AlarmClockPlus, LoaderCircle, Pencil, Trash } from 'lucide-react';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { usePage } from '@inertiajs/react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import { router } from '@inertiajs/react'
 
-function ClassList({ scheduleType, isDownloading, classes, editing, mainScheduleConflictList, editSchedule, data, editingSecondSchedule, setClassIdToDelete, colorful, setClassType, setOpenDeleteDialog, secondScheduleConflictList }) {
+function ClassList({
+    scheduleType,
+    isDownloading,
+    classes,
+    editing,
+    mainScheduleConflictList,
+    editSchedule,
+    data,
+    editingSecondSchedule,
+    setClassIdToDelete,
+    colorful,
+    setClassType,
+    setOpenDeleteDialog,
+    secondScheduleConflictList,
+    getCLasses
+}) {
     const { courseName, yearlevel, section } = usePage().props;
+
+    const [adding, setAdding] = useState(false);
+
+    const addSecondSchedule = async (id) => {
+        setAdding(true)
+
+        await axios.post(`/api/add-second-schedule/${id}`)
+            .then(response => {
+                if (response.data.message) {
+                    getCLasses();
+                }
+            })
+            .finally(() => {
+                setAdding(false)
+            })
+    }
+
 
     return (
         <Card id={`section-schedule`}>
@@ -53,23 +87,57 @@ function ClassList({ scheduleType, isDownloading, classes, editing, mainSchedule
                                             </TableCell>
                                             {!isDownloading && (
                                                 <TableCell>
-                                                    <div className="flex justify-start space-x-1 h-full">
-                                                        <Pencil
-                                                            onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
-                                                            size={15}
-                                                            className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                                        />
-                                                        <Trash
-                                                            onClick={() => {
-                                                                if (!editing) {
-                                                                    setClassIdToDelete(classInfo.id);
-                                                                    setClassType('main');
-                                                                    setOpenDeleteDialog(true);
-                                                                }
-                                                            }}
-                                                            size={15}
-                                                            className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
-                                                        />
+                                                    <div className="w-full flex justify-end space-x-1 h-full">
+                                                        {(classInfo.subject.laboratory_hours && !classInfo.secondary_schedule) ? (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    {!adding ? (
+                                                                        <AlarmClockPlus
+                                                                            onClick={() => { if (!adding) addSecondSchedule(classInfo.id) }}
+                                                                            size={15}
+                                                                            className={`${adding ? '' : 'cursor-pointer'} text-green-500`}
+                                                                        />
+                                                                    ) : (
+                                                                        <LoaderCircle
+                                                                            size={15}
+                                                                            className='cursor-pointer animate-spin'
+                                                                        />
+                                                                    )}
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>Add secondary schedule</TooltipContent>
+                                                            </Tooltip>
+                                                        ) : (
+                                                            <AlarmClockPlus
+                                                                size={15}
+                                                                className={`text-transparent`}
+                                                            />
+                                                        )}
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Pencil
+                                                                    onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
+                                                                    size={15}
+                                                                    className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                                />
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Edit</TooltipContent>
+                                                        </Tooltip>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Trash
+                                                                    onClick={() => {
+                                                                        if (!editing) {
+                                                                            setClassIdToDelete(classInfo.id);
+                                                                            setClassType('main');
+                                                                            setOpenDeleteDialog(true);
+                                                                        }
+                                                                    }}
+                                                                    size={15}
+                                                                    className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
+                                                                />
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Delete</TooltipContent>
+                                                        </Tooltip>
                                                     </div>
                                                 </TableCell>
                                             )}
@@ -94,6 +162,10 @@ function ClassList({ scheduleType, isDownloading, classes, editing, mainSchedule
                                                 {!isDownloading && (
                                                     <TableCell>
                                                         <div className="flex justify-evenly space-x-1 h-full">
+                                                            <AlarmClockPlus
+                                                                size={15}
+                                                                className={`text-transparent`}
+                                                            />
                                                             <Pencil
                                                                 onClick={() => { if (!editing) editSchedule(classInfo, 'second') }}
                                                                 size={15}

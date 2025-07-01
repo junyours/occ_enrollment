@@ -1,9 +1,41 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
-function DeletionDialog({ openDeleteDialog, setOpenDeleteDialog, deleteClass }) {
+
+function DeletionDialog({ openDeleteDialog, setOpenDeleteDialog, classType, classIdToDelete, getCLasses, setClassIdToDelete }) {
+
+    const { toast } = useToast()
+    const [deleting, setDeleting] = useState(false);
+
+    const deleteClass = async () => {
+        setDeleting(true)
+        let routeName
+
+        if (classType == 'main') {
+            routeName = 'delete-main-class';
+        } else if (classType == 'second') {
+            routeName = 'delete-second-class';
+        }
+
+        await axios.post(route(routeName, { id: classIdToDelete }))
+            .then(response => {
+                if (response.data.message) {
+                    getCLasses();
+                    setOpenDeleteDialog(false);
+                    setClassIdToDelete(0);
+                    toast({
+                        description: "Class deleted",
+                        variant: "success",
+                    })
+                }
+            })
+            .finally(() => {
+                setDeleting(false)
+            })
+    }
 
     return (
         <AlertDialog open={openDeleteDialog} setOpen={setOpenDeleteDialog}>
@@ -23,6 +55,7 @@ function DeletionDialog({ openDeleteDialog, setOpenDeleteDialog, deleteClass }) 
 
                 <AlertDialogFooter className="mt-6">
                     <Button
+                        disabled={deleting}
                         onClick={deleteClass}
                         variant="destructive"
                         className="w-full sm:w-auto"

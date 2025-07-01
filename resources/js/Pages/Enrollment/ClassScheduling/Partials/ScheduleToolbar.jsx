@@ -5,8 +5,45 @@ import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Switch } from '@/Components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import { usePage } from '@inertiajs/react';
+import html2canvas from 'html2canvas';
 
-function ScheduleToolbar({ scheduleType, downloadImage, isDownloading, colorful, setColorful, setScheduleType }) {
+function ScheduleToolbar({ scheduleType, isDownloading, colorful, setColorful, setScheduleType, setIsDownloading }) {
+    const { courseName, yearlevel, section } = usePage().props;
+
+    const downloadImage = async () => {
+        setIsDownloading(true);
+
+        try {
+            // Small delay to let the UI update and show the spinner
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            const filename = `${courseName} - ${yearlevel}${section} classes.png`;
+            const element = document.getElementById(`section-schedule`);
+
+            if (element) {
+                const style = document.createElement("style");
+                document.head.appendChild(style);
+                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
+                style.sheet?.insertRule('td div > svg { display: none !important; }');
+
+                const canvas = await html2canvas(element, { scale: 5 });
+                const imageUrl = canvas.toDataURL("image/png");
+
+                const link = document.createElement("a");
+                link.href = imageUrl;
+                link.download = filename;
+                link.click();
+
+                style.remove();
+            }
+        } catch (error) {
+            console.error('Error downloading image:', error);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     return (
         <Card>
             <CardContent className="p-2">
