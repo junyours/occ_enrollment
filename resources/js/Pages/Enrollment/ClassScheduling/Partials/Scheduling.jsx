@@ -46,7 +46,9 @@ const hours = [
     { value: '14', hour: '2' },
     { value: '15', hour: '3' },
     { value: '16', hour: '4' },
-    { value: '17', hour: '5' }
+    { value: '17', hour: '5' },
+    { value: '18', hour: '6' },
+    { value: '19', hour: '7' },
 ];
 
 function Scheduling({
