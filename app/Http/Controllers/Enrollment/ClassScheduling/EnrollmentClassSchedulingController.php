@@ -315,7 +315,7 @@ class EnrollmentClassSchedulingController extends Controller
                     )
                     ->join('year_section_subjects', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id') // Corrected join condition
                     ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
-                    ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
+                    ->leftJoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id')
                     ->leftjoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                     ->leftjoin('user_information', 'users.id', '=', 'user_information.user_id')
                     ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
