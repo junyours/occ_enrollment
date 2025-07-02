@@ -10,7 +10,7 @@ class CorController extends Controller
 
     public function registrarSignature()
     {
-        $path = '\signatures\registrar.png';
+        $path = 'signatures/registrar.png';
 
         // if (!Storage::exists($path)) {
         //     abort(404, 'Signature not found');
@@ -24,7 +24,7 @@ class CorController extends Controller
 
     public function billingAssessmentSignature()
     {
-        $path = ("\signatures\billing.png");
+        $path = ("signatures/billing.png");
 
         // if (!file_exists($path)) {
         //     abort(404, 'Signature not found');
