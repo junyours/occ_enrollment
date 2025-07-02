@@ -296,7 +296,7 @@ class EnrollmentClassSchedulingController extends Controller
                 // Secondary schedules query
                 $secondarySchedules = DB::table('subject_secondary_schedule')
                     ->select(
-                        DB::raw('null as room_name'), // pad missing column
+                        'room_name',
                         'subject_secondary_schedule.day',
                         'descriptive_title',
                         'subject_secondary_schedule.end_time',
@@ -315,6 +315,7 @@ class EnrollmentClassSchedulingController extends Controller
                     )
                     ->join('year_section_subjects', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id') // Corrected join condition
                     ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+                    ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
                     ->leftjoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                     ->leftjoin('user_information', 'users.id', '=', 'user_information.user_id')
                     ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
