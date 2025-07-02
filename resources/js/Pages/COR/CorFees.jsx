@@ -19,7 +19,7 @@ function CorFees({ subjects, course, yearLevel }) {
     const miscellaneousFeesTotal = MiscellaneousFeesTotal(course, yearLevel)
 
     return (
-        <div className="max-w-xs">
+        <div className="w-full">
             <div>
                 <h1 className="text-sm font-bold text-gray-800">ASSESSMENT:</h1>
 

@@ -5,6 +5,7 @@ import { MiscellaneousFeesList, MiscellaneousFeesTotal } from './MiscellaneousFe
 import CorStudentSubjects from './CorStudentSubjects';
 import CorStudentInfo from './CorStudentInfo';
 import CorFees from './CorFees';
+import Signatories from './Signatories';
 function CorGenerator({ data }) {
     return (
         <div className="space-y-4 p-5 flex justify-center bg-white rounded-lg w-max  text-black">
@@ -24,12 +25,16 @@ function CorGenerator({ data }) {
                 {/* SUBJECTS */}
                 <CorStudentSubjects data={data.student_subject} />
 
-                {/* FEES */}
-                <CorFees
-                    subjects={data.student_subject}
-                    course={data.year_section.course.course_name_abbreviation}
-                    yearLevel={data.year_section.year_level_id}
-                />
+                <div className='flex justify-around gap-4'>
+                    {/* FEES */}
+                    <CorFees
+                        subjects={data.student_subject}
+                        course={data.year_section.course.course_name_abbreviation}
+                        yearLevel={data.year_section.year_level_id}
+                    />
+
+                    <Signatories />
+                </div>
 
                 <div className="mt-2 text-[8px]">
                     Evaluator: {formatFullName(data.evaluator.evaluator_information)}

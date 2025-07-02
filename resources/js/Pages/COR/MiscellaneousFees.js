@@ -14,17 +14,13 @@ export function MiscellaneousFeesList(courseName, yearLevel, semester) {
 
         return item;
     });
-    console.log(filteredList);
 
     return filteredList;
 }
 
 export function MiscellaneousFeesTotal(courseName, yearLevel, semester) {
     const miscellaneousFees = MiscellaneousFeesList(courseName, yearLevel, semester);
-    const miscellaneousFeesTotal = miscellaneousFees.reduce((acc, item) => acc + item.fee, 0);
-    console.log(courseName);
-    console.log(yearLevel);
-    console.log(semester);
+    const miscellaneousFeesTotal = miscellaneousFees.reduce((acc, item) => acc + item.fee, 0)
 
     return miscellaneousFeesTotal;
 }
