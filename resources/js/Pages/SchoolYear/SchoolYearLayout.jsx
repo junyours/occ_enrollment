@@ -10,8 +10,10 @@ import {
 import Dashboard from '../Enrollment/Dashboard'
 import EnrollmentCourseSection from '../Enrollment/EnrollmentCourseSection'
 import ClassScheduling from '../Enrollment/ClassScheduling/ClassScheduling'
+import EnrolledStudentList from '../Enrollment/EnrolledStudentList'
+import StudentCor from '../Enrollment/StudentCor'
 
-export default function SchoolYearLayout({ schoolYear, semester, courses, error, courseId, yearlevel, section, yearSectionId, courseName }) {
+export default function SchoolYearLayout({ schoolYear, semester, courses, error, courseId, yearlevel, section, yearSectionId, courseName, hashedCourseId, studentIdNo }) {
 
     const { url: currentUrl } = usePage()
 
@@ -209,7 +211,7 @@ export default function SchoolYearLayout({ schoolYear, semester, courses, error,
                 <></>
             )}
 
-            {yearSectionId && (
+            {(yearSectionId && !hashedCourseId) && (
                 <ClassScheduling
                     courseId={courseId}
                     yearlevel={yearlevel}
@@ -217,6 +219,30 @@ export default function SchoolYearLayout({ schoolYear, semester, courses, error,
                     yearSectionId={yearSectionId}
                     courseName={courseName}
                     forSchoolYear={true}
+                    schoolYearId={schoolYear.id}
+                />
+            )}
+
+            {(yearSectionId && hashedCourseId) && (
+                <EnrolledStudentList
+                    hashedCourseId={hashedCourseId}
+                    courseId={courseId}
+                    yearlevel={yearlevel}
+                    section={section}
+                    yearSectionId={yearSectionId}
+                    courseName={courseName}
+                    forSchoolYear={true}
+                    schoolYear={schoolYear}
+                    semester={semester}
+                />
+            )}
+
+            {(studentIdNo) && (
+                <StudentCor
+                    courseId={courseId}
+                    section={section}
+                    yearlevel={yearlevel}
+                    studentIdNo={studentIdNo}
                     schoolYearId={schoolYear.id}
                 />
             )}

@@ -7,8 +7,11 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import { Button } from '@/Components/ui/button';
 import { useReactToPrint } from 'react-to-print';
 
-function StudentCor() {
-    const { courseId, section, yearlevel, studentIdNo } = usePage().props;
+function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId }) {
+    console.log(courseId);
+    console.log(section);
+    console.log(yearlevel);
+    console.log(studentIdNo);
 
     const [loading, setLoading] = useState([]);
 
@@ -22,7 +25,8 @@ function StudentCor() {
                 courseId,
                 section,
                 yearlevel,
-                studentIdNo
+                studentIdNo,
+                schoolYearId
             }));
             setData(response.data);
             setLoading(false);

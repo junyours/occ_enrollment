@@ -16,8 +16,7 @@ import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table';
 
-export default function EnrolledStudentList() {
-    const { hashedCourseId, courseId, yearlevel, section, yearSectionId, courseName } = usePage().props;
+export default function EnrolledStudentList({ hashedCourseId, courseId, yearlevel, section, yearSectionId, courseName, forSchoolYear = false, schoolYear, semester }) {
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState([]);
     const { toast } = useToast()
@@ -166,17 +165,31 @@ export default function EnrolledStudentList() {
                                 Subjects
                             </Button>
                         </Link>
-
-                        <Link
-                            href={`${route('enrollment.view.student.cor', {
-                                id: hashedCourseId,
-                                yearlevel: yearLevelName ? yearLevelName.replace(/\s+/g, '-') : 'First-Year'
-                            })}?section=${encodeURIComponent(section)}&id-no=${user_id_no}`}
-                        >
-                            <Button className="text-blue-500 h-auto py-0" variant="link">
-                                COR
-                            </Button>
-                        </Link>
+                        {forSchoolYear ? (
+                            <Link
+                                href={`${route('school-year.view.student.cor', {
+                                    schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
+                                    semester: semester,
+                                    hashedCourseId: hashedCourseId,
+                                    yearlevel: yearLevelName ? yearLevelName.replace(/\s+/g, '-') : 'First-Year'
+                                })}?section=${encodeURIComponent(section)}&id-no=${user_id_no}`}
+                            >
+                                <Button className="text-blue-500 h-auto py-0" variant="link">
+                                    COR
+                                </Button>
+                            </Link>
+                        ) : (
+                            <Link
+                                href={`${route('enrollment.view.student.cor', {
+                                    id: hashedCourseId,
+                                    yearlevel: yearLevelName ? yearLevelName.replace(/\s+/g, '-') : 'First-Year'
+                                })}?section=${encodeURIComponent(section)}&id-no=${user_id_no}`}
+                            >
+                                <Button className="text-blue-500 h-auto py-0" variant="link">
+                                    COR
+                                </Button>
+                            </Link>
+                        )}
 
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -190,19 +203,22 @@ export default function EnrolledStudentList() {
                             </TooltipTrigger>
                             <TooltipContent>Move student</TooltipContent>
                         </Tooltip>
-
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    onClick={() => openUnenrollModal(id)}
-                                    variant="icon"
-                                    className="text-red-500 py-0 h-min"
-                                >
-                                    <UserMinus className="h-4 w-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Unenroll student</TooltipContent>
-                        </Tooltip>
+                        {forSchoolYear ? (
+                            <></>
+                        ) : (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        onClick={() => openUnenrollModal(id)}
+                                        variant="icon"
+                                        className="text-red-500 py-0 h-min"
+                                    >
+                                        <UserMinus className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Unenroll student</TooltipContent>
+                            </Tooltip>
+                        )}
                     </div>
                 );
             },

@@ -391,6 +391,8 @@ class EnrollmentCourseSectionController extends Controller
 
         $studentIdNo = $request->query('id-no');
 
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
         return Inertia::render(
             'Enrollment/StudentCor',
             [
@@ -398,11 +400,12 @@ class EnrollmentCourseSectionController extends Controller
                 'section' => $section,
                 'yearlevel' => $yearlevel,
                 'studentIdNo' => $studentIdNo,
+                'schoolYearId' => $schoolYear->id,
             ]
         );
     }
 
-    public function getStudentEnrollmentInfo($courseId, $section, $yearlevel, $studentIdNo)
+    public function getStudentEnrollmentInfo($courseId, $section, $yearlevel, $studentIdNo, $schoolYearId)
     {
         $yearLevels = [
             'First-Year' => '1',
@@ -413,11 +416,9 @@ class EnrollmentCourseSectionController extends Controller
 
         $yearLevelNumber = $yearLevels[$yearlevel] ?? '';
 
-        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
-
         $yearSectionId = YearSection::where('course_id', '=', $courseId)
             ->where('year_level_id', '=', $yearLevelNumber)
-            ->where('school_year_id', '=', $schoolYear->id)
+            ->where('school_year_id', '=', $schoolYearId)
             ->where('section', '=', $section)
             ->first()->id;
 

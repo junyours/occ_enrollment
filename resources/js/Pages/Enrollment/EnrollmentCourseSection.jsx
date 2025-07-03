@@ -283,12 +283,26 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
 
                                                         </>
                                                     )}
-                                                    <Link href={route(forSchoolYear ? 'enrollment.view.students' : 'enrollment.view.students', {
-                                                        id: courseId,
-                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                    }) + `?section=${section.section}`}>
-                                                        <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
-                                                    </Link>
+
+                                                    {forSchoolYear ? (
+                                                        <Link href={route('school-year.view.students', {
+                                                            schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
+                                                            semester: semester,
+                                                            hashedCourseId: courseId,
+                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                        }) + `?section=${section.section}`}>
+                                                            <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
+                                                        </Link>
+                                                    ) : (
+                                                        <Link href={route('enrollment.view.students', {
+                                                            id: courseId,
+                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                        }) + `?section=${section.section}`}>
+                                                            <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
+                                                        </Link>
+                                                    )}
+
+
                                                     {!forSchoolYear && (
                                                         <Link href={route('enrollment.view.enroll-student', {
                                                             id: courseId,
@@ -364,7 +378,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                 isDownloading={isDownloading}
                 setIsDownloading={setIsDownloading}
             />
-        </div>
+        </div >
     );
 }
 
