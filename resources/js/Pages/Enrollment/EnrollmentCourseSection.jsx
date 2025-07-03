@@ -101,7 +101,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
             return;
         }
 
-        post(route('add.new.section'), {
+        post(route('add.new.section', { schoolYearId }), {
             onSuccess: () => {
                 reset();
                 setIsDialogOpen(false);

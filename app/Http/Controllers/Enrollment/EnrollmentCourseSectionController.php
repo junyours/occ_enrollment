@@ -51,13 +51,13 @@ class EnrollmentCourseSectionController extends Controller
         );
     }
 
-    public function addNewSection(Request $request)
+    public function addNewSection($schoolYearId, Request $request)
     {
         $course = DB::table('course')
             ->where(DB::raw('MD5(id)'), '=', $request->course_id)
             ->first();
 
-        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
 
         $activeCurr = YearLevel::select(
             'year_level.year_level',

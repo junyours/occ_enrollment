@@ -104,19 +104,95 @@ export default function SchoolYearLayout({ schoolYear, semester, courses, error,
             )}
 
             {getTabValue() === "roomSchedules" && (
-                <Dashboard schoolYear={schoolYear} hide={true} />
+                <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+                    <div className="animate-pulse">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-16 w-16 mx-auto mb-4 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 8c1.657 0 3 1.343 3 3 0 .68-.232 1.302-.617 1.793A2.995 2.995 0 0012 16m0 0v2m0-2H9m3 0h3"
+                            />
+                        </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold">This section is under construction</h2>
+                    <p className="text-sm">We're working on it. Please check back later.</p>
+                </div>
             )}
 
             {getTabValue() === "facultiesSchedules" && (
-                <Dashboard schoolYear={schoolYear} hide={true} />
+                <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+                    <div className="animate-pulse">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-16 w-16 mx-auto mb-4 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 8c1.657 0 3 1.343 3 3 0 .68-.232 1.302-.617 1.793A2.995 2.995 0 0012 16m0 0v2m0-2H9m3 0h3"
+                            />
+                        </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold">This section is under construction</h2>
+                    <p className="text-sm">We're working on it. Please check back later.</p>
+                </div>
             )}
 
             {getTabValue() === "subjectsSchedules" && (
-                <Dashboard schoolYear={schoolYear} hide={true} />
+                <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+                    <div className="animate-pulse">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-16 w-16 mx-auto mb-4 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 8c1.657 0 3 1.343 3 3 0 .68-.232 1.302-.617 1.793A2.995 2.995 0 0012 16m0 0v2m0-2H9m3 0h3"
+                            />
+                        </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold">This section is under construction</h2>
+                    <p className="text-sm">We're working on it. Please check back later.</p>
+                </div>
             )}
 
             {getTabValue() === "subjectsList" && (
-                <Dashboard schoolYear={schoolYear} hide={true} />
+                <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+                    <div className="animate-pulse">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-16 w-16 mx-auto mb-4 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 8c1.657 0 3 1.343 3 3 0 .68-.232 1.302-.617 1.793A2.995 2.995 0 0012 16m0 0v2m0-2H9m3 0h3"
+                            />
+                        </svg>
+                    </div>
+                    <h2 className="text-lg font-semibold">This section is under construction</h2>
+                    <p className="text-sm">We're working on it. Please check back later.</p>
+                </div>
             )}
 
             {course ? (
