@@ -28,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'UserManagementPermission' => \App\Http\Middleware\UserManagementPermission::class,
             'ProgrameadRegistrar' => \App\Http\Middleware\ProgramheadRegistrar::class,
             'SuperAdmin' => \App\Http\Middleware\SuperAdmin::class,
+            'SchoolYearPermission' => \App\Http\Middleware\SchoolYearPermission::class,
         ]);
         //
     })

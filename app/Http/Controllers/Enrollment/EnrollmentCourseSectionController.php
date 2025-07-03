@@ -123,7 +123,7 @@ class EnrollmentCourseSectionController extends Controller
         }
     }
 
-    public function getEnrollmentCourseSections($hashedCourseId)
+    public function getEnrollmentCourseSections($hashedCourseId, $schoolYearId)
     {
         $course = DB::table('course')
             ->select('id')
@@ -134,11 +134,9 @@ class EnrollmentCourseSectionController extends Controller
             return Inertia::render('Enrollment/EnrollmentCourseSection', ['error' => true]);
         }
 
-        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
-
         return YearLevel::select('year_level.id', 'year_level_name')
             ->with([
-                'YearSection' => function ($query) use ($schoolYear, $course) {
+                'YearSection' => function ($query) use ($schoolYearId, $course) {
                     $query->select(
                         'year_section.id',
                         'year_section.school_year_id',
@@ -147,7 +145,7 @@ class EnrollmentCourseSectionController extends Controller
                         'year_section.section',
                         'year_section.max_students'
                     )
-                        ->where('school_year_id', '=', $schoolYear->id)
+                        ->where('school_year_id', '=', $schoolYearId)
                         ->where('course_id', '=', $course->id)
                         ->leftJoin('enrolled_students', 'year_section.id', '=', 'enrolled_students.year_section_id')
                         ->groupBy(
@@ -192,6 +190,7 @@ class EnrollmentCourseSectionController extends Controller
         return Inertia::render(
             'Enrollment/ClassScheduling/ClassScheduling',
             [
+                'schoolYearId' => $schoolYear->id,
                 'courseId' => $course->id,
                 'yearlevel' => $yearLevelNumber,
                 'section' => $section,

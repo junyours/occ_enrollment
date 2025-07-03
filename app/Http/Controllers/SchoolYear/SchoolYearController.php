@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\SchoolYear;
 
 use App\Http\Controllers\Controller;
+use App\Models\Course;
 use App\Models\SchoolYear;
 use App\Models\Semester;
+use App\Models\YearSection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -87,5 +90,155 @@ class SchoolYearController extends Controller
         ]);
 
         return response()->json(['message' => 'success'], 200);
+    }
+
+    public function viewSchoolYear($schoolyear, $semester)
+    {
+        $user = Auth::user();
+
+        $years = explode('-', $schoolyear);
+
+        $semesterInfo = Semester::where('semester_name', '=', $semester)->first();
+
+        $schoolYear = SchoolYear::where('start_year', '=', $years[0])
+            ->where('end_year', '=', $years[1])
+            ->where('semester_id', '=', $semesterInfo->id)
+            ->first();
+
+        $courses = [];
+
+        if ($user->user_role == 'program_head') {
+            $courses = DB::table('course')
+                ->select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->join('department', 'course.department_id', '=', 'department.id')
+                ->join('faculty', 'faculty.department_id', '=', 'department.id')
+                ->join('users', 'faculty.faculty_id', '=', 'users.id')
+                ->where('users.id', '=', $user->id)
+                ->get();
+        } elseif ($user->user_role == 'registrar') {
+            $courses = Course::select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->get();
+        }
+
+        return Inertia::render(
+            'SchoolYear/SchoolYearLayout',
+            [
+                'courses' => $courses,
+                'schoolYear' => $schoolYear,
+                'semester' => $semester
+            ]
+        );
+    }
+
+    public function viewCourse($schoolyear, $semester)
+    {
+        $user = Auth::user();
+
+        $years = explode('-', $schoolyear);
+
+        $semesterInfo = Semester::where('semester_name', '=', $semester)->first();
+
+        $schoolYear = SchoolYear::where('start_year', '=', $years[0])
+            ->where('end_year', '=', $years[1])
+            ->where('semester_id', '=', $semesterInfo->id)
+            ->first();
+
+        $courses = [];
+
+        if ($user->user_role == 'program_head') {
+            $courses = DB::table('course')
+                ->select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->join('department', 'course.department_id', '=', 'department.id')
+                ->join('faculty', 'faculty.department_id', '=', 'department.id')
+                ->join('users', 'faculty.faculty_id', '=', 'users.id')
+                ->where('users.id', '=', $user->id)
+                ->get();
+        } elseif ($user->user_role == 'registrar') {
+            $courses = Course::select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->get();
+        }
+
+        return Inertia::render(
+            'SchoolYear/SchoolYearLayout',
+            [
+                'courses' => $courses,
+                'schoolYear' => $schoolYear,
+                'semester' => $semester,
+            ]
+        );
+    }
+
+    public function viewClass($schoolyear, $semester, $hashedCourseId, $yearlevel, Request $request)
+    {
+        $user = Auth::user();
+
+        $years = explode('-', $schoolyear);
+
+        $semesterInfo = Semester::where('semester_name', '=', $semester)->first();
+
+        $schoolYear = SchoolYear::where('start_year', '=', $years[0])
+            ->where('end_year', '=', $years[1])
+            ->where('semester_id', '=', $semesterInfo->id)
+            ->first();
+
+        $courses = [];
+
+        if ($user->user_role == 'program_head') {
+            $courses = DB::table('course')
+                ->select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->join('department', 'course.department_id', '=', 'department.id')
+                ->join('faculty', 'faculty.department_id', '=', 'department.id')
+                ->join('users', 'faculty.faculty_id', '=', 'users.id')
+                ->where('users.id', '=', $user->id)
+                ->get();
+        } elseif ($user->user_role == 'registrar') {
+            $courses = Course::select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->get();
+        }
+
+        $course = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $hashedCourseId)
+            ->first();
+
+        $section = $request->query('section');
+
+        $yearLevels = [
+            'First-Year' => '1',
+            'Second-Year' => '2',
+            'Third-Year' => '3',
+            'Fourth-Year' => '4'
+        ];
+
+        $yearLevelNumber = $yearLevels[$yearlevel] ?? '';
+
+        $yearSection = YearSection::where('school_year_id', '=', $schoolYear->id)
+            ->where('course_id', '=', $course->id)
+            ->where('year_level_id', '=', $yearLevelNumber)
+            ->where('section', '=', $section)
+            ->first();
+
+        return Inertia::render(
+            'SchoolYear/SchoolYearLayout',
+            [
+                'schoolYear' => $schoolYear,
+                'semester' => $semester,
+                'courses' => $courses,
+                'courseId' => $course->id,
+                'yearlevel' => $yearLevelNumber,
+                'section' => $section,
+                'yearSectionId' =>  $yearSection->id,
+                'courseName' => $course->course_name_abbreviation,
+            ]
+        );
+    }
+
+    public function viewStudentSubjects()
+    {
+        return Inertia::render('SchoolYear/SchoolYearLayout');
+    }
+
+    public function viewStudentCor()
+    {
+        return Inertia::render('SchoolYear/SchoolYearLayout');
     }
 }

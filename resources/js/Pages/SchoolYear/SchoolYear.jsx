@@ -27,9 +27,13 @@ import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import Checkbox from '@/Components/Checkbox';
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { PageTitle } from '@/Components/ui/PageTitle';
 
 export default function SchoolYear() {
+    const { user } = usePage().props.auth;
+    const userRole = user.user_role;
+
     const [action, setAction] = useState('adding');
 
     const [submitting, setSubmitting] = useState(false);
@@ -176,37 +180,39 @@ export default function SchoolYear() {
     };
 
     return (
-        <div>
+        <div className='space-y-4'>
             <Head title={'School year'} />
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">School Years</h2>
-                <Button
-                    onClick={() => {
-                        setOpenSheet(true)
-                        setAction('adding')
-                        setForm(nextYear);
-                        setFormErrors({});
-                    }}
-                >
-                    Add School Year
-                </Button>
-            </div>
+            <PageTitle>
+                <div className="flex justify-between items-center">
+                    <h2 className="font-semibold">School Years</h2>
+                    <Button
+                        onClick={() => {
+                            setOpenSheet(true)
+                            setAction('adding')
+                            setForm(nextYear);
+                            setFormErrors({});
+                        }}
+                    >
+                        Add School Year
+                    </Button>
+                </div>
+            </PageTitle>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {schoolYearsToShow.map((sy, index) => (
                     <Card key={index}>
                         <CardHeader>
-                            <CardTitle className="text-center text-lg font-semibold">
+                            <CardTitle className="text-center text-xl font-semibold">
                                 {`${sy.start_year}-${sy.end_year}`}
                             </CardTitle>
-                            <p className="text-center text-md -mt-2">{sy.semester_name} Semester</p>
+                            <p className="text-center text-md">{sy.semester_name} Semester</p>
                         </CardHeader>
                         <CardContent>
                             <div className="text-center">
                                 <p className="text-xs">
                                     {formatDateShort(sy.start_date)} - {formatDateShort(sy.end_date)}
                                 </p>
-                                <div className="flex justify-center flex-wrap gap-1 mt-2">
+                                <div className="flex justify-center flex-wrap gap-1 my-2">
                                     {sy.is_current === 1 && (
                                         <Badge className="bg-green-500 hover:bg-green-500 text-white text-xs font-bold">Current</Badge>
                                     )}
@@ -217,26 +223,38 @@ export default function SchoolYear() {
                                         <Badge className="bg-yellow-500 hover:bg-yellow-500 text-white text-xs font-bold">Preparing</Badge>
                                     )}
                                 </div>
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                        setAction('editing');
-                                        setOpenSheet(true);
-                                        setForm({
-                                            id: sy.id,
-                                            semester_id: sy.semester_id,
-                                            start_year: sy.start_year,
-                                            end_year: sy.end_year,
-                                            start_date: sy.start_date,
-                                            end_date: sy.end_date,
-                                            is_current: sy.is_current,
-                                        })
-                                        setFormErrors({});
-                                    }}
-                                    className="py-0 h-max mt-0"
-                                >
-                                    Edit
-                                </Button>
+                                <div className='flex gap-2 justify-center w-full'>
+                                    {userRole == 'registrar' && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                                setAction('editing');
+                                                setOpenSheet(true);
+                                                setForm({
+                                                    id: sy.id,
+                                                    semester_id: sy.semester_id,
+                                                    start_year: sy.start_year,
+                                                    end_year: sy.end_year,
+                                                    start_date: sy.start_date,
+                                                    end_date: sy.end_date,
+                                                    is_current: sy.is_current,
+                                                })
+                                                setFormErrors({});
+                                            }}
+                                            className="py-1 h-max mt-0"
+                                        >
+                                            Edit
+                                        </Button>
+                                    )}
+                                    <Link className='max-h-max' href={route('school-year.view', { schoolyear: `${sy.start_year}-${sy.end_year}`, semester: sy.semester_name })}>
+                                        <Button
+                                            variant="outline"
+                                            className="py-1 h-max mt-0"
+                                        >
+                                            Open
+                                        </Button>
+                                    </Link>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
@@ -374,6 +392,5 @@ export default function SchoolYear() {
         </div>
     )
 }
-
 
 SchoolYear.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;

@@ -7,15 +7,13 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
-import { MoveRightIcon, Trash, UserMinus } from 'lucide-react';
+import { MoveRightIcon, UserMinus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import StudentActions from './StudentActions';
 import { useToast } from "@/hooks/use-toast";
 import { router } from '@inertiajs/react';
 import axios from 'axios';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import { Label } from '@/Components/ui/label';
-import { Input } from '@/Components/ui/input';
 import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table';
 
 export default function EnrolledStudentList() {

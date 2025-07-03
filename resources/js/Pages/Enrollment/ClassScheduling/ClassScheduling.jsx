@@ -11,18 +11,16 @@ import Scheduling from './Partials/Scheduling';
 import DeletionDialog from './Partials/DeletionDialog';
 import ScheduleToolbar from './Partials/ScheduleToolbar';
 
-export default function ClassScheduling() {
+export default function ClassScheduling({ yearSectionId }) {
     const { toast } = useToast()
 
     const [fetching, setFetching] = useState(true);
-    const { yearSectionId } = usePage().props;
 
     const bottomRef = useRef(null);
 
     const [editing, setEditing] = useState(false);
     const [editingSecondSchedule, setEditingSecondSchedule] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-
 
     const [colorful, setColorful] = useState(true);
     const [scheduleType, setScheduleType] = useState('tabular');

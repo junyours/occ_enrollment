@@ -39,8 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/Components/ui/tooltip
 import { Download } from "lucide-react";
 import EnhancedDownloadDialog from "./EnhancedDownloadDialog";
 
-export default function EnrollmentCourseSection() {
-    const { courseId, error, course, schoolYearId } = usePage().props;
+export default function EnrollmentCourseSection({ courseId, error, course, schoolYearId, forSchoolYear = false, semester, schoolYear }) {
     const user = usePage().props.auth.user;
 
     const [yearLevels, setYearLevels] = useState([]);
@@ -125,7 +124,7 @@ export default function EnrollmentCourseSection() {
     };
 
     const getEnrollmentCourseSection = async () => {
-        await axios.post("")
+        await axios.post(`/enrollment/${courseId}/${schoolYearId}`)
             .then(response => {
                 setYearLevels(response.data)
             })
@@ -263,25 +262,41 @@ export default function EnrollmentCourseSection() {
                                                         </Tooltip>
                                                     )}
                                                     {user.user_role == "program_head" && (
-                                                        <Link href={route('enrollment.view.class', {
-                                                            id: courseId,
-                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                        }) + `?section=${section.section}`}>
-                                                            <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
-                                                        </Link>
+                                                        <>
+                                                            {forSchoolYear ? (
+                                                                <Link href={route('school-year.view.class', {
+                                                                    schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
+                                                                    semester: semester,
+                                                                    hashedCourseId: courseId,
+                                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                                }) + `?section=${section.section}`}>
+                                                                    <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
+                                                                </Link>
+                                                            ) : (
+                                                                <Link href={route('enrollment.view.class', {
+                                                                    id: courseId,
+                                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                                }) + `?section=${section.section}`}>
+                                                                    <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
+                                                                </Link>
+                                                            )}
+
+                                                        </>
                                                     )}
-                                                    <Link href={route('enrollment.view.students', {
+                                                    <Link href={route(forSchoolYear ? 'enrollment.view.students' : 'enrollment.view.students', {
                                                         id: courseId,
                                                         yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                                     }) + `?section=${section.section}`}>
                                                         <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
                                                     </Link>
-                                                    <Link href={route('enrollment.view.enroll-student', {
-                                                        id: courseId,
-                                                        yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                    }) + `?section=${section.section}`}>
-                                                        <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
-                                                    </Link>
+                                                    {!forSchoolYear && (
+                                                        <Link href={route('enrollment.view.enroll-student', {
+                                                            id: courseId,
+                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                        }) + `?section=${section.section}`}>
+                                                            <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
+                                                        </Link>
+                                                    )}
                                                 </TableCell>
                                             </TableRow>
                                         ))}

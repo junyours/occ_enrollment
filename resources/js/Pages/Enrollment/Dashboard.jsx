@@ -30,10 +30,9 @@ const chartConfig = {
     },
 }
 
-export default function Dashboard() {
+export default function Dashboard({ schoolYear, hide }) {
     const [loading, setLoading] = useState(true);
 
-    const { schoolYear } = usePage().props;
     const { user } = usePage().props.auth;
     const [reports, setReports] = useState([]);
     const [schoolYearDetails, setSchoolYearDetails] = useState([]);
@@ -212,10 +211,14 @@ export default function Dashboard() {
 
     return (
         <div className='space-y-4'>
-            <Head title="Dashboard" />
-            <PageTitle align="center" className="l">
-                {schoolYearDetails.start_year}-{schoolYearDetails.end_year} {schoolYearDetails.semester.semester_name} Semester
-            </PageTitle>
+            {!hide && (
+                <>
+                    <Head title="Dashboard" />
+                    <PageTitle align="center" className="l">
+                        {schoolYearDetails.start_year}-{schoolYearDetails.end_year} {schoolYearDetails.semester.semester_name} Semester
+                    </PageTitle>
+                </>
+            )}
             {reports?.length > 1 ? (
                 <Tabs value={selectedCourse} onValueChange={(value) => selectCourse(value)} defaultValue="">
                     <TabsList>
