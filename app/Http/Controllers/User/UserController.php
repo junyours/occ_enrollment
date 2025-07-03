@@ -447,6 +447,8 @@ class UserController extends Controller
     {
         $facultyExist = UserInformation::where('first_name', '=', $request->first_name)
             ->where('last_name', '=', $request->last_name)
+            ->join('users', 'users.id', '=', 'user_information.user_id')
+            ->whereNot('user_role', '=', 'student')
             ->first();
 
         if ($facultyExist) {
