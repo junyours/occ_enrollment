@@ -65,12 +65,50 @@ export default function Login({ status }) {
                     <p className='text-gray-600 text-center h-4 text-sm hidden md:block'>
                         Excellence, innovation, and dedication always.
                     </p>
-                    <img src={LoginStudents} alt="students" className='w-60 rounded-lg shadow-sm mt-8 hidden md:block ' />
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                            src={LoginStudents}
+                            alt="students"
+                            className='w-60 rounded-lg shadow-sm mt-8 hidden md:block '
+                            draggable="false"
+                            onContextMenu={(e) => e.preventDefault()}
+                        />
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'transparent',
+                                zIndex: 1,
+                            }}
+                        />
+                    </div>
                 </div>
 
                 <Card className="w-80 h-96 items-center p-4 flex shadow-md">
                     <CardContent className="flex flex-col items-center p-0 w-full">
-                        <img src={OCC_LOGO} alt="students" className='w-20' />
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <img
+                                src={OCC_LOGO}
+                                onContextMenu={(e) => e.preventDefault()}
+                                alt="occ-logo"
+                                draggable="false"
+                                className='w-20'
+                            />
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    background: 'transparent',
+                                    zIndex: 1,
+                                }}
+                            />
+                        </div>
                         <h1 className='text-2xl font-semibold'>USER LOGIN</h1>
 
                         <form onSubmit={submit} className="w-full space-y-4 mt-4">

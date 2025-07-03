@@ -481,6 +481,7 @@ class UserController extends Controller
         $user = User::create([
             'user_id_no' => $userId,
             'password' => Hash::make($password),
+            'email' => $request->email_address,
             'user_role' => 'faculty',
         ]);
 
@@ -544,6 +545,11 @@ class UserController extends Controller
                 'email' => 'The email address is already registered.',
             ]);
         }
+
+        User::where('id', '=', $request->id)
+            ->update([
+                'email' => $request->email_address
+            ]);
 
         UserInformation::where('user_id', '=', $request->id)
             ->update([
