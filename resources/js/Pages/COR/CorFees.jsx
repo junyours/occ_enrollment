@@ -35,7 +35,7 @@ function CorFees({ subjects, course, yearLevel }) {
 
                 <div className="flex justify-between items-center border-t border-b border-gray-800 my-1 font-bold">
                     <span className="text- italic text-gray-600">Total School Fees:</span>
-                    <span className="text-xs text-right min-w-16">{toTwoDecimals(Number() + Number(miscellaneousFeesTotal))}</span>
+                    <span className="text-xs text-right min-w-16">{toTwoDecimals(Number(tutionFee) + Number(miscellaneousFeesTotal))}</span>
                 </div>
 
                 <div className="mt-2">
