@@ -49,6 +49,7 @@ const hours = [
     { value: '17', hour: '5' },
     { value: '18', hour: '6' },
     { value: '19', hour: '7' },
+    { value: '20', hour: '8' },
 ];
 
 function Scheduling({
