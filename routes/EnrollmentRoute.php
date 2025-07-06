@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Enrollment\ClassScheduling\EnrollmentClassSchedulingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
 use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
@@ -37,6 +38,10 @@ Route::middleware(['auth', 'EnrollmentPermission'])->group(function () {
     Route::post('/api/subjects-classes', [EnrollmentCourseSectionController::class, 'subjectClasses'])->name('subject.classes');
 
     Route::delete('/enrollment/unenroll/{id}', [EnrollmentCourseSectionController::class, 'unenroll'])->name('enrollment.unenroll');
+
+    Route::post('/api/get-enrollment-rooms-schedules/{schoolYearId}/{departmentId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentRoomsSchedules'])->name('enrollment.get.enrollment.rooms.schedules');
+    Route::post('/api/get-enrollment-faculties-schedules/{schoolYearId}/{departmentId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentFacultiesSchedules'])->name('enrollment.get.faculties-schedules');
+    Route::post('/api/get-enrollment-subjects-schedules/{schoolYearId}/{departmentId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentSubjectsSchedules'])->name('enrollment.get.subjects-schedules');
 });
 
 Route::middleware(['auth', 'registrar'])->group(function () {

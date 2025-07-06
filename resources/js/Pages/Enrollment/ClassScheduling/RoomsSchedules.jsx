@@ -17,7 +17,7 @@ import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import html2canvas from "html2canvas";
 
-export default function RoomSchedules() {
+export default function RoomSchedules({ schoolYearId, departmentId }) {
     const [rooms, setRooms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [colorful, setColorful] = useState(true);
@@ -28,7 +28,7 @@ export default function RoomSchedules() {
     const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
     const getEnrollmentRoomSchedules = async () => {
-        axios.post("api/get-enrollment-rooms-schedules")
+        axios.post(route('enrollment.get.enrollment.rooms.schedules', { schoolYearId, departmentId }))
             .then(response => {
                 const sortedRooms = response.data.map(room => {
                     let schedLength = 0;

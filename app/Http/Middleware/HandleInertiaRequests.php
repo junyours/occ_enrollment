@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Course;
 use Carbon\Carbon;
 use App\Models\SchoolYear;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 class HandleInertiaRequests extends Middleware
@@ -89,23 +90,6 @@ class HandleInertiaRequests extends Middleware
             ];
         }
 
-        $courses = [];
-
-        if (($user->user_role == 'program_head' || $user->user_role == 'evaluator') && ($enrollmentOngoing || $enrollmentPreparation)) {
-            // Fetch courses for program_head or evaluator role when enrollment is preparing or ongoing
-            $courses = DB::table('course')
-                ->select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
-                ->join('department', 'course.department_id', '=', 'department.id')
-                ->join('faculty', 'faculty.department_id', '=', 'department.id')
-                ->join('users', 'faculty.faculty_id', '=', 'users.id')
-                ->where('users.id', '=', $user->id)
-                ->get();
-        } elseif ($user->user_role == 'registrar' && ($enrollmentPreparation || $enrollmentOngoing)) {
-            // Fetch all courses for registrar when enrollment is preparing or ongoing
-            $courses = Course::select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
-                ->get();
-        }
-
         $schoolYear = SchoolYear::where('id', '=', $schoolYear->id)
             ->with('Semester')
             ->first();
@@ -115,7 +99,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $userData,
                 'enrollment_status' => $schoolYearStatus['status'],
-                'courses' => $courses,
+                'courses' => $this->courses(),
                 'schoolYear' => $schoolYear,
                 'impersonating' => Session::has('impersonator_id'),
             ],
@@ -164,5 +148,27 @@ class HandleInertiaRequests extends Middleware
             'preparation' => $preparation,
             'school_year' => $schoolYear
         ];
+    }
+
+    private function courses()
+    {
+        $user = Auth::user();
+
+        $courses = [];
+
+        if ($user->user_role == 'program_head' || $user->user_role == 'evaluator') {
+            $courses = DB::table('course')
+                ->select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->join('department', 'course.department_id', '=', 'department.id')
+                ->join('faculty', 'faculty.department_id', '=', 'department.id')
+                ->join('users', 'faculty.faculty_id', '=', 'users.id')
+                ->where('users.id', '=', $user->id)
+                ->get();
+        } elseif ($user->user_role == 'registrar') {
+            $courses = Course::select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+                ->get();
+        }
+
+        return $courses;
     }
 }

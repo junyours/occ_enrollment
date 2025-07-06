@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover
 import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 
-export default function SubjectsSchedules() {
+export default function SubjectsSchedules({ schoolYearId, departmentId }) {
     const [subjects, setSubjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [colorful, setColorful] = useState(true);
@@ -25,7 +25,7 @@ export default function SubjectsSchedules() {
     const [openSubjectPopover, setOpenSubjectPopover] = useState(false);
 
     const getEnrollmentSubjectsSchedules = async () => {
-        axios.post("api/get-enrollment-subjects-schedules")
+        axios.post(route("enrollment.get.subjects-schedules", { schoolYearId, departmentId }))
             .then(response => {
                 const sortedSubjects = response.data.map(subject => {
                     let schedLength = 0;

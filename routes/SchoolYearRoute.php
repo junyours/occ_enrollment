@@ -15,6 +15,12 @@ Route::middleware(['auth', 'SchoolYearPermission'])->group(function () {
     Route::post('/api/school-year/list', [SchoolYearController::class, 'schoolYears'])->name('school-year.list');
 
     Route::get('/school-year/{schoolyear}/{semester}', [SchoolYearController::class, 'viewSchoolYear'])->name('school-year.view');
+
+    Route::get('/school-year/{schoolyear}/{semester}/rooms-schedules', [SchoolYearController::class, 'roomsSchedules'])->name('school-year.rooms-schedules.view');
+    Route::get('/school-year/{schoolyear}/{semester}/faculties-schedules', [SchoolYearController::class, 'facultiesSchedules'])->name('school-year.faculties-schedules.view');
+    Route::get('/school-year/{schoolyear}/{semester}/subjects-schedules', [SchoolYearController::class, 'subjectsSchedules'])->name('school-year.subjects-schedules.view');
+    Route::get('/school-year/{schoolyear}/{semester}/subjects-list', [SchoolYearController::class, 'subjectsList'])->name('school-year.subjects-list.view');
+
     Route::get('/school-year/{schoolyear}/{semester}/{courseId}', [SchoolYearController::class, 'viewCourse'])->name('school-year.course.view');
 
     Route::get('/school-year/{schoolyear}/{semester}/{hashedCourseId}/class/{yearlevel}', [SchoolYearController::class, 'viewClass'])->name('school-year.view.class');

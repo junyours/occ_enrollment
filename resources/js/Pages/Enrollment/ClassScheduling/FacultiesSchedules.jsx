@@ -16,7 +16,7 @@ import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import html2canvas from "html2canvas";
 
-export default function FacultySchedules() {
+export default function FacultySchedules({ schoolYearId, departmentId }) {
     const [faculties, setFaculties] = useState([]);
     const [loading, setLoading] = useState(true);
     const [colorful, setColorful] = useState(true);
@@ -27,7 +27,7 @@ export default function FacultySchedules() {
     const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
     const getEnrollmentFacultiesSchedules = async () => {
-        axios.post("api/get-enrollment-faculties-schedules")
+        axios.post(route("enrollment.get.faculties-schedules", { schoolYearId, departmentId }))
             .then(response => {
                 const sortedFaculties = response.data.map(faculty => {
                     let schedLength = 0;

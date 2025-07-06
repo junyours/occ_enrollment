@@ -10,8 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { Download } from 'lucide-react';
 import { PageTitle } from '@/Components/ui/PageTitle';
 
-function SubjectsList() {
-    const { schoolYearId } = usePage().props;
+function SubjectsList({ schoolYearId }) {
     const [loading, setLoading] = useState(true);
     const [subjects, setSubjects] = useState([]);
 
