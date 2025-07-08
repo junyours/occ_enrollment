@@ -157,8 +157,6 @@ export default function CurriculumInfo() {
     }
 
     const submit = async () => {
-        console.log(data);
-
         let error
         if (!data.subject_code) {
             setError('subject_code', { error: true })
@@ -177,7 +175,6 @@ export default function CurriculumInfo() {
                 setAdding(false);
             },
         })
-
     }
 
     const onChange = (e) => {

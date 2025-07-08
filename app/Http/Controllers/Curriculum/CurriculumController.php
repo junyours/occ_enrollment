@@ -204,6 +204,20 @@ class CurriculumController extends Controller
         }
     }
 
+    public function editSubject(Request $request)
+    {
+        $subjectExist = Subject::where('subject_code', '=', $request->subject_code)->first();
+
+        Subject::where('id', '=', $request->subject_id)
+            ->update([
+                'subject_code' => $request->subject_code,
+                'descriptive_title' => $request->descriptive_title,
+                'credit_units' => $request->credit_units,
+                'lecture_hours' => $request->lecture_hours,
+                'laboratory_hours' => $request->laboratory_hours,
+            ]);
+    }
+
     public function deleteCurrSubject($id)
     {
         CurriculumTermSubject::where('id', '=', $id)
