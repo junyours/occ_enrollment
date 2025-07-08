@@ -506,7 +506,7 @@ class UserController extends Controller
 
         Faculty::create([
             'faculty_id' => $user->id,
-            'department_id' => $deptID,
+            'department_id' => $request->department_id ? $request->department_id : $deptID,
         ]);
 
         $faculty = [

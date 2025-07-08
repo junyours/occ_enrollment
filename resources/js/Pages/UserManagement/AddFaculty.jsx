@@ -4,7 +4,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { formatPhoneNumber } from '@/Lib/Utils';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +21,9 @@ const requiredFields = [
 ];
 
 function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty }) {
+    const { user } = usePage().props.auth;
+    const userRole = user.user_role;
+
     const { toast } = useToast()
 
     const [page, setPage] = useState(1);
@@ -33,11 +36,14 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
         await axios.post(route('departments'))
             .then(response => {
                 setDepartments(response.data);
+                console.log(response.data);
             })
     }
 
     useEffect(() => {
-        getDepartments();
+        if (userRole == 'registrar') {
+            getDepartments();
+        }
     }, [])
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
@@ -51,6 +57,7 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
         email_address: editing ? faculty.email_address : '',
         present_address: editing ? faculty.present_address : '',
         zip_code: editing ? faculty.zip_code : '',
+        department_id: 0,
     });
 
     const handleChange = (e) => {
@@ -74,7 +81,6 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
 
         setData(name, value);
     };
-
 
     const handleContactChange = (e) => {
         const value = e.target.value.replace(/-/g, '')
@@ -109,6 +115,11 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
 
             if (!data.last_name) {
                 setError('last_name', { error: true });
+                hasError = true;
+            }
+
+            if (!data.department_id && userRole == 'registrar') {
+                setError('department_id', { error: true });
                 hasError = true;
             }
 
@@ -217,7 +228,7 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
                                             />
                                         </div>
                                         <div>
-                                            <Label>Middle name</Label>
+                                            <Label>Middle name <span className='text-xs italic'>(not required)</span></Label>
                                             <Input
                                                 name="middle_name"
                                                 value={data.middle_name}
@@ -234,6 +245,31 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
                                                 className={`${errors.last_name && 'border-red-500'}`}
                                             />
                                         </div>
+                                        {userRole == 'registrar' ? (
+                                            <div>
+                                                <Label>Department</Label>
+                                                <Select
+                                                    name="department_id"
+                                                    value={data.department_id}
+                                                    onValueChange={(value) =>
+                                                        handleChange({ target: { name: 'department_id', value } })
+                                                    }
+                                                >
+                                                    <SelectTrigger
+                                                        className={`${errors.department_id ? 'border-red-500' : ''}`}
+                                                    >
+                                                        <SelectValue placeholder="Select..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {departments.map(dept => (
+                                                            <SelectItem value={dept.id}>{dept.department_name} - {dept.department_name_abbreviation}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        ) : (
+                                            <></>
+                                        )}
                                     </div>
                                 )}
 
