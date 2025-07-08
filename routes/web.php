@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Curriculum\CurriculumController;
 use App\Http\Controllers\Enrollment\ClassScheduling\EnrollmentClassSchedulingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
@@ -26,6 +27,9 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(func
 Route::middleware(['auth', 'EnrollmentPrepOngoing'])->group(function () {
     Route::post('/api/enrollment/get-classes', [EnrollmentClassSchedulingController::class, 'enrollmentGetClasses'])->name('enrollment.get.classes');
 });
+
+Route::post('/api/delete/curr-subject/{id}', [CurriculumController::class, 'deleteCurrSubject'])->name('delete.curr.subject');
+
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/ClassesRoute.php';

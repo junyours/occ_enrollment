@@ -203,4 +203,12 @@ class CurriculumController extends Controller
             ]);
         }
     }
+
+    public function deleteCurrSubject($id)
+    {
+        CurriculumTermSubject::where('id', '=', $id)
+            ->delete();
+
+        return response()->json(['message' => 'success'], 200);
+    }
 }

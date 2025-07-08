@@ -1,11 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/Components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Trash } from "lucide-react";
+import axios from "axios";
 
-const CurriculumTable = ({ termId, data, yearlevel, semesterId, adding, addSubject, form, setAdding, submit, onChange, onNumberFormChange, errors, processing }) => {
+const CurriculumTable = ({ termId, data, yearlevel, semesterId, adding, addSubject, form, setAdding, submit, onChange, onNumberFormChange, errors, processing, getCurriculumInfo }) => {
+    const [deleting, setDeleting] = useState(false);
+
+    const deleteCurriculum = async (id) => {
+        setDeleting(true);
+        axios.post(route('delete.curr.subject', { id }))
+            .then(response => {
+                if (response.data.message == 'success') {
+                    setDeleting(false)
+                    getCurriculumInfo()
+                }
+            })
+            .finally(() => {
+                setDeleting(false);
+            })
+    }
 
     return (
         <Card className="shadow-md">
@@ -38,6 +55,14 @@ const CurriculumTable = ({ termId, data, yearlevel, semesterId, adding, addSubje
                                         {(subject.subject.lecture_hours || 0) + (subject.subject.laboratory_hours || 0)}
                                     </TableCell>
                                     <TableCell>{subject.pre_requisite_name || "None"}</TableCell>
+                                    <TableCell>
+                                        <Trash
+                                            disabled={deleting}
+                                            size={15}
+                                            className={`text-red-500 ${deleting ? '' : 'cursor-pointer'}`}
+                                            onClick={() => deleteCurriculum(subject.id)}
+                                        />
+                                    </TableCell>
                                 </TableRow>
                             ))
                         ) : (

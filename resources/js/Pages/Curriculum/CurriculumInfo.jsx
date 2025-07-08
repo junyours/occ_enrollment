@@ -209,7 +209,7 @@ export default function CurriculumInfo() {
                     <CardContent className="space-y-4">
                         {curriculumData[yearKey].length > 0 ? (
                             curriculumData[yearKey].map((term) => (
-                                <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={yearName} semesterId={term.semester_id} adding={adding} addSubject={addSubject} form={data} setAdding={setAdding} submit={submit} onChange={onChange} onNumberFormChange={onNumberFormChange} errors={errors} processing={processing} />
+                                <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={yearName} semesterId={term.semester_id} adding={adding} addSubject={addSubject} form={data} setAdding={setAdding} submit={submit} onChange={onChange} onNumberFormChange={onNumberFormChange} errors={errors} processing={processing} getCurriculumInfo={getCurriculumInfo} />
                             ))
                         ) : (
                             <p className="text-gray-500">No data available</p>
