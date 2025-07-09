@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
 import PreLoader from '@/Components/preloader/PreLoader';
 import React, { useEffect, useState, useRef } from 'react'
-import { identifyDayType } from '@/Lib/Utils';
+import { formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
 import { useToast } from '@/hooks/use-toast';
 import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
@@ -10,6 +10,8 @@ import ClassList from './Partials/ClassList';
 import Scheduling from './Partials/Scheduling';
 import DeletionDialog from './Partials/DeletionDialog';
 import ScheduleToolbar from './Partials/ScheduleToolbar';
+import Room from './Assigned/Room';
+import Instructor from './Assigned/Instructor';
 
 export default function ClassScheduling({ yearSectionId }) {
     const { toast } = useToast()
@@ -34,6 +36,8 @@ export default function ClassScheduling({ yearSectionId }) {
     const [instructors, setInstructors] = useState([])
     const [mainScheduleConflictList, setMainScheduleConflictList] = useState([])
     const [secondScheduleConflictList, setSecondScheduleConflictList] = useState([])
+    const [roomConflict, setRoomConflict] = useState(false);
+    const [instructorConflict, setInstructorConflict] = useState(false);
 
     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
         id: 0,
@@ -61,7 +65,6 @@ export default function ClassScheduling({ yearSectionId }) {
                 setFetching(false)
             })
     }
-
 
     useEffect(() => {
         getCLasses()
@@ -435,6 +438,8 @@ export default function ClassScheduling({ yearSectionId }) {
                     cancelEditing={cancelEditing}
                     setDayType={setDayType}
                     collectConflictSchedules={collectConflictSchedules}
+                    roomConflict={roomConflict}
+                    instructorConflict={instructorConflict}
                 />
             }
 
@@ -446,6 +451,47 @@ export default function ClassScheduling({ yearSectionId }) {
                 getCLasses={getCLasses}
                 setClassIdToDelete={setClassIdToDelete}
             />
+
+            <div className='flex gap-4'>
+                {(data.room_id && rooms.length > 0) ? (
+                    <Room
+                        data={data}
+                        roomId={data.room_id}
+                        yearSectionId={yearSectionId}
+                        roomName={rooms.find(room => room.id == data.room_id)?.room_name}
+                        editingSecondSchedule={editingSecondSchedule}
+                        setRoomConflict={setRoomConflict}
+                        day={data.day}
+                        start_time={data.start_time}
+                        end_time={data.end_time}
+                    />
+                ) : (
+                    <></>
+                )}
+
+                {(data.faculty_id && instructors.length > 0) ? (
+                    <>
+                        {(() => {
+                            const instructor = instructors.find(instructor => instructor.id == data.faculty_id)
+
+                            return (
+                                <Instructor
+                                    data={data}
+                                    instructorId={data.faculty_id}
+                                    yearSectionId={yearSectionId}
+                                    instructorName={formatFullName(instructor)}
+                                    setInstructorConflict={setInstructorConflict}
+                                    day={data.day}
+                                    start_time={data.start_time}
+                                    end_time={data.end_time}
+                                />
+                            )
+                        })()}
+                    </>
+                ) : (
+                    <></>
+                )}
+            </div>
         </div >
     )
 }

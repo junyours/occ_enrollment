@@ -76,12 +76,14 @@ function Scheduling({
     setSecondScheduleConflictList,
     cancelEditing,
     setDayType,
-    collectConflictSchedules
+    collectConflictSchedules,
+    roomConflict,
+    instructorConflict,
 }) {
     const [open, setOpen] = useState(false)
 
     return (
-        <Card ref={bottomRef} className={`${mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 ? ' border-red-600 ' : 'border-green-500'}`}>
+        <Card ref={bottomRef} className={`${(mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) ? ' border-red-600 ' : 'border-green-500'}`}>
             <CardHeader>
                 <CardTitle className="text-2xl">{data.subject_code} - {data.descriptive_title} <span className='text-lg italic'>{editingSecondSchedule && '(2nd schedule)'}</span></CardTitle>
             </CardHeader>

@@ -42,6 +42,9 @@ Route::middleware(['auth', 'EnrollmentPermission'])->group(function () {
     Route::post('/api/get-enrollment-rooms-schedules/{schoolYearId}/{departmentId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentRoomsSchedules'])->name('enrollment.get.enrollment.rooms.schedules');
     Route::post('/api/get-enrollment-faculties-schedules/{schoolYearId}/{departmentId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentFacultiesSchedules'])->name('enrollment.get.faculties-schedules');
     Route::post('/api/get-enrollment-subjects-schedules/{schoolYearId}/{departmentId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentSubjectsSchedules'])->name('enrollment.get.subjects-schedules');
+
+    Route::post('/api/enrollment-room-schedules/{roomId}/{yearSectionId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentRoomSchedules'])->name('room.schedules');
+    Route::post('/api/enrollment-faculty-schedules/{instructorId}/{yearSectionId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentFacultySchedules'])->name('faculty.schedules');
 });
 
 Route::middleware(['auth', 'registrar'])->group(function () {

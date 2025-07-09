@@ -17,7 +17,6 @@ Route::middleware(['auth', 'EnrollmentPrepOngoing', 'program_head'])->group(func
     Route::post('/api/enrollment/update-second-class', [EnrollmentClassSchedulingController::class, 'enrollmentUpdateSecondClass'])->name('enrollment.update.second.class');
 
     Route::get('/rooms-schedules', [EnrollmentClassSchedulingController::class, 'viewRoomSchedules'])->name('enrollment.room-schedules');
-    Route::post('/api/get-enrollment-room-schedules', [EnrollmentClassSchedulingController::class, 'getEnrollmentRoomSchedules'])->name('enrollment.get.enrollment.room.schedules');
 
     Route::get('/faculties-schedules', [EnrollmentClassSchedulingController::class, 'viewFacultySchedules'])->name('enrollment.faculties-schedules');
 
