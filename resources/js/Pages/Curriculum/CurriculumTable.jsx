@@ -131,6 +131,7 @@ const CurriculumTable = ({ termId, data, yearlevel, semesterId, adding, addSubje
                                                     <SelectContent>
                                                         <SelectItem value={2}>2</SelectItem>
                                                         <SelectItem value={3}>3</SelectItem>
+                                                        <SelectItem value={6}>6</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </TableCell>
@@ -237,6 +238,7 @@ const CurriculumTable = ({ termId, data, yearlevel, semesterId, adding, addSubje
                                         <SelectContent>
                                             <SelectItem value={2}>2</SelectItem>
                                             <SelectItem value={3}>3</SelectItem>
+                                            <SelectItem value={6}>6</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </TableCell>
