@@ -20,20 +20,23 @@ function Room({ data, roomId, yearSectionId, roomName, setRoomConflict, day, sta
     }
 
     const detectConflict = (main, second) => {
+        if (data.day == 'TBA' || data.start_time == 'TBA') return setRoomConflict(false)
+
         const mainConflict = collectMainSchedConflicts(main);
         const secondConflict = collectSecondSchedConflicts(second);
         setRoomConflict(mainConflict || secondConflict);
+
     };
 
     const collectMainSchedConflicts = (mainRooms) => {
         return mainRooms.some((main) =>
-            detectTwoScheduleConflict(data, main) && data.id !== main.id
+            detectTwoScheduleConflict(data, main) && data.id != main.id
         );
     };
 
     const collectSecondSchedConflicts = (secondRooms) => {
         return secondRooms.some((second) =>
-            detectTwoScheduleConflict(data, second) && data.id !== second.id
+            detectTwoScheduleConflict(data, second) && data.id != second.id
         );
     };
 

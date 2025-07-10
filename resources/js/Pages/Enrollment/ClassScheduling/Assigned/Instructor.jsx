@@ -23,6 +23,8 @@ function Instructor({ data, instructorId, yearSectionId, instructorName, setInst
     }
 
     const collectSchedConflicts = (facList) => {
+        if (data.day == 'TBA' || data.start_time == 'TBA') return setInstructorConflict(false)
+
         let hasConflict = false;
 
         facList.forEach((fac) => {

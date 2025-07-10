@@ -91,7 +91,7 @@ function ClassList({
                                             {!isDownloading && (
                                                 <TableCell>
                                                     <div className="w-full flex justify-end space-x-1 h-full">
-                                                        {(classInfo.subject.laboratory_hours && !classInfo.secondary_schedule) ? (
+                                                        {(classInfo.subject.laboratory_hours && !classInfo.secondary_schedule && !editing) ? (
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     {(adding && subjectId == classInfo.id) ? (
@@ -123,7 +123,11 @@ function ClassList({
                                                                     className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
                                                                 />
                                                             </TooltipTrigger>
-                                                            <TooltipContent>Edit</TooltipContent>
+                                                            {editing ? (
+                                                                <></>
+                                                            ) : (
+                                                                <TooltipContent>Edit</TooltipContent>
+                                                            )}
                                                         </Tooltip>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
@@ -139,7 +143,11 @@ function ClassList({
                                                                     className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
                                                                 />
                                                             </TooltipTrigger>
-                                                            <TooltipContent>Delete</TooltipContent>
+                                                            {editing ? (
+                                                                <></>
+                                                            ) : (
+                                                                <TooltipContent>Delete</TooltipContent>
+                                                            )}
                                                         </Tooltip>
                                                     </div>
                                                 </TableCell>

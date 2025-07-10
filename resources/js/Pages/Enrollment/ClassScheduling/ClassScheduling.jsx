@@ -412,7 +412,7 @@ export default function ClassScheduling({ yearSectionId }) {
                 getCLasses={getCLasses}
             />
 
-            {editing &&
+            {(editing) &&
                 <Scheduling
                     dayType={dayType}
                     meridiem={meridiem}
