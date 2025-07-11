@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Course;
 use Carbon\Carbon;
 use App\Models\SchoolYear;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
@@ -35,9 +36,15 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $user = $request->user();
+        $user = Auth::user();
 
-        if (!$user || $user->user_role == 'super_admin' || $user->user_role == 'mis') {
+        // Return null id there's no authenticated user
+        if (!$user) {
+            return [];
+        }
+
+        // Only returns role - information not needed
+        if (in_array($user->user_role, ['super_admin', 'mis'])) {
             return [
                 ...parent::share($request),
                 'auth' => [
@@ -46,66 +53,42 @@ class HandleInertiaRequests extends Middleware
             ];
         }
 
-        // Perform a JOIN to get first_name and last_name
-        $userData = $user ? DB::table('users')
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->where('users.id', $user->id)
-            ->select('users.id', 'password_change', 'user_id_no', 'user_role', 'first_name', 'middle_name', 'last_name', 'email_address')
-            ->first() : null;
+        // User data
+        $userData = $this->getUserWithInfo($user->id);
 
-        if (!$userData || $userData->user_role == 'student' || $userData->user_role == 'faculty') {
-            return [
-                ...parent::share($request),
-                'auth' => [
-                    'user' => $userData,
-                    'impersonating' => Session::has('impersonator_id'),
-                ],
-            ];
-        }
-
-        // Get preparing or ongoing school year status and school year
-        $schoolYearStatus = $this->getPreparingOrOngoingSchoolYear();
-
-        $schoolYear = [];
-        $enrollmentPreparation = false;
-        $enrollmentOngoing = false;
-
-        if ($schoolYearStatus['status'] && $schoolYearStatus['school_year']) {
-            // If the status is true (either preparing or ongoing), assign the school year
-            $schoolYear = $schoolYearStatus['school_year'];
-
-            // Set flags for enrollment preparation and ongoing based on the status
-            if ($schoolYearStatus['status'] == 'preparing') {
-                $enrollmentPreparation = true;
-            } elseif ($schoolYearStatus['status'] == 'ongoing') {
-                $enrollmentOngoing = true;
-            }
-        } else {
-            return [
-                ...parent::share($request),
-                'auth' => [
-                    'user' => $userData,
-                    'impersonating' => Session::has('impersonator_id'),
-                ],
-            ];
-        }
-
-        $schoolYear = SchoolYear::where('id', '=', $schoolYear->id)
-            ->with('Semester')
-            ->first();
-
-        return [
+        // Base for the rest users and if it's impersonated
+        $baseData = [
             ...parent::share($request),
             'auth' => [
                 'user' => $userData,
-                'enrollment_status' => $schoolYearStatus['status'],
-                'courses' => $this->courses(),
-                'schoolYear' => $schoolYear,
                 'impersonating' => Session::has('impersonator_id'),
+            ],
+        ];
+
+        // Student and faculty only need basedata
+        if (in_array($user->user_role, ['student', 'faculty'])) {
+            return $baseData;
+        }
+
+        // Important data for ooongoing enroollment
+        $enrollmentMeta = $this->getEnrollmentMeta();
+
+        // Return base data if there's no enrollment
+        if (!$enrollmentMeta) {
+            return $baseData;
+        }
+
+        // Return necessary data during enrollment
+        return [
+            ...parent::share($request),
+            'auth' => [
+                ...$baseData['auth'],
+                ...$enrollmentMeta,
             ],
         ];
     }
 
+    // Function for checking ongoing enrollment
     private function getPreparingOrOngoingSchoolYear()
     {
         $today = Carbon::now(); // Get today's date
@@ -122,34 +105,31 @@ class HandleInertiaRequests extends Middleware
             ->whereDate('end_date', '>=', $today)
             ->first();
 
-        $schoolYear = null;
-        $status = null;
-        $preparation = false;
-
         // Determine the status and set the school year accordingly
         if ($enrollmentOngoing) {
-            // If enrollment is ongoing, set preparation to false
-            $status = 'ongoing';
-            $schoolYear = $enrollmentOngoing;
-            $preparation = false;
-        } elseif ($enrollmentPreparation) {
-            // If enrollment is in preparation, set status to preparing
-            $status = 'preparing';
-            $schoolYear = $enrollmentPreparation;
-            $preparation = true;
-        } else {
-            // No enrollment preparation or ongoing, set status to false
-            $status = false;
+            return [
+                'status' => 'ongoing',
+                'preparation' => false,
+                'school_year' => $enrollmentOngoing
+            ];
         }
-
-        // Return status, preparation, and school year
+        // If enrollment is in preparation, set status to preparing
+        if ($enrollmentPreparation) {
+            return [
+                'status' => 'preparing',
+                'preparation' => true,
+                'school_year' => $enrollmentPreparation
+            ];
+        }
+        // No enrollment preparation or ongoing, set status to false
         return [
-            'status' => $status,
-            'preparation' => $preparation,
-            'school_year' => $schoolYear
+            'status' => false,
+            'preparation' => false,
+            'school_year' => null
         ];
     }
 
+    // List of programs/courses
     private function courses()
     {
         $user = Auth::user();
@@ -170,5 +150,41 @@ class HandleInertiaRequests extends Middleware
         }
 
         return $courses;
+    }
+
+    // Function to getting userinformation
+    protected function getUserWithInfo(int $id): User|null
+    {
+        return User::join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->where('users.id', $id)
+            ->select(
+                'users.id',
+                'password_change',
+                'user_id_no',
+                'user_role',
+                'first_name',
+                'middle_name',
+                'last_name',
+                'email_address'
+            )
+            ->first();
+    }
+
+    // Necessary data for ongoing enrollment
+    protected function getEnrollmentMeta()
+    {
+        $schoolYearStatus = $this->getPreparingOrOngoingSchoolYear();
+
+        if (!$schoolYearStatus['status'] || !$schoolYearStatus['school_year']) {
+            return null;
+        }
+
+        $schoolYear = SchoolYear::with('Semester')->find($schoolYearStatus['school_year']->id);
+
+        return [
+            'enrollment_status' => $schoolYearStatus['status'],
+            'courses' => $this->courses(),
+            'schoolYear' => $schoolYear,
+        ];
     }
 }
