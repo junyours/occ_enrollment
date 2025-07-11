@@ -21,7 +21,7 @@ class ClassController extends Controller
     {
         $userRole = Auth::user()->user_role;
 
-        $currentSchoolYear = SchoolYear::select('school_years.id',  'start_year', 'end_year', 'semester_id', 'semester_name')
+        $currentSchoolYear = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name')
             ->where('is_current', '=', 1)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
@@ -77,7 +77,7 @@ class ClassController extends Controller
     {
         $facultyId = Auth::user()->id;
 
-        $currentSchoolYear = SchoolYear::select('school_years.id',  'start_year', 'end_year', 'semester_id', 'semester_name')
+        $currentSchoolYear = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name')
             ->where('is_current', '=', 1)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
@@ -89,6 +89,7 @@ class ClassController extends Controller
         }
 
         $classes = YearSectionSubjects::select(
+            'year_section_subjects.id',
             'day',
             'start_time',
             'end_time',
@@ -105,6 +106,7 @@ class ClassController extends Controller
             ->join('course', 'course.id', '=', 'year_section.course_id')
             ->where('faculty_id', '=', $facultyId)
             ->where('school_year_id', '=', $currentSchoolYear->id)
+            ->with('SecondarySchedule.Room')
             ->get();
 
         return response()->json($classes);
@@ -168,27 +170,29 @@ class ClassController extends Controller
             ->join('school_years', 'school_years.id', '=', 'year_section.school_year_id')
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->where('student_id', '=', $studentId)
-            ->with(['Subjects' => function ($query) {
-                $query->select(
-                    'student_subjects.id',
-                    'enrolled_students_id',
-                    'year_section_subjects_id',
-                    'first_name',
-                    'last_name',
-                    'middle_name',
-                    'subject_code',
-                    'descriptive_title',
-                    'midterm_grade',
-                    'midterm_grade',
-                    'final_grade',
-                    'remarks',
-                )
-                    ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
-                    ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
-                    ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
-                    ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
-                    ->get();
-            }])
+            ->with([
+                'Subjects' => function ($query) {
+                    $query->select(
+                        'student_subjects.id',
+                        'enrolled_students_id',
+                        'year_section_subjects_id',
+                        'first_name',
+                        'last_name',
+                        'middle_name',
+                        'subject_code',
+                        'descriptive_title',
+                        'midterm_grade',
+                        'midterm_grade',
+                        'final_grade',
+                        'remarks',
+                    )
+                        ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+                        ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+                        ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+                        ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+                        ->get();
+                }
+            ])
             ->get();
 
         if (!$data) {
