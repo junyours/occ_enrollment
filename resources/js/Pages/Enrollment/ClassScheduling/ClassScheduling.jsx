@@ -12,6 +12,8 @@ import DeletionDialog from './Partials/DeletionDialog';
 import ScheduleToolbar from './Partials/ScheduleToolbar';
 import Room from './Assigned/Room';
 import Instructor from './Assigned/Instructor';
+import { Button } from '@/Components/ui/button';
+import AddSubjectDialog from './Partials/AddSubjectDialog';
 
 export default function ClassScheduling({ yearSectionId }) {
     const { toast } = useToast()
@@ -443,7 +445,11 @@ export default function ClassScheduling({ yearSectionId }) {
                 />
             }
 
-            <DeletionDialog
+            {!editing && (
+                <AddSubjectDialog yearSectionId={yearSectionId} getCLasses={getCLasses} />
+            )}
+
+            < DeletionDialog
                 openDeleteDialog={openDeleteDialog}
                 setOpenDeleteDialog={setOpenDeleteDialog}
                 classType={classType}

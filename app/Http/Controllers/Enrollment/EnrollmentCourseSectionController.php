@@ -115,7 +115,7 @@ class EnrollmentCourseSectionController extends Controller
                 'faculty_id' => null,
                 'room_id' => null,
                 'subject_id' => $subject->subject_id,
-                'class_code' =>  $course->course_name_abbreviation . '-' . $request->year_level_id . $request->section,
+                'class_code' => $course->course_name_abbreviation . '-' . $request->year_level_id . $request->section,
                 'day' => 'TBA',
                 'start_time' => 'TBA',
                 'end_time' => 'TBA',
@@ -194,7 +194,7 @@ class EnrollmentCourseSectionController extends Controller
                 'courseId' => $course->id,
                 'yearlevel' => $yearLevelNumber,
                 'section' => $section,
-                'yearSectionId' =>  $yearSection->id,
+                'yearSectionId' => $yearSection->id,
                 'courseName' => $course->course_name_abbreviation,
             ]
         );
@@ -270,7 +270,7 @@ class EnrollmentCourseSectionController extends Controller
             'courseId' => $course->id,
             'yearlevel' => $yearLevelNumber,
             'section' => $section,
-            'yearSectionId' =>  $yearSection->id,
+            'yearSectionId' => $yearSection->id,
             'courseName' => $course->course_name_abbreviation,
             'hashedCourseId' => $hashedCourseId,
         ]);
@@ -320,7 +320,7 @@ class EnrollmentCourseSectionController extends Controller
                 'courseId' => $course->id,
                 'yearlevel' => $yearLevelNumber,
                 'section' => $section,
-                'yearSectionId' =>  $yearSection->id,
+                'yearSectionId' => $yearSection->id,
                 'courseName' => $course->course_name_abbreviation,
             ]
         );
@@ -472,7 +472,7 @@ class EnrollmentCourseSectionController extends Controller
             'end_time',
             'credit_units'
         )
-            ->where("enrolled_students_id", '=',  $enrolledStudent->id)
+            ->where("enrolled_students_id", '=', $enrolledStudent->id)
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->leftJoin('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
             ->with('SecondarySchedule')
@@ -530,7 +530,7 @@ class EnrollmentCourseSectionController extends Controller
             'end_time',
             'credit_units'
         )
-            ->where("student_subjects.id", '=',  $addedClass->id)
+            ->where("student_subjects.id", '=', $addedClass->id)
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->leftJoin('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
             ->with('SecondarySchedule')
@@ -581,6 +581,39 @@ class EnrollmentCourseSectionController extends Controller
         ]);
     }
 
+    public function addClassSubject($yearSectionId, $subject_code)
+    {
+        $subject = Subject::where('subject_code', '=', $subject_code)->first();
+
+        if (!$subject) {
+            return back()->withErrors([
+                'subject_code' => 'Subject not found',
+            ]);
+        }
+
+        $alreadyExist = YearSectionSubjects::where('year_section_id', '=', $yearSectionId)
+            ->where('subject_id', '=', $subject->id)
+            ->first();
+
+        if ($alreadyExist) {
+            return back()->withErrors([
+                'subject_code' => 'Subject already existed in class',
+            ]);
+        }
+
+        $yearSection = YearSection::where('year_section.id', '=', $yearSectionId)
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->first();
+
+        YearSectionSubjects::create([
+            'year_section_id' => $yearSectionId,
+            'subject_id' => $subject->id,
+            'class_code' => $yearSection->course_name_abbreviation . '-' . $yearSection->year_level_id . $yearSection->section,
+            'day' => 'TBA',
+            'start_time' => 'TBA',
+            'end_time' => 'TBA',
+        ]);
+    }
 
     private function getPreparingOrOngoingSchoolYear()
     {
