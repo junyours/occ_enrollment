@@ -8,11 +8,6 @@ import { Button } from '@/Components/ui/button';
 import { useReactToPrint } from 'react-to-print';
 
 function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId }) {
-    console.log(courseId);
-    console.log(section);
-    console.log(yearlevel);
-    console.log(studentIdNo);
-
     const [loading, setLoading] = useState([]);
 
     const componentRef = useRef(null);

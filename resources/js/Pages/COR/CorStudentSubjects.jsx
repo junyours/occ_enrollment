@@ -31,7 +31,7 @@ function CorStudentSubjects({ data }) {
                     const hasSecondSched = subjects.year_section_subjects.subject_secondary_schedule;
 
                     return (
-                        <tr key={index} className="odd:bg-white even:bg-gray-100">
+                        <tr key={`${subjects.id}-subject`} className="odd:bg-white even:bg-gray-100">
                             <td className="border text-center">{index + 1}</td>
                             <td className="border">{subjects.year_section_subjects.class_code}</td>
                             <td className="border">{subjects.year_section_subjects.subject.subject_code}</td>
@@ -72,23 +72,10 @@ function CorStudentSubjects({ data }) {
                             <td className="border text-center ">
                                 <div className='flex flex-col'>
                                     <div className={`${hasSecondSched && 'border-0 border-b'}`}>
-                                        {subjects.year_section_subjects.room?.room_name != null ? (
-                                            subjects.year_section_subjects.room.room_name
-                                        ) : (
-                                            <>TBA</>
-                                        )}
+                                        {subjects.year_section_subjects.room?.room_name || 'TBA'}
                                     </div>
                                     <div>
-                                        {subjects.year_section_subjects.subject_secondary_schedule?.room?.room_name != null ? (
-                                            subjects.year_section_subjects.subject_secondary_schedule?.room.room_name
-                                        ) : (
-                                            <>
-                                                {
-                                                    subjects.year_section_subjects.subject_secondary_schedule &&
-                                                    subjects.year_section_subjects.subject_secondary_schedule?.room.room_name
-                                                }
-                                            </>
-                                        )}
+                                        {subjects.year_section_subjects.subject_secondary_schedule?.room?.room_name || ''}
                                     </div>
                                 </div>
                             </td>

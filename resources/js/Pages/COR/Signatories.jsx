@@ -42,15 +42,15 @@ function Signatories() {
         <div className="w-full max-w-md pt-5">
             <div className="space-y-8">
                 {/* First Signatory */}
-                <div className="text-center h-10">
-                    {/* <p className="text-[8px] text-gray-600 mb-6">
+                <div className="text-center">
+                    <p className="text-[8px] text-gray-600 mb-6">
                         The subjects reflected herein are evaluated and validated in conformity with the prescribed
                         curriculum of the program currently enrolled.
                     </p>
                     <div className="border-b-2 border-black mx-4">
-                        <h3 className="font-semibold text-md">WENIE ROSE ONNAY, EdD</h3>
+                        {/* <h3 className="font-semibold text-md">WENIE ROSE ONNAY, EdD</h3> */}
                     </div>
-                    <p className="text-xs italic">Program Head</p> */}
+                    <p className="text-xs italic">Dean / Program Head</p>
                 </div>
 
                 {/* Second Signatory - Billing */}
