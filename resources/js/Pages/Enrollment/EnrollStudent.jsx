@@ -161,7 +161,7 @@ export default function EnrollStudent() {
 
         const newTimeout = setTimeout(() => {
             setStudentInfo([]);
-            if (value.length < 3) return;
+            if (value.length < 2) return;
             searchSubjectClasses(value);
         }, 1000);
 
