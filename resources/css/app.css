@@ -374,6 +374,11 @@
         background: hsl(0, 0%, 40%);
         /* Light Gray */
     }
+
+    ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
 }
 
 @layer base {
