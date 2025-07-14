@@ -76,7 +76,7 @@ const ViewClasses = () => {
                             </TableHeader>
                             <TableBody>
                                 {classes.map(classInfo => (
-                                    <>
+                                    <React.Fragment key={classInfo.id}>
                                         <TableRow>
                                             <TableCell>{classInfo.day == "TBA" ? '-' : classInfo.day}</TableCell>
                                             <TableCell>{classInfo.descriptive_title}</TableCell>
@@ -93,7 +93,7 @@ const ViewClasses = () => {
                                                 <TableCell>{classInfo.secondary_schedule.day == "TBA" ? '-' : classInfo.secondary_schedule.day}</TableCell>
                                                 <TableCell>{classInfo.descriptive_title} <span className='italic'>(2nd Schedule)</span></TableCell>
                                                 <TableCell>{classInfo.secondary_schedule.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.secondary_schedule.start_time)} - ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}</TableCell>
-                                                <TableCell>{classInfo.secondary_schedule.room.room_name || '-'}</TableCell>
+                                                <TableCell>{classInfo.secondary_schedule.room?.room_name || '-'}</TableCell>
                                                 <TableCell>
                                                     <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
                                                         <Button className="py-0 h-auto" variant="link">open</Button>
@@ -103,7 +103,7 @@ const ViewClasses = () => {
                                         ) : (
                                             <></>
                                         )}
-                                    </>
+                                    </React.Fragment>
                                 ))}
                             </TableBody >
                         </Table>
