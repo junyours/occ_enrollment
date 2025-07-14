@@ -348,6 +348,12 @@ class UserController extends Controller
 
         $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
 
+        if (!$schoolYear) {
+            return back()->withErrors([
+                'school_year' => "A student ID number cannot be created right now because enrollment is not currently open.",
+            ]);
+        }
+
         $lastFive = substr($userId->user_id_no, -5);
         $studLastFiveDigits = str_pad(((int) $lastFive + 1), 5, '0', STR_PAD_LEFT);
 
@@ -375,16 +381,16 @@ class UserController extends Controller
             'zip_code' => $request->zip_code,
         ]);
 
-        $student = [
-            "first_name" => ucwords(strtolower($request->first_name)),
-            "middle_name" => ucwords(strtolower($request->middle_name)),
-            "last_name" => ucwords(strtolower($request->last_name)),
-            "user_id_no" => $request->user_id_no ?? $studentID
-        ];
+        // $student = [
+        //     "first_name" => ucwords(strtolower($request->first_name)),
+        //     "middle_name" => ucwords(strtolower($request->middle_name)),
+        //     "last_name" => ucwords(strtolower($request->last_name)),
+        //     "user_id_no" => $request->user_id_no ?? $studentID
+        // ];
 
-        if ($request->email_address) {
-            Mail::to($request->email_address)->send(new StudentCredentialsMail($student, $password));
-        }
+        // if ($request->email_address) {
+        //     Mail::to($request->email_address)->send(new StudentCredentialsMail($student, $password));
+        // }
     }
 
     public function editStudent(Request $request)

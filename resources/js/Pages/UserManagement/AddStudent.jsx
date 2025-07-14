@@ -25,7 +25,6 @@ function AddStudent({ open, setOpen, student, editing, setEditing, setStudent })
     const [page, setPage] = useState(1);
     const [errorMessage, setErrorMessage] = useState('');
     const { toast } = useToast()
-    console.log(student.id);
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
         id: editing ? student.id : 0,
@@ -193,6 +192,8 @@ function AddStudent({ open, setOpen, student, editing, setEditing, setStudent })
                     setErrorMessage(errors.user_id_no);
                     setError('user_id_no', { error: true })
                     setPage(1);
+                } else if (errors.school_year) {
+                    setErrorMessage(errors.school_year);
                 }
             }
         })
@@ -207,7 +208,7 @@ function AddStudent({ open, setOpen, student, editing, setEditing, setStudent })
                     </DialogHeader>
                     <div className='flex flex-col justify-between h-full gap-0'>
                         <div className='flex flex-col justify-between h-80'>
-                            <div>
+                            <div className='h-full flex flex-col justify-between'>
                                 {page == 1 && (
                                     <div className='flex flex-col gap-2'>
                                         <div>
@@ -358,6 +359,11 @@ function AddStudent({ open, setOpen, student, editing, setEditing, setStudent })
                             </div>
                         </div>
                     </div>
+
+                    <div className="text-sm text-yellow-600 bg-yellow-100 border border-yellow-300 rounded-md p-2 my-2">
+                        Credentials can't be sent for now. Google SMTP is currently rate-limited and has a low email sending quota.
+                    </div>
+
                     <DialogFooter>
                         <Button
                             className="w-full relative justify-center"
