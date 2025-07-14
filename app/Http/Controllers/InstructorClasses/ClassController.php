@@ -37,9 +37,17 @@ class ClassController extends Controller
         }
     }
 
-    public function viewClass($id)
+    public function viewClass($id, Request $request)
     {
+        $user = Auth::user();
+
         $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(id, 256) = ?", [$id])->first();
+
+        if($user->id != $yearSectionSubjects->faculty_id){
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 403,
+            ])->toResponse($request)->setStatusCode(403);
+        }
 
         $subject = Subject::where('id', '=', $yearSectionSubjects->subject_id)->first();
 
@@ -122,15 +130,16 @@ class ClassController extends Controller
             ->where('student_id', '=', $studentId)
             ->first();
 
-
         if (!$enrolledStudent) {
             return response()->json([
                 'error' => 'You are not currently enrolled in this school year.',
             ], 403);
         }
 
-        $classes = StudentSubject::where('enrolled_students_id', '=', $enrolledStudent->id)
+        $classes = YearSectionSubjects::where('enrolled_students_id', '=', $enrolledStudent->id)
             ->select(
+                'enrolled_students_id',
+                'year_section_subjects.id',
                 'first_name',
                 'last_name',
                 'middle_name',
@@ -139,21 +148,18 @@ class ClassController extends Controller
                 'year_section_subjects.start_time',
                 'year_section_subjects.end_time',
                 'year_section_subjects.day',
-                'subject_secondary_schedule.start_time as secondstart_time',
-                'subject_secondary_schedule.end_time as secondend_time',
-                'subject_secondary_schedule.day as secondday',
             )
-            ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
             ->leftJoin('subject_secondary_schedule', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id')
             ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->with('SecondarySchedule.Room')
             ->get();
 
         return response()->json($classes);
     }
-
 
     public function recordView()
     {
