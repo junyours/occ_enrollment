@@ -11,7 +11,7 @@ function CorStudentSubjects({ data }) {
                     <th className="border border-r-black" rowSpan="2"></th>
                     <th className="border border-black" rowSpan="2">Class Code</th>
                     <th className="border border-black" rowSpan="2">Subject Code</th>
-                    <th className="border border-black" rowSpan="2">Descriptive Title</th>
+                    <th className="border border-black w-56" rowSpan="2">Descriptive Title</th>
                     <th className="border border-black" colSpan="3">Units</th>
                     <th className="border border-black" colSpan="3">Schedule</th>
                     <th className="border border-black" rowSpan="2">Instructor</th>
@@ -37,7 +37,7 @@ function CorStudentSubjects({ data }) {
                             <td className="border">{subjects.year_section_subjects.subject.subject_code}</td>
                             <td className="border">{subjects.year_section_subjects.subject.descriptive_title}</td>
                             <td className="border text-center">{subjects.year_section_subjects.subject.lecture_hours}</td>
-                            <td className="border text-center">{subjects.year_section_subjects.subject.laboratory_hours}</td>
+                            <td className="border text-center">{subjects.year_section_subjects.subject.laboratory_hours || '' }</td>
                             <td className="border text-center">{subjects.year_section_subjects.subject.credit_units}</td>
                             <td className="border text-center">
                                 <div className='flex flex-col'>
@@ -79,7 +79,7 @@ function CorStudentSubjects({ data }) {
                                     </div>
                                 </div>
                             </td>
-                            <td className="border">
+                            <td className="border text-center">
                                 {(subjects.year_section_subjects.instructor?.instructor_information.first_name != null) ? (
                                     formatFullName(subjects.year_section_subjects.instructor.instructor_information)
                                 ) : (
