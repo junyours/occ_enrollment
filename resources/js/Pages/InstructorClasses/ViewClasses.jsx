@@ -164,7 +164,7 @@ const ViewClasses = () => {
                                     max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)]
                                     sm:w-auto sm:min-w-0 sm:max-w-none
                                     sm:h-auto sm:min-h-0 sm:max-h-none
-                                    overflow-x-auto sm:p-0 bg-slate-50 sm:bg-transparent'
+                                    overflow-x-auto sm:p-0'
                 >
                     <Card id='classes' className='w-[1200px] sm:w-auto pt-6'>
                         <CardContent>
