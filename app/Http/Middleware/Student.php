@@ -21,7 +21,7 @@ class Student
             return redirect()->route('login');
         }
 
-        if (auth::user()->user_role !== 'student') {
+        if (Auth::user()->user_role !== 'student') {
             return Inertia::render('Errors/ErrorPage', [
                 'status' => 403,
             ])->toResponse($request)->setStatusCode(403);

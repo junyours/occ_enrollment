@@ -1,6 +1,6 @@
 
 import { usePage } from "@inertiajs/react";
-import { BookOpen, User, Presentation, Building, Calendar1, User2, Library, User2Icon, UsersIcon } from "lucide-react";
+import { BookOpen, User, Presentation, Building, Calendar1, User2, Library, User2Icon, UsersIcon, Construction } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
 import {
@@ -64,6 +64,7 @@ export function NavMain() {
         ...(user.user_role === "super_admin"
             ? [
                 { name: "Users", route: "users", icon: UsersIcon },
+                { name: "Maintenance", route: "maintenance-settings", icon: Construction },
             ]
             : []
         ),

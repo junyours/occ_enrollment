@@ -21,7 +21,7 @@ class ProgramheadRegistrar
             return redirect()->route('login');
         }
 
-        if (auth::user()->user_role !== 'registrar' && auth::user()->user_role !== 'program_head') {
+        if (Auth::user()->user_role !== 'registrar' && auth::user()->user_role !== 'program_head') {
             return Inertia::render('Errors/ErrorPage', [
                 'status' => 403,
             ])->toResponse($request)->setStatusCode(403);

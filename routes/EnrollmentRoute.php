@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
 use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
 
-Route::middleware(['auth', 'EnrollmentPermission'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(function () {
     Route::get('/dashboard', [EnrollmentDashboardController::class, 'view'])->name('dashboard');
 
     Route::get('/enrollment/{id}', [EnrollmentCourseSectionController::class, 'view'])->name('enrollment.view');
@@ -47,7 +47,7 @@ Route::middleware(['auth', 'EnrollmentPermission'])->group(function () {
     Route::post('/api/enrollment-faculty-schedules/{instructorId}/{yearSectionId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentFacultySchedules'])->name('faculty.schedules');
 });
 
-Route::middleware(['auth', 'registrar'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::get('/subjects-list', [EnrollmentCourseSectionController::class, 'viewSubjectList'])->name('enrollment.subjects-list');
     Route::post('/schoolyear/subjects/{schoolYearId}', [EnrollmentCourseSectionController::class, 'getSubjects'])->name('enrollment.schoolyear.subjects-list');
     Route::get('/enrollment/schoolyear/{schoolYearId}/subject/{subjectId}/students-download', [EnrollmentCourseSectionController::class, 'downloadSubjectStudents'])->name('enrollment.subject.students-download');

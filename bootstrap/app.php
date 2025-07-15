@@ -29,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'ProgrameadRegistrar' => \App\Http\Middleware\ProgramheadRegistrar::class,
             'SuperAdmin' => \App\Http\Middleware\SuperAdmin::class,
             'SchoolYearPermission' => \App\Http\Middleware\SchoolYearPermission::class,
+            'maintenance' => \App\Http\Middleware\DatabaseBasedMaintenance::class,
+            'can-manage-maintenance' => \App\Http\Middleware\CanManageMaintenance::class,
         ]);
         //
     })

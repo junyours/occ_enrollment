@@ -9,7 +9,7 @@ use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
 use App\Http\Controllers\Instructors\InstructorsController;
 use App\Http\Controllers\Room\RoomController;
 
-Route::middleware(['auth', 'program_head'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::get('/curriculum', [CurriculumController::class, 'view'])->name('curriculum');
     Route::post('/curriculum', [CurriculumController::class, 'getCoursesCurriculum'])->name('courses.curriculum.list');
     Route::get('/curriculum/{courseId}/{schoolYear}', [CurriculumController::class, 'CurriculumInfoView'])->name('curriculum.info.view');
