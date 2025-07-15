@@ -42,7 +42,7 @@ export default function Maintenance() {
                                         method="post"
                                         as="button"
                                     >
-                                        <Button className="flex items-center justify-center gap-2 w-32">
+                                        <Button variant="outline" className="flex items-center justify-center gap-2 w-32">
                                             <LogOut className="h-4 w-4" />
                                             Log out
                                         </Button>
