@@ -43,7 +43,7 @@ class ClassController extends Controller
 
         $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(id, 256) = ?", [$id])->first();
 
-        if($user->id != $yearSectionSubjects->faculty_id){
+        if ($user->id != $yearSectionSubjects->faculty_id) {
             return Inertia::render('Errors/ErrorPage', [
                 'status' => 403,
             ])->toResponse($request)->setStatusCode(403);
@@ -114,7 +114,22 @@ class ClassController extends Controller
             ->join('course', 'course.id', '=', 'year_section.course_id')
             ->where('faculty_id', '=', $facultyId)
             ->where('school_year_id', '=', $currentSchoolYear->id)
-            ->with('SecondarySchedule.Room')
+            ->with([
+                'SecondarySchedule' => function ($query) {
+                    $query->select(
+                        'rooms.room_name',
+                        'subject_secondary_schedule.id',
+                        'year_section_subjects_id',
+                        'faculty_id',
+                        'room_id',
+                        'day',
+                        'start_time',
+                        'end_time',
+                        'room_name'
+                    )
+                        ->leftjoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
+                }
+            ])
             ->get();
 
         return response()->json($classes);
@@ -155,7 +170,22 @@ class ClassController extends Controller
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
-            ->with('SecondarySchedule.Room')
+            ->with([
+                'SecondarySchedule' => function ($query) {
+                    $query->select(
+                        'rooms.room_name',
+                        'subject_secondary_schedule.id',
+                        'year_section_subjects_id',
+                        'faculty_id',
+                        'room_id',
+                        'day',
+                        'start_time',
+                        'end_time',
+                        'room_name'
+                    )
+                        ->leftjoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
+                }
+            ])
             ->get();
 
         return response()->json($classes);

@@ -45,7 +45,6 @@ const ViewClasses = () => {
     }
 
     const downloadImage = async () => {
-
         try {
             // Small delay to let the UI update and show the spinner
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -85,7 +84,7 @@ const ViewClasses = () => {
                         <div className="flex gap-2 w-min">
                             <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
                                 <TabsList className="grid max-w-max grid-cols-2">
-                                    <TabsTrigger className="w-28" value="tabular">Tabular</TabsTrigger>
+                                    <TabsTrigger className="w-28" value="tabular">List</TabsTrigger>
                                     <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
                                 </TabsList>
                             </Tabs>
@@ -94,7 +93,7 @@ const ViewClasses = () => {
                 </Card>
 
                 <Button
-                size='lg'
+                    size='lg'
                     className={`bg-blue-700 hover:bg-blue-600 ${scheduleType == 'timetable' ? '' : 'hidden'}`}
                     onClick={downloadImage}
                 >
@@ -139,7 +138,7 @@ const ViewClasses = () => {
                                                     <TableCell>{classInfo.secondary_schedule.day == "TBA" ? '-' : classInfo.secondary_schedule.day}</TableCell>
                                                     <TableCell>{classInfo.descriptive_title} <span className='italic'>(2nd Schedule)</span></TableCell>
                                                     <TableCell>{classInfo.secondary_schedule.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.secondary_schedule.start_time)} - ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}</TableCell>
-                                                    <TableCell>{classInfo.secondary_schedule.room?.room_name || '-'}</TableCell>
+                                                    <TableCell>{classInfo.secondary_schedule.room_name || '-'}</TableCell>
                                                     <TableCell>
                                                         <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
                                                             <Button className="py-0 h-auto" variant="link">open</Button>

@@ -1,9 +1,7 @@
 import { Badge } from '@/Components/ui/badge'
-import { Button } from '@/Components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card'
-import { convertToAMPM } from '@/Lib/Utils'
-import { Link } from '@inertiajs/react'
-import { BookOpen, ChevronRight, Clock, MapPin } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
+import { convertToAMPM, formatFullName } from '@/Lib/Utils'
+import { Clock, MapPin, User } from 'lucide-react'
 import React from 'react'
 
 function MobileViewClasses({ classes }) {
@@ -24,7 +22,7 @@ function MobileViewClasses({ classes }) {
                             </div>
                         </CardHeader>
                         <CardContent className="pt-0">
-                            <div className="space-y-2 mb-4">
+                            <div className="space-y-2 ">
                                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                     <Clock className="w-4 h-4" />
                                     <span>
@@ -38,9 +36,13 @@ function MobileViewClasses({ classes }) {
                                     <MapPin className="w-4 h-4" />
                                     <span>{classInfo.room_name || '-'}</span>
                                 </div>
+                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                    <User className="w-4 h-4" />
+                                    <span>{classInfo.first_name ? formatFullName(classInfo) : '-'}</span>
+                                </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="pt-0">
+                        {/* <CardFooter className="pt-0">
                             <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`} className="w-full">
                                 <Button className="w-full">
                                     <BookOpen className="w-4 h-4 mr-2" />
@@ -48,7 +50,7 @@ function MobileViewClasses({ classes }) {
                                     <ChevronRight className="w-4 h-4 ml-2" />
                                 </Button>
                             </Link>
-                        </CardFooter>
+                        </CardFooter> */}
                     </Card>
 
                     {/* Secondary Schedule */}
@@ -71,7 +73,7 @@ function MobileViewClasses({ classes }) {
                                 </div>
                             </CardHeader>
                             <CardContent className="pt-0">
-                                <div className="space-y-2 mb-4">
+                                <div className="space-y-2 ">
                                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                         <Clock className="w-4 h-4" />
                                         <span>
@@ -87,7 +89,7 @@ function MobileViewClasses({ classes }) {
                                     </div>
                                 </div>
                             </CardContent>
-                            <CardFooter className="pt-0">
+                            {/* <CardFooter className="pt-0">
                                 <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`} className="w-full">
                                     <Button className="w-full">
                                         <BookOpen className="w-4 h-4 mr-2" />
@@ -95,7 +97,7 @@ function MobileViewClasses({ classes }) {
                                         <ChevronRight className="w-4 h-4 ml-2" />
                                     </Button>
                                 </Link>
-                            </CardFooter>
+                            </CardFooter> */}
                         </Card>
                     )}
                 </React.Fragment>
