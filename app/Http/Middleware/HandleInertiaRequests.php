@@ -44,7 +44,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         // Only returns role - information not needed
-        if (in_array($user->user_role, ['super_admin', 'mis'])) {
+        if (in_array($user->user_role, ['super_admin', 'mis', 'president'])) {
             return [
                 ...parent::share($request),
                 'auth' => [

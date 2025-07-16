@@ -29,6 +29,7 @@ class ProfileController extends Controller
             'user_id_no',
             'email',
             'user_id',
+            'user_role',
             'first_name',
             'last_name',
             'middle_name',
@@ -39,7 +40,7 @@ class ProfileController extends Controller
             'zip_code'
         )
             ->where('users.id', '=', $user->id)
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->first();
 
         return Inertia::render('Profile/Index', [

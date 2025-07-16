@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'SchoolYearPermission' => \App\Http\Middleware\SchoolYearPermission::class,
             'maintenance' => \App\Http\Middleware\DatabaseBasedMaintenance::class,
             'can-manage-maintenance' => \App\Http\Middleware\CanManageMaintenance::class,
+            'president' => \App\Http\Middleware\President::class,
         ]);
         //
     })

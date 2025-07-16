@@ -36,4 +36,16 @@ class Department extends Model
     {
         return $this->hasMany(Faculty::class, 'department_id');
     }
+
+    public function enrolledStudents()
+    {
+        return $this->hasManyThrough(
+            EnrolledStudent::class,
+            YearSection::class,
+            'course_id',         // FK on year_section
+            'year_section_id',  // FK on enrolled_students
+            'id',                // department.id
+            'id'           // year_section.id
+        );
+    }
 }

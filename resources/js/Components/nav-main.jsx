@@ -1,6 +1,6 @@
 
 import { usePage } from "@inertiajs/react";
-import { BookOpen, User, Presentation, Building, Calendar1, User2, Library, User2Icon, UsersIcon, Construction } from "lucide-react";
+import { BookOpen, User, Presentation, Building, Calendar1, User2, Library,  UsersIcon, Construction, Hourglass } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
 import {
@@ -17,12 +17,13 @@ import { MdOutlineMeetingRoom } from "react-icons/md";
 
 export function NavMain() {
     const { user } = usePage().props.auth;
+    const userRole = user.user_role;
     const currentUrl = usePage().url;
     const { setOpenMobile } = useSidebar();
 
-    // Define menu items based on user role
+    // Menu items based on user role
     const menuItems = [
-        ...(user.user_role === "registrar"
+        ...(userRole === "registrar"
             ? [
                 { name: "School Year", route: "school-year", icon: Calendar1 },
                 { name: "Faculty-list", route: "faculty-list", icon: User2 },
@@ -33,7 +34,7 @@ export function NavMain() {
             ]
             : []
         ),
-        ...(user.user_role === "program_head"
+        ...(userRole === "program_head"
             ? [
                 { name: "School Year", route: "school-year", icon: Calendar1 },
                 { name: "Curriculum", route: "curriculum", icon: BookOpen },
@@ -42,37 +43,43 @@ export function NavMain() {
             ]
             : []
         ),
-        ...(user.user_role === "student"
+        ...(userRole === "student"
             ? [
                 { name: "Classes", route: "classes", icon: Presentation },
                 { name: "Enrollment Record", route: "enrollment-record", icon: Library },
             ]
             : []
         ),
-        ...(user.user_role === "faculty"
+        ...(userRole === "faculty"
             ? [
                 { name: "Classes", route: "classes", icon: Presentation },
             ]
             : []
         ),
-        ...(user.user_role === "evaluator"
+        ...(userRole === "evaluator"
             ? [
                 { name: "Classes", route: "classes", icon: Presentation },
             ]
             : []
         ),
-        ...(user.user_role === "super_admin"
+        ...(userRole === "super_admin"
             ? [
                 { name: "Users", route: "users", icon: UsersIcon },
                 { name: "Maintenance", route: "maintenance-settings", icon: Construction },
             ]
             : []
         ),
-        ...(user.user_role === "mis"
+        ...(userRole === "mis"
             ? [
                 { name: "Faculty", route: "classes", icon: Presentation },
                 { name: "Student", route: "classes", icon: Presentation },
                 { name: "Recycle Bin", route: "classes", icon: Presentation },
+            ]
+            : []
+        ),
+        ...(userRole === "president"
+            ? [
+                { name: "Ongoing Enrollment", route: "ongoing-enrollment", icon: Hourglass },
             ]
             : []
         ),
@@ -94,7 +101,7 @@ export function NavMain() {
                             asChild
                         >
                             <Link href={route(item.route)} className="w-full flex items-center">
-                                <item.icon className="mr-2" />
+                                <item.icon />
                                 <span>{item.name}</span>
                             </Link>
                         </SidebarMenuButton>

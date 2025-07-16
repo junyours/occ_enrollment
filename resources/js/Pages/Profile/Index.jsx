@@ -11,10 +11,10 @@ import ProfileInformation from './Partials/ProfileInformation';
 import ChangePassword from './Partials/ChangePassword';
 import AccountSettings from './Partials/AccountSettings';
 
-export default function Index() {
+export default function Index({ user }) {
     const [activeTab, setActiveTab] = useState('profile');
 
-    const { user } = usePage().props;
+    const userRole = user.user_role;
 
     const userInfo = {
         user_id_no: user.user_id_no || '',
@@ -44,12 +44,12 @@ export default function Index() {
                         <div className="flex items-center space-x-4">
                             <Avatar className="w-20 h-20">
                                 <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
-                                    {(user.user_role != 'mis' && user.user_role != 'super_admin') ? getInitials() : user.user_role.charAt(0).toUpperCase()}
+                                    {(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role != 'president') ? getInitials() : user.user_role.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="space-y-1">
                                 <CardTitle className="text-2xl">
-                                    {(user.user_role != 'mis' && user.user_role != 'super_admin') ? `${userInfo.first_name} ${userInfo.middle_name} ${userInfo.last_name}` : user.user_role.replace(/_/g, ' ').toUpperCase()}
+                                    {(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role != 'president') ? `${userInfo.first_name} ${userInfo.middle_name} ${userInfo.last_name}` : user.user_role.replace(/_/g, ' ').toUpperCase()}
                                 </CardTitle>
                                 <CardDescription className="flex items-center gap-2">
                                     <Mail className="w-4 h-4" />
