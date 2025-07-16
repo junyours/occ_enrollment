@@ -9,18 +9,17 @@ function CorStudentSubjects({ data }) {
                 {/* Row for main headers */}
                 <tr className="h-5">
                     <th className="border border-r-black" rowSpan="2"></th>
-                    <th className="border border-black" rowSpan="2">Class Code</th>
                     <th className="border border-black" rowSpan="2">Subject Code</th>
                     <th className="border border-black w-56" rowSpan="2">Descriptive Title</th>
                     <th className="border border-black" colSpan="3">Units</th>
                     <th className="border border-black" colSpan="3">Schedule</th>
                     <th className="border border-black" rowSpan="2">Instructor</th>
                 </tr>
-                {/* Row for sub-headers */}
+                {/* Row for sub-headers */} 
                 <tr className="h-5">
-                    <th className="border border-black">Lec</th>
-                    <th className="border border-black">Lab</th>
-                    <th className="border border-black">Credit</th>
+                    <th className="border border-black w-8">Lec</th>
+                    <th className="border border-black w-8">Lab</th>
+                    <th className="border border-black w-8">Credit</th>
                     <th className="border border-black">Day</th>
                     <th className="border border-black">Time</th>
                     <th className="border border-black">Room</th>
@@ -33,7 +32,6 @@ function CorStudentSubjects({ data }) {
                     return (
                         <tr key={`${subjects.id}-subject`} className="odd:bg-white even:bg-gray-100">
                             <td className="border text-center">{index + 1}</td>
-                            <td className="border">{subjects.year_section_subjects.class_code}</td>
                             <td className="border">{subjects.year_section_subjects.subject.subject_code}</td>
                             <td className="border">{subjects.year_section_subjects.subject.descriptive_title}</td>
                             <td className="border text-center">{subjects.year_section_subjects.subject.lecture_hours}</td>
@@ -106,7 +104,7 @@ function CorStudentSubjects({ data }) {
                 ))}
                 {/* Row for total units */}
                 <tr className="bg-gray-200">
-                    <td className="border text-right" colSpan="4">Total No. of Units:</td>
+                    <td className="border text-right" colSpan="3">Total No. of Units:</td>
                     <td className="border text-center">
                         {data.reduce((total, subjects) => total + parseFloat(subjects.year_section_subjects.subject.lecture_hours || 0), 0).toFixed(1)}
                     </td>

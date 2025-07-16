@@ -8,7 +8,7 @@ import CorFees from './CorFees';
 import Signatories from './Signatories';
 function CorGenerator({ data }) {
     return (
-        <div className="space-y-4 p-5 flex justify-center bg-white rounded-lg w-max  text-black">
+        <div className="space-y-4 p-5 flex justify-center bg-white rounded-lg text-black w-[800px]">
             <div className="p-5 border border-gray-600 w-full space-y-4">
                 <div className="flex items-center justify-center space-x-4">
                     <div className="text-center flex flex-col relative">
