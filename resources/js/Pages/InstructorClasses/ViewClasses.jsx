@@ -116,6 +116,7 @@ const ViewClasses = () => {
                                         <TableHead>Subject</TableHead>
                                         <TableHead>Time</TableHead>
                                         <TableHead>Room</TableHead>
+                                        <TableHead>Course & section</TableHead>
                                         <TableHead className="w-12"></TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -127,6 +128,7 @@ const ViewClasses = () => {
                                                 <TableCell>{classInfo.descriptive_title}</TableCell>
                                                 <TableCell>{classInfo.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} - ${convertToAMPM(classInfo.end_time)}`}</TableCell>
                                                 <TableCell>{classInfo.room_name || '-'}</TableCell>
+                                                <TableCell>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
                                                 <TableCell>
                                                     <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
                                                         <Button className="py-0 h-auto" variant="link">open</Button>
@@ -139,6 +141,7 @@ const ViewClasses = () => {
                                                     <TableCell>{classInfo.descriptive_title} <span className='italic'>(2nd Schedule)</span></TableCell>
                                                     <TableCell>{classInfo.secondary_schedule.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.secondary_schedule.start_time)} - ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}</TableCell>
                                                     <TableCell>{classInfo.secondary_schedule.room_name || '-'}</TableCell>
+                                                    <TableCell>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
                                                     <TableCell>
                                                         <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
                                                             <Button className="py-0 h-auto" variant="link">open</Button>

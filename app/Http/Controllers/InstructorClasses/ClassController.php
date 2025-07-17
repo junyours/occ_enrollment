@@ -7,6 +7,7 @@ use App\Models\EnrolledStudent;
 use App\Models\SchoolYear;
 use App\Models\StudentSubject;
 use App\Models\Subject;
+use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,14 @@ class ClassController extends Controller
     {
         $user = Auth::user();
 
-        $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(id, 256) = ?", [$id])->first();
+        $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$id])
+            // ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->first();
+
+        $courseSection = YearSection::join('course', 'course.id', '=', 'year_section.course_id')
+            ->where('year_section.id', $yearSectionSubjects->year_section_id)
+            ->first();
+
 
         if ($user->id != $yearSectionSubjects->faculty_id) {
             return Inertia::render('Errors/ErrorPage', [
@@ -55,6 +63,7 @@ class ClassController extends Controller
             'id' => $yearSectionSubjects->id,
             'subjectCode' => $subject->subject_code,
             'descriptiveTitle' => $subject->descriptive_title,
+            'courseSection' => $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section
         ]);
     }
 
@@ -103,6 +112,9 @@ class ClassController extends Controller
             'end_time',
             'descriptive_title',
             'room_name',
+            'section',
+            'year_level_id',
+            'course_name_abbreviation',
         )
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"

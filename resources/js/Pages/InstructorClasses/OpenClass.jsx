@@ -13,9 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Head, usePage } from '@inertiajs/react'
 import { PageTitle } from '@/Components/ui/PageTitle'
 
-function OpenClass() {
+function OpenClass({subjectCode, descriptiveTitle, id, courseSection}) {
     const [tab, setTab] = useState('students')
-    const { subjectCode, descriptiveTitle, id } = usePage().props;
     const [students, setStudents] = useState({
         data: [],
         current_page: 1,
@@ -41,7 +40,7 @@ function OpenClass() {
     return (
         <div className="space-y-4">
             <Head title={subjectCode} />
-            <PageTitle align='center'>{subjectCode} - {descriptiveTitle}</PageTitle>
+            <PageTitle align='center'>{subjectCode} - {descriptiveTitle} | {courseSection}</PageTitle>
             <div className="w-full flex justify-center">
                 {/* Tabs for md and up */}
                 <div className="hidden md:flex">

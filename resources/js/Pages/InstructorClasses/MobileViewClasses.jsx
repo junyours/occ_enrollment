@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card'
 import { convertToAMPM } from '@/Lib/Utils'
 import { Link } from '@inertiajs/react'
-import { BookOpen, ChevronRight, Clock, MapPin } from 'lucide-react'
+import { BookOpen, ChevronRight, ClipboardList, Clock, List, MapPin } from 'lucide-react'
 import React from 'react'
 
 function MobileViewClasses({ classes }) {
@@ -37,6 +37,10 @@ function MobileViewClasses({ classes }) {
                                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                     <MapPin className="w-4 h-4" />
                                     <span>{classInfo.room_name || '-'}</span>
+                                </div>
+                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                    <ClipboardList className="w-4 h-4" />
+                                    <span>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</span>
                                 </div>
                             </div>
                         </CardContent>
