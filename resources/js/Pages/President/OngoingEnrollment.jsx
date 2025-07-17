@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import NoSchoolYear from './NoSchoolYear';
 import axios from 'axios';
@@ -10,6 +10,7 @@ import YearLevelCounts from './YearLevelCounts';
 import GenderCounts from './GenderCounts';
 import StudentTypes from './StudentTypes';
 import EnrollmentsPerDate from './EnrollmentsPerDate';
+import PeakDays from './PeakDays';
 
 function OngoingEnrollment({ schoolYear }) {
     const [departmentCounts, setDepartmentCounts] = useState([]);
@@ -18,58 +19,72 @@ function OngoingEnrollment({ schoolYear }) {
     const [genderCounts, setGenderCount] = useState([]);
     const [studentTypes, setStudentTypes] = useState([]);
     const [enrollmentsPerDate, setEnrollmentsPerDate] = useState([]);
+    const [peakDays, setPeakDays] = useState([]);
 
-    if (!schoolYear) return <NoSchoolYear />
+    const cancelTokenRef = useRef(null);
+    const intervalRef = useRef(null);
+
+    if (!schoolYear) return <NoSchoolYear />;
+
+    const getEnrollmentData = async () => {
+        if (cancelTokenRef.current) {
+            cancelTokenRef.current.cancel("Cancelled due to new request or unmount.");
+        }
+
+        cancelTokenRef.current = axios.CancelToken.source();
+
+        try {
+            const response = await axios.post(
+                route('president.enrollment-data'),
+                { schoolYearId: schoolYear.id },
+                { cancelToken: cancelTokenRef.current.token }
+            );
+
+            setDepartmentCounts(response.data.departmenCounts);
+            seTotalEnrolled(response.data.totalEnrolled);
+            setYearLevelCounts(response.data.yearLevelCounts);
+            setGenderCount(response.data.genderCounts);
+            setStudentTypes(response.data.studentTypeCounts);
+            setEnrollmentsPerDate(response.data.enrollmentsPerDate);
+            setPeakDays(response.data.peakDays);
+        } catch (error) {
+            if (axios.isCancel(error)) {
+                console.log("Request canceled", error.message);
+            } else {
+                console.error("Request failed", error);
+            }
+        }
+    };
 
     useEffect(() => {
         if (!schoolYear) return;
 
-        let cancelToken;
-
-        const getEnrollmentData = async () => {
-            if (cancelToken) {
-                cancelToken.cancel("Operation canceled due to new request.");
-            }
-
-            cancelToken = axios.CancelToken.source();
-
-            try {
-                const response = await axios.post(
-                    route('president.enrollment-data'),
-                    { schoolYearId: schoolYear.id },
-                    { cancelToken: cancelToken.token }
-                );
-                setDepartmentCounts(response.data.departmenCounts);
-                seTotalEnrolled(response.data.totalEnrolled);
-                setYearLevelCounts(response.data.yearLevelCounts);
-                setGenderCount(response.data.genderCounts);
-                setStudentTypes(response.data.studentTypeCounts)
-                setEnrollmentsPerDate(response.data.enrollmentsPerDate)
-            } catch (error) {
-                if (axios.isCancel(error)) {
-                    console.log("Request canceled", error.message);
-                } else {
-                    console.error("Request failed", error);
-                }
-            }
-        };
-
         // Initial fetch
         getEnrollmentData();
 
-        const interval = setInterval(() => {
+        // Set interval
+        intervalRef.current = setInterval(() => {
             getEnrollmentData();
-        }, 300000);
+        }, 300000); // 5 minutes
+
+        // Refetch when window regains focus
+        const handleFocus = () => {
+            getEnrollmentData();
+        };
+        window.addEventListener('focus', handleFocus);
 
         return () => {
-            clearInterval(interval);
-            if (cancelToken) cancelToken.cancel("Component unmounted.");
+            clearInterval(intervalRef.current);
+            if (cancelTokenRef.current) cancelTokenRef.current.cancel("Component unmounted.");
+            window.removeEventListener('focus', handleFocus);
         };
     }, [schoolYear]);
 
     return (
         <div className='space-y-4'>
-            <PageTitle align='center'>{schoolYear.start_year} - {schoolYear.end_year} {schoolYear.semester.semester_name} Semester</PageTitle>
+            <PageTitle align='center'>
+                {schoolYear.start_year} - {schoolYear.end_year} {schoolYear.semester.semester_name} Semester
+            </PageTitle>
             <Head title='Ongoing Enrollment' />
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full'>
                 <TotalEnrolled total={totalEnrolled} />
@@ -77,11 +92,13 @@ function OngoingEnrollment({ schoolYear }) {
                 <YearLevelCounts data={yearLevelCounts} />
                 <GenderCounts data={genderCounts} />
                 <StudentTypes data={studentTypes} />
+                <PeakDays data={peakDays} />
                 <EnrollmentsPerDate data={enrollmentsPerDate} />
             </div>
         </div>
-    )
+    );
 }
 
-export default OngoingEnrollment
+export default OngoingEnrollment;
+
 OngoingEnrollment.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;

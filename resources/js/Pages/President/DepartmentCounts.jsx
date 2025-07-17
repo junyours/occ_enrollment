@@ -62,33 +62,31 @@ function DepartmentCounts({ data }) {
                 ) : (
                     <ResponsiveContainer width="100%" height={230}>
                         <ChartContainer config={chartConfig}>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData} margin={{ top: 20 }}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis
-                                        dataKey="department"
-                                        tickLine={false}
-                                        tickMargin={10}
-                                        axisLine={false}
-                                    />
-                                    {/* <ChartTooltip
+                            <BarChart data={chartData} margin={{ top: 20 }}>
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="department"
+                                    tickLine={false}
+                                    tickMargin={10}
+                                    axisLine={false}
+                                />
+                                {/* <ChartTooltip
                                     cursor={false}
                                     content={<ChartTooltipContent hideLabel />}
                                 /> */}
-                                    <Bar dataKey="totalEnrolled" radius={8}>
-                                        {chartData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                                        ))}
-                                        <LabelList
-                                            dataKey="totalEnrolled"
-                                            position="top"
-                                            offset={12}
-                                            className="fill-foreground"
-                                            fontSize={12}
-                                        />
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                                <Bar dataKey="totalEnrolled" radius={8}>
+                                    {chartData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                    ))}
+                                    <LabelList
+                                        dataKey="totalEnrolled"
+                                        position="top"
+                                        offset={12}
+                                        className="fill-foreground"
+                                        fontSize={12}
+                                    />
+                                </Bar>
+                            </BarChart>
                         </ChartContainer>
                     </ResponsiveContainer>
                 )}

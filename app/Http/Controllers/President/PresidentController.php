@@ -92,6 +92,24 @@ class PresidentController extends Controller
             ->orderBy('enrolled_students.date_enrolled', 'asc')
             ->get();
 
+        $peakDays = DB::table('enrolled_students')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->selectRaw('
+            WEEKDAY(date_enrolled) as weekday,
+            COUNT(*) as total,
+            COUNT(DISTINCT DATE(date_enrolled)) as day_count,
+            ROUND(COUNT(*) / COUNT(DISTINCT DATE(date_enrolled)), 2) as avg_per_day
+        ')
+            ->where('year_section.school_year_id', $schoolYearId)
+            ->groupBy(DB::raw('WEEKDAY(date_enrolled)'))
+            ->orderBy(DB::raw('WEEKDAY(date_enrolled)'))
+            ->get()
+            ->map(function ($item) {
+                $dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                $item->day = $dayNames[$item->weekday];
+                return $item;
+            });
+
         return response()->json([
             'departmenCounts' => $departmentCounts,
             'totalEnrolled' => $totalAllDepartments,
@@ -99,6 +117,7 @@ class PresidentController extends Controller
             'genderCounts' => $genderCounts,
             'studentTypeCounts' => $studentTypeCounts,
             'enrollmentsPerDate' => $enrollmentsPerDate,
+            'peakDays' => $peakDays,
         ], 200);
     }
 

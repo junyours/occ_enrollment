@@ -38,69 +38,29 @@ const chartConfig = {
 
 // Convert input into chart-compatible structure
 function getEnrollmentStatisticsData(data = []) {
-  let previousTotal = null
-  let previousGrowth = null
+    let previousTotal = null
+    let previousGrowth = null
 
-  return data.map((item) => {
-    const total = item.total
-    const growth = previousTotal !== null ? total - previousTotal : 0
-    const acceleration = previousGrowth !== null ? growth - previousGrowth : 0
+    return data.map((item) => {
+        const total = item.total
+        const growth = previousTotal !== null ? total - previousTotal : 0
+        const acceleration = previousGrowth !== null ? growth - previousGrowth : 0
 
-    previousTotal = total
-    previousGrowth = growth
+        previousTotal = total
+        previousGrowth = growth
 
-    return {
-      date: item.date_enrolled,
-      total_students: total,
-      growth,
-      acceleration,
-    }
-  })
-}
-
-const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload || !payload.length) return null;
-
-    const total = payload.find(p => p.dataKey === 'total_students')?.value
-    const growth = payload.find(p => p.dataKey === 'growth')?.value
-    const acceleration = payload.find(p => p.dataKey === 'acceleration')?.value
-
-    return (
-        <div className="bg-black text-white p-2 rounded shadow-md text-sm">
-            <div className="font-medium">{new Date(label).toDateString()}</div>
-            <div>Total: {total}</div>
-            <div>Growth: {growth}</div>
-            <div>Acceleration: {acceleration}</div>
-        </div>
-    )
+        return {
+            date: item.date_enrolled,
+            total_students: total,
+            growth,
+            acceleration,
+        }
+    })
 }
 
 function EnrollmentsPerDate({ data = [] }) {
     const formattedData = getEnrollmentStatisticsData(data)
-    function CustomTooltip({ active, label, payload }) {
-        if (!active || !payload?.length) return null;
 
-        const data = payload[0].payload;
-
-        return (
-            <ChartTooltipContent
-                className="w-[200px]"
-                labelFormatter={() =>
-                    new Date(label).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                    })
-                }
-            >
-                <div className="flex flex-col space-y-1 text-sm">
-                    <div><strong>Total:</strong> {data.total_students ?? '—'}</div>
-                    <div><strong>Growth:</strong> {data.growth ?? '—'}</div>
-                    <div><strong>Acceleration:</strong> {data.acceleration ?? '—'}</div>
-                </div>
-            </ChartTooltipContent>
-        );
-    }
 
     return (
         <Card className="col-span-full">
