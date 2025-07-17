@@ -10,13 +10,13 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/Components/ui/card"
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@/Components/ui/chart"
+import { Skeleton } from "@/Components/ui/skeleton"
 
 function YearLevelCounts({ data = [] }) {
 
