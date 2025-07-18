@@ -61,7 +61,7 @@ export default function ResetPassword({ token, email }) {
     };
 
     return (
-        <GuestLayout>
+        <div className='h-svh w-screen flex flex-col items-center justify-center px-5'>
             <Head title="Reset Password" />
             <div className="w-full max-w-md space-y-6">
                 <Card>
@@ -254,6 +254,6 @@ export default function ResetPassword({ token, email }) {
                         </p>
                     </div> */}
             </div>
-        </GuestLayout>
+        </div>
     );
 }

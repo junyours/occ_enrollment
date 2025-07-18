@@ -19,8 +19,8 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <GuestLayout>
-            <Head title="Confirm Password" />
+        <div className='h-svh w-screen flex flex-col items-center justify-center px-5'>
+            {/* <Head title="Confirm Password" />
 
             <div className="mb-4 text-sm text-gray-600">
                 This is a secure area of the application. Please confirm your
@@ -49,7 +49,7 @@ export default function ConfirmPassword() {
                         Confirm
                     </PrimaryButton>
                 </div>
-            </form>
-        </GuestLayout>
+            </form> */}
+        </div>
     );
 }
