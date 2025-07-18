@@ -347,6 +347,10 @@ class SchoolYearController extends Controller
                 'schoolYear' => $schoolYear
             ]);
         }
+
+        return Inertia::render('Guest/OngoingEnrollment', [
+            'schoolYear' => $schoolYear
+        ]);
     }
 
     public function enrollmentData(Request $request)
