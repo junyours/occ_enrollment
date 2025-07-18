@@ -92,7 +92,7 @@ export function NavMain() {
 
     return (
         <SidebarGroup>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
                 {menuItems.map((item) => (
                     <SidebarMenuItem onClick={() => setOpenMobile(false)} key={item.name} >
                         <SidebarMenuButton
