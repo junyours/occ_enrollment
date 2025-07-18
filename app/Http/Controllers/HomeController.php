@@ -6,27 +6,13 @@ use App\Models\SchoolYear;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        if (!Auth::check()) {
-            return redirect()->route('login');
-        }
-
-        $user = Auth::user();
-        $ongoingEnrollment = $this->getPreparingOrOngoingSchoolYear()['school_year'];
-
-        if ($ongoingEnrollment && ($user->user_role == 'registrar' || $user->user_role == 'program_head' || $user->user_role == 'evaluator')) {
-            return redirect()->intended(route('dashboard', absolute: false));
-        } else if ($user->user_role == 'super_admin' || $user->user_role == 'mis') {
-            return redirect()->intended(route('users', absolute: false));
-        } else if ($user->user_role == 'president') {
-            return redirect()->intended(route('ongoing-enrollment', absolute: false));
-        } else {
-            return redirect()->intended(route('classes', absolute: false));
-        }
+        return Inertia::render('Guest/Welcome');
     }
 
     private function getPreparingOrOngoingSchoolYear()

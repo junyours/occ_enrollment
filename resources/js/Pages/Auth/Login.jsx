@@ -37,7 +37,7 @@ export default function Login({ status }) {
     };
 
     return (
-        <GuestLayout>
+        <div className='h-svh w-screen flex flex-col items-center justify-center px-5'>
             <Head title="Login" />
             {status && (
                 <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
@@ -167,6 +167,6 @@ export default function Login({ status }) {
                     </CardContent>
                 </Card>
             </Card>
-        </GuestLayout>
+        </div>
     );
 }

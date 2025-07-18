@@ -36,6 +36,7 @@ require __DIR__ . '/ClassesRoute.php';
 require __DIR__ . '/ClassSchedulingRoute.php';
 require __DIR__ . '/DepartmentRoute.php';
 require __DIR__ . '/EnrollmentRoute.php';
+require __DIR__ . '/GuestRoute.php';
 require __DIR__ . '/MaintenanceRoute.php';
 require __DIR__ . '/PresidentRoute.php';
 require __DIR__ . '/ProfileRoute.php';

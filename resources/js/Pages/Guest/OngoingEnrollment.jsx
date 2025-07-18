@@ -1,16 +1,16 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { PageTitle } from '@/Components/ui/PageTitle';
-import NoSchoolYear from './NoSchoolYear';
+import NoSchoolYear from '../President/NoSchoolYear';
 import axios from 'axios';
-import DepartmentCounts from './DepartmentCounts';
-import TotalEnrolled from './TotalEnrolled';
-import YearLevelCounts from './YearLevelCounts';
-import GenderCounts from './GenderCounts';
-import StudentTypes from './StudentTypes';
-import EnrollmentsPerDate from './EnrollmentsPerDate';
-import PeakDays from './PeakDays';
+import DepartmentCounts from '../President/DepartmentCounts';
+import TotalEnrolled from '../President/TotalEnrolled';
+import YearLevelCounts from '../President/YearLevelCounts';
+import GenderCounts from '../President/GenderCounts';
+import StudentTypes from '../President/StudentTypes';
+import EnrollmentsPerDate from '../President/EnrollmentsPerDate';
+import PeakDays from '../President/PeakDays';
+import GuestLayout from '@/Layouts/GuestLayout';
 
 function OngoingEnrollment({ schoolYear }) {
     const [departmentCounts, setDepartmentCounts] = useState([]);
@@ -81,7 +81,7 @@ function OngoingEnrollment({ schoolYear }) {
     }, [schoolYear]);
 
     return (
-        <div className='space-y-4'>
+        <div className='space-y-4 w-full'>
             <PageTitle align='center'>
                 {schoolYear.start_year} - {schoolYear.end_year} {schoolYear.semester.semester_name} Semester
             </PageTitle>
@@ -96,9 +96,8 @@ function OngoingEnrollment({ schoolYear }) {
                 <EnrollmentsPerDate data={enrollmentsPerDate} />
             </div>
         </div>
-    );
+    )
 }
 
-export default OngoingEnrollment;
-
-OngoingEnrollment.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+export default OngoingEnrollment
+OngoingEnrollment.layout = (page) => <GuestLayout>{page}</GuestLayout>;
