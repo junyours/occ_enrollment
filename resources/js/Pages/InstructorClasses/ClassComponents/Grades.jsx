@@ -196,9 +196,9 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                     />
                 </div>
             </div>
-            <h3 className="text-sm text-red-600 mb-2 font-medium">
-                ⚠️ Be careful when adding grades. Editing is not yet supported while this feature is still under development.
-            </h3>
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-2 mb-4 text-sm">
+                ⚠️ Once submitted, grades cannot yet be edited. Edit request functionality is still under development.
+            </div>
             <GradesStudentList grades={grades} gradeStatus={gradeStatus} missingFields={missingFields} handleGradeChange={handleGradeChange} setMissingFields={setMissingFields} />
             <div className='w-full flex items-end justify-end'>
 
