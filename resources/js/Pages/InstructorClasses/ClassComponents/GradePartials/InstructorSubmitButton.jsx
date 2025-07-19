@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/Components/ui/button'
 import { convertToAMPM } from '@/Lib/Utils'
 import { Clock, Loader2, Send } from "lucide-react"
 
