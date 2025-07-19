@@ -5,23 +5,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/Components/ui/button';
 import { formatFullName } from '@/Lib/Utils';
 import React from 'react';
-import { Download } from 'lucide-react'; // Optional: download icon
-import { router, usePage } from '@inertiajs/react';
+import { Download } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 
-function Students({ getClassStudents, students, currentPage, setPage }) {
-    const currentStudents = students.data || [];
-    const totalPages = students.last_page || 1;
+function Students({ students, currentPage, setPage, studentsPerPage = 10 }) {
     const { id } = usePage().props;
+
+    // Pagination logic (frontend)
+    const totalPages = Math.ceil(students.length / studentsPerPage);
+    const startIndex = (currentPage - 1) * studentsPerPage;
+    const currentStudents = students.slice(startIndex, startIndex + studentsPerPage);
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPages) {
             setPage(newPage);
         }
-        getClassStudents(newPage)
     };
 
     return (
         <div className="w-full space-y-4">
+            {/* Download Button */}
             <div className="flex justify-end">
                 <Button
                     variant="outline"
@@ -34,7 +37,7 @@ function Students({ getClassStudents, students, currentPage, setPage }) {
                 </Button>
             </div>
 
-            {/* Table View */}
+            {/* Desktop Table View */}
             <div className="hidden md:block overflow-x-auto">
                 <Table>
                     <TableHeader>
@@ -50,7 +53,7 @@ function Students({ getClassStudents, students, currentPage, setPage }) {
                     <TableBody>
                         {currentStudents.map((student, index) => (
                             <TableRow key={student.user_id_no || index}>
-                                <TableCell>{(currentPage - 1) * 10 + index + 1}.</TableCell>
+                                <TableCell>{startIndex + index + 1}.</TableCell>
                                 <TableCell>{student.user_id_no}</TableCell>
                                 <TableCell>{formatFullName(student)}</TableCell>
                                 <TableCell className="hidden sm:table-cell">{student.email_address}</TableCell>
@@ -72,7 +75,7 @@ function Students({ getClassStudents, students, currentPage, setPage }) {
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center space-x-2">
                                     <Avatar className="inline-flex items-center justify-center text-xs font-medium border">
-                                        {(currentPage - 1) * 10 + index + 1}
+                                        {startIndex + index + 1}
                                     </Avatar>
                                     <span className="text-xs font-mono">ID: {student.user_id_no}</span>
                                 </div>
