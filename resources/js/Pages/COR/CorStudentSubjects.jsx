@@ -15,7 +15,7 @@ function CorStudentSubjects({ data }) {
                     <th className="border border-black" colSpan="3">Schedule</th>
                     <th className="border border-black" rowSpan="2">Instructor</th>
                 </tr>
-                {/* Row for sub-headers */} 
+                {/* Row for sub-headers */}
                 <tr className="h-5">
                     <th className="border border-black w-8">Lec</th>
                     <th className="border border-black w-8">Lab</th>
