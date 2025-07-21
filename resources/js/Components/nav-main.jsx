@@ -159,6 +159,14 @@ export function NavMain() {
             });
             break;
 
+        case "announcement_admin":
+            menuSections.push({
+                items: [
+                    { name: "Announcement", route: "announcement", icon: Hourglass },
+                ],
+            });
+            break;
+
         default:
             break;
     }

@@ -49,10 +49,10 @@ export function NavUser() {
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
                                 {/* <AvatarImage src={user.avatar} alt={user.first_name} /> */}
-                                <AvatarFallback className="rounded-lg bg-sidebar-primary">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role != 'president') ? user.first_name[0] + user.last_name[0] : user.user_role.charAt(0).toUpperCase()}</AvatarFallback>
+                                <AvatarFallback className="rounded-lg bg-sidebar-primary">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role !=  'president' && user.user_role != 'announcement_admin') ? user.first_name[0] + user.last_name[0] : user.user_role.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-semibold">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role != 'president') ? formatFullNameFML(user) : user.user_role.replace(/_/g, ' ').toUpperCase()}</span>
+                                <span className="truncate font-semibold">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role !=  'president' && user.user_role != 'announcement_admin') ? formatFullNameFML(user) : user.user_role.replace(/_/g, ' ').toUpperCase()}</span>
                                 <span className="truncate text-xs">{user.email_address}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
@@ -72,10 +72,10 @@ export function NavUser() {
                                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                     <Avatar className="h-8 w-8 rounded-lg">
                                         {/* <AvatarImage src={user.avatar} alt={user.name} /> */}
-                                        <AvatarFallback className="rounded-lg">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role != 'president') ? user.first_name[0] + user.last_name[0] : user.user_role.charAt(0).toUpperCase()}</AvatarFallback>
+                                        <AvatarFallback className="rounded-lg">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role !=  'president' && user.user_role != 'announcement_admin') ? user.first_name[0] + user.last_name[0] : user.user_role.charAt(0).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role != 'president') ? formatFullNameFML(user) : user.user_role.replace(/_/g, ' ').toUpperCase()}</span>
+                                        <span className="truncate font-semibold">{(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role !=  'president' && user.user_role != 'announcement_admin') ? formatFullNameFML(user) : user.user_role.replace(/_/g, ' ').toUpperCase()}</span>
                                         <span className="truncate text-xs">{user.email_address}</span>
                                     </div>
                                 </div>
