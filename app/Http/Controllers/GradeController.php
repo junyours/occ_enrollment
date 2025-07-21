@@ -93,7 +93,13 @@ class GradeController extends Controller
             ->select(
                 'users.id',
                 'users.user_id_no',
-                DB::raw("CONCAT(first_name, ' ', middle_name, ' ', last_name) AS name"),
+                DB::raw(
+            "CONCAT(
+                    first_name, ' ',
+                    IF(middle_name IS NOT NULL AND middle_name != '', CONCAT(middle_name, ' '), ''),
+                    last_name
+                    ) AS name"
+                )
             )
             ->first();
 

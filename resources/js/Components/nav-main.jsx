@@ -62,14 +62,18 @@ export function NavMain() {
         case "registrar":
             menuSections.push(
                 {
-                    label: "Registrar",
+                    label: "Academic",
                     items: [
+                        { name: "Classes", route: "classes", icon: Presentation },
                         { name: "School Year", route: "school-year", icon: Calendar1 },
+                        { name: "Department", route: "department", icon: Building },
+                    ],
+                },
+                {
+                    label: "People",
+                    items: [
                         { name: "Faculty List", route: "faculty-list", icon: User2 },
                         { name: "Student List", route: "student-list", icon: PiStudent },
-                        { name: "Classes", route: "classes", icon: Presentation },
-                        { name: "Rooms", route: "rooms", icon: MdOutlineMeetingRoom },
-                        { name: "Department", route: "department", icon: Building },
                     ],
                 },
                 {
@@ -79,6 +83,12 @@ export function NavMain() {
                         { name: "Change Request", route: "classes", icon: FileText },
                         { name: "Enrollment Record", route: "classes", icon: FileText },
                         { name: "Promotional Report", route: "classes", icon: FileText },
+                    ],
+                },
+                {
+                    label: "Others",
+                    items: [
+                        { name: "Rooms", route: "rooms", icon: MdOutlineMeetingRoom },
                     ],
                 }
             );

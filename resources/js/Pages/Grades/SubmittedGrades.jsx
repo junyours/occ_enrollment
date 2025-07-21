@@ -58,7 +58,6 @@ function SubmittedGrades({ schoolYears, departmentId }) {
         })
             .then(response => {
                 setFacultyList(response.data);
-                console.log(response.data);
             });
     }
 
