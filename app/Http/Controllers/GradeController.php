@@ -46,7 +46,11 @@ class GradeController extends Controller
                 CONCAT(SUBSTRING(user_information.middle_name, 1, 1), '.'),
                 '')
         ) AS name"),
-                DB::raw('COUNT(CASE WHEN grade_submissions.is_submitted = 1 THEN 1 END) AS submitted_count')
+                DB::raw('COUNT(CASE WHEN grade_submissions.is_submitted = 1
+                            AND (grade_submissions.is_verified IS NULL OR grade_submissions.is_verified = 0)
+                            AND (grade_submissions.is_denied IS NULL OR grade_submissions.is_denied = 0)
+                            AND (grade_submissions.is_deployed IS NULL OR grade_submissions.is_deployed = 0)
+                       THEN 1 END) AS submitted_count')
             )
             ->join('users', 'users.id', '=', 'faculty.faculty_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
@@ -54,14 +58,6 @@ class GradeController extends Controller
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
             ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
             ->where('year_section.school_year_id', '=', $request->schoolYearId)
-            ->where(function ($query) {
-                $query->where(function ($q) {
-                    $q->where('grade_submissions.is_denied', '!=', 1)
-                        ->where('grade_submissions.is_verified', '!=', 1)
-                        ->where('grade_submissions.is_deployed', '!=', 1);
-                })
-                    ->orWhereNull('grade_submissions.id');
-            })
             ->groupBy(
                 'users.user_id_no',
                 'user_information.last_name',
@@ -150,7 +146,6 @@ class GradeController extends Controller
 
     public function viewFacultySubjectStudents(Request $request)
     {
-
         $students = StudentSubject::select(
             'users.id',
             'user_id_no',
@@ -212,11 +207,15 @@ class GradeController extends Controller
         $instructors = Faculty::select(
             'users.user_id_no',
             DB::raw("CONCAT(user_information.last_name, ', ', user_information.first_name, ' ',
-            IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
-                CONCAT(SUBSTRING(user_information.middle_name, 1, 1), '.'),
-                '')
-        ) AS name"),
-            DB::raw('COUNT(CASE WHEN grade_submissions.is_verified = 1 THEN 1 END) AS verified_count')
+        IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
+            CONCAT(SUBSTRING(user_information.middle_name, 1, 1), '.'),
+            '')
+    ) AS name"),
+            DB::raw('COUNT(CASE
+        WHEN grade_submissions.is_verified = 1
+             AND (grade_submissions.is_denied IS NULL OR grade_submissions.is_denied = 0)
+             AND (grade_submissions.is_deployed IS NULL OR grade_submissions.is_deployed = 0)
+        THEN 1 END) AS verified_count')
         )
             ->join('users', 'users.id', '=', 'faculty.faculty_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
@@ -224,13 +223,6 @@ class GradeController extends Controller
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
             ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
             ->where('year_section.school_year_id', '=', $request->schoolYearId)
-            ->where(function ($query) {
-                $query->where(function ($q) {
-                    $q->where('grade_submissions.is_denied', '!=', 1)
-                        ->where('grade_submissions.is_deployed', '!=', 1);
-                })
-                    ->orWhereNull('grade_submissions.id');
-            })
             ->groupBy(
                 'users.user_id_no',
                 'user_information.last_name',

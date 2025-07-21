@@ -45,7 +45,7 @@ function VerifiedGrades({ schoolYears }) {
     );
 
     const getFacultiesSubmittedGrades = async () => {
-        await axios.post(route('faculty-list.submitted-grades'), {
+        await axios.post(route('faculty-list.verified-grades'), {
             schoolYearId: selectedSchoolYearEntry.id,
         })
             .then(response => {
