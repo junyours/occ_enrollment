@@ -5,10 +5,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function () {
     Route::get('/classes', [ClassController::class, 'view'])->name('classes');
-    Route::post('/api/get-faculty-classes', [ClassController::class, 'getFacultyClasses'])->name('get.faculty.classes');
+    Route::post('/api/get-faculty-classes/{schoolYearId}', [ClassController::class, 'getFacultyClasses'])->name('get.faculty.classes');
 
     Route::get('/classes/classroom/{id}', [ClassController::class, 'viewClass'])->name('classes.classroom.yearsection');
     Route::post('/classes/classroom/{id}/students', [ClassController::class, 'getStudents'])->name('class.students');
+
+    Route::post('/upload-student-grades/{yearSectionSubjectsId}', [ClassController::class, 'updateStudentsGrades'])->name('upload.students.grades');
+    Route::patch('/student-grade/midterm/{yearSectionSubjectsId}/{studentId}', [ClassController::class, 'updateStudentMidtermGrade'])->name('student.mideterm.grade');
+    Route::patch('/student-grade/final/{yearSectionSubjectsId}/{studentId}', [ClassController::class, 'updateStudentFinalGrade'])->name('student.final.grade');
+    Route::post('/submit-student-grades/{yearSectionSubjectsId}', [ClassController::class, 'submitGrade'])->name('grade-submission.submit');
 
     Route::get('/classes/classroom/{id}/students/download', [ClassController::class, 'downloadStudentsExcel'])->name('class.students.download');
 });

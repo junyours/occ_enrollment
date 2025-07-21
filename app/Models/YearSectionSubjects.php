@@ -66,6 +66,11 @@ class YearSectionSubjects extends Model
         return $this->hasOne(SubjectSecondarySchedule::class, 'year_section_subjects_id');
     }
 
+    public function GradeSubmission()
+    {
+        return $this->hasOne(GradeSubmission::class, 'year_section_subjects_id');
+    }
+
     public function SecondarySchedule()
     {
         return $this->hasOne(SubjectSecondarySchedule::class, 'year_section_subjects_id');

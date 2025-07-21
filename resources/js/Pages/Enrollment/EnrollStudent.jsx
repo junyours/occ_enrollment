@@ -11,12 +11,13 @@ import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import TimeTable from '../ScheduleFormats/TimeTable';
-import { CircleMinus, CirclePlus, ListRestart } from 'lucide-react';
+import { CircleMinus, CirclePlus, ListRestart, TriangleAlert } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/Components/ui/button';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import Checkbox from '@/Components/Checkbox';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 
 export default function EnrollStudent() {
     const { yearSectionId, courseName, yearlevel, section, schoolYear } = usePage().props;
@@ -499,16 +500,35 @@ export default function EnrollStudent() {
                                                     <TableCell className='w-8'>{classInfo.credit_units}</TableCell>
                                                     <TableCell className="w-8">
                                                         <div className='flex justify-center'>
-                                                            <Button
-                                                                disabled={conflict || exist || addingSubject}
-                                                                variant="icon"
-                                                                className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
-                                                                onClick={() => { setClasses(prev => [...prev, classInfo]); }}
-                                                            >
-                                                                <CirclePlus
-                                                                    size={15}
-                                                                />
-                                                            </Button>
+                                                            {conflict ? (
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            disabled={exist || addingSubject}
+                                                                            variant="icon"
+                                                                            className={`p-0 h-min ${exist ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
+                                                                            onClick={() => { setClasses(prev => [...prev, classInfo]); }}
+                                                                        >
+                                                                            <CirclePlus
+                                                                                size={15}
+                                                                            />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent className='flex items-center gap-2 text-orange-500'> <TriangleAlert /> Conflict</TooltipContent>
+                                                                </Tooltip>
+                                                            ) : (
+
+                                                                <Button
+                                                                    disabled={conflict || exist || addingSubject}
+                                                                    variant="icon"
+                                                                    className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
+                                                                    onClick={() => { setClasses(prev => [...prev, classInfo]); }}
+                                                                >
+                                                                    <CirclePlus
+                                                                        size={15}
+                                                                    />
+                                                                </Button>
+                                                            )}
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>

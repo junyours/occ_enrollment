@@ -4,9 +4,11 @@ namespace App\Http\Controllers\InstructorClasses;
 
 use App\Http\Controllers\Controller;
 use App\Models\EnrolledStudent;
+use App\Models\GradeSubmission;
 use App\Models\SchoolYear;
 use App\Models\StudentSubject;
 use App\Models\Subject;
+use App\Models\User;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
@@ -27,9 +29,16 @@ class ClassController extends Controller
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
 
+        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->orderBy('school_years.start_date', 'DESC')
+            ->orderBy('school_years.end_date', 'DESC')
+            ->orderBy('school_years.semester_id', 'DESC')
+            ->get();
+
         if ($userRole == 'program_head' || $userRole == 'faculty' || $userRole == 'evaluator' || $userRole == 'registrar') {
             return Inertia::render('InstructorClasses/ViewClasses', [
-                'currentSchoolYear' => $currentSchoolYear,
+                'schoolYears' => $schoolYears,
             ]);
         } else if ($userRole == 'student') {
             return Inertia::render('StudentClasses/ViewClasses', [
@@ -50,7 +59,6 @@ class ClassController extends Controller
             ->where('year_section.id', $yearSectionSubjects->year_section_id)
             ->first();
 
-
         if ($user->id != $yearSectionSubjects->faculty_id) {
             return Inertia::render('Errors/ErrorPage', [
                 'status' => 403,
@@ -59,11 +67,20 @@ class ClassController extends Controller
 
         $subject = Subject::where('id', '=', $yearSectionSubjects->subject_id)->first();
 
+        $gradeStatus = GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjects->id)->first();
+
+        if (!$gradeStatus) {
+            $gradeStatus = GradeSubmission::create([
+                'year_section_subjects_id' => $yearSectionSubjects->id
+            ]);
+        }
+
         return Inertia::render('InstructorClasses/OpenClass', [
             'id' => $yearSectionSubjects->id,
             'subjectCode' => $subject->subject_code,
             'descriptiveTitle' => $subject->descriptive_title,
-            'courseSection' => $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section
+            'courseSection' => $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section,
+            'gradeStatus' => $gradeStatus
         ]);
     }
 
@@ -78,32 +95,91 @@ class ClassController extends Controller
             'email_address',
             'contact_number',
             'user_id',
-            'gender'
+            'gender',
+            'midterm_grade',
+            'final_grade',
         )
             ->where('year_section_subjects_id', '=', $id)
             ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->orderBy('last_name', 'ASC')
-            ->paginate(10); // 👈 10 per page
+            ->get();
 
         return response()->json($students);
     }
 
-    public function getFacultyClasses()
+    public function updateStudentsGrades($yearSectionSubjectsId, Request $request)
+    {
+        $validated = $request->validate([
+            'data' => 'required|array',
+            'data.*.id_number' => 'required|string',
+            'data.*.midterm_grade' => 'nullable|numeric',
+            'data.*.final_grade' => 'nullable|numeric',
+        ]);
+
+        foreach ($validated['data'] as $entry) {
+            // Get the enrolled student by id_number
+            $user = User::where('user_id_no', $entry['id_number'])->first();
+
+            if (!$user)
+                continue; // Skip if not found
+
+            $enrolledStudent = EnrolledStudent::where('student_id', $user->id)->first();
+
+            if (!$enrolledStudent)
+                continue; // Skip if not found
+
+            $studentSubject = StudentSubject::where('enrolled_students_id', $enrolledStudent->id)
+                ->where('year_section_subjects_id', $yearSectionSubjectsId)
+                ->first();
+
+            if ($studentSubject) {
+                $studentSubject->midterm_grade = $entry['midterm_grade'];
+                $studentSubject->final_grade = $entry['final_grade'];
+                $studentSubject->save();
+            }
+        }
+
+        return response()->json(['message' => 'Grades updated successfully.']);
+    }
+
+    public function updateStudentMidtermGrade($yearSectionSubjectsId, $studentId, Request $request)
+    {
+        $student = User::where('user_id_no', '=', $studentId)->first();
+        $enrolledStudent = EnrolledStudent::where('student_id', '=', $student->id)->first();
+
+        StudentSubject::where('enrolled_students_id', '=', $enrolledStudent->id)
+            ->where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'midterm_grade' => $request->midterm_grade
+            ]);
+    }
+
+    public function updateStudentFinalGrade($yearSectionSubjectsId, $studentId, Request $request)
+    {
+        $student = User::where('user_id_no', '=', $studentId)->first();
+        $enrolledStudent = EnrolledStudent::where('student_id', '=', $student->id)->first();
+
+        StudentSubject::where('enrolled_students_id', '=', $enrolledStudent->id)
+            ->where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_grade' => $request->final_grade
+            ]);
+    }
+
+    public function submitGrade($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'submitted_at' => now(),
+                'is_submitted' => 1,
+            ]);
+    }
+
+    public function getFacultyClasses($schoolYearId)
     {
         $facultyId = Auth::user()->id;
-
-        $currentSchoolYear = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name')
-            ->where('is_current', '=', 1)
-            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->first();
-
-        if (!$currentSchoolYear) {
-            return response([
-                'message' => 'no school year',
-            ]);
-        }
 
         $classes = YearSectionSubjects::select(
             'year_section_subjects.id',
@@ -125,7 +201,7 @@ class ClassController extends Controller
             ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
             ->join('course', 'course.id', '=', 'year_section.course_id')
             ->where('faculty_id', '=', $facultyId)
-            ->where('school_year_id', '=', $currentSchoolYear->id)
+            ->where('school_year_id', '=', $schoolYearId)
             ->with([
                 'SecondarySchedule' => function ($query) {
                     $query->select(

@@ -13,28 +13,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Head, usePage } from '@inertiajs/react'
 import { PageTitle } from '@/Components/ui/PageTitle'
 
-function OpenClass({subjectCode, descriptiveTitle, id, courseSection}) {
+function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStatus }) {
     const [tab, setTab] = useState('students')
-    const [students, setStudents] = useState({
-        data: [],
-        current_page: 1,
-        last_page: 1
-    });
-
+    const [students, setStudents] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const getClassStudents = async (page = 1) => {
+    const getClassStudents = async () => {
         try {
-            const response = await axios.post(route('class.students', { id }), { page });
+            const response = await axios.post(route('class.students', { id }));
             setStudents(response.data);
-            setCurrentPage(response.data.current_page);
         } catch (err) {
             console.error(err);
         }
     };
 
     useEffect(() => {
-        getClassStudents(currentPage);
+        getClassStudents();
     }, []);
 
     return (
@@ -77,7 +71,7 @@ function OpenClass({subjectCode, descriptiveTitle, id, courseSection}) {
             <div className="mt-4">
                 {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} />}
                 {tab === 'attendance' && <Attendance />}
-                {tab === 'grades' && <Grades />}
+                {tab === 'grades' && <Grades students={students} subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} yearSectionSubjectsId={id} gradeStatus={gradeStatus} getClassStudents={getClassStudents}/>}
                 {tab === 'assignments' && <Assignments />}
                 {tab === 'materials' && <Materials />}
                 {tab === 'announcements' && <Announcements />}
