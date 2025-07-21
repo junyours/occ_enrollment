@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\StudentCredentialsMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -10,6 +11,9 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 use App\Models\SchoolYear;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Redirect;
 
 class SuperAdminController extends Controller
 {
@@ -82,6 +86,71 @@ class SuperAdminController extends Controller
         }
     }
 
+    public function viewResetPassword()
+    {
+        return Inertia::render('SuperAdmin/ResetCredentials');
+    }
+
+    public function searchUser(Request $request)
+    {
+        $request->validate([
+            'user_id_no' => 'required|string',
+        ]);
+
+        $user = User::where('user_id_no', $request->user_id_no)
+            ->with('information:id,user_id,first_name,last_name,middle_name')
+            ->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'user_id_no' => $user->user_id_no,
+                'email' => $user->email,
+                'first_login_at' => $user->first_login_at,
+                'first_name' => $user->information->first_name ?? '',
+                'middle_name' => $user->information->middle_name ?? '',
+                'last_name' => $user->information->last_name ?? '',
+            ]
+        ]);
+    }
+
+    public function resetUserCredentials(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        $password = $this->generateRandomPassword();
+
+        $user = User::findOrFail($request->user_id);
+        $user->password = Hash::make($password);
+        $user->first_login_at = null;
+        $user->password_change = false;
+        $user->save();
+
+        $student = User::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address')
+            ->where('users.id', $user->id)
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->first();
+
+        $studentData = [
+            "first_name" => ucwords(strtolower($student->first_name)),
+            "middle_name" => ucwords(strtolower($student->middle_name)),
+            "last_name" => ucwords(strtolower($student->last_name)),
+            "user_id_no" => $student->user_id_no
+        ];
+
+        if ($request->email_address) {
+            Mail::to($request->email_address)->send(new StudentCredentialsMail($studentData, $password));
+        }
+
+        return Redirect::back()->with('success', 'Credentials successfully reset and emailed.');
+    }
+
     private function getPreparingOrOngoingSchoolYear()
     {
         $today = Carbon::now(); // Get today's date
@@ -124,5 +193,23 @@ class SuperAdminController extends Controller
             'preparation' => $preparation,
             'school_year' => $schoolYear
         ];
+    }
+
+    private function generateRandomPassword()
+    {
+        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        $numbers = '0123456789';
+
+        $password = $uppercase[random_int(0, strlen($uppercase) - 1)] .
+            $lowercase[random_int(0, strlen($lowercase) - 1)] .
+            $numbers[random_int(0, strlen($numbers) - 1)];
+
+        $allCharacters = $uppercase . $lowercase . $numbers;
+        for ($i = 3; $i < 8; $i++) {
+            $password .= $allCharacters[random_int(0, strlen($allCharacters) - 1)];
+        }
+
+        return str_shuffle($password);
     }
 }

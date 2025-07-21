@@ -16,8 +16,7 @@ import {
 
 export default function NavHeader() {
     const [open, setOpen] = useState(false);
-    const { user } = usePage().props.auth;
-    const userRole = user.user_role;
+    const { auth } = usePage().props;
 
     return (
         <header className="border-b sticky top-0 z-50 bg-background shadow-lg">
@@ -41,7 +40,7 @@ export default function NavHeader() {
                         <div className="h-5">
                             <Separator orientation="vertical" />
                         </div>
-                        {user ? (
+                        {auth ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger>
                                     <CircleUser />
@@ -53,12 +52,12 @@ export default function NavHeader() {
                                             "mis",
                                             "super_admin",
                                             "announcement_admin",
-                                        ].includes(userRole) ? (
+                                        ].includes(auth.user.user_role) ? (
                                             <span className="capitalize">
-                                                {userRole}
+                                                {auth.user.user_role}
                                             </span>
                                         ) : (
-                                            `${user.first_name} ${user.last_name}`
+                                                `${auth.user.first_name} ${auth.user.last_name}`
                                         )}
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
