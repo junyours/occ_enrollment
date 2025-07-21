@@ -14,6 +14,7 @@ import {
     RefreshCcw,
     Archive,
     BarChart2,
+    KeyRound,
 } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
@@ -131,7 +132,7 @@ export function NavMain() {
                 items: [
                     { name: "Users", route: "users", icon: UsersIcon },
                     { name: "Maintenance", route: "maintenance-settings", icon: Construction },
-                    { name: "Reset Credentials", route: "reset-credentials", icon: KeyRound},
+                    { name: "Reset Credentials", route: "reset-credentials", icon: KeyRound },
                 ],
             });
             break;
