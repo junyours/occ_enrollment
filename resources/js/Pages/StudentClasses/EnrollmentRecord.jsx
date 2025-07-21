@@ -73,8 +73,30 @@ function EnrollmentRecord() {
                                                     <TableCell>{classInfo.first_name ? formatFullName(classInfo) : '-'}</TableCell>
                                                     <TableCell>{classInfo.subject_code}</TableCell>
                                                     <TableCell>{classInfo.descriptive_title}</TableCell>
-                                                    <TableCell>{classInfo.final_grade ? classInfo.final_grade : '-'}</TableCell>
-                                                    <TableCell>{classInfo.remarks ? classInfo.remarks : '-'}</TableCell>
+                                                    <TableCell>
+                                                        {classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
+                                                            <span className="text-red-500 font-medium">DROPPED</span>
+                                                        ) : classInfo.midterm_grade && classInfo.final_grade ? (
+                                                            ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1)
+                                                        ) : (
+                                                            '-'
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {
+                                                            classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
+                                                                <span className="text-red-500 font-medium">DROPPED</span>
+                                                            ) : classInfo.midterm_grade && classInfo.final_grade ? (
+                                                                ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1) > 3 ? (
+                                                                    <span className="text-red-500 font-medium">FAILED</span>
+                                                                ) : (
+                                                                    <span className="text-green-600 font-medium">PASSED</span>
+                                                                )
+                                                            ) : (
+                                                                '-'
+                                                            )
+                                                        }
+                                                    </TableCell>
                                                 </TableRow>
                                             ))}
                                         </>
@@ -113,14 +135,30 @@ function EnrollmentRecord() {
                                                     <div>
                                                         <span className="">Final Grade:</span>
                                                         <div className="font-semibold">
-                                                            {classInfo.final_grade ? classInfo.final_grade : '-'}
+                                                            {classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
+                                                                <span className="text-red-500 font-medium">DROPPED</span>
+                                                            ) : classInfo.midterm_grade && classInfo.final_grade ? (
+                                                                ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1)
+                                                            ) : (
+                                                                '-'
+                                                            )}
                                                         </div>
                                                     </div>
 
                                                     <div className="col-span-2">
                                                         <span className="">Remarks:</span>
                                                         <div className="">
-                                                            {classInfo.remarks ? classInfo.remarks : '-'}
+                                                            {classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
+                                                                <span className="text-red-500 font-medium">DROPPED</span>
+                                                            ) : classInfo.midterm_grade && classInfo.final_grade ? (
+                                                                ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1) > 3 ? (
+                                                                    <span className="text-red-500 font-medium">FAILED</span>
+                                                                ) : (
+                                                                    <span className="text-green-600 font-medium">PASSED</span>
+                                                                )
+                                                            ) : (
+                                                                '-'
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>

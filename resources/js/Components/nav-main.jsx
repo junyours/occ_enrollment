@@ -11,6 +11,9 @@ import {
     Construction,
     Hourglass,
     FileText,
+    RefreshCcw,
+    Archive,
+    BarChart2,
 } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
@@ -79,11 +82,11 @@ export function NavMain() {
                 {
                     label: "Grades",
                     items: [
-                        { name: "Grades", route: "classes", icon: FileText },
-                        { name: "Change Request", route: "classes", icon: FileText },
-                        { name: "Enrollment Record", route: "classes", icon: FileText },
-                        { name: "Promotional Report", route: "classes", icon: FileText },
-                    ],
+                        { name: "Verified Grades", route: "verified-grades", icon: FileText },
+                        { name: "Change Request", route: "classes", icon: RefreshCcw },
+                        { name: "Enrollment Record", route: "classes", icon: Archive },
+                        { name: "Promotional Report", route: "classes", icon: BarChart2 },
+                    ]
                 },
                 {
                     label: "Others",

@@ -288,7 +288,15 @@ class ClassController extends Controller
     {
         $studentId = Auth::id();
 
-        $data = EnrolledStudent::select('evaluated', 'enrolled_students.id', 'year_level_name', 'section', 'semester_name', 'start_year', 'end_year')
+        $data = EnrolledStudent::select(
+            'evaluated',
+            'enrolled_students.id',
+            'year_level_name',
+            'section',
+            'semester_name',
+            'start_year',
+            'end_year'
+        )
             ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
             ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
             ->join('school_years', 'school_years.id', '=', 'year_section.school_year_id')
@@ -299,18 +307,19 @@ class ClassController extends Controller
                     $query->select(
                         'student_subjects.id',
                         'enrolled_students_id',
-                        'year_section_subjects_id',
                         'first_name',
                         'last_name',
                         'middle_name',
                         'subject_code',
                         'descriptive_title',
                         'midterm_grade',
-                        'midterm_grade',
                         'final_grade',
                         'remarks',
+                        'is_deployed',
+                        'student_subjects.year_section_subjects_id'
                     )
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+                        ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                         ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                         ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
