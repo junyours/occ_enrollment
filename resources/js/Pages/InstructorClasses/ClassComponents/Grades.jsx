@@ -172,7 +172,7 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                 </Card>
                 <div className="flex gap-2">
                     <Button
-                        disabled={gradeStatus.is_submitted}
+                        disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
                         variant="outline"
                         onClick={downloadExcel}
                     >
@@ -180,7 +180,7 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                         Download Template
                     </Button>
                     <Button
-                        disabled={gradeStatus.is_submitted}
+                        disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
                     >

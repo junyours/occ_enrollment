@@ -119,26 +119,15 @@ class ClassController extends Controller
         ]);
 
         foreach ($validated['data'] as $entry) {
-            // Get the enrolled student by id_number
-            $user = User::where('user_id_no', $entry['id_number'])->first();
+            $student = User::where('user_id_no', '=', $entry['id_number'])->first();
 
-            if (!$user)
-                continue; // Skip if not found
-
-            $enrolledStudent = EnrolledStudent::where('student_id', $user->id)->first();
-
-            if (!$enrolledStudent)
-                continue; // Skip if not found
-
-            $studentSubject = StudentSubject::where('enrolled_students_id', $enrolledStudent->id)
-                ->where('year_section_subjects_id', $yearSectionSubjectsId)
-                ->first();
-
-            if ($studentSubject) {
-                $studentSubject->midterm_grade = $entry['midterm_grade'];
-                $studentSubject->final_grade = $entry['final_grade'];
-                $studentSubject->save();
-            }
+            StudentSubject::join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+                ->where('student_id', '=', $student->id)
+                ->where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+                ->update([
+                    'midterm_grade' => $entry['midterm_grade'],
+                    'final_grade' => $entry['final_grade'],
+                ]);
         }
 
         return response()->json(['message' => 'Grades updated successfully.']);
@@ -147,9 +136,9 @@ class ClassController extends Controller
     public function updateStudentMidtermGrade($yearSectionSubjectsId, $studentId, Request $request)
     {
         $student = User::where('user_id_no', '=', $studentId)->first();
-        $enrolledStudent = EnrolledStudent::where('student_id', '=', $student->id)->first();
 
-        StudentSubject::where('enrolled_students_id', '=', $enrolledStudent->id)
+        StudentSubject::join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->where('student_id', '=', $student->id)
             ->where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
                 'midterm_grade' => $request->midterm_grade
@@ -159,9 +148,9 @@ class ClassController extends Controller
     public function updateStudentFinalGrade($yearSectionSubjectsId, $studentId, Request $request)
     {
         $student = User::where('user_id_no', '=', $studentId)->first();
-        $enrolledStudent = EnrolledStudent::where('student_id', '=', $student->id)->first();
 
-        StudentSubject::where('enrolled_students_id', '=', $enrolledStudent->id)
+        StudentSubject::join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->where('student_id', '=', $student->id)
             ->where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
                 'final_grade' => $request->final_grade

@@ -31,7 +31,7 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                 <TableCell>{student.id_number}</TableCell>
                                 <TableCell>{student.name}</TableCell>
                                 <TableCell className="text-center">
-                                    {gradeStatus.is_submitted ? (
+                                    {(gradeStatus.is_submitted || gradeStatus.is_deployed) ? (
                                         <>
                                             {student.midterm_grade}
                                         </>
@@ -63,7 +63,7 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                     )}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    {gradeStatus.is_submitted ? (
+                                    {(gradeStatus.is_submitted || gradeStatus.is_deployed) ? (
                                         <>
                                             {student.final_grade}
                                         </>
