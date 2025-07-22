@@ -7,11 +7,7 @@ const Toaster = ({
   const { theme = "system" } = useTheme()
 
   return (
-<<<<<<< HEAD
     <Sonner
-=======
-    (<Sonner
->>>>>>> 757e3cd5bb546a7f35762f516ccb5a4efeda8765
       theme={theme}
       className="toaster group"
       toastOptions={{
@@ -25,11 +21,7 @@ const Toaster = ({
             "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
         },
       }}
-<<<<<<< HEAD
       {...props} />
-=======
-      {...props} />)
->>>>>>> 757e3cd5bb546a7f35762f516ccb5a4efeda8765
   );
 }
 
