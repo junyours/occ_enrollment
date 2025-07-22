@@ -25,25 +25,22 @@ import {
     MoveRight,
     Trash,
 } from "lucide-react";
-import { useForm, usePage } from "@inertiajs/react";
+import { Head, router, useForm, usePage } from "@inertiajs/react";
 import { Dialog, DialogContent } from "@/Components/ui/dialog";
 import { toast } from "sonner";
-// import {
-//     AlertDialog,
-//     AlertDialogAction,
-//     AlertDialogCancel,
-//     AlertDialogContent,
-//     AlertDialogDescription,
-//     AlertDialogFooter,
-//     AlertDialogHeader,
-//     AlertDialogTitle,
-//     AlertDialogTrigger,
-// } from "@/components/ui/alert-dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/Components/ui/alert-dialog";
 
 function Announcement() {
-    const auth = usePage().props.auth || {};
-    const user = auth.user || null;
-    const userRole = user?.user_role || null;
+    const { auth } = usePage().props;
     const { announcements } = usePage().props;
     const formatDate = (date) =>
         new Date(date).toLocaleDateString("en-US", {
@@ -61,7 +58,8 @@ function Announcement() {
     const [editData, setEditData] = useState(false);
     const [openMore, setOpenMore] = useState(false);
     const [announcement, setAnnouncement] = useState(null);
-    // const [openDelete, setOpenDelete] = useState(false);
+    const [openDelete, setOpenDelete] = useState(false);
+    const [selectedAnnouncementId, setSelectedAnnouncementId] = useState(null);
 
     const handleEdit = (announcement) => {
         if (announcement) {
@@ -89,6 +87,11 @@ function Announcement() {
         setOpen(!open);
     };
 
+    const handleOpenDelete = (id = null) => {
+        setSelectedAnnouncementId(id);
+        setOpenDelete((prev) => !prev);
+    };
+
     const handleReadMore = (announcement) => {
         setAnnouncement(announcement ?? null);
         setOpenMore(!openMore);
@@ -97,6 +100,7 @@ function Announcement() {
     const handleUpload = () => {
         post("/announcement/upload", {
             onSuccess: () => {
+                handleEdit();
                 toast.success("Announcement uploaded successfully.");
             },
             preserveState: true,
@@ -115,21 +119,28 @@ function Announcement() {
         });
     };
 
-    // const handleDelete = () => {
-    //     post("/announcement/delete", {
-    //         onSuccess: () => {
-    //         },
-    //         preserveState: true,
-    //         preserveScroll: true,
-    //     });
-    // };
+    const handleDelete = (id) => {
+        router.post(
+            "/announcement/delete",
+            { id },
+            {
+                onSuccess: () => {
+                    handleEdit();
+                    toast.success("Announcement deleted successfully.");
+                },
+                preserveState: true,
+                preserveScroll: true,
+            }
+        );
+    };
 
     return (
         <>
+            <Head title="Announcement" />
             <div className="flex gap-4 max-sm:flex-col-reverse">
                 <div
                     className={`flex-1 ${
-                        userRole === "announcement_admin"
+                        auth?.user.user_role === "announcement_admin"
                             ? " space-y-4"
                             : "grid md:grid-cols-2 lg:grid-cols-3 gap-4"
                     }`}
@@ -150,7 +161,8 @@ function Announcement() {
                                                 )}
                                             </span>
                                         </div>
-                                        {userRole === "announcement_admin" && (
+                                        {auth?.user.user_role ===
+                                            "announcement_admin" && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
@@ -175,15 +187,17 @@ function Announcement() {
                                                         <FilePenLine />
                                                         Edit
                                                     </DropdownMenuItem>
-                                                    {/* <DropdownMenuItem
+                                                    <DropdownMenuItem
                                                         onClick={() =>
-                                                            setOpenDelete(true)
+                                                            handleOpenDelete(
+                                                                announcement.id
+                                                            )
                                                         }
                                                         className="text-destructive"
                                                     >
                                                         <Trash />
                                                         Delete
-                                                    </DropdownMenuItem> */}
+                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         )}
@@ -228,7 +242,7 @@ function Announcement() {
                         </Card>
                     ))}
                 </div>
-                {userRole === "announcement_admin" && (
+                {auth?.user.user_role === "announcement_admin" && (
                     <div className="flex-1 space-y-4">
                         <div className="relative border rounded-xl h-[250px]">
                             {previewImage && (
@@ -330,7 +344,7 @@ function Announcement() {
                 </DialogContent>
             </Dialog>
 
-            {/* <AlertDialog
+            <AlertDialog
                 open={openDelete}
                 onOpenChange={() => setOpenDelete(false)}
             >
@@ -341,15 +355,21 @@ function Announcement() {
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             This action cannot be undone. This will permanently
-                            delete.
+                            delete the announcement.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction>Continue</AlertDialogAction>
+                        <AlertDialogAction
+                            onClick={() => {
+                                handleDelete(selectedAnnouncementId);
+                            }}
+                        >
+                            Continue
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
-            </AlertDialog> */}
+            </AlertDialog>
         </>
     );
 }

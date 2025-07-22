@@ -1,12 +1,15 @@
-import GuestLayout from '@/Layouts/GuestLayout';
-import React from 'react'
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head } from "@inertiajs/react";
 
 function Welcome() {
     return (
-        <div>Welcome</div>
-    )
+        <div>
+            <Head title="Welcome" />
+            Welcome
+        </div>
+    );
 }
 
-export default Welcome
+export default Welcome;
 
 Welcome.layout = (page) => <GuestLayout>{page}</GuestLayout>;

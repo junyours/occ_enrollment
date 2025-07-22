@@ -177,7 +177,14 @@ class AnnouncementController extends Controller
 
     public function delete(Request $request)
     {
-        Announcement::findOrFail($request->id)
-            ->delete();
+        $accessToken = $this->token();
+
+        $announcement = Announcement::findOrFail($request->id);
+
+        if ($announcement->image_file_id) {
+            Http::withToken($accessToken)->delete("https://www.googleapis.com/drive/v3/files/{$announcement->image_file_id}");
+        }
+
+        $announcement->delete();
     }
 }
