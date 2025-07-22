@@ -16,8 +16,8 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId }) {
                       <TableRow>
                           <TableHead>#</TableHead>
                           <TableHead>SUBJECT</TableHead>
-                          <TableHead>SUBMITTED AT</TableHead>
                           <TableHead>VERIFIED AT</TableHead>
+                          <TableHead>DEPLOYED AT</TableHead>
                           <TableHead>STATUS</TableHead>
                           <TableHead>ACTION</TableHead>
                       </TableRow>
@@ -29,7 +29,7 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId }) {
                               <TableCell>{subject.descriptive_title}</TableCell>
                               <TableCell>
                                   {(() => {
-                                      const [submittedDate, submittedTimeRaw] = subject.submitted_at?.split(' ') || [];
+                                      const [submittedDate, submittedTimeRaw] = subject.verified_at?.split(' ') || [];
                                       const [hour, minute] = submittedTimeRaw?.split(':') || [];
                                       const submittedTime = hour && minute ? `${hour}:${minute}` : '';
                                       return (
@@ -42,7 +42,7 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId }) {
                               </TableCell>
                               <TableCell>
                                   {(() => {
-                                      const [submittedDate, submittedTimeRaw] = subject.verified_at?.split(' ') || [];
+                                      const [submittedDate, submittedTimeRaw] = subject.deployed_at?.split(' ') || [];
                                       const [hour, minute] = submittedTimeRaw?.split(':') || [];
                                       const submittedTime = hour && minute ? `${hour}:${minute}` : '';
                                       return (
