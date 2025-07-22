@@ -7,7 +7,7 @@ import { Check, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { router } from '@inertiajs/react';
 
-function SubjectStudentLIst({ faculty, subject }) {
+function VerifiedSubjectStudentLIst({ faculty, subject }) {
     const [studentList, setStudentList] = useState([]);
     console.log(subject);
 
@@ -122,5 +122,5 @@ function SubjectStudentLIst({ faculty, subject }) {
     )
 }
 
-export default SubjectStudentLIst
-SubjectStudentLIst.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+export default VerifiedSubjectStudentLIst
+VerifiedSubjectStudentLIst.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;

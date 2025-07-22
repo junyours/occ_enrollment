@@ -9,7 +9,6 @@ import { router } from '@inertiajs/react';
 
 function SubjectStudentLIst({ faculty, subject }) {
     const [studentList, setStudentList] = useState([]);
-    console.log(subject);
 
     const selectSubject = async () => {
         await axios.post(route('faculty.subjects.students'), { yearSectionSubjectsId: subject.id })

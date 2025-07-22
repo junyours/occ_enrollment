@@ -131,7 +131,13 @@ class GradeController extends Controller
         $faculty = User::where('user_id_no', '=', $facultyId)
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->select(
-                DB::raw("CONCAT(first_name, ' ', middle_name, ' ', last_name) AS name"),
+                DB::raw(
+                    "CONCAT(
+                    first_name, ' ',
+                    IF(middle_name IS NOT NULL AND middle_name != '', CONCAT(middle_name, ' '), ''),
+                    last_name
+                    ) AS name"
+                )
             )
             ->first();
 
@@ -294,7 +300,13 @@ class GradeController extends Controller
         $faculty = User::where('user_id_no', '=', $facultyId)
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->select(
-                DB::raw("CONCAT(first_name, ' ', middle_name, ' ', last_name) AS name"),
+                DB::raw(
+                    "CONCAT(
+                    first_name, ' ',
+                    IF(middle_name IS NOT NULL AND middle_name != '', CONCAT(middle_name, ' '), ''),
+                    last_name
+                    ) AS name"
+                ),
             )
             ->first();
 
