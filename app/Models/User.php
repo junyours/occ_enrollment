@@ -58,7 +58,6 @@ class User extends Authenticatable
         return $this->hasOne(UserInformation::class, 'user_id');
     }
 
-
     public function InstructorInformation()
     {
         return $this->hasOne(UserInformation::class, 'user_id');
@@ -77,5 +76,10 @@ class User extends Authenticatable
     public function StudentAttendance()
     {
         return $this->hasMany(StudentAttendance::class, 'student_id');
+    }
+
+    public function information()
+    {
+        return $this->hasOne(UserInformation::class, 'user_id');
     }
 }

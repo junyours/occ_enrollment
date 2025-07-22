@@ -5,7 +5,6 @@ import { convertToAMPM } from '@/Lib/Utils';
 import { Eye } from 'lucide-react';
 
 function FacultySubjectListCard({ subjects, schoolYear, facultyId }) {
-    console.log(subjects);
 
     return (
         <Card>
