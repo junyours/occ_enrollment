@@ -16,8 +16,9 @@ import {
 
 export default function NavHeader() {
     const [open, setOpen] = useState(false);
-    const { user } = usePage().props.auth;
-    const userRole = user.user_role;
+    const auth = usePage().props.auth || {};
+    const user = auth.user || null;
+    const userRole = user?.user_role || null;
 
     return (
         <header className="border-b sticky top-0 z-50 bg-background shadow-lg">
