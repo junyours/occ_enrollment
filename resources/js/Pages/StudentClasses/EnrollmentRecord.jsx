@@ -5,8 +5,8 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { Separator } from '@/Components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
-import { Head } from '@inertiajs/react';
+import { convertToAMPM, formatFullName, formatFullNameFML } from '@/Lib/Utils';
+import { Head, usePage } from '@inertiajs/react';
 import html2canvas from 'html2canvas';
 import { Download } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
@@ -15,6 +15,7 @@ function EnrollmentRecord() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [records, setRecords] = useState([]);
+    const { user } = usePage().props.auth;
 
     const getStudentEnrollmentRecord = async () => {
         await axios.post(route('enrollment-record'))
@@ -44,7 +45,7 @@ function EnrollmentRecord() {
             // Small delay to let the UI update and show the spinner
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            const filename = `${record.year_level_name} ${record.start_year}-${record.end_year} ${record.semester_name}.png`;
+            const filename = `${record.year_level_name}_${record.start_year}-${record.end_year}_${record.semester_name}_Semester_${formatFullNameFML(user)}.png`;
             const element = document.getElementById(`${id}-record`);
 
             if (element) {
@@ -76,8 +77,8 @@ function EnrollmentRecord() {
             <PageTitle align='center' className='w-full'>ENROLLMENT RECORD</PageTitle>
             {records.map(record => (
                 <div className='relative' key={record.id} >
-                    <div className="absolute top-0 left-1/4 -translate-x-1/2 z-10">
-                        <Button variant="outline" className='rounded-none' onClick={() => downloadImage(record.id)}>
+                    <div className="absolute top-0 right-0 z-10">
+                        <Button variant="ghost" className='rounded-none text-blue-500 hover:text-blue-500' onClick={() => downloadImage(record.id)}>
                             Download <Download />
                         </Button>
                     </div>
@@ -89,8 +90,11 @@ function EnrollmentRecord() {
                             <CardHeader>
                                 <CardTitle className="text-2xl">
                                     <div className='w-full flex justify-between gap-2'>
-                                        <div>{record.year_level_name}</div>
-                                        <div className="text-lg">{record.start_year}-{record.end_year} {record.semester_name} Semester</div>
+                                        <div className='flex gap-1'>
+                                            <div className='self-start'>{record.year_level_name} |</div>
+                                            <div className='self-end'>{record.start_year}-{record.end_year} {record.semester_name} Semester</div>
+                                        </div>
+                                        <p className='self-end underline'>{formatFullNameFML(user)}</p>
                                     </div>
                                 </CardTitle>
                             </CardHeader>
