@@ -22,7 +22,7 @@ class ChangeSummerStudentPassword extends Seeder
             ->join('course', 'course.id', '=', 'year_section.course_id')
             ->where('department_id', 3)
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
-            ->whereNotNull('users.first_login_at') // Only those who have already logged in
+            ->whereNull('users.first_login_at') // Only those who have already logged in
             ->pluck('users.id');
 
         User::whereIn('id', $userIds)
