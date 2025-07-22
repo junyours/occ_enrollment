@@ -7,7 +7,7 @@ import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "@/Components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/Components/ui/sonner";
 
 const appName = import.meta.env.VITE_APP_NAME || "OCC";
 
