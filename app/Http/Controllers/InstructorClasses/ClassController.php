@@ -166,6 +166,14 @@ class ClassController extends Controller
             ]);
     }
 
+    public function cancelGrade($yearSectionSubjectsId){
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'submitted_at' => null,
+                'is_submitted' => 0,
+            ]);
+    }
+
     public function getFacultyClasses($schoolYearId)
     {
         $facultyId = Auth::user()->id;
