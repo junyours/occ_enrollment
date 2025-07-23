@@ -42,7 +42,7 @@ class DepartmentController extends Controller
             ->orderBy('department.id')
             ->with([
                 'Course' => function ($query) {
-                    $query->select('id', 'department_id', 'course_name', 'course_name_abbreviation');
+                    $query->select('id', 'department_id', 'course_name', 'course_name_abbreviation', 'major');
                 }
             ])
             ->get();
