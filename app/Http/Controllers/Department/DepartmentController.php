@@ -55,8 +55,20 @@ class DepartmentController extends Controller
         Course::create([
             'department_id' => $request->department_id,
             'course_name' => $request->course_name,
+            'major' => $request->major,
             'course_name_abbreviation' => $request->course_name_abbreviation,
         ]);
+    }
+
+    public function editProgram(Request $request)
+    {
+        Course::where('id', '=', $request->id)
+            ->update([
+                'department_id' => $request->department_id,
+                'course_name' => $request->course_name,
+                'major' => $request->major,
+                'course_name_abbreviation' => $request->course_name_abbreviation,
+            ]);
     }
 
     public function addDepartment(Request $request)
@@ -67,7 +79,8 @@ class DepartmentController extends Controller
         ]);
     }
 
-    public function getDepartments() {
+    public function getDepartments()
+    {
         return Department::all();
     }
 }

@@ -9,6 +9,7 @@ Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::post('/department/course', [DepartmentController::class, 'list'])->name('department.course');
 
     Route::post('/department/add-program', [DepartmentController::class, 'addProgram'])->name('department.add.program');
+    Route::post('/department/edit-program', [DepartmentController::class, 'editProgram'])->name('department.edit.program');
     Route::post('/department/add-department', [DepartmentController::class, 'addDepartment'])->name('department.add.department');
 });
 

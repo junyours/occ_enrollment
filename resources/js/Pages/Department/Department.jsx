@@ -1,44 +1,28 @@
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table';
+import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { CirclePlus } from 'lucide-react';
+import { CirclePlus, UserPlus } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import { Pencil } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import { formatFullName } from '@/Lib/Utils';
-import { Label } from '@/Components/ui/label';
-import { Input } from '@/Components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import AddDepartment from './AddDepartment';
+import AddProgram from './AddProgram';
+import AssignDean from './AssignDean';
 
 export default function Department() {
     const [departments, setDepartments] = useState([])
 
-    const { toast } = useToast()
-
     const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
     const [openAddhHead, setOpenAddhHead] = useState(false);
     const [openProgram, setOpenProgram] = useState(false);
+    const [editingProgram, setEditingProgram] = useState(false);
     const [openDepartment, setOpenDepartment] = useState(false);
+    const [program, setProgram] = useState({}); 
 
     const [selectedDepartment, setSelectedDepartment] = useState([])
     const [faculties, setFaculties] = useState([])
-    const [assigningHeadId, setAssigningHeadId] = useState(0)
-
-    const { data: programData, setData: setProgramData, post: programPost, processing: programProcessing, errors: programErrors, setError: setProgramError, reset: programReset, clearErrors: clearProgramErrors, reset: resetProgram } = useForm({
-        department_id: 0,
-        course_name: '',
-        course_name_abbreviation: '',
-    });
-
-    const { data: departmentData, setData: setDepartmentData, post: departmentPost, processing: departmentProcessing, errors: departmentErrors, setError: setDepartmentError, reset: departmentReset, clearErrors: clearDepartmentErrors, reset: resetDepartment } = useForm({
-        department_name: '',
-        department_name_abbreviation: '',
-    });
 
     const getDepartmentsAndPrograms = async () => {
         await axios.post(route('department.course'))
@@ -54,27 +38,6 @@ export default function Department() {
         getDepartmentsAndPrograms()
     }, []);
 
-    const submitDeptHead = async (deptid, facid) => {
-        setSubmitting(true);
-        setAssigningHeadId(facid);
-
-        await axios.post(route('assign.department.head', { deptID: deptid, facID: facid }))
-            .then(response => {
-                if (response.data.message == 'success') {
-                    setOpenAddhHead(false);
-                    getDepartmentsAndPrograms();
-                    toast({
-                        description: "Dean assigned successfully",
-                        variant: "success",
-                    })
-                };
-            })
-            .finally(() => {
-                setSubmitting(false);
-                setAssigningHeadId(0);
-            })
-    }
-
     const getDepartmentFaculties = async (id) => {
         await axios.post(route('department.faculties', { id: id }))
             .then(response => {
@@ -82,246 +45,141 @@ export default function Department() {
             })
     }
 
-    const handleProgramChange = (e) => {
-        const { name, value } = e.target;
-        if (value.trim() === '') {
-            setProgramError(name, 'Required');
-        } else {
-            clearProgramErrors(name);
-        }
-        setProgramData(name, value);
-    };
-
-    const checkProgramErrors = () => {
-        clearProgramErrors();
-
-        let errors = {};
-
-        if (programData.course_name == '') errors.course_name = "Required";
-        if (programData.course_name_abbreviation == '') errors.course_name_abbreviation = "Required";
-
-        if (Object.keys(errors).length > 0) {
-            setProgramError(errors);
-            return true;
-        }
-        return;
-    }
-
-    const submitProgram = async () => {
-        if (checkProgramErrors()) return;
-        await programPost(route('department.add.program', programData), {
-            onSuccess: () => {
-                resetProgram()
-                getDepartmentsAndPrograms()
-                toast({
-                    description: "Program added successfuly",
-                    variant: "success",
-                })
-                setOpenProgram(false);
-            },
-            preserveScroll: true,
-        });
-    };
-
-    const handleDepartmentChange = (e) => {
-        const { name, value } = e.target;
-        if (value.trim() === '') {
-            setDepartmentError(name, 'Required');
-        } else {
-            clearDepartmentErrors(name);
-        }
-        setDepartmentData(name, value);
-    };
-
-    const checkDepartmentErrors = () => {
-        clearDepartmentErrors();
-
-        let errors = {};
-
-        if (departmentData.department_name == '') errors.department_name = "Required";
-        if (departmentData.department_name_abbreviation == '') errors.department_name_abbreviation = "Required";
-
-        if (Object.keys(errors).length > 0) {
-            setDepartmentError(errors);
-            return true;
-        }
-        return;
-    }
-
-    const submitDepartment = async () => {
-        if (checkDepartmentErrors()) return;
-        await departmentPost(route('department.add.department', programData), {
-            onSuccess: () => {
-                resetProgram()
-                getDepartmentsAndPrograms()
-                toast({
-                    description: "Department added successfuly",
-                    variant: "success",
-                })
-                setOpenDepartment(false);
-            },
-            preserveScroll: true,
-        });
-    }
 
     if (loading) return <PreLoader title="Department" />
 
     return (
-        <div className='space-y-4'>
-            <Head title='Department' />
-            {departments.map((dept) => (
-                <Card key={dept.id}>
-                    <CardHeader>
-                        <CardTitle>{dept.department_name} - {dept.department_name_abbreviation}</CardTitle>
-                        <CardDescription
-                            className='flex gap-2'>
-                            Head: {dept.full_name || 'none'}
-                            <Pencil onClick={() => {
-                                setOpenAddhHead(true);
-                                if (selectedDepartment.id == dept.id && faculties.length > !0) return
-                                setFaculties([]);
-                                getDepartmentFaculties(dept.id);
-                                setSelectedDepartment(dept);
-                            }}
-                                className='cursor-pointer text-green-500'
-                                size={15} />
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableBody>
+        <div className="space-y-8">
+            <Head title="Department Overview" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {departments.map((dept) => (
+                    <Card key={dept.id} className="rounded-2xl border shadow-sm">
+                        <CardHeader className="pb-2 border-b">
+                            <div className="flex items-start justify-between flex-wrap gap-2">
+                                <div>
+                                    <h2 className="text-lg font-bold leading-tight">
+                                        {dept.department_name}
+                                    </h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        ({dept.department_name_abbreviation})
+                                    </p>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setOpenAddhHead(true);
+                                        if (selectedDepartment.id === dept.id && faculties.length > 0) return;
+                                        setFaculties([]);
+                                        getDepartmentFaculties(dept.id);
+                                        setSelectedDepartment(dept);
+                                    }}
+                                    title="Assign Department Head"
+                                    aria-label="Assign Head"
+                                >
+                                    <UserPlus className="mr-1 w-4 h-4" />
+                                    Assign Head
+                                </Button>
+                            </div>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4 pt-6">
+                            <div className="text-sm">
+                                <span className="text-muted-foreground">Head:</span>{" "}
+                                <span className="font-medium">{dept.full_name || "Unassigned"}</span>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                                    Programs Offered:
+                                </h3>
                                 {dept.course.length > 0 ? (
-                                    dept.course.map((course) => (
-                                        <TableRow key={course.id}>
-                                            <TableCell>
-                                                {course.course_name} - {course.course_name_abbreviation}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
+                                    <div className="flex flex-wrap gap-2">
+                                        {dept.course.map((course) => (
+                                            <div className='flex gap-2 w-full'>
+                                                <div
+                                                    key={course.id}
+                                                    className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md bg-muted/60 text-sm hover:bg-muted transition w-full"
+                                                >
+                                                    <span>{course.course_name}</span>
+                                                </div>
+                                                <div className='flex items-center'>
+                                                    <Pencil
+                                                        onClick={() => {
+                                                            setProgram(course);
+                                                            setEditingProgram(true);
+                                                            setOpenProgram(true);
+                                                            setSelectedDepartment(dept);
+                                                        }}
+                                                        size={14}
+                                                        className="text-green-600 cursor-pointer hover:scale-105 transition"
+                                                        title="Edit Program"
+                                                        aria-label="Edit Program"
+                                                    />
+                                                </div>
+                                            </div >
+                                        ))}
+                                    </div>
                                 ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={1} className="text-center text-gray-500">
-                                            No programs available.
-                                        </TableCell>
-                                    </TableRow>
+                                    <p className="text-muted-foreground text-sm italic border border-dashed rounded-md px-4 py-2 bg-muted/30">
+                                        No programs available for this department.
+                                    </p>
                                 )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                    <CardFooter>
-                        <Button
-                            onClick={() => {
-                                setOpenProgram(true)
-                                setSelectedDepartment(dept)
-                                setProgramData('department_id', dept.id)
-                            }}
-                            variant="secondary"
-                        >
-                            Add program
-                        </Button>
-                    </CardFooter>
-                </Card>
-            ))}
+                            </div>
+                        </CardContent>
 
-            <Button
-                onClick={() => setOpenDepartment(true)}
-            >
-                Add Department
-                <CirclePlus
-                    size={15}
-                />
-            </Button>
+                        <CardFooter className="flex justify-end pt-3 border-t">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                    setOpenProgram(true);
+                                    setSelectedDepartment(dept);
+                                }}
+                            >
+                                <CirclePlus className="mr-1 h-4 w-4" />
+                                Add Program
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                ))}
+            </div>
 
-            <Dialog open={openAddhHead} onOpenChange={setOpenAddhHead}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Assign Dean</DialogTitle>
-                        <DialogDescription>
-                            {selectedDepartment.department_name} - {selectedDepartment.department_name_abbreviation}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="mb-6 h-64 max-h-64 overflow-y-auto">
-                        <Table>
-                            <TableBody>
-                                {faculties.map((fac) => (
-                                    <TableRow key={fac.id}>
-                                        <TableCell>
-                                            {formatFullName(fac)}
-                                        </TableCell>
-                                        <TableCell className='text-right'>
-                                            <Button
-                                                disabled={fac.user_role == 'program_head' || fac.user_role == 'registrar' || submitting}
-                                                className='py-1 h-max disabled:cursor-not-allowed'
-                                                onClick={() => { submitDeptHead(selectedDepartment.id, fac.id) }}
-                                            >
-                                                {fac.id == assigningHeadId ? 'Assigning' : 'Assign'}
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <div className="flex justify-end">
+                <Button onClick={() => setOpenDepartment(true)} size="lg">
+                    <CirclePlus className="mr-2 h-5 w-5" />
+                    Add Department
+                </Button>
+            </div>
 
-            <Dialog open={openProgram} onOpenChange={setOpenProgram}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Add Program</DialogTitle>
-                        <DialogDescription>
-                            {selectedDepartment.department_name} - {selectedDepartment.department_name_abbreviation}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="max-h-64">
-                        <Label>Name:</Label>
-                        <Input
-                            name="course_name"
-                            value={programData.course_name}
-                            onChange={handleProgramChange}
-                            className={`mb-2 ${programErrors.course_name && 'border-red-500'}`}
-                        />
-                        <Label>Abbreviation:</Label>
-                        <Input
-                            name="course_name_abbreviation"
-                            value={programData.course_name_abbreviation}
-                            onChange={handleProgramChange}
-                            className={`mb-2 ${programErrors.course_name_abbreviation && 'border-red-500'}`}
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button disabled={programProcessing} onClick={submitProgram} type="submit">Save changes</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Modals */}
+            <AssignDean
+                open={openAddhHead}
+                setOpen={setOpenAddhHead}
+                department={selectedDepartment}
+                faculties={faculties}
+                getDepartmentsAndPrograms={getDepartmentsAndPrograms}
+            />
 
-            <Dialog open={openDepartment} onOpenChange={setOpenDepartment}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Add Department</DialogTitle>
-                    </DialogHeader>
-                    <div className="max-h-64">
-                        <Label>Name:</Label>
-                        <Input
-                            name="department_name"
-                            value={departmentData.department_name}
-                            onChange={handleDepartmentChange}
-                            className={`mb-2 ${departmentErrors.department_name && 'border-red-500'}`}
-                        />
-                        <Label>Abbreviation:</Label>
-                        <Input
-                            name="department_name_abbreviation"
-                            value={departmentData.department_name_abbreviation}
-                            onChange={handleDepartmentChange}
-                            className={`mb-2 ${departmentErrors.department_name_abbreviation && 'border-red-500'}`}
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button disabled={departmentProcessing} onClick={submitDepartment} type="submit">Save changes</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <AddProgram
+                open={openProgram}
+                setOpen={setOpenProgram}
+                department={selectedDepartment}
+                setDepartment={setSelectedDepartment}
+                getDepartmentsAndPrograms={getDepartmentsAndPrograms}
+                editing={editingProgram}
+                setEditing={setEditingProgram}
+                program={program}
+            />
+
+            <AddDepartment
+                open={openDepartment}
+                setOpen={setOpenDepartment}
+                getDepartmentsAndPrograms={getDepartmentsAndPrograms}
+            />
         </div>
+
     )
 }
 
