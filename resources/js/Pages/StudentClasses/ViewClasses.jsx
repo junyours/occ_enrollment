@@ -139,7 +139,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                             </TableRow>
                                         ) : (
                                             <>
-                                                {classes.map((classInfo, index) => (
+                                                {classes.map((classInfo) => (
                                                     <React.Fragment key={classInfo.id}>
                                                         <TableRow>
                                                             <TableCell>{classInfo.descriptive_title}</TableCell>

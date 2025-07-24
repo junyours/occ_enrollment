@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
@@ -29,5 +30,5 @@ Route::post('/mobile/login', function (Request $request) {
 });
 
 Route::get('/users', function () {
-    return User::get();
+    return response()->json(['message' => 'Welcome'], 200);
 });
