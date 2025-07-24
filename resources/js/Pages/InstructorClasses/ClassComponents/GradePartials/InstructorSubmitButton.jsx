@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button'
 import { convertToAMPM } from '@/Lib/Utils'
 import { Clock, Loader2, Send } from "lucide-react"
 
-export default function InstructorSubmitButton({ gradeSubmission, onSubmit }) {
+export default function InstructorSubmitButton({ gradeSubmission, onSubmit, cancel }) {
     const {
         submitted_at,
         is_submitted,
@@ -34,6 +34,20 @@ export default function InstructorSubmitButton({ gradeSubmission, onSubmit }) {
                         </span>
                     </div>
                     <span className="pl-6 text-sm italic text-yellow-700">Awaiting approval</span>
+                    <Button
+                        onClick={async () => {
+                            setLoading(true)
+                            try {
+                                await cancel()
+                            } finally {
+                                setLoading(false)
+                            }
+                        }}
+                        variant='destructive'
+                        disabled={loading}
+                    >
+                        Cancel
+                    </Button>
                 </div>
             </div>
         )

@@ -217,6 +217,17 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                             }
                         )
                     }}
+                    cancel={async () => {
+                        router.post(
+                            route('grade-submission.cancel', yearSectionSubjectsId),
+                            {},
+                            {
+                                preserveScroll: true,
+                                onSuccess: () => toast.success('Submitted successfully'),
+                                onError: () => toast.error('Failed to submit'),
+                            }
+                        )
+                    }}
                 />
             </div>
         </div>

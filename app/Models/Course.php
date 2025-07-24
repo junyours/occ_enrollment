@@ -13,6 +13,7 @@ class Course extends Model
     protected $fillable = [
         'department_id',
         'course_name',
+        'major',
         'course_name_abbreviation',
     ];
     protected $hidden = [

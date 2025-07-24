@@ -196,7 +196,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
     return (
         <div className="container">
             <Head title="Sections" />
-            <PageTitle className="mb-4" align="center">{course.course_name}</PageTitle>
+            <PageTitle className="mb-4" align="center"> {course.course_name} {course.major && ` MAJOR IN ${course.major}`}</PageTitle>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {yearLevels && yearLevels.length > 0 ? (
