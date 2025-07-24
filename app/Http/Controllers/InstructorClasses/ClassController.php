@@ -323,6 +323,7 @@ class ClassController extends Controller
                         ->get();
                 }
             ])
+            ->orderBy('id', 'DESC')
             ->get();
 
         if (!$data) {

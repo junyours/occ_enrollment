@@ -8,7 +8,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { convertToAMPM, formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Head, usePage } from '@inertiajs/react';
 import html2canvas from 'html2canvas';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 
 function EnrollmentRecord() {
@@ -38,11 +38,14 @@ function EnrollmentRecord() {
         getStudentEnrollmentRecord();
     }, []);
 
+    const [downloadingId, setDownloadingId] = useState(null);
+
     const downloadImage = async (id) => {
+        setDownloadingId(id); // Start loading
+
         const record = records.find(record => record.id == id);
 
         try {
-            // Small delay to let the UI update and show the spinner
             await new Promise(resolve => setTimeout(resolve, 100));
 
             const filename = `${record.year_level_name}_${record.start_year}-${record.end_year}_${record.semester_name}_Semester_${formatFullNameFML(user)}.png`;
@@ -66,8 +69,11 @@ function EnrollmentRecord() {
             }
         } catch (error) {
             console.error('Error downloading image:', error);
+        } finally {
+            setDownloadingId(null); // Done loading
         }
     };
+
 
     if (loading) return <PreLoader title="Enrollment Record" />;
 
@@ -76,17 +82,34 @@ function EnrollmentRecord() {
             <Head title="Enrollment Record" />
             <PageTitle align='center' className='w-full'>ENROLLMENT RECORD</PageTitle>
             {records.map(record => (
-                <div className='relative' key={record.id} >
+                <div className='relative mb-4' key={record.id} >
                     <div className="absolute top-0 right-0 z-10">
-                        <Button variant="ghost" className='rounded-none text-blue-500 hover:text-blue-500' onClick={() => downloadImage(record.id)}>
-                            Download <Download />
-                        </Button>
+                        <div className="absolute top-0 right-0 z-10">
+                            <Button
+                                variant="ghost"
+                                className='rounded-none text-blue-500 hover:text-blue-500'
+                                onClick={() => downloadImage(record.id)}
+                                disabled={downloadingId === record.id}
+                            >
+                                {downloadingId === record.id ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Downloading...
+                                    </>
+                                ) : (
+                                    <>
+                                        Download <Download className="ml-1" />
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+
                     </div>
                     <div className='max-w-[calc(100vw-2rem)] min-w-[calc(100vw-2rem)]
                                     sm:w-auto sm:min-w-0 sm:max-w-none
-                                    overflow-x-auto sm:p-0 h-[400px] sm:h-auto'
+                                    overflow-x-auto sm:p-0 h-min sm:h-auto'
                     >
-                        <Card id={`${record.id}-record`} className="mx-2 md:mx-0  w-[1000px]">
+                        <Card id={`${record.id}-record`} className="md:mx-0  w-[1100px]">
                             <CardHeader>
                                 <CardTitle className="text-2xl">
                                     <div className='w-full flex justify-between gap-2'>
@@ -104,11 +127,11 @@ function EnrollmentRecord() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Instructor</TableHead>
-                                                <TableHead>Subject Code</TableHead>
+                                                <TableHead className='w-48'>Instructor</TableHead>
+                                                <TableHead className='w-32'>Subject Code</TableHead>
                                                 <TableHead>Descriptive Title</TableHead>
-                                                <TableHead>Final Grade</TableHead>
-                                                <TableHead>Remarks</TableHead>
+                                                <TableHead className='w-24'>Final Grade</TableHead>
+                                                <TableHead className='w-24'>Remarks</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -153,71 +176,6 @@ function EnrollmentRecord() {
                                             )}
                                         </TableBody>
                                     </Table>
-                                </div>
-
-                                {/* Mobile Card View */}
-                                <div className="hidden">
-                                    {error ? (
-                                        <div className="p-4 text-center text-red-600">
-                                            <FaExclamationTriangle className="mx-auto mb-2" size={24} />
-                                            <p>{error}</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3 p-4">
-                                            {record.subjects.map((classInfo, index) => (
-                                                <React.Fragment key={classInfo.id}>
-                                                    <div className="space-y-2">
-                                                        <div className="font-semibold text-lg leading-tight">
-                                                            {classInfo.descriptive_title}
-                                                        </div>
-                                                        <div className="text-sm font-medium text-gray-600">
-                                                            {classInfo.subject_code}
-                                                        </div>
-
-                                                        <div className="grid grid-cols-2 gap-3 text-sm">
-                                                            <div>
-                                                                <span className="">Instructor:</span>
-                                                                <div className="">
-                                                                    {classInfo.first_name ? formatFullName(classInfo) : '-'}
-                                                                </div>
-                                                            </div>
-
-                                                            <div>
-                                                                <span className="">Final Grade:</span>
-                                                                <div className="font-semibold">
-                                                                    {classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
-                                                                        <span className="text-red-500 font-medium">DROPPED</span>
-                                                                    ) : classInfo.midterm_grade && classInfo.final_grade ? (
-                                                                        ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1)
-                                                                    ) : (
-                                                                        '-'
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="col-span-2">
-                                                                <span className="">Remarks:</span>
-                                                                <div className="">
-                                                                    {classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
-                                                                        <span className="text-red-500 font-medium">DROPPED</span>
-                                                                    ) : classInfo.midterm_grade && classInfo.final_grade ? (
-                                                                        ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1) > 3 ? (
-                                                                            <span className="text-red-500 font-medium">FAILED</span>
-                                                                        ) : (
-                                                                            <span className="text-green-600 font-medium">PASSED</span>
-                                                                        )
-                                                                    ) : (
-                                                                        '-'
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {index < record.subjects.length - 1 && <Separator className="my-4" />}
-                                                </React.Fragment>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             </CardContent>
                         </Card>
