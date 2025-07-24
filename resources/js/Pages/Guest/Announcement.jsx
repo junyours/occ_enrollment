@@ -332,13 +332,11 @@ function Announcement() {
                         </div>
                         <FroalaEditorView model={announcement?.content_body} />
                         {announcement?.image_file_id && (
-                            <div className="h-[250px]">
-                                <img
-                                    src={`https://lh3.googleusercontent.com/d/${announcement?.image_file_id}`}
-                                    alt={announcement?.image_file_id}
-                                    className="object-contain size-full"
-                                />
-                            </div>
+                            <img
+                                src={`https://lh3.googleusercontent.com/d/${announcement?.image_file_id}`}
+                                alt={announcement?.image_file_id}
+                                className="object-contain size-full"
+                            />
                         )}
                     </div>
                 </DialogContent>
