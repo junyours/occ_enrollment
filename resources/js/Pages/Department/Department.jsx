@@ -19,7 +19,7 @@ export default function Department() {
     const [openProgram, setOpenProgram] = useState(false);
     const [editingProgram, setEditingProgram] = useState(false);
     const [openDepartment, setOpenDepartment] = useState(false);
-    const [program, setProgram] = useState({}); 
+    const [program, setProgram] = useState({});
 
     const [selectedDepartment, setSelectedDepartment] = useState([])
     const [faculties, setFaculties] = useState([])
@@ -102,7 +102,7 @@ export default function Department() {
                                                     key={course.id}
                                                     className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md bg-muted/60 text-sm hover:bg-muted transition w-full"
                                                 >
-                                                    <span>{course.course_name}</span>
+                                                    <span>{course.course_name} {course.major && ` MAJOR IN ${course.major}`}</span>
                                                 </div>
                                                 <div className='flex items-center'>
                                                     <Pencil

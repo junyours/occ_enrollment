@@ -47,6 +47,7 @@ export default function CoursesCurriculumLists() {
         school_year_start: '',
         school_year_end: '',
         course_name: '',
+        major: '',
         course_name_abb: ''
     });
 
@@ -67,10 +68,11 @@ export default function CoursesCurriculumLists() {
         getCurrs();
     }, []);
 
-    const openActiveCurriculum = async (courseId, course_name, course_name_abb) => {
+    const openActiveCurriculum = async (courseId, course_name, major, course_name_abb) => {
         serSelectedCourse({
             courseId: courseId,
             course_name: course_name,
+            major: major,
             course_name_abb: course_name_abb
         })
         setGettingSchoolYear(true)
@@ -86,12 +88,13 @@ export default function CoursesCurriculumLists() {
             })
     }
 
-    const openAddCurriculum = async (courseId, course_name, course_name_abb) => {
+    const openAddCurriculum = async (courseId, course_name, major, course_name_abb) => {
         const currentYear = new Date().getFullYear();
         const nextYear = currentYear + 1;
 
         setData('course_id', courseId);
         setData('course_name', course_name);
+        setData('major', major);
         setData('course_name_abb', course_name_abb);
         setData('school_year_start', currentYear);
         setData('school_year_end', nextYear);
@@ -129,7 +132,7 @@ export default function CoursesCurriculumLists() {
                     {coursesCurriculums.map((course) => (
                         <Card key={course.id}>
                             <CardHeader className="mb-2">
-                                <CardTitle>{course.course_name} ({course.course_name_abbreviation})</CardTitle>
+                                <CardTitle>{course.course_name} {course.major && ` MAJOR IN ${course.major}`} ({course.course_name_abbreviation})</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-60 overflow-y-auto">
@@ -174,14 +177,14 @@ export default function CoursesCurriculumLists() {
                                     <Button
                                         variant="default"
                                         size="sm"
-                                        onClick={() => openAddCurriculum(course.id, course.course_name, course.course_name_abbreviation)}>
+                                        onClick={() => openAddCurriculum(course.id, course.course_name, course.major, course.course_name_abbreviation)}>
                                         Add Curriculum
                                         <SquarePlus className="w-5 h-5" />
                                     </Button>
                                     <Button
                                         variant="secondary"
                                         size="sm"
-                                        onClick={() => openActiveCurriculum(course.id, course.course_name, course.course_name_abbreviation)}>
+                                        onClick={() => openActiveCurriculum(course.id, course.course_name, course.major, course.course_name_abbreviation)}>
                                         Active Curriculum
                                         <Eye className="w-5 h-5" />
                                     </Button>
@@ -197,7 +200,7 @@ export default function CoursesCurriculumLists() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Active Curriculum</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {selectedCourse.course_name} ({selectedCourse.course_name_abb})
+                            {selectedCourse.course_name} {selectedCourse.major && ` MAJOR IN ${selectedCourse.major}`} ({selectedCourse.course_name_abb})
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     {gettingSchoolYear ? (
@@ -238,7 +241,7 @@ export default function CoursesCurriculumLists() {
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>Curriculum School Year</DialogTitle>
-                        <DialogDescription>{data.course_name} ({data.course_name_abb})</DialogDescription>
+                        <DialogDescription>{data.course_name} {data.major && ` MAJOR IN ${data.major}`} ({data.course_name_abb})</DialogDescription>
                     </DialogHeader>
                     <div className="flex items-center gap-2">
                         <Button
