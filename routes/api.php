@@ -28,7 +28,3 @@ Route::post('/mobile/login', function (Request $request) {
         'user' => $user,
     ]);
 });
-
-Route::get('/users', function () {
-    return response()->json(['message' => 'Welcome'], 200);
-});
