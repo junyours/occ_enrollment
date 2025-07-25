@@ -111,11 +111,14 @@ function SubjectStudentLIst({ faculty, subject }) {
                         <span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-blue-600 rounded-md">
                             Verified <CheckCircle className="h-4 w-4" />
                         </span>
-                    ) : subject.is_denied ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-600 rounded-md">
+                    ) : subject.is_rejected ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-600 rounded-md">
                         Denied <XCircle className="w-4 h-4" />
                     </span>
                     ) : subject.is_submitted ? (
-                        <Button onClick={verify} className='w-28'>Verify</Button>
+                        <>
+                            <Button onClick={verify} className='w-28'>Deny</Button>
+                            <Button onClick={verify} className='w-28'>Verify</Button>
+                        </>
                     ) : (
                         ''
                     )

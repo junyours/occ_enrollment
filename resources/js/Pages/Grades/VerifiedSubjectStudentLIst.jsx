@@ -110,7 +110,7 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                     </span>
                     ) : subject.is_verified ? (
                         <Button onClick={deploy} className='w-28'>Deploy</Button>
-                    ) : subject.is_denied ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-600 rounded-md">
+                    ) : subject.is_rejected ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-600 rounded-md">
                         Denied <XCircle className="w-4 h-4" />
                     </span>
                     ) : (

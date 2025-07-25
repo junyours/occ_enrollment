@@ -31,8 +31,8 @@ return new class extends Migration
             $table->dateTime('verified_at')->nullable();
 
             // Denial
-            $table->boolean('is_denied')->default(false);
-            $table->text('denial_message')->nullable();
+            $table->boolean('is_rejected')->default(false);
+            $table->text('rejection_message')->nullable();
 
             // Deployment
             $table->dateTime('deployed_at')->nullable();

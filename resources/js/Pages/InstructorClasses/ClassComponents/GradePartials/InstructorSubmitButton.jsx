@@ -9,12 +9,12 @@ export default function InstructorSubmitButton({ gradeSubmission, onSubmit, canc
         is_submitted,
         is_verified,
         is_deployed,
-        is_denied,
+        is_rejected,
     } = gradeSubmission ?? {}
 
     const [loading, setLoading] = useState(false)
 
-    const canSubmit = !is_submitted || is_denied
+    const canSubmit = !is_submitted || is_rejected
     const disabled = is_deployed || is_verified || loading
 
     // When submitted but pending approval

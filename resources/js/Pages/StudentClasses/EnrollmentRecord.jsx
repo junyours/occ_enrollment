@@ -109,7 +109,7 @@ function EnrollmentRecord() {
                                     sm:w-auto sm:min-w-0 sm:max-w-none
                                     overflow-x-auto sm:p-0 h-min sm:h-auto'
                     >
-                        <Card id={`${record.id}-record`} className="md:mx-0  w-[1100px]">
+                        <Card id={`${record.id}-record`} className="md:mx-0  w-[1150px]">
                             <CardHeader>
                                 <CardTitle className="text-2xl">
                                     <div className='w-full flex justify-between gap-2'>

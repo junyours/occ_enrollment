@@ -48,7 +48,7 @@ class GradeController extends Controller
         ) AS name"),
                 DB::raw('COUNT(CASE WHEN grade_submissions.is_submitted = 1
                             AND (grade_submissions.is_verified IS NULL OR grade_submissions.is_verified = 0)
-                            AND (grade_submissions.is_denied IS NULL OR grade_submissions.is_denied = 0)
+                            AND (grade_submissions.is_rejected IS NULL OR grade_submissions.is_rejected = 0)
                             AND (grade_submissions.is_deployed IS NULL OR grade_submissions.is_deployed = 0)
                        THEN 1 END) AS submitted_count')
             )
@@ -98,7 +98,7 @@ class GradeController extends Controller
             )
             ->first();
 
-        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_denied', 'is_deployed', 'deployed_at')
+        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed', 'deployed_at')
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
             )
@@ -120,7 +120,7 @@ class GradeController extends Controller
 
     public function viewSubjectStudents($schoolYear, $semester, $facultyId, $yearSectionSubjectsId)
     {
-        $subject = YearSectionSubjects::select('course_name_abbreviation', 'section', 'year_level_id', 'year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_denied', 'is_deployed', 'deployed_at')
+        $subject = YearSectionSubjects::select('course_name_abbreviation', 'section', 'year_level_id', 'year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed', 'deployed_at')
             ->whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$yearSectionSubjectsId])
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
@@ -219,7 +219,7 @@ class GradeController extends Controller
     ) AS name"),
             DB::raw('COUNT(CASE
         WHEN grade_submissions.is_verified = 1
-             AND (grade_submissions.is_denied IS NULL OR grade_submissions.is_denied = 0)
+             AND (grade_submissions.is_rejected IS NULL OR grade_submissions.is_rejected = 0)
              AND (grade_submissions.is_deployed IS NULL OR grade_submissions.is_deployed = 0)
         THEN 1 END) AS verified_count')
         )
@@ -269,7 +269,7 @@ class GradeController extends Controller
             )
             ->first();
 
-        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_denied', 'is_deployed', 'deployed_at')
+        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed', 'deployed_at')
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
             )
@@ -289,7 +289,7 @@ class GradeController extends Controller
 
     public function viewVerifiedSubjectStudents($schoolYear, $semester, $facultyId, $yearSectionSubjectsId)
     {
-        $subject = YearSectionSubjects::select('course_name_abbreviation', 'section', 'year_level_id', 'year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_denied', 'is_deployed')
+        $subject = YearSectionSubjects::select('course_name_abbreviation', 'section', 'year_level_id', 'year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed')
             ->whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$yearSectionSubjectsId])
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')

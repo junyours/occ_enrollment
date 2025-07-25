@@ -59,7 +59,7 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId }) {
                                           <span className="px-2 py-1 text-sm font-medium text-white bg-green-600 rounded">Deployed</span>
                                       ) : subject.is_verified ? (
                                           <span className="px-2 py-1 text-sm font-medium text-white bg-blue-600 rounded">Ready to Deploy</span>
-                                      ) : subject.is_denied ? (
+                                      ) : subject.is_rejected ? (
                                           <span className="px-2 py-1 text-sm font-medium text-white bg-red-600 rounded">Denied</span>
                                       ) : subject.is_submitted ? (
                                           <span className="px-2 py-1 text-sm font-medium text-white rounded">Submitted</span>

@@ -17,8 +17,8 @@ class GradeSubmission extends Model // ✅ Singular class name
         'is_submitted',
         'is_verified',
         'verified_at',
-        'is_denied',
-        'denial_message',
+        'is_rejected',
+        'rejection_message',
         'deployed_at',
         'is_deployed',
     ];
