@@ -88,6 +88,10 @@ function MobileViewClasses({ classes }) {
                                             <MapPin className="w-4 h-4" />
                                             <span>{classInfo.secondary_schedule.room_name || '-'}</span>
                                         </div>
+                                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                            <User className="w-4 h-4" />
+                                            <span>{classInfo.first_name ? formatFullName(classInfo) : '-'}</span>
+                                        </div>
                                     </div>
                                 </CardContent>
                                 {/* <CardFooter className="pt-0">
