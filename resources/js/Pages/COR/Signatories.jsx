@@ -47,8 +47,17 @@ function Signatories() {
                         The subjects reflected herein are evaluated and validated in conformity with the prescribed
                         curriculum of the program currently enrolled.
                     </p>
+
+                    {/* Date */}
+                    <p className="text-xs mb-1">{new Date().toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric'
+                    })}</p>
+
+                    {/* Signatory line */}
                     <div className="border-b-2 border-black mx-4">
-                        {/* <h3 className="font-semibold text-md">WENIE ROSE ONNAY, EdD</h3> */}
+                        {/* <h3 className="font-semibold text-md">dean name</h3> */}
                     </div>
                     <p className="text-xs italic">Dean / Program Head</p>
                 </div>
