@@ -213,7 +213,17 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                             {
                                 preserveScroll: true,
                                 onSuccess: () => toast.success('Submitted successfully'),
-                                onError: () => toast.error('Failed to submit'),
+                                onError: (errors) => {
+                                    if (errors && errors.grades) {
+                                        toast({
+                                            title: "Submission failed",
+                                            description: errors.grades,
+                                            variant: "destructive",
+                                        })
+                                    } else {
+                                        toast.error('Failed to submit')
+                                    }
+                                },
                             }
                         )
                     }}

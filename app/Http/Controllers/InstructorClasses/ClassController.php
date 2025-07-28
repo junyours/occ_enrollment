@@ -159,6 +159,18 @@ class ClassController extends Controller
 
     public function submitGrade($yearSectionSubjectsId)
     {
+        $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
+            ->where(function ($query) {
+                $query->whereNull('midterm_grade')
+                    ->orWhereNull('final_grade');
+            })->first();
+
+        if ($noGrades) {
+            return back()->withErrors([
+                'grades' => 'Some students have missing grades.',
+            ]);
+        }
+
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
                 'submitted_at' => now(),
@@ -166,7 +178,8 @@ class ClassController extends Controller
             ]);
     }
 
-    public function cancelGrade($yearSectionSubjectsId){
+    public function cancelGrade($yearSectionSubjectsId)
+    {
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
                 'submitted_at' => null,
