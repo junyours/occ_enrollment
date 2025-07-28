@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Enrollment;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnrollmentStatus;
 use App\Models\Course;
 use App\Models\CurriculumTerm;
 use App\Models\CurriculumTermSubject;
@@ -661,6 +662,24 @@ class EnrollmentCourseSectionController extends Controller
 
     public function enrollStudent($studID, $yearSectionID, $typeID, $startDate, Request $request)
     {
+        $yearSection = YearSection::find($yearSectionID);
+
+        if (!$yearSection) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Year section not found.'
+            ], 404);
+        }
+
+        $enrolledCount = EnrolledStudent::where('year_section_id', $yearSectionID)->count();
+
+        if ($enrolledCount >= $yearSection->max_students) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maximum number of students has been reached for this section.',
+            ], 400);
+        }
+
         $studentInfo = UserInformation::select('first_name', 'middle_name', 'last_name')
             ->where('user_id', '=', $studID)
             ->first();
@@ -702,7 +721,7 @@ class EnrollmentCourseSectionController extends Controller
         $studIdNo = User::where('id', '=', $studID)->first()->user_id_no;
 
         return response()->json([
-            'message' => 'success',
+            'success' => true,
             'redirect' => "/enrollment/{$course->hashed_course_id}/students/{$yearLevel}/cor?id-no={$studIdNo}&section=" . urlencode($yearSection->section),
         ]);
     }

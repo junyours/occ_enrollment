@@ -253,26 +253,44 @@ export default function EnrollStudent() {
             classID: classID
         })
             .then(response => {
-                if (response.data.message === 'success') {
+                if (response.data.success) {
+                    const data = response.data;
+                    if (data.success) {
+                        toast({
+                            description: "Student enrolled successfully",
+                            variant: "success",
+                        });
+
+                        // Reset UI
+                        setClasses(defaultClasses);
+                        setstudentType('');
+                        setStudentInfo([]);
+                        setStudentID('');
+
+                        // Redirect to COR
+                        window.location.href = data.redirect;
+                    } else {
+                        toast({
+                            description: data.message || "Enrollment failed.",
+                            variant: "destructive",
+                        });
+                    }
+                } else if (!response.data.success) {
                     toast({
-                        description: "Student enrolled successfully",
-                        variant: "success",
+                        description: response.data.message,
+                        variant: "destructive",
                     });
-
-                    // Do local UI resets
-                    setClasses(defaultClasses);
-                    setstudentType('');
-                    setStudentInfo([]);
-                    setStudentID('');
-
-                    // 🚀 Now redirect to the COR page
-                    window.location.href = response.data.redirect;
                 }
+            })
+            .catch(error => {
+                toast({
+                    description: error.response?.data?.message || "An unexpected error occurred.",
+                    variant: "destructive",
+                });
             })
             .finally(() => {
                 setSubmitting(false);
             });
-
     }
 
     if (loading) return <PreLoader title="Enroll" />
