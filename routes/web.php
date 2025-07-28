@@ -12,6 +12,8 @@ Route::get('/', [HomeController::class, 'index']);
 
 Route::middleware(['auth', 'maintenance', 'EnrollmentPrepOngoing', 'program_head'])->group(function () {
     Route::post('api/add/new/section/{schoolYearId}', [EnrollmentCourseSectionController::class, 'addNewSection'])->name('add.new.section');
+    Route::post('api/edit/section', [EnrollmentCourseSectionController::class, 'editSection'])->name('edit.section');
+    Route::post('api/delete/section/{id}', [EnrollmentCourseSectionController::class, 'deleteSection'])->name('delete.section');
 
     Route::get('/enrollment/{id}/class/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewClass'])->name('enrollment.view.class');
     Route::post('/api/enrollment/update-main-class', [EnrollmentClassSchedulingController::class, 'enrollmentUpdateMainClass'])->name('enrollment.update.main.class');

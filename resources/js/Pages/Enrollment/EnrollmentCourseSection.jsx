@@ -35,9 +35,9 @@ import axios from "axios";
 import PreLoader from "@/Components/preloader/PreLoader";
 import { Separator } from "@/Components/ui/separator"
 import { PageTitle } from "@/Components/ui/PageTitle";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/Components/ui/tooltip";
-import { Download } from "lucide-react";
+import { Download, Ellipsis, Pencil, Trash } from "lucide-react";
 import EnhancedDownloadDialog from "./EnhancedDownloadDialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover";
 
 export default function EnrollmentCourseSection({ courseId, error, course, schoolYearId, forSchoolYear = false, semester, schoolYear }) {
     const user = usePage().props.auth.user;
@@ -48,16 +48,17 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
     const { toast } = useToast()
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    const [editing, setEditing] = useState(false);
+
     const [isDownloading, setIsDownloading] = useState(false);
 
     const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
+        id: 0,
         course_id: courseId,
         year_level_id: 0,
         section: "",
         max_students: 50
     });
-
-    // const [processing, setProcessing] = useState(false);
 
     const yearLevel =
         data.year_level_id === 1 ? 'First year' :
@@ -83,11 +84,28 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
 
     const maxStudentsOnChange = (e) => {
         const { name, value } = e.target;
+        if (!value) {
+            setError('max_students', { error: true })
+        } else {
+            clearErrors();
+        }
 
         // Allow only numbers
         if (!/^\d*$/.test(value)) return;
 
         setData("max_students", value);
+        clearErrors(name)
+    };
+
+    const sectionOnChange = (e) => {
+        const { name, value } = e.target;
+        if (!value) {
+            setError('section', { error: true })
+        } else {
+            clearErrors();
+        }
+
+        setData("section", value);
         clearErrors(name)
     };
 
@@ -107,6 +125,51 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                 setIsDialogOpen(false);
                 toast({
                     description: "Section added successfully.",
+                    variant: "success",
+                });
+                getEnrollmentCourseSection();
+            },
+            onError: (errors) => {
+                if (errors.curriculum_id) {
+                    toast({
+                        description: errors.curriculum_id,
+                        variant: "destructive",
+                    });
+                }
+            },
+            preserveScroll: true,
+        });
+    };
+
+    const submitEdit = (e) => {
+        post(route('edit.section'), {
+            onSuccess: () => {
+                reset();
+                toast({
+                    description: "Section edited successfully.",
+                    variant: "success",
+                });
+                getEnrollmentCourseSection();
+                reset();
+                setEditing(false);
+            },
+            onError: (errors) => {
+                if (errors.curriculum_id) {
+                    toast({
+                        description: errors.curriculum_id,
+                        variant: "destructive",
+                    });
+                }
+            },
+            preserveScroll: true,
+        });
+    };
+
+    const deleteSection = (id) => {
+        post(route('delete.section', { id: id }), {
+            onSuccess: () => {
+                toast({
+                    description: "Section deleted successfully.",
                     variant: "success",
                 });
                 getEnrollmentCourseSection();
@@ -229,89 +292,146 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                                     <TableBody>
                                         {yearLevel.year_section.map((section, index) => (
                                             <TableRow key={index}>
-                                                <TableCell className="font-medium">{section.section}</TableCell>
-                                                <TableCell
-                                                    className={`p-2 ${section.student_count > section.max_students
-                                                        ? "text-red-600 font-bold" // Overload
-                                                        : section.student_count === section.max_students
-                                                            ? "text-green-600 font-bold" // Complete
-                                                            : section.student_count + 5 >= section.max_students
-                                                            && "text-orange-400 font-bold" // Almost complete (87.5% or higher)
-                                                        }`}
-                                                >
-                                                    {section.student_count}/{section.max_students}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    {(user.user_role == "registrar" || user.user_role == "program_head") && (
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    disabled={!section.student_count}
-                                                                    variant="icon"
-                                                                    className={`py-0 h-min ${section.student_count ? 'text-yellow-500' : ''}`}
-                                                                    onClick={() => handleDownload(section.year_level_id, section.section)}
-                                                                >
-                                                                    <Download className="h-4 w-4" />
+                                                {(editing && data.id == section.id) ? (
+                                                    <>
+                                                        <TableCell>
+                                                            <Input
+                                                                onChange={sectionOnChange}
+                                                                className={`${errors.section && "border-red-500"} w-14`}
+                                                                value={data.section}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Input
+                                                                value={data.max_students}
+                                                                onChange={maxStudentsOnChange}
+                                                                className={`${errors.max_students && "border-red-500"} w-14`}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="w-full flex gap-2 justify-end">
+                                                                <Button variant='outline' onClick={() => {
+                                                                    setEditing(false);
+                                                                    reset();
+                                                                    clearErrors();
+                                                                }}>
+                                                                    Cancel
                                                                 </Button>
-                                                            </TooltipTrigger>
-                                                            {section.student_count ? (
-                                                                <TooltipContent>Download Students</TooltipContent>
-                                                            ) : (
-                                                                <></>
+                                                                <Button onClick={submitEdit} disabled={!data.section || !data.max_students}>Done</Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <TableCell className="font-medium">{section.section}</TableCell>
+                                                        <TableCell
+                                                            className={`p-2 ${section.student_count > section.max_students
+                                                                ? "text-red-600 font-bold" // Overload
+                                                                : section.student_count === section.max_students
+                                                                    ? "text-green-600 font-bold" // Complete
+                                                                    : section.student_count + 5 >= section.max_students
+                                                                    && "text-orange-400 font-bold" // Almost complete (87.5% or higher)
+                                                                }`}
+                                                        >
+                                                            {section.student_count}/{section.max_students}
+                                                        </TableCell>
+                                                        <TableCell className="text-right">
+                                                            {user.user_role == "program_head" && (
+                                                                <>
+                                                                    {forSchoolYear ? (
+                                                                        <Link href={route('school-year.view.class', {
+                                                                            schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
+                                                                            semester: semester,
+                                                                            hashedCourseId: courseId,
+                                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                                        }) + `?section=${section.section}`}>
+                                                                            <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
+                                                                        </Link>
+                                                                    ) : (
+                                                                        <Link href={route('enrollment.view.class', {
+                                                                            id: courseId,
+                                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                                        }) + `?section=${section.section}`}>
+                                                                            <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
+                                                                        </Link>
+                                                                    )}
+
+                                                                </>
                                                             )}
-                                                        </Tooltip>
-                                                    )}
-                                                    {user.user_role == "program_head" && (
-                                                        <>
+
                                                             {forSchoolYear ? (
-                                                                <Link href={route('school-year.view.class', {
+                                                                <Link href={route('school-year.view.students', {
                                                                     schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
                                                                     semester: semester,
                                                                     hashedCourseId: courseId,
                                                                     yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                                                 }) + `?section=${section.section}`}>
-                                                                    <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
+                                                                    <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
                                                                 </Link>
                                                             ) : (
-                                                                <Link href={route('enrollment.view.class', {
+                                                                <Link href={route('enrollment.view.students', {
                                                                     id: courseId,
                                                                     yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                                                 }) + `?section=${section.section}`}>
-                                                                    <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
+                                                                    <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
                                                                 </Link>
                                                             )}
 
-                                                        </>
-                                                    )}
+                                                            {!forSchoolYear && (
+                                                                <Link href={route('enrollment.view.enroll-student', {
+                                                                    id: courseId,
+                                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                                }) + `?section=${section.section}`}>
+                                                                    <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
+                                                                </Link>
+                                                            )}
 
-                                                    {forSchoolYear ? (
-                                                        <Link href={route('school-year.view.students', {
-                                                            schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
-                                                            semester: semester,
-                                                            hashedCourseId: courseId,
-                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                        }) + `?section=${section.section}`}>
-                                                            <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
-                                                        </Link>
-                                                    ) : (
-                                                        <Link href={route('enrollment.view.students', {
-                                                            id: courseId,
-                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                        }) + `?section=${section.section}`}>
-                                                            <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
-                                                        </Link>
-                                                    )}
-
-
-                                                    {!forSchoolYear && (
-                                                        <Link href={route('enrollment.view.enroll-student', {
-                                                            id: courseId,
-                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                        }) + `?section=${section.section}`}>
-                                                            <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
-                                                        </Link>
-                                                    )}
-                                                </TableCell>
+                                                            {(user.user_role == "registrar" || user.user_role == "program_head") && (
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button variant='ghost' className=''>
+                                                                            <Ellipsis />
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent align='start' className="w-36 space-y-2 flex flex-col">
+                                                                        <Button
+                                                                            disabled={!section.student_count}
+                                                                            onClick={() => handleDownload(section.year_level_id, section.section)}
+                                                                            variant='outline'
+                                                                            className='flex justify-start'>
+                                                                            Students <Download className="text-orange-500" />
+                                                                        </Button>
+                                                                        {user.user_role == "program_head" && (
+                                                                            <>
+                                                                                <Button
+                                                                                    variant='outline'
+                                                                                    className='flex justify-start'
+                                                                                    onClick={() => {
+                                                                                        setEditing(true)
+                                                                                        setData('id', section.id)
+                                                                                        setData('year_level_id', section.year_level_id)
+                                                                                        setData('section', section.section)
+                                                                                        setData('max_students', section.max_students)
+                                                                                    }}
+                                                                                >
+                                                                                    Edit <Pencil className="text-green-500" />
+                                                                                </Button>
+                                                                                <Button
+                                                                                    disabled={!!section.student_count}
+                                                                                    variant='outline'
+                                                                                    className='flex justify-start'
+                                                                                    onClick={() => deleteSection(section.id)}
+                                                                                >
+                                                                                    Delete <Trash className="text-red-500" />
+                                                                                </Button>
+                                                                            </>
+                                                                        )}
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            )}
+                                                        </TableCell>
+                                                    </>
+                                                )}
                                             </TableRow>
                                         ))}
 
@@ -329,6 +449,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                     <p className="text-gray-500">No year levels found.</p>
                 )}
             </div>
+
 
             {/* Dialog Component (Outside of the Map Loop) */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

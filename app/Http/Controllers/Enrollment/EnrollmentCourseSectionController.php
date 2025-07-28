@@ -124,6 +124,20 @@ class EnrollmentCourseSectionController extends Controller
         }
     }
 
+    public function editSection(Request $request)
+    {
+        YearSection::where('id', '=', $request->id)
+            ->update([
+                'section' => $request->section,
+                'max_students' => $request->max_students,
+            ]);
+    }
+
+    public function deleteSection($id)
+    {
+        YearSection::where('id', '=', $id)->delete();
+    }
+
     public function getEnrollmentCourseSections($hashedCourseId, $schoolYearId)
     {
         $course = DB::table('course')
