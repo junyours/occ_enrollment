@@ -180,6 +180,25 @@ class GradeController extends Controller
             ]);
     }
 
+    public function rejectGrades($yearSectionSubjectsId, Request $request)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'is_rejected' => 1,
+                'rejection_message' => $request->message,
+            ]);
+    }
+
+
+    public function cancelVerifyGrade($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'verified_at' => null,
+                'is_verified' => 0,
+            ]);
+    }
+
     public function instructorListSubmittion()
     {
         $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
@@ -289,7 +308,20 @@ class GradeController extends Controller
 
     public function viewVerifiedSubjectStudents($schoolYear, $semester, $facultyId, $yearSectionSubjectsId)
     {
-        $subject = YearSectionSubjects::select('course_name_abbreviation', 'section', 'year_level_id', 'year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed')
+        $subject = YearSectionSubjects::select(
+            'course_name_abbreviation',
+            'section',
+            'year_level_id',
+            'year_section_subjects.id',
+            'descriptive_title',
+            'submitted_at',
+            'verified_at',
+            'is_submitted',
+            'is_verified',
+            'is_rejected',
+            'is_deployed',
+            'deployed_at'
+        )
             ->whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$yearSectionSubjectsId])
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')

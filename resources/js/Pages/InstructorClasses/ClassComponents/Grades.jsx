@@ -7,7 +7,7 @@ import InstructorSubmitButton from './GradePartials/InstructorSubmitButton'
 import GradesStudentList from './GradePartials/GradesStudentList'
 import { useToast } from "@/hooks/use-toast";
 import { router } from '@inertiajs/react'
-import { Card, CardContent } from '@/Components/ui/card'
+import GradeSubmissionStatus from './GradePartials/GradeSubmissionStatus'
 
 function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSectionSubjectsId, gradeStatus, getClassStudents }) {
 
@@ -146,7 +146,7 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
         timeoutRefs.current[key] = setTimeout(() => {
             const routeName =
                 field === 'midterm_grade'
-                    ? 'student.mideterm.grade'
+                    ? 'student.midterm.grade'
                     : 'student.final.grade'
 
             axios
@@ -165,12 +165,9 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
     return (
         <div className="p-4 overflow-auto space-y-4">
             <div className="flex justify-between items-center mb-4">
-                <Card>
-                    <CardContent className='py-2 px-4'>
-                        <h2 className="text-lg font-semibold m-0">Student Grades</h2>
-                    </CardContent>
-                </Card>
-                <div className="flex gap-2">
+                <GradeSubmissionStatus gradeStatus={gradeStatus} />
+
+                <div className="flex gap-2 self-end">
                     <Button
                         disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
                         variant="outline"
@@ -201,7 +198,6 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
             </div>
             <GradesStudentList grades={grades} gradeStatus={gradeStatus} missingFields={missingFields} handleGradeChange={handleGradeChange} setMissingFields={setMissingFields} />
             <div className='w-full flex items-end justify-end'>
-
                 <InstructorSubmitButton
                     gradeSubmission={gradeStatus}
                     onSubmit={async () => {
@@ -233,14 +229,17 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                             {},
                             {
                                 preserveScroll: true,
-                                onSuccess: () => toast.success('Submitted successfully'),
-                                onError: () => toast.error('Failed to submit'),
+                                onSuccess: () => {
+                                    toast.success('Submission canceled');
+                                },
+                                onError: () => toast.error('Failed to cancel'),
                             }
                         )
                     }}
+
                 />
             </div>
-        </div>
+        </div >
     )
 }
 

@@ -10,6 +10,8 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::get('/submitted-grades/{schoolYear}/{semester}/{facultyId}/{yearSectionSubjectsId}', [GradeController::class, 'viewSubjectStudents'])->name('faculty.subject.students');
     Route::post('/submitted-grades/subject-students', [GradeController::class, 'viewFacultySubjectStudents'])->name('faculty.subjects.students');
     Route::post('/submitted-grades/verify/{yearSectionSubjectsId}', [GradeController::class, 'verifyGrades'])->name('verify.grades');
+    Route::post('/submitted-grades/reject/{yearSectionSubjectsId}', [GradeController::class, 'rejectGrades'])->name('reject.grades');
+    Route::post('/verify-student-grades/cancel/{yearSectionSubjectsId}', [GradeController::class, 'cancelVerifyGrade'])->name('grade-verification.cancel');
 });
 
 Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {

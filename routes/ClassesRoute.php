@@ -11,7 +11,7 @@ Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function 
     Route::post('/classes/classroom/{id}/students', [ClassController::class, 'getStudents'])->name('class.students');
 
     Route::post('/upload-student-grades/{yearSectionSubjectsId}', [ClassController::class, 'updateStudentsGrades'])->name('upload.students.grades');
-    Route::patch('/student-grade/midterm/{yearSectionSubjectsId}/{studentId}', [ClassController::class, 'updateStudentMidtermGrade'])->name('student.mideterm.grade');
+    Route::patch('/student-grade/midterm/{yearSectionSubjectsId}/{studentId}', [ClassController::class, 'updateStudentMidtermGrade'])->name('student.midterm.grade');
     Route::patch('/student-grade/final/{yearSectionSubjectsId}/{studentId}', [ClassController::class, 'updateStudentFinalGrade'])->name('student.final.grade');
     Route::post('/submit-student-grades/{yearSectionSubjectsId}', [ClassController::class, 'submitGrade'])->name('grade-submission.submit');
     Route::post('/submit-student-grades/cancel/{yearSectionSubjectsId}', [ClassController::class, 'cancelGrade'])->name('grade-submission.cancel');

@@ -1,20 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { formatFullName } from '@/Lib/Utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Check, CheckCircle, XCircle } from 'lucide-react';
+import { Check, CheckCircle, Clock, SendHorizonal, XCircle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { router } from '@inertiajs/react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import GradeSubmissionStatus from '../InstructorClasses/ClassComponents/GradePartials/GradeSubmissionStatus';
 
 function SubjectStudentLIst({ faculty, subject }) {
     const [studentList, setStudentList] = useState([]);
+    const [rejectionMessage, setRejectionMessage] = useState('');
 
     const selectSubject = async () => {
         await axios.post(route('faculty.subjects.students'), { yearSectionSubjectsId: subject.id })
             .then(response => {
                 setStudentList(response.data);
-                console.log(response.data);
             })
     }
 
@@ -33,19 +37,44 @@ function SubjectStudentLIst({ faculty, subject }) {
         )
     }
 
+    const cancel = async () => {
+        router.post(
+            route('grade-verification.cancel', { yearSectionSubjectsId: subject.id }),
+            {},
+            {
+                preserveScroll: true,
+            }
+        )
+    }
+
+    const handleReject = () => {
+        router.post(
+            route('reject.grades', { yearSectionSubjectsId: subject.id }), { message: rejectionMessage },
+            {},
+            {
+                preserveScroll: true,
+            }
+        )
+    }
+
+    const [loading, setLoading] = useState(false)
+
     return (
         <div className='space-y-4'>
-            <div className='flex gap-2'>
-                <Card className='w-max'>
-                    <CardContent className='px-4 py-2'>
-                        <h1>{faculty.name.toUpperCase()}</h1>
-                    </CardContent>
-                </Card>
-                <Card className='w-max'>
-                    <CardContent className='px-4 py-2'>
-                        <h1>{subject.course_name_abbreviation}-{subject.year_level_id}{subject.section}</h1>
-                    </CardContent>
-                </Card>
+            <div className='flex justify-between'>
+                <div className='flex gap-2 h-min self-end'>
+                    <Card className='w-max'>
+                        <CardContent className='px-4 py-2'>
+                            <h1>{faculty.name.toUpperCase()}</h1>
+                        </CardContent>
+                    </Card>
+                    <Card className='w-max'>
+                        <CardContent className='px-4 py-2'>
+                            <h1>{subject.course_name_abbreviation}-{subject.year_level_id}{subject.section}</h1>
+                        </CardContent>
+                    </Card>
+                </div>
+                <GradeSubmissionStatus className='w-max' gradeStatus={subject} />
             </div>
             <Card>
                 <CardHeader>
@@ -108,17 +137,57 @@ function SubjectStudentLIst({ faculty, subject }) {
                         Deployed <Check className="w-4 h-4" />
                     </span>
                     ) : subject.is_verified ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-blue-600 rounded-md">
-                            Verified <CheckCircle className="h-4 w-4" />
-                        </span>
+                        <div className="w-full flex items-end justify-end">
+                            <div className="flex flex-col gap-1 text-sm bg-blue-600 border border-blue-300 rounded-xl px-4 py-3 shadow-md max-w-md w-fit">
+                                <div className="flex items-center gap-2">
+                                    <Clock className="w-4 h-4" />
+                                    <span>
+                                        Verified on <span className="font-semibold">{subject.verified_at}</span> at{' '}
+                                        <span className="font-semibold">{convertToAMPM(subject)}</span>
+                                    </span>
+                                </div>
+                                <span className="pl-6 text-sm italic">Awaiting deployment</span>
+                                <Button
+                                    onClick={async () => {
+                                        setLoading(true)
+                                        try {
+                                            await cancel()
+                                        } finally {
+                                            setLoading(false)
+                                        }
+                                    }}
+                                    variant='destructive'
+                                    disabled={loading}
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
                     ) : subject.is_rejected ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-600 rounded-md">
-                        Denied <XCircle className="w-4 h-4" />
+                        Rejected <XCircle className="w-4 h-4" />
                     </span>
                     ) : subject.is_submitted ? (
-                        <>
-                            <Button onClick={verify} className='w-28'>Deny</Button>
+                        <div className='flex gap-2'>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="destructive" className="w-28">Reject</Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-64 space-y-2">
+                                    <Label htmlFor="rejection-message">Message <span className='text-xs italic'>(not required)</span></Label>
+                                    <Input
+                                        id="rejection-message"
+                                        value={rejectionMessage}
+                                        onChange={(e) => setRejectionMessage(e.target.value)}
+                                        className="w-full"
+                                        placeholder="Enter reason for rejection"
+                                    />
+                                    <Button onClick={handleReject}>
+                                        Send <SendHorizonal className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </PopoverContent>
+                            </Popover>
                             <Button onClick={verify} className='w-28'>Verify</Button>
-                        </>
+                        </div>
                     ) : (
                         ''
                     )

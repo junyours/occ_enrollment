@@ -175,6 +175,8 @@ class ClassController extends Controller
             ->update([
                 'submitted_at' => now(),
                 'is_submitted' => 1,
+                'is_rejected' => 0,
+                'rejection_message' => null,
             ]);
     }
 

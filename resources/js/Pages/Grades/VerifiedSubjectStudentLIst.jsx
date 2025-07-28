@@ -6,16 +6,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Check, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { router } from '@inertiajs/react';
+import GradeSubmissionStatus from '../InstructorClasses/ClassComponents/GradePartials/GradeSubmissionStatus';
 
 function VerifiedSubjectStudentLIst({ faculty, subject }) {
     const [studentList, setStudentList] = useState([]);
-    console.log(subject);
 
     const selectSubject = async () => {
         await axios.post(route('faculty.verified.subjects.students'), { yearSectionSubjectsId: subject.id })
             .then(response => {
                 setStudentList(response.data);
-                console.log(response.data);
             })
     }
 
@@ -36,17 +35,20 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
 
     return (
         <div className='space-y-4'>
-            <div className='flex gap-2'>
-                <Card className='w-max'>
-                    <CardContent className='px-4 py-2'>
-                        <h1>{faculty.name.toUpperCase()}</h1>
-                    </CardContent>
-                </Card>
-                <Card className='w-max'>
-                    <CardContent className='px-4 py-2'>
-                        <h1>{subject.course_name_abbreviation}-{subject.year_level_id}{subject.section}</h1>
-                    </CardContent>
-                </Card>
+            <div className='flex justify-between'>
+                <div className='flex gap-2 h-min self-end'>
+                    <Card className='w-max'>
+                        <CardContent className='px-4 py-2'>
+                            <h1>{faculty.name.toUpperCase()}</h1>
+                        </CardContent>
+                    </Card>
+                    <Card className='w-max'>
+                        <CardContent className='px-4 py-2'>
+                            <h1>{subject.course_name_abbreviation}-{subject.year_level_id}{subject.section}</h1>
+                        </CardContent>
+                    </Card>
+                </div>
+                <GradeSubmissionStatus gradeStatus={subject} />
             </div>
             <Card>
                 <CardHeader>
@@ -104,19 +106,11 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
             </Card>
 
             <div className='w-full flex justify-end'>
-                {
-                    subject.is_deployed ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-green-600 rounded-md">
-                        Deployed <Check className="w-4 h-4" />
-                    </span>
-                    ) : subject.is_verified ? (
-                        <Button onClick={deploy} className='w-28'>Deploy</Button>
-                    ) : subject.is_rejected ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-600 rounded-md">
-                        Denied <XCircle className="w-4 h-4" />
-                    </span>
-                    ) : (
-                        ''
-                    )
-                }
+                {!subject.is_deployed && !subject.is_rejected && subject.is_verified ? (
+                    <Button onClick={deploy} className='w-28'>Deploy</Button>
+                ) : (
+                    <></>
+                )}
             </div>
         </div>
     )
