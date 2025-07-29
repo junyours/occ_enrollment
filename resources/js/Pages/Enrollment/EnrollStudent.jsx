@@ -11,7 +11,7 @@ import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import TimeTable from '../ScheduleFormats/TimeTable';
-import { CircleMinus, CirclePlus, ListRestart, TriangleAlert } from 'lucide-react';
+import { CircleMinus, CirclePlus, ListRestart, Loader2, Search, TriangleAlert, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/Components/ui/button';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
@@ -149,8 +149,11 @@ export default function EnrollStudent() {
             })
     }
 
+    const [searchInput, setSearchInput] = useState('');
+
     const handleSubjectCodehange = (e) => {
         const value = e.target.value;
+        setSearchInput(value)
 
         if (value.includes(' ')) return;
         setSubjectCode(value);
@@ -173,18 +176,21 @@ export default function EnrollStudent() {
         if (!subjectCode) return
 
         setGettingCLasses(true)
+
         axios.post(route('subject.classes', { schoolYearId: schoolYear.id, subjectCode: value }))
             .then(response => {
-                setSearchedClasses(response.data)
-            })
-            .finally(() => {
-                setGettingCLasses(false)
+                setSearchedClasses(response.data);
             })
             .catch(error => {
-                if (error.response.data.message == 'no classes found') {
+                if (error.response?.data?.message === 'no classes found') {
                     setSearchedClasses([]);
                 }
             })
+            .finally(() => {
+                setTimeout(() => {
+                    setGettingCLasses(false);
+                }, 500);
+            });
     }
 
     const removeSubject = (id) => {
@@ -462,16 +468,44 @@ export default function EnrollStudent() {
                 </CardHeader>
                 <CardContent>
                     <Label>Subject code</Label>
-                    <Input
-                        value={subjectCode}
-                        className='w-40'
-                        onChange={handleSubjectCodehange}
-                    />
+                    <div className='flex gap-2'>
+                        <Input
+                            value={subjectCode}
+                            className='w-40'
+                            onChange={handleSubjectCodehange}
+                        />
+                        <Button
+                            type="Subject code"
+                            onClick={() => searchSubjectClasses(searchInput)}
+                            disabled={gettingCLasses}
+                        >
+                            <Search />
+                        </Button>
+                    </div>
                     <Table className='mt-2'>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Course & Section</TableHead>
+                                <TableHead>Subject code</TableHead>
+                                <TableHead>Descriptive title</TableHead>
+                                <TableHead>Students</TableHead>
+                                <TableHead>Day</TableHead>
+                                <TableHead>Time</TableHead>
+                                <TableHead>Units</TableHead>
+                            </TableRow>
+                        </TableHeader>
                         <TableBody>
                             {gettingCLasses ? (
                                 <TableRow>
-                                    <TableCell className="text-center border-y">searching...</TableCell>
+                                    <TableCell
+                                        colSpan={8}
+                                        className="text-center border-y py-6 animate-pulse text-muted-foreground"
+                                    >
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span className="font-medium">Searching for classes...</span>
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
                             ) : (
                                 <>
@@ -489,10 +523,13 @@ export default function EnrollStudent() {
 
                                             return (
                                                 <TableRow key={classInfo.id} className={`${conflict && !exist ? 'bg-red-500 hover:bg-red-500' : ''}`}> {/* always good to add a unique key */}
-                                                    <TableCell className='w-28'>{classInfo.class_code}</TableCell>
+                                                    <TableCell className='w-36'>{classInfo.class_code}</TableCell>
                                                     <TableCell className='w-28'>{classInfo.subject_code}</TableCell>
                                                     <TableCell className='truncate max-w-48 overflow-hidden whitespace-nowrap'>
                                                         {classInfo.descriptive_title}
+                                                    </TableCell>
+                                                    <TableCell className='flex gap-1 items-center'>
+                                                        <Users size={14} /> {classInfo.student_count}
                                                     </TableCell>
                                                     <TableCell className="w-36">
                                                         <div className='flex flex-col'>
@@ -515,7 +552,7 @@ export default function EnrollStudent() {
                                                             </span>
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell className='w-8'>{classInfo.credit_units}</TableCell>
+                                                    <TableCell className='w-8 text-center'>{classInfo.credit_units}</TableCell>
                                                     <TableCell className="w-8">
                                                         <div className='flex justify-center'>
                                                             {conflict ? (

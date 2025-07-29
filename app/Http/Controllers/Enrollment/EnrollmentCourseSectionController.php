@@ -504,12 +504,22 @@ class EnrollmentCourseSectionController extends Controller
             'schoolYearId' => 'required|integer',
         ]);
 
-        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'class_code', 'subject_code', 'descriptive_title', 'day', 'start_time', 'end_time', 'credit_units')
+        $subjects = YearSectionSubjects::select(
+            'year_section_subjects.id',
+            'class_code',
+            'subject_code',
+            'descriptive_title',
+            'day',
+            'start_time',
+            'end_time',
+            'credit_units'
+        )
             ->where('subject_code', $request->subjectCode)
             ->where('school_year_id', $request->schoolYearId)
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
             ->with('SecondarySchedule')
+            ->withCount('SubjectEnrolledStudents as student_count')
             ->get();
 
         if ($subjects->isEmpty()) {
