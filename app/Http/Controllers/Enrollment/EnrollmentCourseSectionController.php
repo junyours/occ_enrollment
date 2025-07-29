@@ -22,6 +22,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use function Symfony\Component\Clock\now;
@@ -847,6 +848,9 @@ class EnrollmentCourseSectionController extends Controller
 
     public function downloadSectionStudents($schoolYearId, $courseId, $yearlevel, $section)
     {
+        $user = Auth::user();
+        $userRole = $user->user_role;
+
         $course = DB::table('course')
             ->where(DB::raw('MD5(id)'), '=', $courseId)
             ->first();
@@ -874,19 +878,24 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->setCellValue('B1', 'Last Name');
         $sheet->setCellValue('C1', 'First Name');
         $sheet->setCellValue('D1', 'Middle Name');
-        $sheet->setCellValue('E1', 'Lec Hours');
-        $sheet->setCellValue('F1', 'Lab Hours');
-        $sheet->setCellValue('G1', 'Tuition Fee');
+
+        if ($userRole == 'registrar') {
+            $sheet->setCellValue('E1', 'Lec Hours');
+            $sheet->setCellValue('F1', 'Lab Hours');
+            $sheet->setCellValue('G1', 'Tuition Fee');
+        }
 
         $sheet->getColumnDimension('A')->setWidth(20); // ID Number
         $sheet->getColumnDimension('B')->setWidth(25); // Last Name
         $sheet->getColumnDimension('C')->setWidth(25); // First Name
         $sheet->getColumnDimension('D')->setWidth(25); // Middle Name
-        $sheet->getColumnDimension('E')->setWidth(10); // Middle Name
-        $sheet->getColumnDimension('F')->setWidth(10); // Middle Name
-        $sheet->getColumnDimension('G')->setWidth(20); // Middle Name
-        $sheet->getStyle('G')->getNumberFormat()->setFormatCode('#,##0.00');
 
+        if ($userRole == 'registrar') {
+            $sheet->getColumnDimension('E')->setWidth(10); // Lec Hours
+            $sheet->getColumnDimension('F')->setWidth(10); // Lab Hours
+            $sheet->getColumnDimension('G')->setWidth(20); // Tuition Fee
+            $sheet->getStyle('G')->getNumberFormat()->setFormatCode('#,##0.00');
+        }
 
         // Data
         $row = 2;
@@ -906,10 +915,12 @@ class EnrollmentCourseSectionController extends Controller
             $sheet->setCellValue("B$row", $student->last_name);
             $sheet->setCellValue("C$row", $student->first_name);
             $sheet->setCellValue("D$row", $student->middle_name);
-            $sheet->setCellValue("E$row", $totalLecture == 0 ? '' : $totalLecture);
-            $sheet->setCellValue("F$row", $totalLab == 0 ? '' : $totalLab);
-            $formatted = number_format(($totalLecture + $totalLab) * 150, 2);
-            $sheet->setCellValueExplicit("G$row", $formatted, DataType::TYPE_STRING);
+            if ($userRole == 'registrar') {
+                $sheet->setCellValue("E$row", $totalLecture == 0 ? '' : $totalLecture);
+                $sheet->setCellValue("F$row", $totalLab == 0 ? '' : $totalLab);
+                $formatted = number_format(($totalLecture + $totalLab) * 150, 2);
+                $sheet->setCellValueExplicit("G$row", $formatted, DataType::TYPE_STRING);
+            }
             $row++;
         }
 

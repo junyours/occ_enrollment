@@ -3,27 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { usePage, useForm } from "@inertiajs/react";
 import { cn } from "@/Lib/Utils"
 import { Button } from "@/Components/ui/button"
-import { Input } from "@/Components/ui/input"
-import { Label } from "@/Components/ui/label"
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "@inertiajs/react";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/Components/ui/table"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/Components/ui/dialog"
-
 import {
     Card,
     CardContent,
@@ -35,9 +15,9 @@ import axios from "axios";
 import PreLoader from "@/Components/preloader/PreLoader";
 import { Separator } from "@/Components/ui/separator"
 import { PageTitle } from "@/Components/ui/PageTitle";
-import { Download, Ellipsis, Pencil, Trash } from "lucide-react";
 import EnhancedDownloadDialog from "./EnhancedDownloadDialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover";
+import AddNewSection from "./CourseSectionPartials/AddNewSection";
+import YearLevelSections from "./CourseSectionPartials/YearLevelSections";
 
 export default function EnrollmentCourseSection({ courseId, error, course, schoolYearId, forSchoolYear = false, semester, schoolYear }) {
     const user = usePage().props.auth.user;
@@ -165,27 +145,6 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
         });
     };
 
-    const deleteSection = (id) => {
-        post(route('delete.section', { id: id }), {
-            onSuccess: () => {
-                toast({
-                    description: "Section deleted successfully.",
-                    variant: "success",
-                });
-                getEnrollmentCourseSection();
-            },
-            onError: (errors) => {
-                if (errors.curriculum_id) {
-                    toast({
-                        description: errors.curriculum_id,
-                        variant: "destructive",
-                    });
-                }
-            },
-            preserveScroll: true,
-        });
-    };
-
     const getEnrollmentCourseSection = async () => {
         await axios.post(`/enrollment/${courseId}/${schoolYearId}`)
             .then(response => {
@@ -208,53 +167,6 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
     if (fetching) return <PreLoader title="Sections" />
 
     if (error) return
-
-    const handleDownload = async (yearlevel, section) => {
-        setIsDownloading(true); // open your modal
-
-        try {
-            const response = await axios.get(
-                route('download.section.students', {
-                    schoolYearId,
-                    courseId,
-                    yearlevel,
-                    section,
-                }),
-                {
-                    responseType: 'blob',
-                }
-            );
-
-            const contentDisposition = response.headers['content-disposition'];
-            let filename = 'students.xlsx';
-
-            if (contentDisposition) {
-                const match = contentDisposition.match(/filename="?([^"]+)"?/);
-                if (match) {
-                    filename = match[1];
-                }
-            }
-
-            const blob = new Blob([response.data], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            });
-
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.setAttribute('download', filename);
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        } catch (err) {
-            toast({
-                description: "Failed to download file.",
-                variant: "destructive",
-            });
-        } finally {
-            setTimeout(() => setIsDownloading(false), 500); // close modal
-        }
-    };
 
     return (
         <div className="container">
@@ -281,167 +193,25 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                             </div>
                             <Separator />
                             <CardContent className="grid gap-4">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-min">Section</TableHead>
-                                            <TableHead className="w-max">Students</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {yearLevel.year_section.map((section, index) => (
-                                            <TableRow key={index}>
-                                                {(editing && data.id == section.id) ? (
-                                                    <>
-                                                        <TableCell>
-                                                            <Input
-                                                                onChange={sectionOnChange}
-                                                                className={`${errors.section && "border-red-500"} w-14`}
-                                                                value={data.section}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <Input
-                                                                value={data.max_students}
-                                                                onChange={maxStudentsOnChange}
-                                                                className={`${errors.max_students && "border-red-500"} w-14`}
-                                                            />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="w-full flex gap-2 justify-end">
-                                                                <Button variant='outline' onClick={() => {
-                                                                    setEditing(false);
-                                                                    reset();
-                                                                    clearErrors();
-                                                                }}>
-                                                                    Cancel
-                                                                </Button>
-                                                                <Button onClick={submitEdit} disabled={!data.section || !data.max_students}>Done</Button>
-                                                            </div>
-                                                        </TableCell>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <TableCell className="font-medium">{section.section}</TableCell>
-                                                        <TableCell
-                                                            className={`p-2 ${section.student_count > section.max_students
-                                                                ? "text-red-600 font-bold" // Overload
-                                                                : section.student_count === section.max_students
-                                                                    ? "text-green-600 font-bold" // Complete
-                                                                    : section.student_count + 5 >= section.max_students
-                                                                    && "text-orange-400 font-bold" // Almost complete (87.5% or higher)
-                                                                }`}
-                                                        >
-                                                            {section.student_count}/{section.max_students}
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            {user.user_role == "program_head" && (
-                                                                <>
-                                                                    {forSchoolYear ? (
-                                                                        <Link href={route('school-year.view.class', {
-                                                                            schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
-                                                                            semester: semester,
-                                                                            hashedCourseId: courseId,
-                                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                                        }) + `?section=${section.section}`}>
-                                                                            <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
-                                                                        </Link>
-                                                                    ) : (
-                                                                        <Link href={route('enrollment.view.class', {
-                                                                            id: courseId,
-                                                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                                        }) + `?section=${section.section}`}>
-                                                                            <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
-                                                                        </Link>
-                                                                    )}
-
-                                                                </>
-                                                            )}
-
-                                                            {forSchoolYear ? (
-                                                                <Link href={route('school-year.view.students', {
-                                                                    schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
-                                                                    semester: semester,
-                                                                    hashedCourseId: courseId,
-                                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                                }) + `?section=${section.section}`}>
-                                                                    <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
-                                                                </Link>
-                                                            ) : (
-                                                                <Link href={route('enrollment.view.students', {
-                                                                    id: courseId,
-                                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                                }) + `?section=${section.section}`}>
-                                                                    <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
-                                                                </Link>
-                                                            )}
-
-                                                            {!forSchoolYear && (
-                                                                <Link href={route('enrollment.view.enroll-student', {
-                                                                    id: courseId,
-                                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                                }) + `?section=${section.section}`}>
-                                                                    <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
-                                                                </Link>
-                                                            )}
-
-                                                            {(user.user_role == "registrar" || user.user_role == "program_head") && (
-                                                                <Popover>
-                                                                    <PopoverTrigger asChild>
-                                                                        <Button variant='ghost' className=''>
-                                                                            <Ellipsis />
-                                                                        </Button>
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent align='start' className="w-36 space-y-2 flex flex-col">
-                                                                        <Button
-                                                                            disabled={!section.student_count}
-                                                                            onClick={() => handleDownload(section.year_level_id, section.section)}
-                                                                            variant='outline'
-                                                                            className='flex justify-start'>
-                                                                            Students <Download className="text-orange-500" />
-                                                                        </Button>
-                                                                        {user.user_role == "program_head" && (
-                                                                            <>
-                                                                                <Button
-                                                                                    variant='outline'
-                                                                                    className='flex justify-start'
-                                                                                    onClick={() => {
-                                                                                        setEditing(true)
-                                                                                        setData('id', section.id)
-                                                                                        setData('year_level_id', section.year_level_id)
-                                                                                        setData('section', section.section)
-                                                                                        setData('max_students', section.max_students)
-                                                                                    }}
-                                                                                >
-                                                                                    Edit <Pencil className="text-green-500" />
-                                                                                </Button>
-                                                                                <Button
-                                                                                    disabled={!!section.student_count}
-                                                                                    variant='outline'
-                                                                                    className='flex justify-start'
-                                                                                    onClick={() => deleteSection(section.id)}
-                                                                                >
-                                                                                    Delete <Trash className="text-red-500" />
-                                                                                </Button>
-                                                                            </>
-                                                                        )}
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                            )}
-                                                        </TableCell>
-                                                    </>
-                                                )}
-                                            </TableRow>
-                                        ))}
-
-                                        {yearLevel.year_section.length < 1 &&
-                                            <TableRow>
-                                                <TableCell className="font-semibold">No section </TableCell>
-                                            </TableRow>
-                                        }
-                                    </TableBody>
-                                </Table>
+                                <YearLevelSections
+                                    yearLevel={yearLevel}
+                                    editing={editing}
+                                    data={data}
+                                    sectionOnChange={sectionOnChange}
+                                    errors={errors}
+                                    maxStudentsOnChange={maxStudentsOnChange}
+                                    setEditing={setEditing}
+                                    reset={reset}
+                                    clearErrors={clearErrors}
+                                    forSchoolYear={forSchoolYear}
+                                    courseId={courseId}
+                                    setData={setData}
+                                    submitEdit={submitEdit}
+                                    post={post}
+                                    getEnrollmentCourseSection={getEnrollmentCourseSection}
+                                    setIsDownloading={setIsDownloading}
+                                    schoolYearId={schoolYearId}
+                                />
                             </CardContent>
                         </Card>
                     ))
@@ -450,51 +220,18 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                 )}
             </div>
 
-
             {/* Dialog Component (Outside of the Map Loop) */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Add New Section</DialogTitle>
-                        <DialogDescription>
-                            Adding a new section <span className="text-green-500 font-semibold">{data.section}</span> for {yearLevel}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="max-students">Max students</Label>
-                            <Input
-                                name="max_students"
-                                value={data.max_students}
-                                onChange={maxStudentsOnChange}
-                                type="text"
-                                id="max-students"
-                                placeholder="Max students"
-                            />
-                            {errors.max_students && <p className="text-red-500">{errors.max_students}</p>}
-                        </div>{errors.curriculum_id && (
-                            <div className="text-red-500">{errors.curriculum_id}</div>
-                        )}
-                        <DialogFooter>
-                            {/* Cancel button explicitly set to type="button" so it's not triggered on Enter */}
-                            <Button
-                                type="button"
-                                disabled={processing}
-                                variant="outline"
-                                onClick={closeAddingSectionDialog}>
-                                Cancel
-                            </Button>
-                            {/* Submit button comes first, so Enter triggers this instead of Cancel */}
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                className="disabled:bg-blue-400">
-                                Submit
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+            <AddNewSection isDialogOpen={isDialogOpen}
+                setIsDialogOpen={setIsDialogOpen}
+                data={data}
+                yearLevel={yearLevel}
+                handleSubmit={handleSubmit}
+                maxStudentsOnChange={maxStudentsOnChange}
+                errors={errors}
+                processing={processing}
+                closeAddingSectionDialog={closeAddingSectionDialog}
+            />
+
             <EnhancedDownloadDialog
                 isDownloading={isDownloading}
                 setIsDownloading={setIsDownloading}
