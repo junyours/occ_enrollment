@@ -179,17 +179,25 @@ const ViewClasses = ({ schoolYears }) => {
                                     ) : (
                                         classes.map(classInfo => (
                                             <React.Fragment key={classInfo.id}>
-                                                <TableRow>
+                                                <TableRow className={`${classInfo.secondary_schedule ? "border-b-0" : ""}`}>
                                                     <TableCell>{classInfo.day == "TBA" ? '-' : classInfo.day}</TableCell>
                                                     <TableCell>{classInfo.descriptive_title}</TableCell>
                                                     <TableCell>{classInfo.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} - ${convertToAMPM(classInfo.end_time)}`}</TableCell>
                                                     <TableCell>{classInfo.room_name || '-'}</TableCell>
                                                     <TableCell>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
-                                                    <TableCell>
-                                                        <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
-                                                            <Button className="py-0 h-auto" variant="link">open</Button>
-                                                        </Link>
-                                                    </TableCell>
+                                                    {classInfo.secondary_schedule ? (
+                                                        <TableCell rowSpan={2} className="align-middle text-center">
+                                                            <Link href={`/classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
+                                                                <Button className="py-0 h-auto" variant="link">open</Button>
+                                                            </Link>
+                                                        </TableCell>
+                                                    ) : (
+                                                        <TableCell>
+                                                            <Link href={`/classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
+                                                                <Button className="py-0 h-auto" variant="link">open</Button>
+                                                            </Link>
+                                                        </TableCell>
+                                                    )}
                                                 </TableRow>
                                                 {classInfo.secondary_schedule && (
                                                     <TableRow>
@@ -198,11 +206,6 @@ const ViewClasses = ({ schoolYears }) => {
                                                         <TableCell>{classInfo.secondary_schedule.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.secondary_schedule.start_time)} - ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}</TableCell>
                                                         <TableCell>{classInfo.secondary_schedule.room_name || '-'}</TableCell>
                                                         <TableCell>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
-                                                        <TableCell>
-                                                            <Link href={`classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
-                                                                <Button className="py-0 h-auto" variant="link">open</Button>
-                                                            </Link>
-                                                        </TableCell>
                                                     </TableRow>
                                                 )}
                                             </React.Fragment>
