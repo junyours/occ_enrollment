@@ -31,7 +31,6 @@ export default function EnrolledStudentList({ hashedCourseId, courseId, yearleve
         await axios.post(route('get.enrolled.student.list', { id: courseId, yearlevel: yearlevel, yearSectionId: yearSectionId }))
             .then(response => {
                 setStudents(response.data)
-                console.log(response.data)
             })
             .finally(() => {
                 setLoading(false);
@@ -95,7 +94,6 @@ export default function EnrolledStudentList({ hashedCourseId, courseId, yearleve
             axios.post(route('yearlevel.sections', { yearSectionId: yearSectionId }))
                 .then(response => {
                     setSections(response.data);
-                    console.log(response.data);
                 })
         }
     }

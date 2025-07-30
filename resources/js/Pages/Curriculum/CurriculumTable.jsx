@@ -65,11 +65,9 @@ const CurriculumTable = ({ termId, data, yearlevel, semesterId, adding, addSubje
     const onNumberFormChangeEditing = (name) => (value) => {
         if (name === 'subject_code' && value.includes(' ')) return;
         setData(name, value);
-        console.log('change');
     };
 
     const submitEdit = async () => {
-        console.log(editingForm);
 
         let error
         if (!editingForm.subject_code) {

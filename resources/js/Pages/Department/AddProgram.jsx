@@ -9,7 +9,6 @@ import React, { useEffect } from 'react'
 import { toast } from 'sonner'
 
 function AddProgram({ open, setOpen, department, setDepartment, getDepartmentsAndPrograms, editing, setEditing, program }) {
-    console.log(program);
 
     const { data, setData, post, processing, errors, setError, clearErrors, reset } = useForm({
         id: 0,

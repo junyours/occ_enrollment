@@ -158,9 +158,6 @@ export default function SchoolYear() {
 
         try {
             await axios[method](url, form)
-                .then(response => {
-                    console.log(response.data);
-                })
                 .finally(() => {
                     getSchoolYears();
                     setSubmitting(false);

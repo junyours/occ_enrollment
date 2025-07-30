@@ -12,15 +12,11 @@ function ScheduleGenerator({ data, schoolYear }) {
         })
         : [];
 
-    const logData = () => {
-        console.log(data.student_subject);
-    }
-
     return (
         <div key={data.id} className="bg-white p-4 rounded-lg w-max space-y-4">
             <h1 className="text-2xl font-semibold text-gray-800 flex justify-between bg-white shadow-md border p-1 rounded-lg">
                 <div className="flex items-center space-x-2">
-                    <img onClick={() => {logData()}} src={OCC_LOGO} alt="Logo" className="w-10" />
+                    <img src={OCC_LOGO} alt="Logo" className="w-10" />
                     <span className="text-[#2980b9]">
                         {schoolYear.start_year}-{schoolYear.end_year}
                     </span>

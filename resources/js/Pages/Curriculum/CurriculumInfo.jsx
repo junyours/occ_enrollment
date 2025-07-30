@@ -188,7 +188,6 @@ export default function CurriculumInfo() {
     const onNumberFormChange = (name) => (value) => {
         if (name === 'subject_code' && value.includes(' ')) return;
         setData(name, value);
-        console.log('change');
     };
 
     if (fetching) return <PreLoader title="Curriculum" />

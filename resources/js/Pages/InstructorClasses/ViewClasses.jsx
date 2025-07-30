@@ -16,8 +16,6 @@ import { ImageDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 const ViewClasses = ({ schoolYears }) => {
-    console.log(schoolYears);
-
     const [loading, setLoading] = useState(true);
     const [classes, setClasses] = useState([]);
     const [scheduleType, setScheduleType] = useState('tabular');

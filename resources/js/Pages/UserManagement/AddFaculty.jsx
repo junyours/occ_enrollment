@@ -36,7 +36,6 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
         await axios.post(route('departments'))
             .then(response => {
                 setDepartments(response.data);
-                console.log(response.data);
             })
     }
 

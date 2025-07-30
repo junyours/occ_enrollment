@@ -141,9 +141,6 @@ function AddStudent({ open, setOpen, student, editing, setEditing, setStudent })
     }
 
     const submit = async () => {
-
-        console.log(data);
-
         let hasError = false;
 
         if (!data.contact_number || data.contact_number.length != 11) {
