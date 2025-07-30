@@ -31,7 +31,7 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                 <TableCell>{student.id_number}</TableCell>
                                 <TableCell>{student.name}</TableCell>
                                 <TableCell className="text-center">
-                                    {(gradeStatus.is_submitted || gradeStatus.is_deployed) ? (
+                                    {((gradeStatus.is_submitted || gradeStatus.is_deployed) && !gradeStatus.is_rejected) ? (
                                         <>
                                             {student.midterm_grade}
                                         </>
@@ -63,7 +63,7 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                     )}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    {(gradeStatus.is_submitted || gradeStatus.is_deployed) ? (
+                                    {((gradeStatus.is_submitted || gradeStatus.is_deployed) && !gradeStatus.is_rejected) ? (
                                         <>
                                             {student.final_grade}
                                         </>
@@ -107,7 +107,7 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                     {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
                                         <span className="text-red-500 font-medium">DROPPED</span>
                                     ) : student.midterm_grade && student.final_grade ? (
-                                        ((+student.midterm_grade + +student.final_grade) / 2).toFixed(1) > 3 ? (
+                                        (Number(student.midterm_grade) + Number(student.final_grade)) / 2 >= 3.05 ? (
                                             <span className="text-red-500 font-medium">FAILED</span>
                                         ) : (
                                             <span className="text-green-600 font-medium">PASSED</span>
