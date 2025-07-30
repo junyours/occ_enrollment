@@ -6,7 +6,7 @@ import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
-import { CirclePlus, Search, Trash2 } from 'lucide-react';
+import { CirclePlus, Loader2, Search, Trash2, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
@@ -238,10 +238,29 @@ export default function StudentSubjects() {
                             </Button>
                         </div>
                         <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Course & Section</TableHead>
+                                    <TableHead>Subject code</TableHead>
+                                    <TableHead>Descriptive title</TableHead>
+                                    <TableHead>Students</TableHead>
+                                    <TableHead>Day</TableHead>
+                                    <TableHead>Time</TableHead>
+                                    <TableHead>Units</TableHead>
+                                </TableRow>
+                            </TableHeader>
                             <TableBody>
                                 {gettingCLasses ? (
                                     <TableRow>
-                                        <TableCell className="text-center border-y">searching...</TableCell>
+                                        <TableCell
+                                            colSpan={8}
+                                            className="text-center border-y py-6 animate-pulse text-muted-foreground"
+                                        >
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <span className="font-medium">Searching for classes...</span>
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
                                 ) : (
                                     <>
@@ -259,10 +278,13 @@ export default function StudentSubjects() {
 
                                                 return (
                                                     <TableRow key={classInfo.id} className={`${conflict && !exist ? 'bg-red-500 hover:bg-red-500' : ''}`}> {/* always good to add a unique key */}
-                                                        <TableCell className='w-28'>{classInfo.class_code}</TableCell>
+                                                        <TableCell className='w-36'>{classInfo.class_code}</TableCell>
                                                         <TableCell className='w-28'>{classInfo.subject_code}</TableCell>
                                                         <TableCell className='truncate max-w-48 overflow-hidden whitespace-nowrap'>
                                                             {classInfo.descriptive_title}
+                                                        </TableCell>
+                                                        <TableCell className='flex gap-1 items-center'>
+                                                            <Users size={14} /> {classInfo.student_count}
                                                         </TableCell>
                                                         <TableCell>
                                                             <div className='flex flex-col'>

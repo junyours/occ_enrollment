@@ -367,11 +367,16 @@ export default function EnrollStudent() {
                 <CardHeader>
                     <CardTitle className='text-3xl flex justify-between'>Student classes
                         <div className='flex gap-2'>
-                            <ListRestart
-                                size={38}
-                                onClick={() => setClasses(defaultClasses)}
-                                className="cursor-pointer hover:text-blue-500 transition-colors"
-                            />
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <ListRestart
+                                        size={38}
+                                        onClick={() => setClasses(defaultClasses)}
+                                        className="cursor-pointer hover:text-blue-500 transition-transform duration-150 active:scale-75"
+                                    />
+                                </TooltipTrigger>
+                                <TooltipContent>Refresh all subjects</TooltipContent>
+                            </Tooltip>
                             <Tabs className="w-max mb-2" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
                                 <TabsList className="grid max-w-max grid-cols-2">
                                     <TabsTrigger className="w-28" value="tabular">Tabular</TabsTrigger>
@@ -400,7 +405,6 @@ export default function EnrollStudent() {
                             </TableHeader>
                             <TableBody>
                                 {classes.map((classInfo) => {
-
                                     return (
                                         <React.Fragment key={classInfo.id}>
                                             <TableRow>
