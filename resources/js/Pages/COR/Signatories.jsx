@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 
-function Signatories() {
+function Signatories({ showSeal = false}) {
     const [registrarSignature, setRegistrarSignature] = useState(null);
     const [billingAssessmentSignature, setBillingAssessmentSignature] = useState(null);
 
@@ -69,7 +69,7 @@ function Signatories() {
                     </p>
 
                     <div className="relative border-b-2 border-black mx-4">
-                        {billingAssessmentSignature && (
+                        {(billingAssessmentSignature && !showSeal) && (
                             <div className="absolute -top-9 left-1/2 transform -translate-x-1/2 h-20">
                                 <img
                                     src={billingAssessmentSignature}
@@ -94,7 +94,7 @@ function Signatories() {
 
                     {/* Signature + Name inside underlined box */}
                     <div className="relative border-b-2 border-black mx-4 pb-1">
-                        {registrarSignature && (
+                        {(registrarSignature && !showSeal) && (
                             <div className="absolute -top-9 left-1/2 transform -translate-x-1/2 h-20">
                                 <img
                                     src={registrarSignature}

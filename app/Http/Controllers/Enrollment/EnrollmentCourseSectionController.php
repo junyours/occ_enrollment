@@ -338,6 +338,7 @@ class EnrollmentCourseSectionController extends Controller
                 'section' => $section,
                 'yearSectionId' => $yearSection->id,
                 'courseName' => $course->course_name_abbreviation,
+                'departmentId' => $course->department_id,
             ]
         );
     }

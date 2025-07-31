@@ -8,7 +8,8 @@ import React from 'react'
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
 
-function YearLevelSections({ yearLevel,
+function YearLevelSections({
+    yearLevel,
     editing,
     data,
     sectionOnChange,
@@ -16,14 +17,15 @@ function YearLevelSections({ yearLevel,
     maxStudentsOnChange,
     setEditing,
     reset,
-    forSchoolYear,
+    forSchoolYear = false,
     courseId,
     setData,
     submitEdit,
     post,
     getEnrollmentCourseSection,
     setIsDownloading,
-    schoolYearId
+    schoolYearId,
+    schoolYear
 }) {
     const user = usePage().props.auth.user;
     const userRole = user.user_role;
@@ -159,7 +161,7 @@ function YearLevelSections({ yearLevel,
                                             {forSchoolYear ? (
                                                 <Link href={route('school-year.view.class', {
                                                     schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
-                                                    semester: semester,
+                                                    semester: schoolYear.semester.semester_name,
                                                     hashedCourseId: courseId,
                                                     yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                                 }) + `?section=${section.section}`}>
@@ -173,14 +175,13 @@ function YearLevelSections({ yearLevel,
                                                     <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
                                                 </Link>
                                             )}
-
                                         </>
                                     )}
 
                                     {forSchoolYear ? (
                                         <Link href={route('school-year.view.students', {
                                             schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
-                                            semester: semester,
+                                            semester: schoolYear.semester.semester_name,
                                             hashedCourseId: courseId,
                                             yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
                                         }) + `?section=${section.section}`}>
@@ -195,13 +196,23 @@ function YearLevelSections({ yearLevel,
                                         </Link>
                                     )}
 
-                                    {!forSchoolYear && (
-                                        <Link href={route('enrollment.view.enroll-student', {
-                                            id: courseId,
-                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                        }) + `?section=${section.section}`}>
-                                            <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
-                                        </Link>
+                                    {(!forSchoolYear) ? (
+                                        <>
+                                            <Link href={route('enrollment.view.enroll-student', {
+                                                id: courseId,
+                                                yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                            }) + `?section=${section.section}`}>
+                                                <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {userRole == 'registrar' && (
+                                                <Link>
+                                                    <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
+                                                </Link>
+                                            )}
+                                        </>
                                     )}
 
                                     {(userRole == "registrar" || userRole == "program_head") && (

@@ -18,6 +18,7 @@ import SubjectsSchedules from '../Enrollment/ClassScheduling/SubjectsSchedules'
 import SubjectsList from '../Enrollment/SubjectsList'
 
 export default function SchoolYearLayout({ schoolYear, semester, courses, error, courseId, yearlevel, section, yearSectionId, courseName, hashedCourseId, studentIdNo, departmentId }) {
+    console.log(schoolYear);
 
     const { url: currentUrl } = usePage()
 

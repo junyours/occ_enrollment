@@ -1,7 +1,7 @@
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import React from 'react'
 
-function CorStudentSubjects({ data }) {
+function CorStudentSubjects({ data, showSeal = false }) {
 
     return (
         <table className="table-auto w-full text-[10px] border-collapse">
@@ -25,63 +25,83 @@ function CorStudentSubjects({ data }) {
                     <th className="border border-black">Room</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody className=''>
                 {data.map((subjects, index) => {
                     const hasSecondSched = subjects.year_section_subjects.subject_secondary_schedule;
 
                     return (
-                        <tr key={`${subjects.id}-subject`} className="odd:bg-white even:bg-gray-100">
+                        <tr key={`${subjects.id}-subject`} className={`odd:bg-white even:bg-gray-100 ${showSeal ? '' : ''}`}>
                             <td className="border text-center">{index + 1}</td>
-                            <td className="border">{subjects.year_section_subjects.subject.subject_code}</td>
-                            <td className="border">{subjects.year_section_subjects.subject.descriptive_title}</td>
-                            <td className="border text-center">{subjects.year_section_subjects.subject.lecture_hours}</td>
-                            <td className="border text-center">{subjects.year_section_subjects.subject.laboratory_hours || '' }</td>
-                            <td className="border text-center">{subjects.year_section_subjects.subject.credit_units}</td>
+                            <td className="border">{!showSeal ? subjects.year_section_subjects.subject.subject_code : ''}</td>
+                            <td className="border">{!showSeal ? subjects.year_section_subjects.subject.descriptive_title : ''}</td>
+                            <td className="border text-center">{!showSeal ? subjects.year_section_subjects.subject.lecture_hours : ''}</td>
+                            <td className="border text-center">{!showSeal ? subjects.year_section_subjects.subject.laboratory_hours || '' : ''}</td>
+                            <td className="border text-center">{!showSeal ? subjects.year_section_subjects.subject.credit_units : ''}</td>
                             <td className="border text-center">
                                 <div className='flex flex-col'>
                                     <div className={`${hasSecondSched && 'border-0 border-b'}`}>
-                                        {subjects.year_section_subjects.day}
+                                        {!showSeal ? subjects.year_section_subjects.day : ''}
                                     </div>
                                     <div>
-                                        {subjects.year_section_subjects.subject_secondary_schedule?.day || ''}
+                                        {!showSeal ? subjects.year_section_subjects.subject_secondary_schedule?.day || '' : ''}
                                     </div>
                                 </div>
                             </td>
                             <td className="border text-center">
                                 <div className='flex flex-col'>
                                     <div className={`${hasSecondSched && 'border-0 border-b'}`}>
-                                        {subjects.year_section_subjects.start_time != "TBA" ? (
-                                            convertToAMPM(subjects.year_section_subjects.start_time) + "-" + convertToAMPM(subjects.year_section_subjects.end_time)
+                                        {!showSeal ? (
+                                            <>
+                                                {
+                                                    subjects.year_section_subjects.start_time != "TBA" ? (
+                                                        convertToAMPM(subjects.year_section_subjects.start_time) + "-" + convertToAMPM(subjects.year_section_subjects.end_time)
+                                                    ) : (
+                                                        <>TBA</>
+                                                    )
+                                                }
+                                            </>
                                         ) : (
-                                            <>TBA</>
+                                            <></>
                                         )}
                                     </div>
                                     {hasSecondSched &&
                                         <div>
-                                            {subjects.year_section_subjects.subject_secondary_schedule.start_time != "TBA" ? (
-                                                convertToAMPM(subjects.year_section_subjects.subject_secondary_schedule.start_time) + "-" + convertToAMPM(subjects.year_section_subjects.subject_secondary_schedule.end_time)
+                                            {!showSeal ? (
+                                                <>
+                                                    {subjects.year_section_subjects.subject_secondary_schedule.start_time != "TBA" ? (
+                                                        convertToAMPM(subjects.year_section_subjects.subject_secondary_schedule.start_time) + "-" + convertToAMPM(subjects.year_section_subjects.subject_secondary_schedule.end_time)
+                                                    ) : (
+                                                        <>TBA</>
+                                                    )}
+                                                </>
                                             ) : (
-                                                <>TBA</>
+                                                <></>
                                             )}
                                         </div>
                                     }
                                 </div>
                             </td>
-                            <td className="border text-center ">
+                            <td className="border text-center">
                                 <div className='flex flex-col'>
                                     <div className={`${hasSecondSched && 'border-0 border-b'}`}>
-                                        {subjects.year_section_subjects.room?.room_name || 'TBA'}
+                                        {!showSeal ? subjects.year_section_subjects.room?.room_name || 'TBA' : ''}
                                     </div>
                                     <div>
-                                        {subjects.year_section_subjects.subject_secondary_schedule?.room?.room_name || ''}
+                                        {!showSeal ? subjects.year_section_subjects.subject_secondary_schedule?.room?.room_name || '' : ''}
                                     </div>
                                 </div>
                             </td>
                             <td className="border text-center">
-                                {(subjects.year_section_subjects.instructor?.instructor_information.first_name != null) ? (
-                                    formatFullName(subjects.year_section_subjects.instructor.instructor_information)
+                                {!showSeal ? (
+                                    <>
+                                        {(subjects.year_section_subjects.instructor?.instructor_information.first_name != null) ? (
+                                            formatFullName(subjects.year_section_subjects.instructor.instructor_information)
+                                        ) : (
+                                            <>TBA</>
+                                        )}
+                                    </>
                                 ) : (
-                                    <>TBA</>
+                                    <></>
                                 )}
                             </td>
                         </tr>
@@ -103,7 +123,7 @@ function CorStudentSubjects({ data }) {
                     </tr>
                 ))}
                 {/* Row for total units */}
-                <tr className="bg-gray-200">
+                <tr className={`bg-gray-200  ${showSeal ? 'text-transparent' : ''}`}>
                     <td className="border text-right" colSpan="3">Total No. of Units:</td>
                     <td className="border text-center">
                         {data.reduce((total, subjects) => total + parseFloat(subjects.year_section_subjects.subject.lecture_hours || 0), 0).toFixed(1)}

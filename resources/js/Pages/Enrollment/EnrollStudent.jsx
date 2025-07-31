@@ -19,8 +19,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import Checkbox from '@/Components/Checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 
-export default function EnrollStudent() {
-    const { yearSectionId, courseName, yearlevel, section, schoolYear } = usePage().props;
+export default function EnrollStudent({ yearSectionId, courseName, yearlevel, section, schoolYear, departmentId }) {
 
     const [studentType, setstudentType] = useState('');
     const [studentID, setStudentID] = useState('');
@@ -228,6 +227,12 @@ export default function EnrollStudent() {
         return conflict
     }
 
+    console.log();
+
+    const { user } = usePage().props.auth;
+    const userRole = user.user_role;
+    const corRedirect = departmentId == 1 && (userRole != 'program_head' && userRole != 'registrar');
+
     const enrollStudent = async () => {
         setSubmitting(true);
         if (studentAlreadyEnrrolled) {
@@ -274,7 +279,8 @@ export default function EnrollStudent() {
                         setStudentID('');
 
                         // Redirect to COR
-                        window.location.href = data.redirect;
+                        if (!corRedirect) window.location.href = data.redirect;
+
                     } else {
                         toast({
                             description: data.message || "Enrollment failed.",

@@ -337,7 +337,7 @@ export default function SchoolYear() {
                         {/* DATE */}
                         <div className="">
                             <Label htmlFor="start_date" className="text-right">
-                                Date
+                                Enrollment Date
                             </Label>
                             <div className='col-span-3 flex gap-1'>
                                 <Input

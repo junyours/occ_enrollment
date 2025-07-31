@@ -53,13 +53,20 @@ function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId })
         };
     }, [handlePrint]);
 
+
     if (loading) return <PreLoader title="COR" />
+
+    const departmentId = data.year_section.course.department_id;
+    const { user } = usePage().props.auth;
+    const userRole = user.user_role;
+    const showSeal = departmentId == 1 && (userRole != 'program_head' && userRole != 'registrar');
 
     return (
         <div className='space-y-4'>
             <Head title='COR' />
             <div className="flex justify-center text-center space-x-2 rounded-md w-full">
                 <Button
+                    disabled={showSeal}
                     onClick={handlePrint}
                     className="w-30 text-lg transition transform active:scale-95"
                 >
@@ -70,7 +77,7 @@ function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId })
 
             <div ref={componentRef} className="shadow-heavy rounded-2xl w-full flex justify-center">
                 <div>
-                    <CorGenerator data={data} />
+                    <CorGenerator data={data} showSeal={showSeal} />
                 </div>
             </div>
         </div>

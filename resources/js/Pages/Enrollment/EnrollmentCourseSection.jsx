@@ -211,6 +211,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                                     getEnrollmentCourseSection={getEnrollmentCourseSection}
                                     setIsDownloading={setIsDownloading}
                                     schoolYearId={schoolYearId}
+                                    schoolYear={schoolYear}
                                 />
                             </CardContent>
                         </Card>

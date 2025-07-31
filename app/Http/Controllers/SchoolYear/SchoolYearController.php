@@ -322,6 +322,7 @@ class SchoolYearController extends Controller
         $schoolYear = SchoolYear::where('start_year', '=', $years[0])
             ->where('end_year', '=', $years[1])
             ->where('semester_id', '=', $semesterInfo->id)
+            ->with('Semester')
             ->first();
 
         return $schoolYear;

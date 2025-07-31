@@ -1,15 +1,24 @@
 
 import OCC_LOGO from '../../../images/OCC_LOGO.png'
-import { convertToAMPM, formatDate, formatFullName, toTwoDecimals } from '@/Lib/Utils';
-import { MiscellaneousFeesList, MiscellaneousFeesTotal } from './MiscellaneousFees';
+import { formatFullName } from '@/Lib/Utils';
 import CorStudentSubjects from './CorStudentSubjects';
 import CorStudentInfo from './CorStudentInfo';
 import CorFees from './CorFees';
 import Signatories from './Signatories';
-function CorGenerator({ data }) {
+function CorGenerator({ data, showSeal }) {
+
     return (
-        <div className="space-y-4 p-5 flex justify-center bg-white rounded-lg text-black w-[800px]">
-            <div className="p-5 border border-gray-600 w-full space-y-4">
+        <div className="relative space-y-4 p-5 flex justify-center bg-white rounded-lg text-black w-[800px]">
+            {showSeal && (
+                <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none print:hidden">
+                    <div className="bg-red-600 text-white font-bold text-4xl px-4 py-2 rounded-lg opacity-80 rotate-[20deg]">
+                        NO PERMISSION TO VIEW
+                    </div>
+                </div>
+            )}
+
+            <div className="p-5 border border-gray-600 w-full space-y-4 relative z-10">
+                {/* COR Content */}
                 <div className="flex items-center justify-center space-x-4">
                     <div className="text-center flex flex-col relative">
                         <img src={OCC_LOGO} alt="Logo" className="h-full absolute -left-40" />
@@ -19,21 +28,17 @@ function CorGenerator({ data }) {
                     </div>
                 </div>
 
-                {/* STUDENT INFORMATION */}
-                <CorStudentInfo data={data} />
-
-                {/* SUBJECTS */}
-                <CorStudentSubjects data={data.student_subject} />
+                <CorStudentInfo data={data} showSeal={showSeal} />
+                <CorStudentSubjects data={data.student_subject} showSeal={showSeal} />
 
                 <div className='flex justify-around gap-4'>
-                    {/* FEES */}
                     <CorFees
                         subjects={data.student_subject}
                         course={data.year_section.course.course_name_abbreviation}
                         yearLevel={data.year_section.year_level_id}
+                        showSeal={showSeal}
                     />
-
-                    <Signatories />
+                    <Signatories showSeal={showSeal} />
                 </div>
 
                 <div className="mt-2 text-[8px]">
@@ -42,6 +47,7 @@ function CorGenerator({ data }) {
             </div>
         </div>
     )
+
 }
 
 export default CorGenerator
