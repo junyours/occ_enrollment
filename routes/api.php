@@ -10,5 +10,5 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/mobile/login', [AuthController::class, 'login']);
+    Route::post('/mobile/login', [AuthController::class, 'login']);
 });
