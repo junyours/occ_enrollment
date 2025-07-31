@@ -571,8 +571,11 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                                                         <Button
                                                                             disabled={exist || addingSubject}
                                                                             variant="icon"
-                                                                            className={`p-0 h-min ${exist ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
-                                                                            onClick={() => { setClasses(prev => [...prev, classInfo]); }}
+                                                                            className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
+                                                                            onClick={() => {
+                                                                                if (conflict) return
+                                                                                setClasses(prev => [...prev, classInfo]);
+                                                                            }}
                                                                         >
                                                                             <CirclePlus
                                                                                 size={15}

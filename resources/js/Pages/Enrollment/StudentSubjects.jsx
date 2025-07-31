@@ -6,13 +6,14 @@ import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
-import { CirclePlus, Loader2, Search, Trash2, Users } from 'lucide-react';
+import { CirclePlus, Loader2, Search, Trash2, TriangleAlert, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import TimeTable from '../ScheduleFormats/TimeTable';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 
 export default function StudentSubjects() {
     const { courseName, yearlevel, section, student, schoolYear } = usePage().props
@@ -310,7 +311,7 @@ export default function StudentSubjects() {
                                                         <TableCell className='w-8'>{classInfo.credit_units}</TableCell>
                                                         <TableCell className="w-8">
                                                             <div className='flex justify-center'>
-                                                                <Button
+                                                                {/* <Button
                                                                     disabled={conflict || exist || addingSubject}
                                                                     variant="icon"
                                                                     className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
@@ -319,7 +320,39 @@ export default function StudentSubjects() {
                                                                     <CirclePlus
                                                                         size={15}
                                                                     />
-                                                                </Button>
+                                                                </Button> */}
+                                                                {conflict ? (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Button
+                                                                                disabled={exist || addingSubject}
+                                                                                variant="icon"
+                                                                                className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
+                                                                                onClick={() => {
+                                                                                    if (conflict) return
+                                                                                    addSubject(prev => [...prev, classInfo]);
+                                                                                }}
+                                                                            >
+                                                                                <CirclePlus
+                                                                                    size={15}
+                                                                                />
+                                                                            </Button>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent className='flex items-center gap-2 text-orange-500'> <TriangleAlert/> Conflict</TooltipContent>
+                                                                    </Tooltip>
+                                                                ) : (
+
+                                                                    <Button
+                                                                        disabled={conflict || exist || addingSubject}
+                                                                        variant="icon"
+                                                                        className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
+                                                                        onClick={() => { setClasses(prev => [...prev, classInfo]); }}
+                                                                    >
+                                                                        <CirclePlus
+                                                                            size={15}
+                                                                        />
+                                                                    </Button>
+                                                                )}
                                                             </div>
                                                         </TableCell>
                                                     </TableRow>
