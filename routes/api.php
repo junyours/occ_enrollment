@@ -1,30 +1,14 @@
 <?php
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Mobile\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/mobile/user', [AuthController::class, 'user']);
 
-Route::post('/mobile/login', function (Request $request) {
-    $request->validate([
-        'user_id_no' => 'required',
-        'password' => 'required',
-    ]);
+    Route::get('/mobile/logout', [AuthController::class, 'logout']);
+});
 
-    $user = User::where('user_id_no', $request->user_id_no)->first();
-
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
-
-    $token = $user->createToken('mobile-token')->plainTextToken;
-
-    return response()->json([
-        'token' => $token,
-        'user' => $user,
-    ]);
+Route::middleware('guest')->group(function () {
+    Route::get('/mobile/login', [AuthController::class, 'login']);
 });
