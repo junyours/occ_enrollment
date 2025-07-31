@@ -12,7 +12,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Student classes
     Route::get('/current-school-year', [SchoolYearController::class, 'getCurrentSchoolYear'])->name('current.school-year');
-    Route::get('/student-classes', [ClassController::class, 'getStudentClasses'])->name('student-current-classes');
+    Route::post('/student-classes', [ClassController::class, 'getStudentClasses'])->name('student-current-classes');
     Route::get('/enrollment-record', [ClassController::class, 'getStudentEnrollmentRecord'])->name('enrollment-record');
 });
 
