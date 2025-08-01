@@ -85,9 +85,14 @@ export function NavMain() {
                     items: [
                         { name: "Verified Grades", route: "verified-grades", icon: FileText },
                         { name: "Change Request", route: "classes", icon: RefreshCcw },
-                        { name: "Enrollment Record", route: "classes", icon: Archive },
-                        { name: "Promotional Report", route: "classes", icon: BarChart2 },
                     ]
+                },
+                {
+                    label: "Reports",
+                    items: [
+                        { name: "Enrollment Record", route: "enrollment-record", icon: Library },
+                        { name: "Promotional Report", route: "promotional-report", icon: BarChart2 },
+                    ],
                 },
                 {
                     label: "Others",

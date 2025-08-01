@@ -27,7 +27,9 @@ Route::middleware(['auth', 'maintenance', 'SchoolYearPermission'])->group(functi
     Route::get('/school-year/{schoolyear}/{semester}/{hashedCourseId}/students/{yearlevel}', [SchoolYearController::class, 'viewStudents'])->name('school-year.view.students');
     Route::get('/school-year/{schoolyear}/{semester}/{hashedCourseId}/students/{yearlevel}/subjects', [SchoolYearController::class, 'viewStudentSubjects'])->name('school-year.view.student.subjects');
     Route::get('/school-year/{schoolyear}/{semester}/{hashedCourseId}/students/{yearlevel}/cor', [SchoolYearController::class, 'viewStudentCor'])->name('school-year.view.student.cor');
+
+    Route::get('/promotional-report', [SchoolYearController::class, 'promotionalReport'])->name('promotional-report');
 });
 
-
 Route::post('/enrollment-data', [SchoolYearController::class, 'enrollmentData'])->name('enrollment-data');
+Route::get('/enrollment-record', [SchoolYearController::class, 'enrollmentRecordView'])->name('enrollment-record');

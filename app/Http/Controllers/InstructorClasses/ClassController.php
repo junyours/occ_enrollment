@@ -358,11 +358,6 @@ class ClassController extends Controller
         ]);
     }
 
-    public function recordView()
-    {
-        return Inertia::render('StudentClasses/EnrollmentRecord');
-    }
-
     public function getStudentEnrollmentRecord()
     {
         $studentId = Auth::id();

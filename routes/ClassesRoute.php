@@ -20,7 +20,5 @@ Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function 
 });
 
 Route::middleware(['auth', 'maintenance', 'student'])->group(function () {
-    Route::post('/api/get-student-classes', [ClassController::class, 'getStudentClasses'])->name('student.classes');
-    Route::get('/enrollment-record', [ClassController::class, 'recordView'])->name('enrollment-record');
     Route::post('/enrollment-record', [ClassController::class, 'getStudentEnrollmentRecord'])->name('enrollment-record');
 });

@@ -502,4 +502,19 @@ class SchoolYearController extends Controller
 
         return response()->json($schoolYear, 200);
     }
+
+    public function enrollmentRecordView()
+    {
+        $userRole = Auth::user()->user_role;
+        if ($userRole == 'registrar') {
+            return Inertia::render('SchoolYear/EnrollmentRecord');
+        } else {
+            return Inertia::render('StudentClasses/EnrollmentRecord');
+        }
+    }
+
+    public function promotionalReport()
+    {
+        return Inertia::render('SchoolYear/PromotionalReport');
+    }
 }
