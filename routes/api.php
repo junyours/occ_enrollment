@@ -1,19 +1,21 @@
 <?php
 
 use App\Http\Controllers\Mobile\AuthController;
+use App\Http\Controllers\Mobile\ClassController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mobile/user', [AuthController::class, 'user']);
 
-    Route::get('/mobile/current-school-year', [\App\Http\Controllers\Mobile\ClassController::class, 'getCurrentSchoolYear']);
+    Route::get('/mobile/current-school-year', [ClassController::class, 'getCurrentSchoolYear']);
 
     // Student classes
-    Route::post('/mobile/current-student-classes', [\App\Http\Controllers\Mobile\ClassController::class, 'getStudentCurrentClasses']);
-    Route::get('/mobile/enrollment-record', [App\Http\Controllers\InstructorClasses\ClassController::class, 'getStudentEnrollmentRecord']);
+    Route::get('/mobile/current-student-classes', [ClassController::class, 'getStudentCurrentClasses']);
+    Route::get('/mobile/enrollment-record', [ClassController::class, 'getStudentEnrollmentRecord']);
 
     // Faculty classes
-    Route::post('/mobile/current-faculty-classes', [\App\Http\Controllers\Mobile\ClassController::class, 'getFacultyCurrentClasses']);
+    Route::get('/mobile/current-faculty-classes', [ClassController::class, 'getFacultyCurrentClasses']);
+    Route::get('/mobile/classes-classroom-students', [ClassController::class, 'getStudents']);
 
     Route::get('/mobile/logout', [AuthController::class, 'logout']);
 });

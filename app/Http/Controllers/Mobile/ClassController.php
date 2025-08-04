@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\EnrolledStudent;
 use App\Models\SchoolYear;
+use App\Models\StudentSubject;
 use App\Models\YearSectionSubjects;
 use Auth;
 use Illuminate\Http\Request;
@@ -88,6 +89,60 @@ class ClassController extends Controller
         ]);
     }
 
+    public function getStudentEnrollmentRecord()
+    {
+        $studentId = Auth::id();
+
+        $data = EnrolledStudent::select(
+            'evaluated',
+            'enrolled_students.id',
+            'year_level_name',
+            'section',
+            'semester_name',
+            'start_year',
+            'end_year'
+        )
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
+            ->join('school_years', 'school_years.id', '=', 'year_section.school_year_id')
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->where('student_id', '=', $studentId)
+            ->with([
+                'Subjects' => function ($query) {
+                    $query->select(
+                        'student_subjects.id',
+                        'enrolled_students_id',
+                        'first_name',
+                        'last_name',
+                        'middle_name',
+                        'subject_code',
+                        'descriptive_title',
+                        'midterm_grade',
+                        'final_grade',
+                        'remarks',
+                        'is_deployed',
+                        'student_subjects.year_section_subjects_id'
+                    )
+                        ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+                        ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
+                        ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+                        ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+                        ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+                        ->get();
+                }
+            ])
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        if (!$data) {
+            return response()->json([
+                'error' => 'You have no enrollment record.',
+            ], 403);
+        }
+
+        return response()->json($data, 200);
+    }
+
     public function getFacultyCurrentClasses()
     {
         $schoolYear = SchoolYear::where('is_current', '=', 1)
@@ -141,5 +196,33 @@ class ClassController extends Controller
             ->get();
 
         return response()->json($classes);
+    }
+
+    public function getStudents(Request $request)
+    {
+        $id = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$request->hashed_year_section_subject_id])
+            ->first()->year_section_id;
+
+        $students = StudentSubject::select(
+            'users.id',
+            'user_id_no',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'email_address',
+            'contact_number',
+            'user_id',
+            'gender',
+            'midterm_grade',
+            'final_grade',
+        )
+            ->where('year_section_subjects_id', '=', $id)
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('last_name', 'ASC')
+            ->get();
+
+        return response()->json($students);
     }
 }
