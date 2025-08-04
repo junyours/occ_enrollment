@@ -37,7 +37,7 @@ function TabularSchedule({ data, type }) {
                     {type != "room" &&
                         <TableHead>Room</TableHead>
                     }
-                    {type == "faculty" &&
+                    {(type == "faculty" || (type == "subject")) &&
                         <TableHead>Students</TableHead>
                     }
                 </TableRow>
@@ -65,7 +65,7 @@ function TabularSchedule({ data, type }) {
                                         {sched.room_name || "-"}
                                     </TableCell>
                                 }
-                                {type == "faculty" &&
+                                {(type == "faculty" || (type == "subject")) &&
                                     <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
                                         <div className="flex justify-center items-center">
                                             <PiStudent /> {sched.student_count}
@@ -93,7 +93,7 @@ function TabularSchedule({ data, type }) {
                                             {sched.secondary_schedule.room_name || "-"}
                                         </TableCell>
                                     }
-                                    {type == "faculty" &&
+                                    {(type == "faculty" || (type == "subject")) &&
                                         <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
                                             <div className="flex justify-center items-center">
                                                 <PiStudent /> {sched.student_count}

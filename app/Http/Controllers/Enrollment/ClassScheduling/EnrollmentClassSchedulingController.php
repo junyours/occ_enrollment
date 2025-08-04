@@ -336,8 +336,7 @@ class EnrollmentClassSchedulingController extends Controller
                         ->where('school_year_id', '=', $schoolYearId);
 
                     // Secondary schedules query
-                    $secondarySchedules = DB::table('subject_secondary_schedule')
-                        ->select(
+                    $secondarySchedules = SubjectSecondarySchedule::select(
                             'room_name',
                             'subject_secondary_schedule.day',
                             'descriptive_title',

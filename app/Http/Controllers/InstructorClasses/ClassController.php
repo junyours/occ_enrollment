@@ -13,6 +13,7 @@ use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -311,7 +312,7 @@ class ClassController extends Controller
             ->where('student_id', '=', $studentId)
             ->with([
                 'Subjects' => function ($query) {
-                    $query->select(
+                    $query->select([
                         'student_subjects.id',
                         'enrolled_students_id',
                         'first_name',
@@ -319,12 +320,11 @@ class ClassController extends Controller
                         'middle_name',
                         'subject_code',
                         'descriptive_title',
-                        'midterm_grade',
-                        'final_grade',
+                        DB::raw("IF(grade_submissions.is_deployed = 1, midterm_grade, NULL) as midterm_grade"),
+                        DB::raw("IF(grade_submissions.is_deployed = 1, final_grade, NULL) as final_grade"),
                         'remarks',
-                        'is_deployed',
-                        'student_subjects.year_section_subjects_id'
-                    )
+                        'student_subjects.year_section_subjects_id',
+                    ])
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
                         ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
