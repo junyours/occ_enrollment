@@ -45,33 +45,64 @@ function TabularSchedule({ data, type }) {
             <TableBody>
                 {sortedData.length > 0 ? (
                     sortedData.map((sched, index) => (
-                        <TableRow key={`sched-${index}`}>
-                            <TableCell className="w-32 max-w-28">{sched.class_code}</TableCell>
-                            {type != "subject" &&
-                                <TableCell>{sched.descriptive_title}</TableCell>
-                            }
-                            <TableCell className="w-40 max-w-40">{sched.day == "TBA" ? '-' : sched.day}</TableCell>
-                            <TableCell className="w-48 max-w-48">
-                                {sched.start_time === "-" ? "-" : `${convertToAMPM(sched.start_time)} - ${convertToAMPM(sched.end_time)}`}
-                            </TableCell>
-                            {type != "faculty" &&
-                                <TableCell className="w-48 truncate max-w-48 overflow-hidden whitespace-nowrap">
-                                    {sched.first_name ? formatFullName(sched) : "-"}
+                        <React.Fragment key={`sched-${index}`}>
+                            <TableRow>
+                                <TableCell className="w-32 max-w-28">{sched.class_code}</TableCell>
+                                {type != "subject" &&
+                                    <TableCell>{sched.descriptive_title}</TableCell>
+                                }
+                                <TableCell className="w-40 max-w-40">{sched.day == "TBA" ? '-' : sched.day}</TableCell>
+                                <TableCell className="w-48 max-w-48">
+                                    {sched.start_time === "-" ? "-" : `${convertToAMPM(sched.start_time)} - ${convertToAMPM(sched.end_time)}`}
                                 </TableCell>
-                            }
-                            {type != "room" &&
-                                <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
-                                    {sched.room_name || "-"}
-                                </TableCell>
-                            }
-                            {type == "faculty" &&
-                                <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
-                                    <div className="flex justify-center items-center">
-                                        <PiStudent /> {sched.student_count}
-                                    </div>
-                                </TableCell>
-                            }
-                        </TableRow>
+                                {type != "faculty" &&
+                                    <TableCell className="w-48 truncate max-w-48 overflow-hidden whitespace-nowrap">
+                                        {sched.first_name ? formatFullName(sched) : "-"}
+                                    </TableCell>
+                                }
+                                {type != "room" &&
+                                    <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
+                                        {sched.room_name || "-"}
+                                    </TableCell>
+                                }
+                                {type == "faculty" &&
+                                    <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
+                                        <div className="flex justify-center items-center">
+                                            <PiStudent /> {sched.student_count}
+                                        </div>
+                                    </TableCell>
+                                }
+                            </TableRow>
+                            {sched.secondary_schedule && (
+                                <TableRow>
+                                    <TableCell className="w-32 max-w-28">{sched.class_code}</TableCell>
+                                    {type != "subject" &&
+                                        <TableCell>{sched.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
+                                    }
+                                    <TableCell className="w-40 max-w-40">{sched.secondary_schedule.day == "TBA" ? '-' : sched.secondary_schedule.day}</TableCell>
+                                    <TableCell className="w-48 max-w-48">
+                                        {sched.secondary_schedule.start_time === "-" ? "-" : `${convertToAMPM(sched.secondary_schedule.start_time)} - ${convertToAMPM(sched.secondary_schedule.end_time)}`}
+                                    </TableCell>
+                                    {type != "faculty" &&
+                                        <TableCell className="w-48 truncate max-w-48 overflow-hidden whitespace-nowrap">
+                                            {sched.first_name ? formatFullName(sched) : "-"}
+                                        </TableCell>
+                                    }
+                                    {type != "room" &&
+                                        <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
+                                            {sched.secondary_schedule.room_name || "-"}
+                                        </TableCell>
+                                    }
+                                    {type == "faculty" &&
+                                        <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
+                                            <div className="flex justify-center items-center">
+                                                <PiStudent /> {sched.student_count}
+                                            </div>
+                                        </TableCell>
+                                    }
+                                </TableRow>
+                            )}
+                        </React.Fragment>
                     ))
                 ) : (
                     <TableRow>
