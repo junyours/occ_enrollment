@@ -237,9 +237,9 @@ class ClassController extends Controller
 
     public function getStudentClasses(Request $request)
     {
-        $studentId = Auth::id(); // cleaner than Auth::user()->id
+        $studentId = Auth::id();
 
-        $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
+        $enrolledStudent = EnrolledStudent::select('enrolled_students.id')
             ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
             ->where('school_year_id', '=', $request->schoolYearId)
             ->where('student_id', '=', $studentId)
