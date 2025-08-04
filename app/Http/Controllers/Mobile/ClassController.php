@@ -60,9 +60,10 @@ class ClassController extends Controller
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set'], 404);
+            return response()->json(['message' => 'No current school year is set.'], 404);
         }
-        $studentId = Auth::id(); // cleaner than Auth::user()->id
+
+        $studentId = Auth::id();
 
         $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
             ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
@@ -72,7 +73,7 @@ class ClassController extends Controller
 
         if (!$enrolledStudent) {
             return response()->json([
-                'error' => 'You are not currently enrolled in this school year.',
+                'message' => 'You are not currently enrolled in this school year.',
             ], 403);
         }
 
