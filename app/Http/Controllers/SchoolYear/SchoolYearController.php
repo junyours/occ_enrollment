@@ -489,20 +489,6 @@ class SchoolYearController extends Controller
         ];
     }
 
-    public function getCurrentSchoolYear()
-    {
-        $schoolYear = SchoolYear::where('is_current', '=', 1)
-            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->select('school_years.id', 'start_year', 'end_year', 'semester_name')
-            ->first();
-
-        if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set'], 404);
-        }
-
-        return response()->json($schoolYear, 200);
-    }
-
     public function enrollmentRecordView()
     {
         $userRole = Auth::user()->user_role;
