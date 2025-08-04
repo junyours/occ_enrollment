@@ -151,7 +151,7 @@ function EnrollmentRecord() {
                                                                     <span className="text-red-500 font-medium">DROPPED</span>
                                                                 ) : classInfo.midterm_grade && classInfo.final_grade ? (
                                                                     (() => {
-                                                                        const avg = (+student.midterm_grade + +student.final_grade) / 2;
+                                                                        const avg = (+classInfo.midterm_grade + +classInfo.final_grade) / 2;
                                                                         const finalRating = avg >= 3.05 ? 5.0 : +avg.toFixed(1);
                                                                         return <>{finalRating.toFixed(1)}</>;
                                                                     })()
