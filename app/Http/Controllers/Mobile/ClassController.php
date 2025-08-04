@@ -167,7 +167,7 @@ class ClassController extends Controller
 
         if (!$data) {
             return response()->json([
-                'error' => 'You have no enrollment record.',
+                'message' => 'You have no enrollment record.',
             ], 403);
         }
 
