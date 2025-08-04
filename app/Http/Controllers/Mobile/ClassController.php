@@ -14,56 +14,56 @@ class ClassController extends Controller
 {
     public function getCurrentSchoolYear()
     {
-        $schoolYear = SchoolYear::where('is_current', '=', 1)
-            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->select('school_years.id', 'start_year', 'end_year', 'semester_name')
-            ->first();
-
-        return response()->json($schoolYear);
-    }
-
-    public function getStudentCurrentDepartment()
-    {
         $student_id = Auth::id();
 
-        $schoolYearId = SchoolYear::where('is_current', '=', 1)
-            ->first()->id;
-
-        $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
-            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
-            ->where('school_year_id', '=', $schoolYearId)
-            ->where('student_id', '=', $student_id)
-            ->first();
-
-        if (!$enrolledStudent) {
-            return response()->json([
-                'error' => 'You are not currently enrolled in this school year.',
-            ], 403);
-        }
-
-        $department = EnrolledStudent::join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
-            ->select('department_name', 'department_name_abbreviation')
-            ->join('course', 'course.id', '=', 'year_section.course_id')
-            ->join('department', 'department.id', '=', 'course.department_id')
-            ->where('school_year_id', '=', $schoolYearId)
-            ->where('student_id', '=', $student_id)
-            ->first();
-
-        return response()->json($department);
-    }
-
-    public function getStudentCurrentClasses()
-    {
         $schoolYear = SchoolYear::where('is_current', '=', 1)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->select('school_years.id', 'start_year', 'end_year', 'semester_name')
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set.'], 404);
+            return response()->json(['message' => 'No current school year is set.']);
         }
 
+        $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->where('school_year_id', '=', $schoolYear->id)
+            ->where('student_id', '=', $student_id)
+            ->first();
+
+        if (!$enrolledStudent) {
+            return response()->json([
+                "schoolYear" => $schoolYear,
+                'message' => 'You are not currently enrolled in this school year.',
+            ]);
+        }
+
+        $department = EnrolledStudent::join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->select('department_name', 'department_name_abbreviation')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->join('department', 'department.id', '=', 'course.department_id')
+            ->where('school_year_id', '=', $schoolYear->id)
+            ->where('student_id', '=', $student_id)
+            ->first();
+
+        return response()->json([
+            'schoolYear' => $schoolYear,
+            'department' => $department
+        ]);
+    }
+
+    public function getStudentCurrentClasses()
+    {
         $studentId = Auth::id();
+
+        $schoolYear = SchoolYear::where('is_current', '=', 1)
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->select('school_years.id', 'start_year', 'end_year', 'semester_name')
+            ->first();
+
+        if (!$schoolYear) {
+            return response()->json(['message' => 'No current school year is set.']);
+        }
 
         $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
             ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
@@ -74,7 +74,7 @@ class ClassController extends Controller
         if (!$enrolledStudent) {
             return response()->json([
                 'message' => 'You are not currently enrolled in this school year.',
-            ], 403);
+            ]);
         }
 
         $classes = YearSectionSubjects::where('enrolled_students_id', '=', $enrolledStudent->id)
@@ -168,10 +168,10 @@ class ClassController extends Controller
         if (!$data) {
             return response()->json([
                 'message' => 'You have no enrollment record.',
-            ], 403);
+            ]);
         }
 
-        return response()->json($data, 200);
+        return response()->json($data);
     }
 
     public function getFacultyCurrentClasses()
@@ -182,7 +182,7 @@ class ClassController extends Controller
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set'], 404);
+            return response()->json(['message' => 'No current school year is set']);
         }
 
         $facultyId = Auth::id();
