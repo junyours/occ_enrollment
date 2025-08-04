@@ -9,6 +9,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/mobile/current-school-year', [ClassController::class, 'getCurrentSchoolYear']);
 
+    Route::get('/mobile/student-current-department', [ClassController::class, 'getStudentCurrentDepartment']);
+
     // Student classes
     Route::get('/mobile/current-student-classes', [ClassController::class, 'getStudentCurrentClasses']);
     Route::get('/mobile/enrollment-record', [ClassController::class, 'getStudentEnrollmentRecord']);
