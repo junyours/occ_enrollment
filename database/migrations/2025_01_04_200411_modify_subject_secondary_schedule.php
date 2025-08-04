@@ -30,16 +30,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('subject_secondary_schedule', function (Blueprint $table) {
-            // Revert the day column to its original state
-            $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
-                ->change();
+        // Schema::table('subject_secondary_schedule', function (Blueprint $table) {
+        //     // Revert the day column to its original state
+        //     $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
+        //         ->change();
 
-            // Revert the room_id column to not nullable
-            $table->unsignedBigInteger('room_id')->nullable(false)->change();
+        //     // Revert the room_id column to not nullable
+        //     $table->unsignedBigInteger('room_id')->nullable(false)->change();
 
-            // Drop the faculty_id column
-            $table->dropColumn('faculty_id');
-        });
+        //     // Drop the faculty_id column
+        //     $table->dropColumn('faculty_id');
+        // });
     }
 };

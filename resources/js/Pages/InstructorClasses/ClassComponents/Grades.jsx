@@ -17,8 +17,8 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
         students.map((student) => ({
             id_number: student.user_id_no,
             name: `${student.last_name}, ${student.first_name} ${student.middle_name?.charAt(0) || ''}.`,
-            midterm_grade: student.midterm_grade || '',
-            final_grade: student.final_grade || '',
+            midterm_grade: student.midterm_grade ? Number(student.midterm_grade).toFixed(1) : '',
+            final_grade: student.final_grade ? Number(student.final_grade).toFixed(1) : '',
         }))
     )
 
@@ -114,7 +114,6 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
         reader.readAsArrayBuffer(file)
     }
 
-
     const uploadToDatabase = async (data) => {
         try {
             const response = await axios.post(
@@ -144,6 +143,8 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
 
         // Set new timeout
         timeoutRefs.current[key] = setTimeout(() => {
+            handleChange(index, field, Number(value).toFixed(1))  // formatted for UI
+
             const routeName =
                 field === 'midterm_grade'
                     ? 'student.midterm.grade'
@@ -154,12 +155,12 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                     yearSectionSubjectsId,
                     studentId,
                 }), {
-                    [field]: value,
+                    [field]: Number(value), // ensure backend gets a real number
                 })
                 .catch((err) => {
                     console.error('Update failed', err)
                 })
-        }, 2000)
+        }, 1500)
     }
 
     return (

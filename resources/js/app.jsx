@@ -9,7 +9,7 @@ import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "@/Components/theme-provider";
 import { Toaster } from "@/Components/ui/sonner";
 
-const appName = import.meta.env.VITE_APP_NAME || "OCC";
+const appName = import.meta.env.VITE_APP_NAME || "Opol Community College";
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
