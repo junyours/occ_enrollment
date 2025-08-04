@@ -201,7 +201,7 @@ class ClassController extends Controller
     public function getStudents(Request $request)
     {
         $id = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$request->hashed_year_section_subject_id])
-            ->first()->year_section_id;
+            ->first()->id;
 
         $students = StudentSubject::select(
             'users.id',
