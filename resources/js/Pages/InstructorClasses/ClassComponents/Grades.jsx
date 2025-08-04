@@ -143,7 +143,9 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
 
         // Set new timeout
         timeoutRefs.current[key] = setTimeout(() => {
-            handleChange(index, field, Number(value).toFixed(1))  // formatted for UI
+            if (value) {
+                handleChange(index, field, Number(value).toFixed(1))
+            }
 
             const routeName =
                 field === 'midterm_grade'
