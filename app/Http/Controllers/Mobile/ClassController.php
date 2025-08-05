@@ -33,7 +33,7 @@ class ClassController extends Controller
 
         if (!$enrolledStudent) {
             return response()->json([
-                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . '-' . $schoolYear->end_year,
+                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . ' ' . '-' . ' ' . $schoolYear->end_year,
             ], 403);
         }
 
@@ -72,7 +72,7 @@ class ClassController extends Controller
 
         if (!$enrolledStudent) {
             return response()->json([
-                'message' => 'You are not currently enrolled in this school year.',
+                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . ' ' . '-' . ' ' . $schoolYear->end_year,
             ], 403);
         }
 
