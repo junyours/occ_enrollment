@@ -22,7 +22,7 @@ class ClassController extends Controller
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set.']);
+            return response()->json(['message' => 'No current school year is set.'], 404);
         }
 
         $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
@@ -33,9 +33,8 @@ class ClassController extends Controller
 
         if (!$enrolledStudent) {
             return response()->json([
-                "schoolYear" => $schoolYear,
-                'message' => 'You are not currently enrolled in this school year.',
-            ]);
+                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . '-' . $schoolYear->end_year,
+            ], 403);
         }
 
         $department = EnrolledStudent::join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
@@ -49,7 +48,7 @@ class ClassController extends Controller
         return response()->json([
             'schoolYear' => $schoolYear,
             'department' => $department
-        ]);
+        ], 200);
     }
 
     public function getStudentCurrentClasses()
@@ -62,7 +61,7 @@ class ClassController extends Controller
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set.']);
+            return response()->json(['message' => 'No current school year is set.'], 404);
         }
 
         $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
@@ -74,7 +73,7 @@ class ClassController extends Controller
         if (!$enrolledStudent) {
             return response()->json([
                 'message' => 'You are not currently enrolled in this school year.',
-            ]);
+            ], 403);
         }
 
         $classes = YearSectionSubjects::where('enrolled_students_id', '=', $enrolledStudent->id)
@@ -117,7 +116,7 @@ class ClassController extends Controller
         return response()->json([
             'schoolYear' => $schoolYear,
             'classes' => $classes
-        ]);
+        ], 200);
     }
 
     public function getStudentEnrollmentRecord()
@@ -168,10 +167,10 @@ class ClassController extends Controller
         if (!$data) {
             return response()->json([
                 'message' => 'You have no enrollment record.',
-            ]);
+            ], 404);
         }
 
-        return response()->json($data);
+        return response()->json($data, 200);
     }
 
     public function getFacultyCurrentClasses()
@@ -182,7 +181,7 @@ class ClassController extends Controller
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set']);
+            return response()->json(['message' => 'No current school year is set'], 404);
         }
 
         $facultyId = Auth::id();
@@ -226,7 +225,7 @@ class ClassController extends Controller
             ])
             ->get();
 
-        return response()->json($classes);
+        return response()->json($classes, 200);
     }
 
     public function getStudents(Request $request)
@@ -254,6 +253,6 @@ class ClassController extends Controller
             ->orderBy('last_name', 'ASC')
             ->get();
 
-        return response()->json($students);
+        return response()->json($students, 200);
     }
 }
