@@ -78,7 +78,7 @@ class AuthController extends Controller
             if (!Hash::check($request->current_password, $user->password)) {
                 return response()->json([
                     'message' => 'The current password is incorrect.'
-                ]);
+                ], 422);
             }
 
             $request->validate([
