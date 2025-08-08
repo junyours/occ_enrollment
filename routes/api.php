@@ -17,6 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mobile/current-faculty-classes', [ClassController::class, 'getFacultyCurrentClasses']);
     Route::get('/mobile/classes-classroom-students', [ClassController::class, 'getStudents']);
 
+    Route::post('/mobile/change-password', [AuthController::class, 'changePassword']);
+
     Route::get('/mobile/logout', [AuthController::class, 'logout']);
 });
 

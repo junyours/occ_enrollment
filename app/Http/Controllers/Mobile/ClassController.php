@@ -22,7 +22,7 @@ class ClassController extends Controller
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set.'], 404);
+            return response()->json(['message' => 'The current school year has not been set.'], 404);
         }
 
         $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
@@ -33,7 +33,7 @@ class ClassController extends Controller
 
         if (!$enrolledStudent) {
             return response()->json([
-                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . ' ' . '-' . ' ' . $schoolYear->end_year,
+                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . ' ' . '-' . ' ' . $schoolYear->end_year . '.',
             ], 403);
         }
 
@@ -61,7 +61,7 @@ class ClassController extends Controller
             ->first();
 
         if (!$schoolYear) {
-            return response()->json(['message' => 'No current school year is set.'], 404);
+            return response()->json(['message' => 'The current school year has not been set.'], 404);
         }
 
         $enrolledStudent = EnrolledStudent::select(('enrolled_students.id'))
@@ -72,7 +72,7 @@ class ClassController extends Controller
 
         if (!$enrolledStudent) {
             return response()->json([
-                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . ' ' . '-' . ' ' . $schoolYear->end_year,
+                'message' => 'You are not currently enrolled in this school year' . ' ' . $schoolYear->start_year . ' ' . '-' . ' ' . $schoolYear->end_year . '.',
             ], 403);
         }
 

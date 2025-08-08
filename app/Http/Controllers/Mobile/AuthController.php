@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Auth;
 use Hash;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -19,6 +19,7 @@ class AuthController extends Controller
             "users.user_id_no",
             "users.user_role",
             "users.email",
+            "users.password_change",
             "user_information.first_name",
             "user_information.last_name",
             "user_information.middle_name",
@@ -43,8 +44,8 @@ class AuthController extends Controller
             return response()->json(['message' => 'The provided credentials are incorrect.'], 422);
         }
 
-        if (!in_array($user->user_role, ['student', 'faculty', 'program_head', 'registrar'])) {
-            return response()->json(['message' => 'Access to this portal is restricted to Student, Faculty, Program Head, and Registrar only.'], 403);
+        if (!in_array($user->user_role, ['student', 'faculty'])) {
+            return response()->json(['message' => 'Access to this portal is restricted to Student and Faculty only.'], 403);
         }
 
         $token = $user->createToken('mobile-token')->plainTextToken;
@@ -52,6 +53,42 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token
         ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user_id = $request->user()->id;
+
+        $user = User::find($user_id);
+
+        if ($user->password_change === 0) {
+            $request->validate([
+                'password' => ['required', 'confirmed', Password::defaults()],
+            ]);
+
+            $user->update([
+                'password' => Hash::make($request->password),
+                'password_change' => 1
+            ]);
+        } else {
+            $request->validate([
+                'current_password' => ['required'],
+            ]);
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'message' => 'The current password is incorrect.'
+                ]);
+            }
+
+            $request->validate([
+                'password' => ['required', 'confirmed', Password::defaults()],
+            ]);
+
+            $user->update([
+                'password' => Hash::make($request->password),
+            ]);
+        }
     }
 
     public function logout(Request $request)
