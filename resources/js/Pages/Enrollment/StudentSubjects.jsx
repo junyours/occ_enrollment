@@ -328,17 +328,13 @@ export default function StudentSubjects() {
                                                                                 disabled={exist || addingSubject}
                                                                                 variant="icon"
                                                                                 className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
-                                                                                onClick={() => {
-                                                                                    if (conflict) return
-                                                                                    addSubject(prev => [...prev, classInfo]);
-                                                                                }}
                                                                             >
                                                                                 <CirclePlus
                                                                                     size={15}
                                                                                 />
                                                                             </Button>
                                                                         </TooltipTrigger>
-                                                                        <TooltipContent className='flex items-center gap-2 text-orange-500'> <TriangleAlert/> Conflict</TooltipContent>
+                                                                        <TooltipContent className='flex items-center gap-2 text-orange-500'> <TriangleAlert /> Conflict</TooltipContent>
                                                                     </Tooltip>
                                                                 ) : (
 
@@ -346,7 +342,10 @@ export default function StudentSubjects() {
                                                                         disabled={conflict || exist || addingSubject}
                                                                         variant="icon"
                                                                         className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
-                                                                        onClick={() => { setClasses(prev => [...prev, classInfo]); }}
+                                                                        onClick={() => {
+                                                                            if (conflict) return
+                                                                            addSubject(classInfo);
+                                                                        }}
                                                                     >
                                                                         <CirclePlus
                                                                             size={15}
