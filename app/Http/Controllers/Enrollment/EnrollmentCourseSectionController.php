@@ -294,10 +294,19 @@ class EnrollmentCourseSectionController extends Controller
 
     public function getEnrolledStudentList(Request $request)
     {
-        $students = EnrolledStudent::select('enrolled_students.id', 'enrolled_students.student_id', 'first_name', 'middle_name', 'last_name', 'user_id_no', 'email_address')
-            ->where('year_section_id', '=', $request->yearSectionId)
-            ->join('users', 'enrolled_students.student_id', '=', 'users.id') // Join with the 'users' table
-            ->join('user_information', 'users.id', '=', 'user_information.user_id') // Join with the 'user_informations' table
+        $students = EnrolledStudent::select(
+            'enrolled_students.id',
+            'enrolled_students.student_id',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'user_id_no',
+            'email_address'
+        )
+            ->where('year_section_id', $request->yearSectionId)
+            ->join('users', 'enrolled_students.student_id', '=', 'users.id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->withCount('Subjects as total_subjects')
             ->orderBy('user_information.last_name', 'asc')
             ->get();
 

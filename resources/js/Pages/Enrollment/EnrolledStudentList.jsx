@@ -145,6 +145,19 @@ export default function EnrolledStudentList({ hashedCourseId, courseId, yearleve
             header: "Email",
         },
         {
+            colName: "Subjects",
+            accessorKey: "total_subjects",
+            header: "Subjects",
+            cell: ({ row }) => {
+                const { total_subjects } = row.original;
+                return (
+                    <div className="flex justify-center pr-6">
+                        {total_subjects}
+                    </div>
+                );
+            },
+        },
+        {
             colName: "Actions",
             header: "Actions",
             headerClassName: 'w-32 text-right',
