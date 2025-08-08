@@ -7,6 +7,7 @@ use App\Models\User;
 use Hash;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -76,9 +77,9 @@ class AuthController extends Controller
             ]);
 
             if (!Hash::check($request->current_password, $user->password)) {
-                return response()->json([
-                    'message' => 'The current password is incorrect.'
-                ], 422);
+                throw ValidationException::withMessages([
+                    'message' => 'The current password is incorrect.',
+                ]);
             }
 
             $request->validate([
