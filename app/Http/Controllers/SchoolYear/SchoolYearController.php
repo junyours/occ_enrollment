@@ -333,9 +333,9 @@ class SchoolYearController extends Controller
     {
         $user = Auth::user();
 
-        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
-
-        $schoolYear = SchoolYear::with('Semester')->find($schoolYear->id);
+        $schoolYear = SchoolYear::where('is_current', '=', 1)
+            ->with('Semester')
+            ->first();
 
         if (!$user) {
             return Inertia::render('Guest/OngoingEnrollment', [
@@ -491,12 +491,45 @@ class SchoolYearController extends Controller
 
     public function enrollmentRecordView()
     {
+        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->orderBy('school_years.start_date', 'DESC')
+            ->orderBy('school_years.end_date', 'DESC')
+            ->orderBy('school_years.semester_id', 'DESC')
+            ->get();
+
         $userRole = Auth::user()->user_role;
         if ($userRole == 'registrar') {
-            return Inertia::render('SchoolYear/EnrollmentRecord');
+            return Inertia::render('SchoolYear/EnrollmentRecord', [
+                'schoolYears' => $schoolYears,
+            ]);
         } else {
             return Inertia::render('StudentClasses/EnrollmentRecord');
         }
+    }
+
+    public function recordStudentList($schoolYearId, Request $request)
+    {
+        return response()->json(
+            EnrolledStudent::select(
+                'first_name',
+                'middle_name',
+                'last_name',
+                'user_id_no',
+                'year_level_name',
+                'course_name_abbreviation',
+                'date_enrolled'
+            )
+                ->withCount('Subjects as total_subjects')
+                ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+                ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
+                ->join('course', 'course.id', '=', 'year_section.course_id')
+                ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+                ->join('user_information', 'users.id', '=', 'user_information.user_id')
+                ->where('year_section.school_year_id', $schoolYearId)
+                ->orderBy('enrolled_students.date_enrolled', 'DESC')
+                ->paginate(10)
+        );
     }
 
     public function promotionalReport()

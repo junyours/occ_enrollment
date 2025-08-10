@@ -85,7 +85,7 @@ function OngoingEnrollment({ schoolYear }) {
             <PageTitle align='center'>
                 {schoolYear.start_year} - {schoolYear.end_year} {schoolYear.semester.semester_name} Semester
             </PageTitle>
-            <Head title='Ongoing Enrollment' />
+            <Head title='Enrollment' />
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full'>
                 <TotalEnrolled total={totalEnrolled} />
                 <DepartmentCounts data={departmentCounts} />

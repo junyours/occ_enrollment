@@ -8,6 +8,7 @@ Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
 
     Route::post('/api/school-year', [SchoolYearController::class, 'addSchoolYear'])->name('add.school-year');
     Route::patch('/api/school-year/{id}', [SchoolYearController::class, 'editSchoolYear'])->name('edit.school-year');
+    Route::post('/enrollment-record/{schoolYearId}', [SchoolYearController::class, 'recordStudentList'])->name('enrollment-record.students');
 });
 
 Route::middleware(['auth', 'maintenance', 'SchoolYearPermission'])->group(function () {

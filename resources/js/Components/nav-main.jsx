@@ -164,7 +164,7 @@ export function NavMain() {
             menuSections.push({
                 label: "President",
                 items: [
-                    { name: "Ongoing Enrollment", route: "ongoing-enrollment", icon: Hourglass },
+                    { name: "Enrollment", route: "enrollment", icon: Hourglass },
                 ],
             });
             break;
