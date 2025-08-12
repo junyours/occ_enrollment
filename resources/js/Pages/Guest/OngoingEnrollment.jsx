@@ -14,8 +14,6 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import CoursesCounts from '../President/CourseCounts';
 
 function OngoingEnrollment({ schoolYear }) {
-    console.log(schoolYear);
-
     const [departmentCounts, setDepartmentCounts] = useState([]);
     const [totalEnrolled, seTotalEnrolled] = useState(0);
     const [yearLevelCounts, setYearLevelCounts] = useState([]);
