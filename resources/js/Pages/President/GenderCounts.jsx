@@ -29,40 +29,43 @@ function GenderCounts({ data = [] }) {
     }
 
     return (
-        <Card className="flex flex-col w-full ">
+        <Card className="flex flex-col w-full h-full">
             <CardHeader>
                 <CardTitle>Gender</CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 pb-0">
-                <ChartContainer
-                    config={chartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                >
-                    <PieChart width={250} height={250}>
-                        <Pie
-                            data={chartData}
-                            dataKey="count"
-                            nameKey="gender"
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={97.8}
-                            stroke="none"
-                            labelLine={false}
-                            label={({ percent, gender }) =>
-                                `${gender} ${(percent * 100).toFixed(0)}%`
-                            }
-                            fill="#8884d8"
-                        >
-                            <LabelList
+            <CardContent className="flex-1 pb-0 justify-center items-center">
+                <div className="h-full flex justify-center">
+
+                    <ChartContainer
+                        config={chartConfig}
+                        className="mx-auto aspect-square max-h-[250px]"
+                    >
+                        <PieChart width={250} height={250}>
+                            <Pie
+                                data={chartData}
                                 dataKey="count"
-                                position="inside"
-                                fill="#fff"
-                                fontSize={14}
-                                fontWeight="bold"
-                            />
-                        </Pie>
-                    </PieChart>
-                </ChartContainer>
+                                nameKey="gender"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={97.8}
+                                stroke="none"
+                                labelLine={false}
+                                label={({ percent, gender }) =>
+                                    `${gender} ${(percent * 100).toFixed(0)}%`
+                                }
+                                fill="#8884d8"
+                            >
+                                <LabelList
+                                    dataKey="count"
+                                    position="inside"
+                                    fill="#fff"
+                                    fontSize={14}
+                                    fontWeight="bold"
+                                />
+                            </Pie>
+                        </PieChart>
+                    </ChartContainer>
+                </div>
             </CardContent>
         </Card>
     )

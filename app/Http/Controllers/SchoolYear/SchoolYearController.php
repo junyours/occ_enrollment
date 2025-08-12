@@ -438,6 +438,16 @@ class SchoolYearController extends Controller
                 return $item;
             });
 
+        $courses = Course::withCount([
+            'enrolledStudents as enrolled_students_count' => function ($query) use ($schoolYearId) {
+                $query->whereHas('yearSection', function ($q) use ($schoolYearId) {
+                    $q->where('school_year_id', $schoolYearId);
+                });
+            }
+        ])
+        ->orderBy('department_id', 'ASC')
+        ->get();
+
         return response()->json([
             'departmenCounts' => $departmentCounts,
             'totalEnrolled' => $totalAllDepartments,
@@ -446,6 +456,7 @@ class SchoolYearController extends Controller
             'studentTypeCounts' => $studentTypeCounts,
             'enrollmentsPerDate' => $enrollmentsPerDate,
             'peakDays' => $peakDays,
+            'courses' => $courses,
         ], 200);
     }
 

@@ -11,10 +11,11 @@ import StudentTypes from '../President/StudentTypes';
 import EnrollmentsPerDate from '../President/EnrollmentsPerDate';
 import PeakDays from '../President/PeakDays';
 import GuestLayout from '@/Layouts/GuestLayout';
+import CoursesCounts from '../President/CourseCounts';
 
 function OngoingEnrollment({ schoolYear }) {
     console.log(schoolYear);
-    
+
     const [departmentCounts, setDepartmentCounts] = useState([]);
     const [totalEnrolled, seTotalEnrolled] = useState(0);
     const [yearLevelCounts, setYearLevelCounts] = useState([]);
@@ -22,6 +23,7 @@ function OngoingEnrollment({ schoolYear }) {
     const [studentTypes, setStudentTypes] = useState([]);
     const [enrollmentsPerDate, setEnrollmentsPerDate] = useState([]);
     const [peakDays, setPeakDays] = useState([]);
+    const [coursesStudentsCount, setCoursesStudentsCount] = useState([]);
 
     const cancelTokenRef = useRef(null);
     const intervalRef = useRef(null);
@@ -49,6 +51,7 @@ function OngoingEnrollment({ schoolYear }) {
             setStudentTypes(response.data.studentTypeCounts);
             setEnrollmentsPerDate(response.data.enrollmentsPerDate);
             setPeakDays(response.data.peakDays);
+            setCoursesStudentsCount(response.data.courses)
         } catch (error) {
             if (axios.isCancel(error)) {
                 console.log("Request canceled", error.message);
@@ -89,13 +92,35 @@ function OngoingEnrollment({ schoolYear }) {
             </PageTitle>
             <Head title='Enrollment' />
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full'>
-                <TotalEnrolled total={totalEnrolled} />
-                <DepartmentCounts data={departmentCounts} />
-                <YearLevelCounts data={yearLevelCounts} />
-                <GenderCounts data={genderCounts} />
-                <StudentTypes data={studentTypes} />
-                <PeakDays data={peakDays} />
-                <EnrollmentsPerDate data={enrollmentsPerDate} />
+                {/* Row 1 */}
+                    <TotalEnrolled total={totalEnrolled} />
+                <div className="lg:order-2">
+                    <DepartmentCounts data={departmentCounts} />
+                </div>
+                <div className="lg:order-3">
+                    <YearLevelCounts data={yearLevelCounts} />
+                </div>
+
+                {/* Row 2 */}
+                <div className="lg:order-4 lg:col-span-2 row-start-3 md:row-start-auto">
+                    <CoursesCounts data={coursesStudentsCount} />
+                </div>
+                <div className="lg:order-5 min-h-72">
+                    <GenderCounts data={genderCounts} />
+                </div>
+
+                {/* Row 3 */}
+                <div className="lg:order-6">
+                    <StudentTypes data={studentTypes} />
+                </div>
+                <div className="lg:order-7">
+                    <PeakDays data={peakDays} />
+                </div>
+
+                {/* Always last — full width */}
+                <div className="lg:order-last lg:col-span-3">
+                    <EnrollmentsPerDate data={enrollmentsPerDate} />
+                </div>
             </div>
         </div>
     )

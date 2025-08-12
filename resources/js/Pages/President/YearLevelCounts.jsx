@@ -40,57 +40,57 @@ function YearLevelCounts({ data = [] }) {
     }
 
     return (
-        <Card>
+        <Card className='h-full'>
             <CardHeader>
                 <CardTitle>Year Level</CardTitle>
             </CardHeader>
-
-            <CardContent>
-                <ResponsiveContainer width="100%" height={230}>
-
-                <ChartContainer config={chartConfig}>
-                    <BarChart
-                        data={chartData}
-                        margin={{ top: 20 }}
-                        width={500}
-                        height={300}
-                    >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                            dataKey="yearLevel"
-                            tickLine={false}
-                            tickMargin={10}
-                            axisLine={false}
-                        />
-                        <ChartTooltip
-                            cursor={false}
-                            content={({ payload, active }) => {
-                                if (!active || !payload?.length) return null
-                                const { yearLevel, total } = payload[0].payload
-                                return (
-                                    <ChartTooltipContent>
-                                        <div className="text-sm font-medium">
-                                            {yearLevel} – {total}
-                                        </div>
-                                    </ChartTooltipContent>
-                                )
-                            }}
-                        />
-                        <Bar
-                            dataKey="total"
-                            fill="#8ec5ff"
-                            radius={8}
-                        >
-                            <LabelList
-                                position="top"
-                                offset={12}
-                                className="fill-foreground"
-                                fontSize={12}
-                            />
-                        </Bar>
-                    </BarChart>
-                </ChartContainer>
-                </ResponsiveContainer>
+            <CardContent className='h-full'>
+                <div className="h-full flex items-center">
+                    <ResponsiveContainer width="100%" height={230}>
+                        <ChartContainer config={chartConfig}>
+                            <BarChart
+                                data={chartData}
+                                margin={{ top: 20 }}
+                                width={500}
+                                height={300}
+                            >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="yearLevel"
+                                    tickLine={false}
+                                    tickMargin={10}
+                                    axisLine={false}
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    content={({ payload, active }) => {
+                                        if (!active || !payload?.length) return null
+                                        const { yearLevel, total } = payload[0].payload
+                                        return (
+                                            <ChartTooltipContent>
+                                                <div className="text-sm font-medium">
+                                                    {yearLevel} – {total}
+                                                </div>
+                                            </ChartTooltipContent>
+                                        )
+                                    }}
+                                />
+                                <Bar
+                                    dataKey="total"
+                                    fill="#8ec5ff"
+                                    radius={8}
+                                >
+                                    <LabelList
+                                        position="top"
+                                        offset={12}
+                                        className="fill-foreground"
+                                        fontSize={12}
+                                    />
+                                </Bar>
+                            </BarChart>
+                        </ChartContainer>
+                    </ResponsiveContainer>
+                </div>
             </CardContent>
         </Card>
     )

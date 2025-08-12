@@ -35,4 +35,16 @@ class Course extends Model
     {
         return $this->hasMany(Curriculum::class, 'course_id');
     }
+
+    public function enrolledStudents()
+    {
+        return $this->hasManyThrough(
+            EnrolledStudent::class,
+            YearSection::class,
+            'course_id',       // FK on year_sections
+            'year_section_id', // FK on enrolled_students
+            'id',              // PK on courses
+            'id'               // PK on year_sections
+        );
+    }
 }
