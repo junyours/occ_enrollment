@@ -225,7 +225,10 @@ class ClassController extends Controller
             ])
             ->get();
 
-        return response()->json($classes, 200);
+        return response()->json([
+            'schoolYear' => $schoolYear,
+            'classes' => $classes
+        ], 200);
     }
 
     public function getStudents(Request $request)
