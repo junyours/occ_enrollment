@@ -10,6 +10,7 @@ function CorStudentSubjects({ data, showSeal = false }) {
                 <tr className="h-5">
                     <th className="border border-r-black" rowSpan="2"></th>
                     <th className="border border-black" rowSpan="2">Subject Code</th>
+                    <th className="border border-black" rowSpan="2">Course&Section</th>
                     <th className="border border-black w-56" rowSpan="2">Descriptive Title</th>
                     <th className="border border-black" colSpan="3">Units</th>
                     <th className="border border-black" colSpan="3">Schedule</th>
@@ -33,6 +34,7 @@ function CorStudentSubjects({ data, showSeal = false }) {
                         <tr key={`${subjects.id}-subject`} className={`odd:bg-white even:bg-gray-100 ${showSeal ? '' : ''}`}>
                             <td className="border text-center">{index + 1}</td>
                             <td className="border">{!showSeal ? subjects.year_section_subjects.subject.subject_code : ''}</td>
+                            <td className="border">{!showSeal ? subjects.year_section_subjects.class_code : ''}</td>
                             <td className="border">{!showSeal ? subjects.year_section_subjects.subject.descriptive_title : ''}</td>
                             <td className="border text-center">{!showSeal ? subjects.year_section_subjects.subject.lecture_hours : ''}</td>
                             <td className="border text-center">{!showSeal ? subjects.year_section_subjects.subject.laboratory_hours || '' : ''}</td>
