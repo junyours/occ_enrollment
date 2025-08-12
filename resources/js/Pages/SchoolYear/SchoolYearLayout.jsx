@@ -18,7 +18,6 @@ import SubjectsSchedules from '../Enrollment/ClassScheduling/SubjectsSchedules'
 import SubjectsList from '../Enrollment/SubjectsList'
 
 export default function SchoolYearLayout({ schoolYear, semester, courses, error, courseId, yearlevel, section, yearSectionId, courseName, hashedCourseId, studentIdNo, departmentId }) {
-    console.log(schoolYear);
 
     const { url: currentUrl } = usePage()
 
@@ -124,7 +123,7 @@ export default function SchoolYearLayout({ schoolYear, semester, courses, error,
             )}
 
             {getTabValue() === "subjectsList" && (
-                <SubjectsList schoolYearId={schoolYear.id}/>
+                <SubjectsList schoolYearId={schoolYear.id} />
             )}
 
             {course ? (

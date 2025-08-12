@@ -52,14 +52,16 @@ function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId })
             window.removeEventListener('keydown', handleKeyPress);
         };
     }, [handlePrint]);
+    const { user } = usePage().props.auth; // always called
+    const userRole = user.user_role;
+
+    const departmentId = data?.year_section?.course?.department_id;
+    const showSeal = departmentId == 1 && (userRole !== 'program_head' && userRole !== 'registrar');
 
 
     if (loading) return <PreLoader title="COR" />
 
-    const departmentId = data.year_section.course.department_id;
-    const { user } = usePage().props.auth;
-    const userRole = user.user_role;
-    const showSeal = departmentId == 1 && (userRole != 'program_head' && userRole != 'registrar');
+
 
     return (
         <div className='space-y-4'>

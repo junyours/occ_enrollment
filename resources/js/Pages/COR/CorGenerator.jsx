@@ -35,8 +35,10 @@ function CorGenerator({ data, showSeal }) {
                     <CorFees
                         subjects={data.student_subject}
                         course={data.year_section.course.course_name_abbreviation}
+                        courseId={data.year_section.course.id}
                         yearLevel={data.year_section.year_level_id}
                         showSeal={showSeal}
+                        semester={data.year_section.school_year.semester.semester_name}
                     />
                     <Signatories showSeal={showSeal} />
                 </div>

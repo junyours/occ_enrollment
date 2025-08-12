@@ -1,14 +1,18 @@
 
-export function MiscellaneousFeesList(courseName, yearLevel, semester) {
+export function MiscellaneousFeesList(courseId, yearLevel, semester) {
+    console.log(courseId);
+    console.log(yearLevel);
+    console.log(semester);
+
     const filteredList = list.map(item => {
         // Zero Computer Fee if not BSIT
-        if (courseName !== 'BSIT' && item.name === 'Computer Fee') {
+        if (courseId !== 1 && item.name === 'Computer Fee') {
             return { ...item, fee: 0 };
         }
 
         // Zero fees depending on year and semester
         const conditionalFees = ['Handbook', 'School ID', 'Student Insurance', 'Entrance Exam Fee'];
-        if ((yearLevel !== 1 || semester !== 1) && conditionalFees.includes(item.name)) {
+        if (!(yearLevel === 1 && semester === 'First') && conditionalFees.includes(item.name)) {
             return { ...item, fee: 0 };
         }
 
