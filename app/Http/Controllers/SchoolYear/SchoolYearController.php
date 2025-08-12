@@ -445,8 +445,8 @@ class SchoolYearController extends Controller
                 });
             }
         ])
-        ->orderBy('department_id', 'ASC')
-        ->get();
+            ->orderBy('department_id', 'ASC')
+            ->get();
 
         return response()->json([
             'departmenCounts' => $departmentCounts,
@@ -527,10 +527,17 @@ class SchoolYearController extends Controller
                 'middle_name',
                 'last_name',
                 'user_id_no',
-                'year_level_name',
+                'year_level_id',
                 'course_name_abbreviation',
-                'date_enrolled'
+                'date_enrolled',
+                'section'
             )
+                ->when($request->search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('first_name', 'like', '%' . $search . '%')
+                            ->orWhere('last_name', 'like', '%' . $search . '%');
+                    });
+                })
                 ->withCount('Subjects as total_subjects')
                 ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
                 ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
