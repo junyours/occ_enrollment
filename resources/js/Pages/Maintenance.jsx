@@ -26,7 +26,6 @@ export default function Maintenance() {
                                 <h1 className="text-2xl font-bold">Under Maintenance</h1>
                                 <p>
                                     We're currently performing maintenance to improve your experience.
-                                    Please check back shortly.
                                 </p>
                             </div>
 
