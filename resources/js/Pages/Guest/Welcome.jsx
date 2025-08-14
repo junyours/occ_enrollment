@@ -77,7 +77,7 @@ function Welcome() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-            <Head title="Welcome - Opol Community College" />
+            <Head title="Welcome" />
 
             {/* Hero Section */}
             <section className="bg-blue-600 dark:bg-blue-700 text-white py-20">

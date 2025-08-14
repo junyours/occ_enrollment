@@ -12,7 +12,7 @@ import { Toaster } from "@/Components/ui/sonner";
 const appName = import.meta.env.VITE_APP_NAME || "Opol Community College";
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => `${title ? `${title} - ` : ''}Opol Community College`,
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,
