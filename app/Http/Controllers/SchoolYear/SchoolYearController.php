@@ -538,7 +538,6 @@ class SchoolYearController extends Controller
                     $query->where(function ($q) use ($search) {
                         $q->where('first_name', 'like', '%' . $search . '%')
                             ->orWhere('last_name', 'like', '%' . $search . '%');
-                            ->orWhere('last_name', 'like', '%' . $search . '%');
                     });
                 })
                 ->withCount('Subjects as total_subjects')
