@@ -10,7 +10,7 @@ function CorStudentSubjects({ data, showSeal = false }) {
                 <tr className="h-5">
                     <th className="border border-r-black" rowSpan="2"></th>
                     <th className="border border-black" rowSpan="2">Subject Code</th>
-                    <th className="border border-black" rowSpan="2">Course&Section</th>
+                    <th className="border border-black w-16" rowSpan="2">Course Section</th>
                     <th className="border border-black w-56" rowSpan="2">Descriptive Title</th>
                     <th className="border border-black" colSpan="3">Units</th>
                     <th className="border border-black" colSpan="3">Schedule</th>
@@ -109,7 +109,7 @@ function CorStudentSubjects({ data, showSeal = false }) {
                         </tr>
                     )
                 })}
-                {Array.from({ length: 14 - data.length }).map((_, index) => (
+                {Array.from({ length: 10 - data.length }).map((_, index) => (
                     <tr key={index}>
                         <td className='text-center'>{data.length + index + 1}</td>
                         <td className='text-center'></td>
@@ -126,7 +126,7 @@ function CorStudentSubjects({ data, showSeal = false }) {
                 ))}
                 {/* Row for total units */}
                 <tr className={`bg-gray-200  ${showSeal ? 'text-transparent' : ''}`}>
-                    <td className="border text-right" colSpan="3">Total No. of Units:</td>
+                    <td className="border text-right" colSpan="4">Total No. of Units:</td>
                     <td className="border text-center">
                         {data.reduce((total, subjects) => total + parseFloat(subjects.year_section_subjects.subject.lecture_hours || 0), 0).toFixed(1)}
                     </td>
