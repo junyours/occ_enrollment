@@ -32,5 +32,8 @@ Route::middleware(['auth', 'maintenance', 'SchoolYearPermission'])->group(functi
     Route::get('/promotional-report', [SchoolYearController::class, 'promotionalReport'])->name('promotional-report');
 });
 
+Route::middleware(['auth', 'maintenance'])->group(function () {
+    Route::get('/enrollment-record', [SchoolYearController::class, 'enrollmentRecordView'])->name('enrollment-record');
+});
+
 Route::post('/enrollment-data', [SchoolYearController::class, 'enrollmentData'])->name('enrollment-data');
-Route::get('/enrollment-record', [SchoolYearController::class, 'enrollmentRecordView'])->name('enrollment-record');
