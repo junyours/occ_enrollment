@@ -86,6 +86,10 @@ function EnrollmentRecord({ schoolYears }) {
         });
     };
 
+    const searchOnChange = (e) => {
+        setSearch(e.target.value);
+    }
+
     return (
         <div className='space-y-4'>
             <Head title="Enrollment Record" />
@@ -132,26 +136,28 @@ function EnrollmentRecord({ schoolYears }) {
                         <FileDown />
                     </Button>
                 </div>
-                <div className='flex gap-2'>
+                <form
+                    className='flex gap-2'
+                    onSubmit={(e) => {
+                        e.preventDefault(); // stops page reload
+                        getEnrollmentRecord();
+                    }}
+                >
                     <Input
                         className='w-56'
                         value={search}
                         placeholder='search'
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                        }}
+                        onChange={searchOnChange}
                     />
-                    <Button
-                        onClick={getEnrollmentRecord}
-                    >
+                    <Button type="submit">
                         <Search />
                     </Button>
-                    {(search) && (
+                    {search && (
                         <Button type="button" onClick={handleReset} variant="outline">
                             Reset
                         </Button>
                     )}
-                </div>
+                </form>
             </div>
             <div className='flex gap-4 w-full'>
                 <Card className="w-full">
@@ -170,15 +176,23 @@ function EnrollmentRecord({ schoolYears }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {studentList.map((student) => (
-                                    <TableRow key={student.user_id_no}>
-                                        <TableCell>{student.user_id_no}</TableCell>
-                                        <TableCell>{formatFullName(student)}</TableCell>
-                                        <TableCell>{student.course_name_abbreviation}-{student.year_level_id}{student.section}</TableCell>
-                                        <TableCell className='text-center'>{student.total_subjects}</TableCell>
-                                        <TableCell>{student.date_enrolled}</TableCell>
+                                {studentList.length > 0 ? (
+                                    <>
+                                        {studentList.map((student) => (
+                                            <TableRow key={student.user_id_no}>
+                                                <TableCell>{student.user_id_no}</TableCell>
+                                                <TableCell>{formatFullName(student)}</TableCell>
+                                                <TableCell>{student.course_name_abbreviation}-{student.year_level_id}{student.section}</TableCell>
+                                                <TableCell className='text-center'>{student.total_subjects}</TableCell>
+                                                <TableCell>{student.date_enrolled}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </>
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className='text-center'>No data</TableCell>
                                     </TableRow>
-                                ))}
+                                )}
                             </TableBody>
                         </Table>
                     </CardContent>
