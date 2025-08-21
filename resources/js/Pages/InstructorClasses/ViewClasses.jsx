@@ -136,7 +136,7 @@ const ViewClasses = ({ schoolYears }) => {
                     }}
                 >
                     <SelectTrigger className="w-[280px] h-12">
-                        <SelectValue placeholder="Select School Year & Semester"/>
+                        <SelectValue placeholder="Select School Year & Semester" />
                     </SelectTrigger>
                     <SelectContent>
                         {schoolYears.map((sy) => (
@@ -183,19 +183,11 @@ const ViewClasses = ({ schoolYears }) => {
                                                     <TableCell>{classInfo.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} - ${convertToAMPM(classInfo.end_time)}`}</TableCell>
                                                     <TableCell>{classInfo.room_name || '-'}</TableCell>
                                                     <TableCell>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
-                                                    {classInfo.secondary_schedule ? (
-                                                        <TableCell rowSpan={2} className="align-middle text-center">
-                                                            <Link href={`/classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
-                                                                <Button className="py-0 h-auto" variant="link">open</Button>
-                                                            </Link>
-                                                        </TableCell>
-                                                    ) : (
-                                                        <TableCell>
-                                                            <Link href={`/classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
-                                                                <Button className="py-0 h-auto" variant="link">open</Button>
-                                                            </Link>
-                                                        </TableCell>
-                                                    )}
+                                                    <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} className="align-middle text-center">
+                                                        <Link href={`/classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
+                                                            <Button className="py-0 h-auto" variant="link">open</Button>
+                                                        </Link>
+                                                    </TableCell>
                                                 </TableRow>
                                                 {classInfo.secondary_schedule && (
                                                     <TableRow>

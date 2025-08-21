@@ -10,13 +10,22 @@ use App\Models\Faculty;
 use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\StudentType;
+use App\Models\User;
 use App\Models\YearLevel;
 use App\Models\YearSection;
 use Carbon\Carbon;
+use DateTime;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
 class SchoolYearController extends Controller
 {
@@ -502,17 +511,10 @@ class SchoolYearController extends Controller
 
     public function enrollmentRecordView()
     {
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
-            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->orderBy('school_years.start_date', 'DESC')
-            ->orderBy('school_years.end_date', 'DESC')
-            ->orderBy('school_years.semester_id', 'DESC')
-            ->get();
-
         $userRole = Auth::user()->user_role;
         if ($userRole == 'registrar') {
             return Inertia::render('SchoolYear/EnrollmentRecord', [
-                'schoolYears' => $schoolYears,
+                'schoolYears' => $this->schoolYearsList(),
             ]);
         } else if ($userRole == 'student') {
             return Inertia::render('StudentClasses/EnrollmentRecord');
@@ -554,6 +556,321 @@ class SchoolYearController extends Controller
 
     public function promotionalReport()
     {
-        return Inertia::render('SchoolYear/PromotionalReport');
+        return Inertia::render('SchoolYear/PromotionalReport', [
+            'schoolYears' => $this->schoolYearsList(),
+        ]);
+    }
+
+    public function subjectsReport()
+    {
+        return Inertia::render('SchoolYear/SubjectsReport', [
+            'schoolYears' => $this->schoolYearsList(),
+        ]);
+    }
+
+    public function facultiesReport()
+    {
+        return Inertia::render('SchoolYear/FacultiesReport', [
+            'schoolYears' => $this->schoolYearsList(),
+        ]);
+    }
+
+    public function getFacultiesSubjects($schoolYearId, Request $request)
+    {
+        return response()->json(
+            data: User::select('users.id', 'faculty.faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+                ->with([
+                    'Schedules' => function ($query) use ($schoolYearId) {
+                        $query->select(
+                            'room_name',
+                            'day',
+                            'descriptive_title',
+                            'credit_units',
+                            'end_time',
+                            'faculty_id',
+                            'year_section_subjects.id',
+                            'room_id',
+                            'start_time',
+                            'subject_id',
+                            'year_section_id',
+                            'class_code',
+                            'school_year_id'
+                        )
+                            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+                            ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
+                            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+                            ->with([
+                                'SecondarySchedule' => function ($query) {
+                                    $query->select(
+                                        'rooms.room_name',
+                                        'subject_secondary_schedule.id',
+                                        'year_section_subjects_id',
+                                        'faculty_id',
+                                        'room_id',
+                                        'day',
+                                        'start_time',
+                                        'end_time',
+                                        'room_name'
+                                    )
+                                        ->leftJoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
+                                }
+                            ])
+                            ->withCount('SubjectEnrolledStudents as student_count')
+                            ->where('school_year_id', $schoolYearId);
+                    }
+                ])->whereHas('Schedules', function ($query) use ($schoolYearId) {
+                    $query->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+                        ->where('year_section.school_year_id', $schoolYearId);
+                })
+                ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
+                ->join('user_information', 'users.id', '=', 'user_information.user_id')
+                ->orderBy('last_name', 'asc')
+                ->when($request->search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+                })
+                ->paginate(10)
+        );
+    }
+
+    public function downloadFacultiesSubjects($schoolYearId)
+    {
+        $schoolYear = SchoolYear::where('school_years.id', '=', $schoolYearId)
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
+        $faculties = User::select('users.id', 'faculty.faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+            ->with([
+                'schedules' => function ($q) use ($schoolYearId) {
+                    $q->with([
+                        'subject:id,descriptive_title,credit_units',
+                        'room:id,room_name',
+                        'secondarySchedule.room:id,room_name',
+                        'yearSection:id,school_year_id'
+                    ])
+                        ->whereHas('yearSection', function ($query) use ($schoolYearId) {
+                            $query->where('school_year_id', $schoolYearId);
+                        });
+                },
+            ])
+            ->whereHas('schedules.yearSection', function ($query) use ($schoolYearId) {
+                $query->where('school_year_id', $schoolYearId);
+            })
+            ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('last_name', 'asc')
+            ->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'Name');
+        $sheet->setCellValue('B1', 'Subject');
+        $sheet->setCellValue('C1', 'Day');
+        $sheet->setCellValue('D1', 'Time');
+        $sheet->setCellValue('E1', 'Hours');
+        $sheet->setCellValue('F1', 'Units');
+
+        $sheet->getColumnDimension('A')->setWidth(25);
+        $sheet->getColumnDimension('B')->setWidth(55);
+        $sheet->getColumnDimension('C')->setWidth(25);
+        $sheet->getColumnDimension('D')->setWidth(25);
+        $sheet->getColumnDimension('E')->setWidth(10);
+        $sheet->getColumnDimension('F')->setWidth(10);
+
+        $row = 2;
+        $number = 1;
+        foreach ($faculties as $faculty) {
+            $firstRow = true;
+
+            $lastName = Str::ucfirst(Str::lower($faculty->last_name));
+            $firstName = Str::ucfirst(Str::lower($faculty->first_name));
+            $middleInitial = $faculty->middle_name
+                ? Str::upper(Str::substr($faculty->middle_name, 0, 1)) . '.'
+                : '';
+            $fullName = "{$lastName}, {$firstName} {$middleInitial}";
+
+            foreach ($faculty->schedules as $subject) {
+                $sheet->setCellValue("A{$row}", $firstRow ? "{$number}. {$fullName}" : '');
+                $sheet->setCellValue("B{$row}", optional($subject->subject)->descriptive_title);
+                $sheet->setCellValue("C{$row}", $subject->day == 'TBA' ? '' : $subject->day);
+                $sheet->setCellValue("D{$row}", $subject->start_time == 'TBA' ? '' : "{$this->convertToAMPM($subject->start_time)} - {$this->convertToAMPM($subject->end_time)}");
+                $sheet->setCellValue("E{$row}", $this->calculateHours($subject->start_time, $subject->end_time));
+                $sheet->setCellValue("F{$row}", optional($subject->subject)->credit_units);
+
+                $firstRow = false;
+
+                // Case: has secondary schedule
+                if ($subject->secondarySchedule) {
+                    $secondaryRow = $row + 1;
+
+                    $sheet->setCellValue("C{$secondaryRow}", $subject->secondarySchedule->day);
+                    $sheet->setCellValue("D{$secondaryRow}", "{$this->convertToAMPM($subject->secondarySchedule->start_time)} - {$this->convertToAMPM($subject->secondarySchedule->end_time)}");
+                    $sheet->setCellValue("E{$secondaryRow}", $this->calculateHours($subject->secondarySchedule->start_time, $subject->secondarySchedule->end_time));
+
+                    // Merge Subject and Credit Units across both rows
+                    $sheet->mergeCells("B{$row}:B{$secondaryRow}");
+                    $sheet->mergeCells("F{$row}:F{$secondaryRow}");
+
+                    // Align merged cells vertically center
+                    $sheet->getStyle("B{$row}:B{$secondaryRow}")
+                        ->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+                    $sheet->getStyle("F{$row}:F{$secondaryRow}")
+                        ->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+
+                    $row = $secondaryRow + 1; // move pointer past the secondary row
+                } else {
+                    $row++;
+                }
+            }
+            ;
+            $number++;
+        }
+
+        // Sanitize filename
+        $filename = ("Faculties Subjects - {$schoolYear->start_year}-{$schoolYear->end_year} {$schoolYear->semester_name} Semester") . '.xlsx';
+
+        // Save to temporary path
+        $tempPath = tempnam(sys_get_temp_dir(), 'subject_');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    private function convertToAMPM($time)
+    {
+        if (!$time || !is_string($time) || strpos($time, ':') === false) {
+            return ''; // or return 'N/A'
+        }
+
+        list($hour, $minute) = array_map('intval', explode(':', $time));
+        $ampm = $hour >= 12 ? 'PM' : 'AM';
+        $convertedHour = $hour % 12 ?: 12;
+
+        return sprintf("%d:%02d %s", $convertedHour, $minute, $ampm);
+    }
+
+    private function calculateHours($start_time, $end_time)
+    {
+        // Guard: skip invalid placeholders like "TBA"
+        if (!$start_time || !$end_time || strtoupper($start_time) === 'TBA' || strtoupper($end_time) === 'TBA') {
+            return '';
+        }
+
+        try {
+            $start = new DateTime($start_time);
+            $end = new DateTime($end_time);
+
+            // Handle cases where end time is past midnight
+            if ($end < $start) {
+                $end->modify('+1 day');
+            }
+
+            $diff = $start->diff($end);
+            $hours = $diff->h + ($diff->days * 24);
+            $minutes = $diff->i;
+
+            // return rounded to 2 decimals, e.g. 1.5 hours
+            return round($hours + ($minutes / 60), 2);
+        } catch (Exception $e) {
+            // Return empty instead of 0, so Excel doesn’t mislead
+            return '';
+        }
+    }
+
+    public function downloadStudentsSubjects($schoolYearId)
+    {
+        $schoolYear = SchoolYear::where('school_years.id', '=', $schoolYearId)
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
+        $templatePath = storage_path('app/templates/EL_TEMPLATE.xlsx');
+        $spreadsheet = IOFactory::load($templatePath);
+
+        // Write data to cell B13
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $students = EnrolledStudent::select(
+            'enrolled_students.id',
+            'user_id_no',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'gender',
+            'year_section_id',
+        )
+            ->with([
+                'yearSection.course',
+                'subjects.yearSectionSubjects.subject',
+            ])
+            ->whereHas('yearSection', function ($q) use ($schoolYearId) {
+                $q->where('school_year_id', $schoolYearId);
+            })
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('last_name', 'asc')
+            ->get();
+
+        $row = 13;
+        $number = 1;
+        foreach ($students as $student) {
+            $firstRow = true;
+            $program = $student->yearSection->course->course_name;
+            $major = $student->yearSection->course->major;
+            $yearLevel = $student->yearSection->year_level_id;
+
+            foreach ($student->subjects as $subject) {
+                $sheet->setCellValue("A{$row}", $firstRow ? $number : '');
+                $sheet->setCellValue("B{$row}", $firstRow ? $program : ''); // PROGRAM NAME
+                $sheet->setCellValue("C{$row}", $firstRow ? $major : ''); // PROGRAM MAJOR
+                $sheet->setCellValue("D{$row}", $firstRow ? $student->user_id_no : ''); // STUDENT ID NUMBER
+                $sheet->setCellValue("E{$row}", $firstRow ? $yearLevel : ''); // YEAR LEVEL
+                $sheet->setCellValue("F{$row}", $firstRow ? $student->last_name : ''); // LAST NAME
+                $sheet->setCellValue("G{$row}", $firstRow ? $student->first_name : ''); // FIRST NAME
+                $sheet->setCellValue("H{$row}", $firstRow ? $student->middle_name : ''); // MIDDLE NAME
+                $sheet->setCellValue("I{$row}", ''); // EXT. NAME
+                $sheet->setCellValue("J{$row}", $firstRow ? $student->gender : ''); // SEX
+                $sheet->setCellValue("K{$row}", ''); // NATIONALITY
+                $sheet->setCellValue("L{$row}", $subject->yearSectionSubjects->subject->subject_code); // COURSE CODE
+                $sheet->setCellValue("M{$row}", $subject->yearSectionSubjects->subject->descriptive_title); // COURSE DESCRIPTION
+                $sheet->setCellValue("N{$row}", $subject->yearSectionSubjects->subject->credit_units); // NO. OF UNITS
+                $row++;
+                $firstRow = false;
+            };
+
+
+            // now $row - 1 is the last row of this student
+            $lastRow = $row - 1;
+
+            // apply a black bottom border across columns A–N
+            $sheet->getStyle("A{$lastRow}:N{$lastRow}")
+                ->getBorders()->getBottom()
+                ->setBorderStyle(Border::BORDER_THIN)
+                ->setColor(new Color(Color::COLOR_BLACK));
+
+            $number++;
+        }
+
+        $filename = ("Enrollment Record - {$schoolYear->start_year}-{$schoolYear->end_year} {$schoolYear->semester_name} Semester") . '.xlsx';
+
+        // Save to temporary path
+        $tempPath = tempnam(sys_get_temp_dir(), 'subject_');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    private function schoolYearsList()
+    {
+        return SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->orderBy('school_years.start_date', 'DESC')
+            ->orderBy('school_years.end_date', 'DESC')
+            ->orderBy('school_years.semester_id', 'DESC')
+            ->get();
     }
 }

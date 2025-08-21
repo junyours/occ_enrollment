@@ -15,6 +15,7 @@ import {
     Archive,
     BarChart2,
     KeyRound,
+    NotebookText,
 } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
@@ -92,6 +93,8 @@ export function NavMain() {
                     items: [
                         { name: "Enrollment Record", route: "enrollment-record", icon: Library },
                         { name: "Promotional Report", route: "promotional-report", icon: BarChart2 },
+                        { name: "Subjects", route: "subjects-report", icon: NotebookText },
+                        { name: "Faculties", route: "faculties-report", icon: User },
                     ],
                 },
                 {

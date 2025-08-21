@@ -6,8 +6,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { FileDown, Search } from 'lucide-react';
 import React, { useState } from 'react'
+import SubjectsList from '../Enrollment/SubjectsList';
 
-function PromotionalReport({ schoolYears }) {
+function SubjectsReport({ schoolYears }) {
     const uniqueSchoolYears = Array.from(
         new Set(schoolYears.map((sy) => `${sy.start_year}-${sy.end_year}`))
     );
@@ -56,7 +57,7 @@ function PromotionalReport({ schoolYears }) {
     return (
         <div className='space-y-4'>
             <Head title="Promotional Report" />
-            <PageTitle align='center' className='w-full'>PROMOTIONAL REPORT</PageTitle>
+            <PageTitle align='center' className='w-full'>Subjects Report</PageTitle>
             <div className='mt-2 flex justify-between'>
                 <div className='flex gap-2 w-max'>
                     {/* School Year Select */}
@@ -90,44 +91,14 @@ function PromotionalReport({ schoolYears }) {
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button
-                        size='lg'
-                        className={`bg-green-600 hover:bg-green-500`}
-                        disabled={true}
-                    >
-                        Download
-                        <FileDown />
-                    </Button>
                 </div>
-                <form
-                    className='flex gap-2'
-                    onSubmit={(e) => {
-                        e.preventDefault(); // stops page reload
-                        getEnrollmentRecord();
-                    }}
-                >
-                    <Input
-                        className='w-56'
-                        value={search}
-                        placeholder='search'
-                        onChange={searchOnChange}
-                    />
-                    <Button type="submit">
-                        <Search />
-                    </Button>
-                    {search && (
-                        <Button type="button" onClick={handleReset} variant="outline">
-                            Reset
-                        </Button>
-                    )}
-                </form>
             </div>
             <div className='flex gap-4 w-full'>
-                    
+                <SubjectsList schoolYearId={selectedSchoolYearEntry.id} />
             </div>
         </div>
     )
 }
 
-export default PromotionalReport
-PromotionalReport.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+export default SubjectsReport
+SubjectsReport.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;

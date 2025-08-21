@@ -118,25 +118,6 @@ export function NavEnrollment() {
                                         </SidebarMenuItem>
                                     </>
                                 )}
-                                {user.user_role == "registrar" && (
-                                    <>
-                                        <SidebarMenuItem>
-                                            <SidebarMenuButton
-                                                tooltip="Subjects"
-                                                className={cn("h-10 text-md", currentUrl.startsWith("/subjects-schedules") && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                                                asChild
-                                            >
-                                                <Link
-                                                    onClick={() => setOpenMobile(false)}
-                                                    href={route("enrollment.subjects-list")}
-                                                    className="w-full flex items-center">
-                                                    <NotebookText />
-                                                    <span>Subjects</span>
-                                                </Link>
-                                            </SidebarMenuButton>
-                                        </SidebarMenuItem>
-                                    </>
-                                )}
                             </SidebarMenu>
                         </SidebarGroup>
                     }

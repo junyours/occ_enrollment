@@ -9,6 +9,13 @@ Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::post('/api/school-year', [SchoolYearController::class, 'addSchoolYear'])->name('add.school-year');
     Route::patch('/api/school-year/{id}', [SchoolYearController::class, 'editSchoolYear'])->name('edit.school-year');
     Route::post('/enrollment-record/{schoolYearId}', [SchoolYearController::class, 'recordStudentList'])->name('enrollment-record.students');
+
+    Route::get('/subjects-report', [SchoolYearController::class, 'subjectsReport'])->name('subjects-report');
+    Route::get('/faculties-report', [SchoolYearController::class, 'facultiesReport'])->name('faculties-report');
+    Route::post('/faculties-subjects/{schoolYearId}', [SchoolYearController::class, 'getFacultiesSubjects'])->name('faculties-subjects');
+
+    Route::get('/download/faculties-subjects/{schoolYearId}', [SchoolYearController::class, 'downloadFacultiesSubjects'])->name('subjects.faculties-download');
+    Route::get('/download/enrollment-record/{schoolYearId}', [SchoolYearController::class, 'downloadStudentsSubjects'])->name('subjects.students-download');
 });
 
 Route::middleware(['auth', 'maintenance', 'SchoolYearPermission'])->group(function () {

@@ -48,7 +48,6 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
 });
 
 Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
-    Route::get('/subjects-list', [EnrollmentCourseSectionController::class, 'viewSubjectList'])->name('enrollment.subjects-list');
     Route::post('/schoolyear/subjects/{schoolYearId}', [EnrollmentCourseSectionController::class, 'getSubjects'])->name('enrollment.schoolyear.subjects-list');
     Route::get('/enrollment/schoolyear/{schoolYearId}/subject/{subjectId}/students-download', [EnrollmentCourseSectionController::class, 'downloadSubjectStudents'])->name('enrollment.subject.students-download');
 });

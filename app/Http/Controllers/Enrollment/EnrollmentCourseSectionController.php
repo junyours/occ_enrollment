@@ -1003,7 +1003,6 @@ class EnrollmentCourseSectionController extends Controller
             ->orderBy('first_name')
             ->get();
 
-
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 

@@ -8,7 +8,6 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Download } from 'lucide-react';
-import { PageTitle } from '@/Components/ui/PageTitle';
 
 function SubjectsList({ schoolYearId }) {
     const [loading, setLoading] = useState(true);
@@ -26,7 +25,7 @@ function SubjectsList({ schoolYearId }) {
 
     useEffect(() => {
         fetchSubjects();
-    }, []);
+    }, [schoolYearId]);
 
     const handleDownload = (subjectId) => {
         window.open(route('enrollment.subject.students-download', {
@@ -40,7 +39,6 @@ function SubjectsList({ schoolYearId }) {
     return (
         <div className="space-y-4">
             <Head title="Subject List" />
-            <PageTitle align='center'>Subjects List</PageTitle>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {subjects.map(subject => (
                     <Card key={subject.id}>
