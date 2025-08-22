@@ -783,6 +783,8 @@ class SchoolYearController extends Controller
 
     public function downloadStudentsSubjects($schoolYearId)
     {
+        set_time_limit(120); // 2 minutes
+
         $schoolYear = SchoolYear::where('school_years.id', '=', $schoolYearId)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
@@ -804,6 +806,7 @@ class SchoolYearController extends Controller
         )
             ->with([
                 'yearSection.course',
+                'yearSection.YearLevel',
                 'subjects.yearSectionSubjects.subject',
             ])
             ->whereHas('yearSection', function ($q) use ($schoolYearId) {
@@ -820,7 +823,7 @@ class SchoolYearController extends Controller
             $firstRow = true;
             $program = $student->yearSection->course->course_name;
             $major = $student->yearSection->course->major;
-            $yearLevel = $student->yearSection->year_level_id;
+            $yearLevel = str_ireplace('Year', '', $student->yearSection->YearLevel->year_level_name);
 
             foreach ($student->subjects as $subject) {
                 $sheet->setCellValue("A{$row}", $firstRow ? $number : '');
@@ -839,8 +842,7 @@ class SchoolYearController extends Controller
                 $sheet->setCellValue("N{$row}", $subject->yearSectionSubjects->subject->credit_units); // NO. OF UNITS
                 $row++;
                 $firstRow = false;
-            };
-
+            }
 
             // now $row - 1 is the last row of this student
             $lastRow = $row - 1;
