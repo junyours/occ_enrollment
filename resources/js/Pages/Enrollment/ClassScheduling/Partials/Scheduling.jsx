@@ -348,6 +348,9 @@ function Scheduling({
                                             />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="1">
+                                                1hr
+                                            </SelectItem>
                                             <SelectItem value="2">
                                                 2hrs
                                             </SelectItem>
