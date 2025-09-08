@@ -80,11 +80,11 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                                         {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
                                             <span className="text-red-500 font-medium">DROPPED</span>
                                         ) : student.midterm_grade && student.final_grade ? (
-                                                (() => {
-                                                    const avg = (+student.midterm_grade + +student.final_grade) / 2;
-                                                    const finalRating = avg >= 3.05 ? 5.0 : +avg.toFixed(1);
-                                                    return <>{finalRating.toFixed(1)}</>;
-                                                })()
+                                            (() => {
+                                                const avg = (+student.midterm_grade + +student.final_grade) / 2;
+                                                const finalRating = avg >= 3.05 ? 5.0 : +avg;
+                                                return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
+                                            })()
                                         ) : (
                                             '-'
                                         )}

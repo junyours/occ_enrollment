@@ -94,7 +94,7 @@ export function NavMain() {
                         { name: "Enrollment Record", route: "enrollment-record", icon: Library },
                         { name: "Promotional Report", route: "promotional-report", icon: BarChart2 },
                         { name: "Subjects", route: "subjects-report", icon: NotebookText },
-                        { name: "Faculties", route: "faculties-report", icon: User },
+                        { name: "Faculty", route: "faculties-report", icon: User },
                     ],
                 },
                 {

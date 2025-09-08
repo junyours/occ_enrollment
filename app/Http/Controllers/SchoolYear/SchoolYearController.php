@@ -13,6 +13,7 @@ use App\Models\StudentType;
 use App\Models\User;
 use App\Models\YearLevel;
 use App\Models\YearSection;
+use App\Models\YearSectionSubjects;
 use Carbon\Carbon;
 use DateTime;
 use Exception;
@@ -554,6 +555,131 @@ class SchoolYearController extends Controller
         );
     }
 
+    public function getStudentSubjects($schoolYearId, $studentId)
+    {
+        $studentId = User::where('user_id_no', '=', $studentId)->first()->id;
+
+        $enrolledStudent = EnrolledStudent::select('enrolled_students.id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->where('school_year_id', '=', $schoolYearId)
+            ->where('student_id', '=', $studentId)
+            ->first();
+
+        if (!$enrolledStudent) {
+            return response()->json([
+                'error' => 'You are not currently enrolled in this school year.',
+            ], 403);
+        }
+
+        $classes = YearSectionSubjects::where('enrolled_students_id', '=', $enrolledStudent->id)
+            ->select(
+                'enrolled_students_id',
+                'year_section_subjects.id',
+                'first_name',
+                'last_name',
+                'middle_name',
+                'room_name',
+                'descriptive_title',
+                'year_section_subjects.start_time',
+                'year_section_subjects.end_time',
+                'year_section_subjects.day',
+            )
+            ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->leftJoin('subject_secondary_schedule', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->with([
+                'SecondarySchedule' => function ($query) {
+                    $query->select(
+                        'rooms.room_name',
+                        'subject_secondary_schedule.id',
+                        'year_section_subjects_id',
+                        'faculty_id',
+                        'room_id',
+                        'day',
+                        'start_time',
+                        'end_time',
+                        'room_name'
+                    )
+                        ->leftjoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
+                }
+            ])
+            ->get();
+
+        return response()->json($classes);
+    }
+
+    public function getStudentSubjectsGrades($schoolYearId, $studentId)
+    {
+        $studentId = User::where('user_id_no', '=', $studentId)->first()->id;
+
+        $enrolledStudent = EnrolledStudent::select('enrolled_students.id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->where('school_year_id', '=', $schoolYearId)
+            ->where('student_id', '=', $studentId)
+            ->first();
+
+        if (!$enrolledStudent) {
+            return response()->json([
+                'error' => 'You are not currently enrolled in this school year.',
+            ], 403);
+        }
+
+        $classes = YearSectionSubjects::where('enrolled_students_id', '=', $enrolledStudent->id)
+            ->select(
+                'enrolled_students_id',
+                'year_section_subjects.id',
+                'first_name',
+                'last_name',
+                'middle_name',
+                'descriptive_title',
+                'midterm_grade',
+                'final_grade',
+            )
+            ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->leftJoin('subject_secondary_schedule', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->get();
+
+        return response()->json($classes);
+    }
+
+    public function promotionalReportStudentList($schoolYearId, Request $request)
+    {
+        return response()->json(
+            EnrolledStudent::select(
+                'first_name',
+                'middle_name',
+                'last_name',
+                'user_id_no',
+                'year_level_id',
+                'course_name_abbreviation',
+                'date_enrolled',
+                'section'
+            )
+                ->when($request->search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('first_name', 'like', '%' . $search . '%')
+                            ->orWhere('last_name', 'like', '%' . $search . '%');
+                    });
+                })
+                ->withCount('Subjects as total_subjects')
+                ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+                ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
+                ->join('course', 'course.id', '=', 'year_section.course_id')
+                ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+                ->join('user_information', 'users.id', '=', 'user_information.user_id')
+                ->where('year_section.school_year_id', $schoolYearId)
+                ->orderBy('last_name', 'ASC')
+                ->paginate(10)
+        );
+    }
+
     public function promotionalReport()
     {
         return Inertia::render('SchoolYear/PromotionalReport', [
@@ -724,8 +850,7 @@ class SchoolYearController extends Controller
                 } else {
                     $row++;
                 }
-            }
-            ;
+            };
             $number++;
         }
 
@@ -866,9 +991,114 @@ class SchoolYearController extends Controller
         return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 
+    public function downloadStudentsSubjectsGrades($schoolYearId)
+    {
+        set_time_limit(120); // 2 minutes
+
+        $schoolYear = SchoolYear::where('school_years.id', '=', $schoolYearId)
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
+        $templatePath = storage_path('app/templates/PR_TEMPLATE.xlsx');
+        $spreadsheet = IOFactory::load($templatePath);
+
+        // Write data to cell B13
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $students = EnrolledStudent::select(
+            'enrolled_students.id',
+            'user_id_no',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'gender',
+            'year_section_id',
+        )
+            ->with([
+                'yearSection.course',
+                'yearSection.YearLevel',
+                'subjects.yearSectionSubjects.subject',
+            ])
+            ->whereHas('yearSection', function ($q) use ($schoolYearId) {
+                $q->where('school_year_id', $schoolYearId);
+            })
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('last_name', 'asc')
+            ->get();
+
+        $row = 13;
+        $number = 1;
+        foreach ($students as $student) {
+            $firstRow = true;
+            $program = $student->yearSection->course->course_name;
+            $major = $student->yearSection->course->major;
+            $yearLevel = str_ireplace('Year', '', $student->yearSection->YearLevel->year_level_name);
+
+            foreach ($student->subjects as $subject) {
+                $sheet->setCellValue("A{$row}", $firstRow ? $number : '');
+                $sheet->setCellValue("B{$row}", $firstRow ? $program : ''); // PROGRAM NAME
+                $sheet->setCellValue("C{$row}", $firstRow ? $major : ''); // PROGRAM MAJOR
+                $sheet->setCellValue("D{$row}", $firstRow ? $student->user_id_no : ''); // STUDENT ID NUMBER
+                $sheet->setCellValue("E{$row}", $firstRow ? $yearLevel : ''); // YEAR LEVEL
+                $sheet->setCellValue("F{$row}", $firstRow ? $student->last_name : ''); // LAST NAME
+                $sheet->setCellValue("G{$row}", $firstRow ? $student->first_name : ''); // FIRST NAME
+                $sheet->setCellValue("H{$row}", $firstRow ? $student->middle_name : ''); // MIDDLE NAME
+                $sheet->setCellValue("I{$row}", ''); // EXT. NAME
+                $sheet->setCellValue("J{$row}", $firstRow ? $student->gender : ''); // SEX
+                $sheet->setCellValue("K{$row}", ''); // NATIONALITY
+                $sheet->setCellValue("L{$row}", $subject->yearSectionSubjects->subject->subject_code); // COURSE CODE
+                $sheet->setCellValue("M{$row}", $subject->yearSectionSubjects->subject->descriptive_title); // COURSE DESCRIPTION
+                $sheet->setCellValue("N{$row}", $subject->yearSectionSubjects->subject->credit_units); // NO. OF UNITS
+
+                $midterm = $subject->midterm_grade;
+                $final   = $subject->final_grade;
+
+                if ($midterm === null || $final === null) {
+                    // No grade yet → leave cell empty or mark as "N/A"
+                    $sheet->setCellValue("O{$row}", '');
+                    $sheet->setCellValue("P{$row}", '');
+                } else {
+                    $average = ($midterm + $final) / 2;
+
+                    // Column O: numeric grade with 1 decimal place, clamp >= 3.05 to 5.0
+                    $sheet->setCellValue("O{$row}", number_format($average >= 3.05 ? 5.0 : $average, 1));
+
+                    // Column P: PASSED / FAILED
+                    $sheet->setCellValue("P{$row}", $average >= 3.05 ? 'FAILED' : 'PASSED');
+                    $sheet->setCellValue("Q{$row}", $midterm);
+                    $sheet->setCellValue("R{$row}", $final);
+                }
+
+                $row++;
+                $firstRow = false;
+            }
+
+            // now $row - 1 is the last row of this student
+            $lastRow = $row - 1;
+
+            // apply a black bottom border across columns A–N
+            $sheet->getStyle("A{$lastRow}:P{$lastRow}")
+                ->getBorders()->getBottom()
+                ->setBorderStyle(Border::BORDER_THIN)
+                ->setColor(new Color(Color::COLOR_BLACK));
+
+            $number++;
+        }
+
+        $filename = ("Promotional Report - {$schoolYear->start_year}-{$schoolYear->end_year} {$schoolYear->semester_name} Semester") . '.xlsx';
+
+        // Save to temporary path
+        $tempPath = tempnam(sys_get_temp_dir(), 'subject_');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
+    }
+
     private function schoolYearsList()
     {
-        return SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+        return SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->orderBy('school_years.start_date', 'DESC')
             ->orderBy('school_years.end_date', 'DESC')

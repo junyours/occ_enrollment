@@ -152,8 +152,8 @@ function EnrollmentRecord() {
                                                                 ) : classInfo.midterm_grade && classInfo.final_grade ? (
                                                                     (() => {
                                                                         const avg = (+classInfo.midterm_grade + +classInfo.final_grade) / 2;
-                                                                        const finalRating = avg >= 3.05 ? 5.0 : +avg.toFixed(1);
-                                                                        return <>{finalRating.toFixed(1)}</>;
+                                                                        const finalRating = avg >= 3.05 ? 5.0 : +avg;
+                                                                        return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
                                                                     })()
                                                                 ) : (
                                                                     '-'

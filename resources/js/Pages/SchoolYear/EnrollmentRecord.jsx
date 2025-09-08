@@ -9,6 +9,8 @@ import { formatFullName } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import { FileDown, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import StudentSubjects from './StudentSubjects';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 
 function EnrollmentRecord({ schoolYears }) {
 
@@ -95,6 +97,14 @@ function EnrollmentRecord({ schoolYears }) {
             schoolYearId: selectedSchoolYearEntry.id,
         }), '_blank');
     };
+
+    const [selectedStudent, setSelectedStudent] = useState([]);
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = () => {
+        setOpen(!open);
+        setSelectedStudent([]);
+    }
 
     return (
         <div className='space-y-4'>
@@ -185,7 +195,14 @@ function EnrollmentRecord({ schoolYears }) {
                                 {studentList.length > 0 ? (
                                     <>
                                         {studentList.map((student) => (
-                                            <TableRow key={student.user_id_no}>
+                                            <TableRow
+                                                key={student.user_id_no}
+                                                className='cursor-pointer'
+                                                onClick={() => {
+                                                    setSelectedStudent(student)
+                                                    setOpen(true);
+                                                }}
+                                            >
                                                 <TableCell>{student.user_id_no}</TableCell>
                                                 <TableCell>{formatFullName(student)}</TableCell>
                                                 <TableCell>{student.course_name_abbreviation}-{student.year_level_id}{student.section}</TableCell>
@@ -225,6 +242,23 @@ function EnrollmentRecord({ schoolYears }) {
                     </CardFooter>
                 </Card>
             </div>
+            {selectedStudent.length !== 0 && (
+                <Dialog open={open} onOpenChange={() => handleOpen()} className='gap-0'>
+                    <DialogContent
+                        className="sm:max-w-4xl overflow-y-auto mt-4 
+                                    max-h-[calc(100vh-19rem)]
+                                    overflow-x-auto gap-0"
+                    >
+                        <DialogHeader className='gap-0'>
+                            <DialogTitle>{formatFullName(selectedStudent)}</DialogTitle>
+                            <DialogDescription>
+                                {selectedStudent.user_id_no} - {selectedStudent.course_name_abbreviation}-{selectedStudent.year_level_id}{selectedStudent.section}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <StudentSubjects schoolYearId={selectedSchoolYearEntry.id} studentId={selectedStudent.user_id_no} />
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     )
 }
