@@ -884,7 +884,7 @@ class EnrollmentCourseSectionController extends Controller
         $students = EnrolledStudent::where('year_section_id', $yearSection->id)
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->select('enrolled_students.id', 'user_id_no', 'last_name', 'first_name', 'middle_name')
+            ->select('enrolled_students.id', 'user_id_no', 'last_name', 'first_name', 'middle_name', 'gender', 'email_address', 'contact_number')
             ->orderBy('last_name', 'ASC')
             ->orderBy('first_name', 'ASC')
             ->with('Subjects.Section.Subject')
@@ -905,6 +905,10 @@ class EnrollmentCourseSectionController extends Controller
             $sheet->setCellValue('G1', 'Tuition Fee');
         }
 
+        $sheet->setCellValue('H1', 'Sex');
+        $sheet->setCellValue('I1', 'Email Address');
+        $sheet->setCellValue('J1', 'Phone Number');
+
         $sheet->getColumnDimension('A')->setWidth(20); // ID Number
         $sheet->getColumnDimension('B')->setWidth(25); // Last Name
         $sheet->getColumnDimension('C')->setWidth(25); // First Name
@@ -916,6 +920,11 @@ class EnrollmentCourseSectionController extends Controller
             $sheet->getColumnDimension('G')->setWidth(20); // Tuition Fee
             $sheet->getStyle('G')->getNumberFormat()->setFormatCode('#,##0.00');
         }
+
+        $sheet->getColumnDimension('H')->setWidth(10); // Sex
+        $sheet->getColumnDimension('I')->setWidth(35); // Email Address
+        $sheet->getColumnDimension('J')->setWidth(20); // Phone Number
+
 
         // Data
         $row = 2;
@@ -941,6 +950,9 @@ class EnrollmentCourseSectionController extends Controller
                 $formatted = number_format(($totalLecture + $totalLab) * 150, 2);
                 $sheet->setCellValueExplicit("G$row", $formatted, DataType::TYPE_STRING);
             }
+            $sheet->setCellValue("H$row", $student->gender);
+            $sheet->setCellValue("I$row", $student->email_address);
+            $sheet->setCellValue("J$row", $student->contact_number);
             $row++;
         }
 
