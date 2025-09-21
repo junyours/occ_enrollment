@@ -328,7 +328,6 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                         studentType: false
                                     }));
                                 }
-
                             }}
                         >
                             <SelectTrigger className={`p-2 rounded-md text-sm w-40 MB-2 ${errors.studentType ? 'border-red-500' : ''}`}>

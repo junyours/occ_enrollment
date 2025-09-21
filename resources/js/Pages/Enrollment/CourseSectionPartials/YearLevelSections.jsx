@@ -3,7 +3,7 @@ import { Input } from '@/Components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Link, usePage } from '@inertiajs/react';
-import { Download, Ellipsis, Pencil, Trash } from 'lucide-react';
+import { ArrowRight, Download, Ellipsis, FileStack, Pencil, Trash } from 'lucide-react';
 import React from 'react'
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
@@ -223,6 +223,17 @@ function YearLevelSections({
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent align='start' className="w-36 space-y-2 flex flex-col">
+                                                <Link href={route('enrollment.view.cor', {
+                                                    id: courseId,
+                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                }) + `?section=${section.section}`}>
+                                                    <Button
+                                                        disabled={!section.student_count}
+                                                        variant='outline'
+                                                        className='flex justify-between'>
+                                                        COR LIST <ArrowRight className="text-violet-500" />
+                                                    </Button>
+                                                </Link>
                                                 <Button
                                                     disabled={!section.student_count}
                                                     onClick={() => handleDownload(section.year_level_id, section.section)}

@@ -49,11 +49,11 @@ function Signatories({ showSeal = false}) {
                     </p>
 
                     {/* Date */}
-                    <p className="text-xs mb-1">{new Date().toLocaleDateString('en-US', {
+                    {/* <p className="text-xs mb-1">{new Date().toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'numeric',
                         day: 'numeric'
-                    })}</p>
+                    })}</p> */}
 
                     {/* Signatory line */}
                     <div className="border-b-2 border-black mx-4">

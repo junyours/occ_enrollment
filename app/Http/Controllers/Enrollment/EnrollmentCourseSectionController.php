@@ -352,6 +352,64 @@ class EnrollmentCourseSectionController extends Controller
         );
     }
 
+    public function viewCORList($hashedCourseId, $yearlevel, Request $request)
+    {
+        $course = DB::table('course')
+            ->where(DB::raw('MD5(id)'), '=', $hashedCourseId)
+            ->first();
+
+        $section = $request->query('section');
+
+        $yearLevels = [
+            'First-Year' => '1',
+            'Second-Year' => '2',
+            'Third-Year' => '3',
+            'Fourth-Year' => '4'
+        ];
+
+        $yearLevelNumber = $yearLevels[$yearlevel] ?? '';
+
+        $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        $yearSection = YearSection::where('school_year_id', '=', $schoolYear->id)
+            ->where('course_id', '=', $course->id)
+            ->where('year_level_id', '=', $yearLevelNumber)
+            ->where('section', '=', $section)
+            ->first();
+
+        $students = EnrolledStudent::select(
+            'enrolled_students.id',
+            'enrolled_students.student_id',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'user_id_no',
+            'email_address'
+        )
+            ->where('year_section_id', $yearSection->id)
+            ->join('users', 'enrolled_students.student_id', '=', 'users.id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->withCount('Subjects as total_subjects')
+            ->orderBy('user_information.last_name', 'asc')
+            ->get();
+            
+        // return response()->json($students);
+
+        return Inertia::render(
+            'Enrollment/EnrollmentCorList',
+            [
+                'schoolYear' => $schoolYear,
+                'courseId' => $course->id,
+                'yearlevel' => $yearLevelNumber,
+                'section' => $section,
+                'yearSectionId' => $yearSection->id,
+                'courseName' => $course->course_name_abbreviation,
+                'departmentId' => $course->department_id,
+                'students' => $students,
+            ]
+        );
+    }
+
     public function viewStudentSubjects($id, $yearlevel, Request $request)
     {
 

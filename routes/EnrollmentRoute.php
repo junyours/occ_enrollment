@@ -20,6 +20,7 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
     Route::post('/enrollment/student-info/cor/{courseId}/{section}/{yearlevel}/{studentIdNo}/{schoolYearId}', [EnrollmentCourseSectionController::class, 'getStudentEnrollmentInfo'])->name('enrollment.student.info.cor');
 
     Route::get('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewEnrollStudent'])->name('enrollment.view.enroll-student');
+    Route::get('/enrollment/{id}/cor/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewCORList'])->name('enrollment.view.cor');
 
     Route::post('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'getEnrolledStudentList'])->name('get.enrolled.student.list');
     Route::post('/enrollment/enroll-student/{studID}/{yearSectionId}/{typeID}/{startDate}', [EnrollmentCourseSectionController::class, 'enrollStudent'])->name('enroll-student');
@@ -45,6 +46,9 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
 
     Route::post('/api/enrollment-room-schedules/{roomId}/{yearSectionId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentRoomSchedules'])->name('room.schedules');
     Route::post('/api/enrollment-faculty-schedules/{instructorId}/{yearSectionId}', [EnrollmentClassSchedulingController::class, 'getEnrollmentFacultySchedules'])->name('faculty.schedules');
+
+    Route::post('/enrollment-get-student-type/{id}', [EnrollmentClassSchedulingController::class, 'getStudentType'])->name('enrollment.student-type');
+    Route::post('/enrollment-set-student-type/{id}', [EnrollmentClassSchedulingController::class, 'setStudentType'])->name('enrollment.set-student-type');
 });
 
 Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Enrollment\ClassScheduling;
 
 use App\Http\Controllers\Controller;
+use App\Models\EnrolledStudent;
 use App\Models\Faculty;
 use App\Models\Room;
 use App\Models\SchoolYear;
@@ -337,23 +338,23 @@ class EnrollmentClassSchedulingController extends Controller
 
                     // Secondary schedules query
                     $secondarySchedules = SubjectSecondarySchedule::select(
-                            'room_name',
-                            'subject_secondary_schedule.day',
-                            'descriptive_title',
-                            'subject_secondary_schedule.end_time',
-                            'year_section_subjects.faculty_id',
-                            'year_section_subjects.id',
-                            'subject_secondary_schedule.room_id',
-                            'subject_secondary_schedule.start_time',
-                            'subject_id',
-                            'year_section_id',
-                            'class_code',
-                            'school_year_id',
-                            'first_name',
-                            'middle_name',
-                            'last_name',
-                            DB::raw('null as student_count') // pad student count
-                        )
+                        'room_name',
+                        'subject_secondary_schedule.day',
+                        'descriptive_title',
+                        'subject_secondary_schedule.end_time',
+                        'year_section_subjects.faculty_id',
+                        'year_section_subjects.id',
+                        'subject_secondary_schedule.room_id',
+                        'subject_secondary_schedule.start_time',
+                        'subject_id',
+                        'year_section_id',
+                        'class_code',
+                        'school_year_id',
+                        'first_name',
+                        'middle_name',
+                        'last_name',
+                        DB::raw('null as student_count') // pad student count
+                    )
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id') // Corrected join condition
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                         ->leftJoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id')
@@ -376,6 +377,18 @@ class EnrollmentClassSchedulingController extends Controller
             ->get();
     }
 
+    public function getStudentType($id)
+    {
+        $student = EnrolledStudent::find($id);
+
+        return response()->json($student->student_type_id);
+    }
+
+    public function setStudentType($id, Request $request)
+    {
+        EnrolledStudent::where('id', '=', $id)
+            ->update(['student_type_id' => $request->studentTypeId]);
+    }
 
     private function getPreparingOrOngoingSchoolYear()
     {
