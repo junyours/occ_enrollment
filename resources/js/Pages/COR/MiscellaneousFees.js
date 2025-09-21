@@ -1,5 +1,5 @@
 
-export function MiscellaneousFeesList(courseId, yearLevel, semester) {
+export function MiscellaneousFeesList(courseId, yearLevel, semester, studentType) {
 
     const filteredList = list.map(item => {
         // Zero Computer Fee if not BSIT
@@ -9,7 +9,7 @@ export function MiscellaneousFeesList(courseId, yearLevel, semester) {
 
         // Zero fees depending on year and semester
         const conditionalFees = ['Handbook', 'School ID', 'Entrance Exam Fee'];
-        if (!(yearLevel === 1 && semester === 'First') && conditionalFees.includes(item.name)) {
+        if (!(yearLevel === 1 && semester === 'First' && studentType !== 3) && conditionalFees.includes(item.name)) {
             return { ...item, fee: 0 };
         }
 
@@ -23,8 +23,8 @@ export function MiscellaneousFeesList(courseId, yearLevel, semester) {
     return filteredList;
 }
 
-export function MiscellaneousFeesTotal(courseName, yearLevel, semester) {
-    const miscellaneousFees = MiscellaneousFeesList(courseName, yearLevel, semester);
+export function MiscellaneousFeesTotal(courseName, yearLevel, semester, studentType) {
+    const miscellaneousFees = MiscellaneousFeesList(courseName, yearLevel, semester, studentType);
     const miscellaneousFeesTotal = miscellaneousFees.reduce((acc, item) => acc + item.fee, 0)
 
     return miscellaneousFeesTotal;

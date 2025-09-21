@@ -41,6 +41,8 @@ function CorGenerator({ data, showSeal }) {
                         yearLevel={data.year_section.year_level_id}
                         showSeal={showSeal}
                         semester={data.year_section.school_year.semester.semester_name}
+                        studentType={data.student_type_id}
+
                     />
                     <Signatories showSeal={showSeal} />
                 </div>

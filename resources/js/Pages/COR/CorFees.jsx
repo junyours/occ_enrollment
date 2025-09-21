@@ -2,7 +2,7 @@ import { toTwoDecimals } from '@/Lib/Utils';
 import React from 'react'
 import { MiscellaneousFeesList, MiscellaneousFeesTotal } from './MiscellaneousFees';
 
-function CorFees({ subjects, course, courseId, yearLevel, semester }) {
+function CorFees({ subjects, course, courseId, yearLevel, semester, studentType }) {
     const lectureHours = subjects.reduce(
         (total, subjects) => total + parseFloat(subjects.year_section_subjects.subject.lecture_hours || 0),
         0
@@ -15,8 +15,8 @@ function CorFees({ subjects, course, courseId, yearLevel, semester }) {
 
     const tutionFee = (lectureHours + labHours) * 150;
 
-    const miscellaneousFees = MiscellaneousFeesList(courseId, yearLevel, semester);
-    const miscellaneousFeesTotal = MiscellaneousFeesTotal(courseId, yearLevel, semester)
+    const miscellaneousFees = MiscellaneousFeesList(courseId, yearLevel, semester, studentType);
+    const miscellaneousFeesTotal = MiscellaneousFeesTotal(courseId, yearLevel, semester, studentType)
 
     return (
         <div className="w-full">
