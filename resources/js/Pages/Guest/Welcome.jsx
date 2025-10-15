@@ -5,6 +5,7 @@ import Section2 from "@/Components/guest/welcome/section2";
 import Section3 from "@/Components/guest/welcome/section3";
 import Section4 from "@/Components/guest/welcome/section4";
 import Section5 from "@/Components/guest/welcome/section5";
+import Section6 from "@/Components/guest/welcome/section6";
 
 function Welcome() {
     return (
@@ -15,6 +16,7 @@ function Welcome() {
             <Section3 />
             <Section4 />
             <Section5 />
+            <Section6 />
         </div>
     );
 }
