@@ -6,7 +6,7 @@ export default function GuestLayout({ children }) {
     return (
         <div className="min-h-svh">
             <NavHeader />
-            <main className="container mx-auto p-4">{children}</main>
+            <main className="max-w-7xl mx-auto">{children}</main>
             <ContactSection />
             <Footer />
         </div>
