@@ -137,7 +137,7 @@ function Announcement() {
     return (
         <>
             <Head title="Announcement" />
-            <div className="flex gap-4 max-sm:flex-col-reverse">
+            <div className="p-4 flex gap-4 max-sm:flex-col-reverse">
                 <div
                     className={`flex-1 ${
                         auth?.user.user_role === "announcement_admin"
