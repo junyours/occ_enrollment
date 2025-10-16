@@ -16,6 +16,7 @@ import c4 from "../../../../images/guest/carousels/4.jpg";
 import c5 from "../../../../images/guest/carousels/5.jpg";
 import c6 from "../../../../images/guest/carousels/6.jpg";
 import c7 from "../../../../images/guest/carousels/7.jpg";
+import AnimatedSection from "@/Components/guest/welcome/animated-section";
 
 const carousels = [c1, c2, c3, c4, c5, c6, c7];
 
@@ -68,56 +69,60 @@ export default function Section2() {
                 </h1>
                 <div className="flex flex-col md:flex-row gap-6 bg-gray-300/40 rounded-2xl p-6 backdrop-blur-md shadow-md">
                     <div className="flex-1">
-                        <Carousel
-                            opts={{
-                                loop: true,
-                            }}
-                            plugins={[
-                                Autoplay({
-                                    delay: 3000,
-                                    stopOnInteraction: false,
-                                }),
-                            ]}
-                        >
-                            <CarouselContent>
-                                {carousels.map((carousel, index) => (
-                                    <CarouselItem key={index} className="p-0">
-                                        <img
-                                            src={carousel}
-                                            alt={`carousel-${index}`}
-                                            className="object-cover"
-                                        />
-                                    </CarouselItem>
-                                ))}
-                            </CarouselContent>
-                            <CarouselPrevious className="left-4" />
-                            <CarouselNext className="right-4" />
-                        </Carousel>
+                        <AnimatedSection>
+                            <Carousel
+                                opts={{
+                                    loop: true,
+                                }}
+                                plugins={[
+                                    Autoplay({
+                                        delay: 3000,
+                                        stopOnInteraction: false,
+                                    }),
+                                ]}
+                            >
+                                <CarouselContent>
+                                    {carousels.map((carousel, index) => (
+                                        <CarouselItem
+                                            key={index}
+                                            className="p-0"
+                                        >
+                                            <img
+                                                src={carousel}
+                                                alt={`carousel-${index}`}
+                                                className="object-cover"
+                                            />
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="left-4" />
+                                <CarouselNext className="right-4" />
+                            </Carousel>
+                        </AnimatedSection>
                     </div>
                     <div className="flex-1 flex flex-col gap-4">
                         {events.map((event, index) => (
-                            <div
-                                key={index}
-                                className="flex p-4 gap-4 bg-gray-900/50 rounded-xl text-white shadow-md hover:bg-gray-900/60 cursor-pointer transition-all"
-                            >
-                                {/* Date box */}
-                                <div className="w-32 flex flex-col items-center justify-center">
-                                    <h1 className="font-bold text-lg">
-                                        {event.month}
-                                    </h1>
-                                    <p className="font-extrabold text-4xl">
-                                        {event.date}
-                                    </p>
+                            <AnimatedSection key={index}>
+                                <div className="flex p-4 gap-4 bg-gray-900/50 rounded-xl text-white shadow-md hover:bg-gray-900/60 cursor-pointer transition-all">
+                                    {/* Date box */}
+                                    <div className="w-32 flex flex-col items-center justify-center">
+                                        <h1 className="font-bold text-lg">
+                                            {event.month}
+                                        </h1>
+                                        <p className="font-extrabold text-4xl">
+                                            {event.date}
+                                        </p>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h1 className="font-semibold text-xl mb-1">
+                                            {event.title}
+                                        </h1>
+                                        <p className="text-sm line-clamp-3">
+                                            {event.description}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <h1 className="font-semibold text-xl mb-1">
-                                        {event.title}
-                                    </h1>
-                                    <p className="text-sm line-clamp-3">
-                                        {event.description}
-                                    </p>
-                                </div>
-                            </div>
+                            </AnimatedSection>
                         ))}
                     </div>
                 </div>

@@ -7,6 +7,7 @@ import n3 from "../../../../images/guest/news/3.jpg";
 import n4 from "../../../../images/guest/news/4.jpg";
 import n5 from "../../../../images/guest/news/5.jpg";
 import n6 from "../../../../images/guest/news/6.jpg";
+import AnimatedSection from "@/Components/guest/welcome/animated-section";
 
 const news = [
     {
@@ -73,24 +74,23 @@ export default function Section3() {
                 {/* News Cards */}
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {news.map((item, index) => (
-                        <div
-                            key={index}
-                            className="bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105"
-                        >
-                            <img
-                                src={item.image}
-                                alt={item.title}
-                                className="w-full h-56 object-cover"
-                            />
-                            <div className="p-5 space-y-2">
-                                <p className="text-gray-600 text-sm line-clamp-3">
-                                    {item.description}
-                                </p>
-                                <button className="mt-3 text-blue-600 font-semibold hover:text-blue-800 transition">
-                                    Read More →
-                                </button>
+                        <AnimatedSection key={index}>
+                            <div className="bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                                <img
+                                    src={item.image}
+                                    alt={item.title}
+                                    className="w-full h-56 object-cover"
+                                />
+                                <div className="p-5 space-y-2">
+                                    <p className="text-gray-600 text-sm line-clamp-3">
+                                        {item.description}
+                                    </p>
+                                    <button className="mt-3 text-blue-600 font-semibold hover:text-blue-800 transition">
+                                        Read More →
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </AnimatedSection>
                     ))}
                 </div>
             </div>

@@ -1,4 +1,5 @@
 import b3 from "../../../../images/guest/backgrounds/3.jpg";
+import AnimatedSection from "@/Components/guest/welcome/animated-section";
 
 const programs = [
     {
@@ -56,28 +57,27 @@ export default function Section4() {
                 </h2>
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                     {programs.map((program, index) => (
-                        <div
-                            key={index}
-                            className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-white/20 hover:bg-white/20 transition-all duration-300"
-                        >
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-xl font-semibold text-cyan-300">
-                                    {program.title}
-                                </h3>
-                                <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
-                                    {program.badge}
-                                </span>
+                        <AnimatedSection key={index}>
+                            <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-white/20 hover:bg-white/20 transition-all duration-300">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="text-xl font-semibold text-cyan-300">
+                                        {program.title}
+                                    </h3>
+                                    <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white text-xs px-3 py-1 rounded-full font-semibold">
+                                        {program.badge}
+                                    </span>
+                                </div>
+                                <p className="text-sm mb-2 italic">
+                                    {program.department}
+                                </p>
+                                <p className="text-gray-200 text-justify mb-4">
+                                    {program.description}
+                                </p>
+                                <div className="text-sm font-medium text-sky-300">
+                                    Duration: {program.duration}
+                                </div>
                             </div>
-                            <p className="text-sm mb-2 italic">
-                                {program.department}
-                            </p>
-                            <p className="text-gray-200 text-justify mb-4">
-                                {program.description}
-                            </p>
-                            <div className="text-sm font-medium text-sky-300">
-                                Duration: {program.duration}
-                            </div>
-                        </div>
+                        </AnimatedSection>
                     ))}
                 </div>
             </div>
