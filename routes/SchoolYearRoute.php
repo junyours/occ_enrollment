@@ -21,10 +21,17 @@ Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
 
     Route::post('/enrollment-record/get-student-subjects/{schoolYearId}/{studentId}', [SchoolYearController::class, 'getStudentSubjects'])->name('enrollment-record.student.subjects');
     Route::post('/enrollment-record/get-student-subjects-grades/{schoolYearId}/{studentId}', [SchoolYearController::class, 'getStudentSubjectsGrades'])->name('enrollment-record.student.subjects.grades');
+
+    Route::patch('/school-year/is_current/{schoolYearId}', [SchoolYearController::class, 'updateIsCurrent']);
+    Route::patch('/school-year/allow_enrollment/{schoolYearId}', [SchoolYearController::class, 'updateAllowEnrollment']);
+    Route::patch('/school-year/evaluating/{schoolYearId}', [SchoolYearController::class, 'updateEvaluating']);
+    Route::patch('/school-year/allow_upload_midterm/{schoolYearId}', [SchoolYearController::class, 'updateAllowUploadMidterm']);
+    Route::patch('/school-year/allow_upload_final/{schoolYearId}', [SchoolYearController::class, 'updateAllowUploadFinal']);
 });
 
 Route::middleware(['auth', 'maintenance', 'SchoolYearPermission'])->group(function () {
     Route::get('/school-year', [SchoolYearController::class, 'view'])->name('school-year');
+    Route::post('/school-year/{id}', [SchoolYearController::class, 'getSchoolYear'])->name('get.school-year');
     Route::post('/api/school-year/list', [SchoolYearController::class, 'schoolYears'])->name('school-year.list');
 
     Route::get('/school-year/{schoolyear}/{semester}', [SchoolYearController::class, 'viewSchoolYear'])->name('school-year.view');

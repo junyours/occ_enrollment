@@ -17,6 +17,11 @@ class SchoolYear extends Model
         'start_date',
         'end_date',
         'is_current',
+        'allow_enrollment',
+        'allowed_enrollment_roles',
+        'evaluating',
+        'allow_upload_midterm',
+        'allow_upload_final',
     ];
 
     protected $hidden = [

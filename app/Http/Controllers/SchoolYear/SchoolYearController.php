@@ -35,6 +35,89 @@ class SchoolYearController extends Controller
         return Inertia::render('SchoolYear/SchoolYear');
     }
 
+    public function getSchoolYear($id)
+    {
+        $schoolYear = SchoolYear::select(
+            'school_years.id',
+            "start_year",
+            "end_year",
+            "start_date",
+            "end_date",
+            "is_current",
+            "allow_enrollment",
+            "allowed_enrollment_roles",
+            "evaluating",
+            "allow_upload_midterm",
+            "allow_upload_final",
+            "semester_name"
+        )
+            ->where('school_years.id', '=', $id)
+            ->join('semesters', 'school_years.semester_id', '=', 'semesters.id')
+            ->first();
+
+        return response()->json($schoolYear);
+    }
+
+    public function updateIsCurrent($schoolYearId, Request $request)
+    {
+        if ($request->value) {
+            SchoolYear::whereNot('id', '=', $schoolYearId)
+                ->update(['is_current' => 0]);
+        }
+
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
+
+        $schoolYear->update(([
+            'is_current' => $request->value,
+        ]));
+
+        return response()->json(['message' => 'Updated successfully']);
+    }
+
+    public function updateAllowEnrollment($schoolYearId, Request $request)
+    {
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
+
+        $schoolYear->update(([
+            'allow_enrollment' => $request->value,
+        ]));
+
+        return response()->json(['message' => 'Updated successfully']);
+    }
+
+    public function updateEvaluating($schoolYearId, Request $request)
+    {
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
+
+        $schoolYear->update(([
+            'evaluating' => $request->value,
+        ]));
+
+        return response()->json(['message' => 'Updated successfully']);
+    }
+
+    public function updateAllowUploadMidterm($schoolYearId, Request $request)
+    {
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
+
+        $schoolYear->update(([
+            'allow_upload_midterm' => $request->value,
+        ]));
+
+        return response()->json(['message' => 'Updated successfully']);
+    }
+
+    public function updateAllowUploadFinal($schoolYearId, Request $request)
+    {
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
+
+        $schoolYear->update(([
+            'allow_upload_final' => $request->value,
+        ]));
+
+        return response()->json(['message' => 'Updated successfully']);
+    }
+
     public function schoolYears()
     {
         $today = Carbon::now();
@@ -101,7 +184,6 @@ class SchoolYearController extends Controller
             'end_year' => $request->end_year,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'is_current' => $request->is_current,
         ]);
 
         return response()->json(['message' => 'success'], 200);
