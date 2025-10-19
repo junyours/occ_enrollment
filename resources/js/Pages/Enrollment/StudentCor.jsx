@@ -61,8 +61,6 @@ function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId })
 
     if (loading) return <PreLoader title="COR" />
 
-
-
     return (
         <div className='space-y-4'>
             <Head title='COR' />

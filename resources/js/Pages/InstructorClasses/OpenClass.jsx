@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Head, usePage } from '@inertiajs/react'
 import { PageTitle } from '@/Components/ui/PageTitle'
 
-function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStatus }) {
+function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStatus, schoolYear }) {
     const [tab, setTab] = useState('students')
     const [students, setStudents] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -71,7 +71,7 @@ function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStat
             <div className="mt-4">
                 {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} />}
                 {tab === 'attendance' && <Attendance />}
-                {tab === 'grades' && <Grades students={students} subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} yearSectionSubjectsId={id} gradeStatus={gradeStatus} getClassStudents={getClassStudents}/>}
+                {tab === 'grades' && <Grades students={students} subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} yearSectionSubjectsId={id} gradeStatus={gradeStatus} getClassStudents={getClassStudents} schoolYear={schoolYear} />}
                 {tab === 'assignments' && <Assignments />}
                 {tab === 'materials' && <Materials />}
                 {tab === 'announcements' && <Announcements />}

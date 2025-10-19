@@ -30,7 +30,7 @@ class ClassController extends Controller
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
 
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->orderBy('school_years.start_date', 'DESC')
             ->orderBy('school_years.end_date', 'DESC')
@@ -76,12 +76,24 @@ class ClassController extends Controller
             ]);
         }
 
+        $schoolYear = SchoolYear::where('school_years.id', '=', $courseSection->school_year_id)
+            ->select(
+                'allow_upload_final',
+                'allow_upload_midterm',
+                'start_year',
+                'end_year',
+                'semester_name'
+            )
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
         return Inertia::render('InstructorClasses/OpenClass', [
             'id' => $yearSectionSubjects->id,
             'subjectCode' => $subject->subject_code,
             'descriptiveTitle' => $subject->descriptive_title,
             'courseSection' => $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section,
-            'gradeStatus' => $gradeStatus
+            'gradeStatus' => $gradeStatus,
+            'schoolYear' => $schoolYear,
         ]);
     }
 
@@ -119,6 +131,13 @@ class ClassController extends Controller
             'data.*.final_grade' => 'nullable|numeric',
         ]);
 
+        $schoolYearId = YearSectionSubjects::select('school_year_id')
+            ->where('year_section_subjects.id', '=', $yearSectionSubjectsId)
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->first()->school_year_id;
+
+        $schoolYear = SchoolYear::find($schoolYearId);
+
         foreach ($validated['data'] as $entry) {
             $student = User::where('user_id_no', '=', $entry['id_number'])->first();
 
@@ -126,8 +145,8 @@ class ClassController extends Controller
                 ->where('student_id', '=', $student->id)
                 ->where('year_section_subjects_id', '=', $yearSectionSubjectsId)
                 ->update([
-                    'midterm_grade' => $entry['midterm_grade'],
-                    'final_grade' => $entry['final_grade'],
+                    'midterm_grade' => $schoolYear->allow_upload_midterm ? $entry['midterm_grade'] : null,
+                    'final_grade' => $schoolYear->allow_upload_final ? $entry['final_grade'] : null,
                 ]);
         }
 

@@ -182,7 +182,7 @@ const ViewClasses = ({ schoolYears }) => {
                                                     <TableCell>{classInfo.descriptive_title}</TableCell>
                                                     <TableCell>{classInfo.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} - ${convertToAMPM(classInfo.end_time)}`}</TableCell>
                                                     <TableCell>{classInfo.room_name || '-'}</TableCell>
-                                                    <TableCell>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
+                                                    <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} >{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
                                                     <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} className="align-middle text-center">
                                                         <Link href={`/classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
                                                             <Button className="py-0 h-auto" variant="link">open</Button>
@@ -195,7 +195,6 @@ const ViewClasses = ({ schoolYears }) => {
                                                         <TableCell>{classInfo.descriptive_title} <span className='italic'>(2nd Schedule)</span></TableCell>
                                                         <TableCell>{classInfo.secondary_schedule.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.secondary_schedule.start_time)} - ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}</TableCell>
                                                         <TableCell>{classInfo.secondary_schedule.room_name || '-'}</TableCell>
-                                                        <TableCell>{classInfo.course_name_abbreviation}-{classInfo.year_level_id}{classInfo.section}</TableCell>
                                                     </TableRow>
                                                 )}
                                             </React.Fragment>

@@ -1,17 +1,30 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Button } from '@/Components/ui/button'
-import { Download, Upload } from 'lucide-react'
+import { Download, FileDown, Printer, Upload } from 'lucide-react'
 import axios from 'axios'
 import InstructorSubmitButton from './GradePartials/InstructorSubmitButton'
 import GradesStudentList from './GradePartials/GradesStudentList'
 import { useToast } from "@/hooks/use-toast";
-import { router } from '@inertiajs/react'
+import { router, usePage } from '@inertiajs/react'
 import GradeSubmissionStatus from './GradePartials/GradeSubmissionStatus'
+import { Card, CardContent, CardHeader } from '@/Components/ui/card'
+import { useReactToPrint } from 'react-to-print';
+import AppLogo from '@/Components/AppLogo'
 
-function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSectionSubjectsId, gradeStatus, getClassStudents }) {
+function Grades({
+    students,
+    subjectCode,
+    descriptiveTitle,
+    courseSection,
+    yearSectionSubjectsId,
+    gradeStatus,
+    getClassStudents,
+    schoolYear }) {
 
-    const { toast } = useToast()
+    const { toast } = useToast();
+
+    const { user } = usePage().props.auth
 
     const [grades, setGrades] = useState(
         students.map((student) => ({
@@ -97,15 +110,18 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                 return match
                     ? {
                         ...student,
-                        midterm_grade: match['MIDTERM'] ?? '',
-                        final_grade: match['FINAL'] ?? '',
+                        midterm_grade: !!schoolYear.allow_upload_midterm ? match['MIDTERM'] ?? '' : '',
+                        final_grade: !!schoolYear.allow_upload_final ? match['FINAL'] ?? '' : '',
                     }
                     : student
             })
             setGrades(updatedGrades)
-            uploadToDatabase(
-                updatedGrades.map(({ name, ...rest }) => rest)
-            )
+
+            if (!!schoolYear.allow_upload_midterm || !!schoolYear.allow_upload_final) {
+                uploadToDatabase(
+                    updatedGrades.map(({ name, ...rest }) => rest)
+                )
+            }
 
             // 🔥 Reset the input so it can be used again with the same file
             e.target.value = ''
@@ -165,6 +181,43 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
         }, 1500)
     }
 
+    const componentRef = useRef(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+    });
+
+    useEffect(() => {
+        const handleKeyPress = (event) => {
+            if (event.key === 'p' || event.key === 'P') {
+                handlePrint();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [handlePrint]);
+
+    function TermLabel({ term }) {
+        const suffixMap = {
+            First: { num: "1", suffix: "st" },
+            Second: { num: "2", suffix: "nd" },
+            Summer: { num: "S", suffix: "ummer" },
+        };
+
+        const { num, suffix } = suffixMap[term] || { num: term, suffix: "" };
+
+        return (
+            <span>
+                {num}
+                <sup>{suffix}</sup>
+            </span>
+        );
+    }
+
     return (
         <div className="p-4 overflow-auto space-y-4">
             <div className="flex justify-between items-center mb-4">
@@ -179,6 +232,7 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                         <Download className="w-4 h-4 mr-2" />
                         Download Template
                     </Button>
+
                     <Button
                         disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
                         variant="outline"
@@ -187,6 +241,15 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                         <Upload className="w-4 h-4 mr-2" />
                         Upload Students
                     </Button>
+
+                    <Button
+                        variant="outline"
+                        onClick={handlePrint} // quick print
+                    >
+                        <Printer className="w-4 h-4 mr-2" />
+                        Print
+                    </Button>
+
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -196,51 +259,133 @@ function Grades({ students, subjectCode, descriptiveTitle, courseSection, yearSe
                     />
                 </div>
             </div>
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-2 mb-4 text-sm">
+
+            {/* <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-2 mb-4 text-sm">
                 ⚠️ Once submitted, grades cannot yet be edited. Edit request functionality is still under development.
-            </div>
-            <GradesStudentList grades={grades} gradeStatus={gradeStatus} missingFields={missingFields} handleGradeChange={handleGradeChange} setMissingFields={setMissingFields} />
-            <div className='w-full flex items-end justify-end'>
-                <InstructorSubmitButton
-                    gradeSubmission={gradeStatus}
-                    onSubmit={async () => {
-                        if (!validateGradesBeforeSubmit()) return
+            </div> */}
 
-                        router.post(
-                            route('grade-submission.submit', yearSectionSubjectsId),
-                            {},
-                            {
-                                preserveScroll: true,
-                                onSuccess: () => toast.success('Submitted successfully'),
-                                onError: (errors) => {
-                                    if (errors && errors.grades) {
-                                        toast({
-                                            title: "Submission failed",
-                                            description: errors.grades,
-                                            variant: "destructive",
-                                        })
-                                    } else {
-                                        toast.error('Failed to submit')
-                                    }
-                                },
-                            }
-                        )
-                    }}
-                    cancel={async () => {
-                        router.post(
-                            route('grade-submission.cancel', yearSectionSubjectsId),
-                            {},
-                            {
-                                preserveScroll: true,
-                                onSuccess: () => {
-                                    toast.success('Submission canceled');
-                                },
-                                onError: () => toast.error('Failed to cancel'),
-                            }
-                        )
-                    }}
+            <div ref={componentRef} className='space-y-4 p-4'>
+                <Card>
+                    <CardContent className='p-2 flex justify-between px-6'>
+                        <div>
+                            <p>Subject: <span className='underline'>{subjectCode} - {descriptiveTitle}</span></p>
+                            <p>Course & Section: <span className='underline'>{courseSection}</span></p>
+                            <p>Instructor: <span className='underline font-semibold'>{user.last_name.toUpperCase()}, {user.first_name.toUpperCase()}
+                                {user.middle_name ? ` ${user.middle_name[0].toUpperCase()}.` : ''}</span></p>
+                            <p>
+                                SY: <span className='underline'>
+                                    {schoolYear.start_year}-{schoolYear.end_year}{" "} | <TermLabel term={schoolYear.semester_name} /> Semester
+                                </span>
+                            </p>
+                        </div>
+                        <div className='h-24 flex gap-2'>
+                            <div className='items-center text-center self-center font-semibold'>
+                                <p>OPOL COMMUNITY COLLEGE</p>
+                                <p>OPOL, MISAMIS ORIENTAL</p>
+                                <p>OFFICE OR REGISTRAR</p>
+                            </div>
+                            <AppLogo />
+                        </div>
+                    </CardContent>
+                </Card>
 
-                />
+                <div className=''>
+                    <GradesStudentList
+                        grades={grades}
+                        gradeStatus={gradeStatus}
+                        missingFields={missingFields}
+                        handleGradeChange={handleGradeChange}
+                        setMissingFields={setMissingFields}
+                        allowMidtermUpload={schoolYear.allow_upload_midterm}
+                        allowFinalUpload={schoolYear.allow_upload_final}
+                    />
+                </div>
+
+                <div className='w-full flex items-end justify-end no-print'>
+                    <InstructorSubmitButton
+                        gradeSubmission={gradeStatus}
+                        onSubmit={async () => {
+                            if (!validateGradesBeforeSubmit()) return
+
+                            router.post(
+                                route('grade-submission.submit', yearSectionSubjectsId),
+                                {},
+                                {
+                                    preserveScroll: true,
+                                    onSuccess: () => toast.success('Submitted successfully'),
+                                    onError: (errors) => {
+                                        if (errors && errors.grades) {
+                                            toast({
+                                                title: "Submission failed",
+                                                description: errors.grades,
+                                                variant: "destructive",
+                                            })
+                                        } else {
+                                            toast.error('Failed to submit')
+                                        }
+                                    },
+                                }
+                            )
+                        }}
+                        cancel={async () => {
+                            router.post(
+                                route('grade-submission.cancel', yearSectionSubjectsId),
+                                {},
+                                {
+                                    preserveScroll: true,
+                                    onSuccess: () => {
+                                        toast.success('Submission canceled');
+                                    },
+                                    onError: () => toast.error('Failed to cancel'),
+                                }
+                            )
+                        }}
+
+                    />
+                </div>
+
+                <Card>
+                    <CardContent className='pt-6'>
+                        <div className='flex justify-between'>
+                            <div className='text-center'>
+                                <div>
+                                    Sybmitted by:
+                                </div>
+                                <div className='w-52 border-b'>
+                                    <p>
+                                        {user.last_name.toUpperCase()}, {user.first_name.toUpperCase()}
+                                        {user.middle_name ? ` ${user.middle_name[0].toUpperCase()}.` : ''}
+                                    </p>
+                                </div>
+                                <div >
+                                    Instructor
+                                </div>
+                            </div>
+                            <div className='text-center'>
+                                <div>
+                                    Checked by:
+                                </div>
+                                <div className='w-52 border-b h-6'>
+
+                                </div>
+                                <div>
+                                    Program Head
+                                </div>
+                            </div>
+                            <div className='text-center'>
+                                <div>
+                                    Acknowledged by:
+                                </div>
+                                <div className='w-52 border-b h-6'>
+
+                                </div>
+                                <div>
+                                    Registrar 1
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div >
     )
