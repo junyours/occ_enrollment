@@ -160,7 +160,6 @@ class SchoolYearController extends Controller
             'end_year' => $request->end_year,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'is_current' => $request->is_current,
         ]);
 
         if ($schoolYear->is_current) {
