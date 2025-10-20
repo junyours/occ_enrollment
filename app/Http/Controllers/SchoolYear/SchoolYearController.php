@@ -802,11 +802,15 @@ class SchoolYearController extends Controller
                             'subject_id',
                             'year_section_id',
                             'class_code',
-                            'school_year_id'
+                            'school_year_id',
+                            'section',
+                            'year_level_id',
+                            'course_name_abbreviation'
                         )
                             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                             ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
                             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+                            ->join('course', 'course.id', '=', 'year_section.course_id')
                             ->with([
                                 'SecondarySchedule' => function ($query) {
                                     $query->select(

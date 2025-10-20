@@ -187,6 +187,7 @@ function FacultiesReport({ schoolYears }) {
                                                         <TableHead>Subject</TableHead>
                                                         <TableHead>Day</TableHead>
                                                         <TableHead>Time</TableHead>
+                                                        <TableHead>Course & Section</TableHead>
                                                         <TableHead className='text-center'>Units</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
@@ -199,6 +200,7 @@ function FacultiesReport({ schoolYears }) {
                                                                 <TableCell>
                                                                     {subjects.start_time === "-" ? "-" : `${convertToAMPM(subjects.start_time)} - ${convertToAMPM(subjects.end_time)}`}
                                                                 </TableCell>
+                                                                <TableCell rowSpan={subjects.secondary_schedule ? 2 : 1} className=''>{subjects.course_name_abbreviation}-{subjects.year_level_id}{subjects.section}</TableCell>
                                                                 <TableCell rowSpan={subjects.secondary_schedule ? 2 : 1} className='text-center'>{subjects.credit_units}</TableCell>
                                                             </TableRow>
                                                             {subjects.secondary_schedule && (
@@ -208,7 +210,6 @@ function FacultiesReport({ schoolYears }) {
                                                                     <TableCell>
                                                                         {subjects.secondary_schedule.start_time === "-" ? "-" : `${convertToAMPM(subjects.secondary_schedule.start_time)} - ${convertToAMPM(subjects.secondary_schedule.end_time)}`}
                                                                     </TableCell>
-                                                                    {/* <TableCell className='text-center'>{subjects.credit_units}</TableCell> */}
                                                                 </TableRow>
                                                             )}
                                                         </React.Fragment>

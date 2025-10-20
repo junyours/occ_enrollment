@@ -120,7 +120,7 @@ const FacultyList = ({ faculties, filters }) => {
                                     type="text"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search faculties by name or email..."
+                                    placeholder="Search faculty by name or email..."
                                     className="pl-10 w-full"
                                 />
                             </div>
