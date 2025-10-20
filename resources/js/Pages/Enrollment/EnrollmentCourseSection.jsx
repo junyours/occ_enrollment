@@ -19,7 +19,7 @@ import EnhancedDownloadDialog from "./EnhancedDownloadDialog";
 import AddNewSection from "./CourseSectionPartials/AddNewSection";
 import YearLevelSections from "./CourseSectionPartials/YearLevelSections";
 
-export default function EnrollmentCourseSection({ courseId, error, course, schoolYearId, forSchoolYear = false, semester, schoolYear }) {
+export default function EnrollmentCourseSection({ courseId, error, course, schoolYearId, allowEnrollment, forSchoolYear = false, semester, schoolYear }) {
     const user = usePage().props.auth.user;
 
     const [yearLevels, setYearLevels] = useState([]);
@@ -212,6 +212,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                                     setIsDownloading={setIsDownloading}
                                     schoolYearId={schoolYearId}
                                     schoolYear={schoolYear}
+                                    allowEnrollment={allowEnrollment}
                                 />
                             </CardContent>
                         </Card>

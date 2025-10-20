@@ -7,6 +7,7 @@ import { ArrowRight, Download, Ellipsis, FileStack, Pencil, Trash } from 'lucide
 import React from 'react'
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 
 function YearLevelSections({
     yearLevel,
@@ -25,7 +26,8 @@ function YearLevelSections({
     getEnrollmentCourseSection,
     setIsDownloading,
     schoolYearId,
-    schoolYear
+    schoolYear,
+    allowEnrollment
 }) {
     const user = usePage().props.auth.user;
     const userRole = user.user_role;
@@ -197,22 +199,64 @@ function YearLevelSections({
                                     )}
 
                                     {(!forSchoolYear) ? (
-                                        <>
-                                            <Link href={route('enrollment.view.enroll-student', {
-                                                id: courseId,
-                                                yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                            }) + `?section=${section.section}`}>
-                                                <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
+                                        allowEnrollment ? (
+                                            <Link
+                                                href={route('enrollment.view.enroll-student', {
+                                                    id: courseId,
+                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                                                }) + `?section=${section.section}`}
+                                            >
+                                                <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">
+                                                    Enroll Student
+                                                </Button>
                                             </Link>
-                                        </>
+                                        ) : (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <span>
+                                                        <Button
+                                                            disabled
+                                                            className="text-blue-500 hidden sm:inline h-auto py-0 pointer-events-none"
+                                                            variant="link"
+                                                        >
+                                                            Enroll Student
+                                                        </Button>
+                                                    </span>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Enrollment is not allowed at this time</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        )
                                     ) : (
-                                        <>
-                                            {userRole == 'registrar' && (
+                                        userRole === 'registrar' && (
+                                            <>
+                                                {/* allowEnrollment ? (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <span>
+                                                            <Button
+                                                                disabled
+                                                                className="text-blue-500 hidden sm:inline h-auto py-0 pointer-events-none"
+                                                                variant="link"
+                                                            >
+                                                                Enroll Student
+                                                            </Button>
+                                                        </span>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Enrollment is not allowed at this time</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                                ) : (
                                                 <Link>
-                                                    <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">Enroll Student</Button>
+                                                    <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">
+                                                        Enroll Student
+                                                    </Button>
                                                 </Link>
-                                            )}
-                                        </>
+                                                ) */}
+                                            </>
+                                        )
                                     )}
 
                                     {(userRole == "registrar" || userRole == "program_head") && (

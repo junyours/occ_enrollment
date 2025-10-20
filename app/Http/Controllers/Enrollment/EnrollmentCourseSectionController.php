@@ -43,12 +43,15 @@ class EnrollmentCourseSectionController extends Controller
 
         $schoolYear = $this->getPreparingOrOngoingSchoolYear()['school_year'];
 
+        $allowEnrollment = SchoolYear::find($schoolYear->id)->allow_enrollment;
+
         return Inertia::render(
             'Enrollment/EnrollmentCourseSection',
             [
                 'courseId' => $hashedCourseId,
                 'course' => $course,
                 'schoolYearId' => $schoolYear->id,
+                'allowEnrollment' => $allowEnrollment,
             ]
         );
     }
@@ -392,7 +395,7 @@ class EnrollmentCourseSectionController extends Controller
             ->withCount('Subjects as total_subjects')
             ->orderBy('user_information.last_name', 'asc')
             ->get();
-            
+
         // return response()->json($students);
 
         return Inertia::render(
