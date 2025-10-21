@@ -264,8 +264,8 @@ function Grades({
                 ⚠️ Once submitted, grades cannot yet be edited. Edit request functionality is still under development.
             </div> */}
 
-            <div ref={componentRef} className='space-y-4 p-4'>
-                <Card>
+            <div ref={componentRef} className='print:space-y-4 print:p-4'>
+                <Card className='hidden print:block'>
                     <CardContent className='p-2 flex justify-between px-6'>
                         <div>
                             <p>Subject: <span className='underline'>{subjectCode} - {descriptiveTitle}</span></p>
@@ -301,7 +301,7 @@ function Grades({
                     />
                 </div>
 
-                <div className='w-full flex items-end justify-end no-print'>
+                <div className='w-full flex items-end justify-end no-print mt-4'>
                     <InstructorSubmitButton
                         gradeSubmission={gradeStatus}
                         onSubmit={async () => {
@@ -344,7 +344,7 @@ function Grades({
                     />
                 </div>
 
-                <Card>
+                <Card className='hidden print:block'>
                     <CardContent className='pt-6'>
                         <div className='flex justify-between'>
                             <div className='text-center'>
@@ -353,8 +353,9 @@ function Grades({
                                 </div>
                                 <div className='w-52 border-b'>
                                     <p>
-                                        {user.last_name.toUpperCase()}, {user.first_name.toUpperCase()}
-                                        {user.middle_name ? ` ${user.middle_name[0].toUpperCase()}.` : ''}
+                                        {user.first_name.toUpperCase()}
+                                        {user.middle_name ? ` ${user.middle_name[0].toUpperCase()}. ` : ' '}
+                                        {user.last_name.toUpperCase()}
                                     </p>
                                 </div>
                                 <div >
@@ -377,7 +378,7 @@ function Grades({
                                     Acknowledged by:
                                 </div>
                                 <div className='w-52 border-b h-6'>
-
+                                    BERNADETH T. NACUA
                                 </div>
                                 <div>
                                     Registrar 1
