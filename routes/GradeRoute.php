@@ -22,3 +22,7 @@ Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::post('/verified-grades/subject-students', [GradeController::class, 'viewFacultyVerifiedSubjectStudents'])->name('faculty.verified.subjects.students');
     Route::post('/verified-grades/deploy/{yearSectionSubjectsId}', [GradeController::class, 'deployGrades'])->name('deploy.grades');
 });
+
+Route::middleware(['auth', 'maintenance'])->group(function () {
+    Route::post('/program-head-name/{yearSectionSubjectsId}', [GradeController::class, 'programHeadName'])->name('program-head-name');
+});

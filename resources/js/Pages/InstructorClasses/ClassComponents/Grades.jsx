@@ -11,6 +11,8 @@ import GradeSubmissionStatus from './GradePartials/GradeSubmissionStatus'
 import { Card, CardContent, CardHeader } from '@/Components/ui/card'
 import { useReactToPrint } from 'react-to-print';
 import AppLogo from '@/Components/AppLogo'
+import GradeSignatories from './GradePartials/GradeSignatories'
+import GradeHeader from './GradePartials/GradeHeader'
 
 function Grades({
     students,
@@ -90,7 +92,6 @@ function Grades({
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Grades')
         XLSX.writeFile(workbook, `${subjectCode} - ${descriptiveTitle}_${courseSection}_students_grades.xlsx`)
     }
-
 
     const uploadExcel = (e) => {
         const file = e.target.files[0]
@@ -201,23 +202,6 @@ function Grades({
         };
     }, [handlePrint]);
 
-    function TermLabel({ term }) {
-        const suffixMap = {
-            First: { num: "1", suffix: "st" },
-            Second: { num: "2", suffix: "nd" },
-            Summer: { num: "S", suffix: "ummer" },
-        };
-
-        const { num, suffix } = suffixMap[term] || { num: term, suffix: "" };
-
-        return (
-            <span>
-                {num}
-                <sup>{suffix}</sup>
-            </span>
-        );
-    }
-
     return (
         <div className="p-4 overflow-auto space-y-4">
             <div className="flex justify-between items-center mb-4">
@@ -265,41 +249,17 @@ function Grades({
             </div> */}
 
             <div ref={componentRef} className='print:space-y-4 print:p-4'>
-                <Card className='hidden print:block'>
-                    <CardContent className='p-2 flex justify-between px-6'>
-                        <div>
-                            <p>Subject: <span className='underline'>{subjectCode} - {descriptiveTitle}</span></p>
-                            <p>Course & Section: <span className='underline'>{courseSection}</span></p>
-                            <p>Instructor: <span className='underline font-semibold'>{user.last_name.toUpperCase()}, {user.first_name.toUpperCase()}
-                                {user.middle_name ? ` ${user.middle_name[0].toUpperCase()}.` : ''}</span></p>
-                            <p>
-                                SY: <span className='underline'>
-                                    {schoolYear.start_year}-{schoolYear.end_year}{" "} | <TermLabel term={schoolYear.semester_name} /> Semester
-                                </span>
-                            </p>
-                        </div>
-                        <div className='h-24 flex gap-2'>
-                            <div className='items-center text-center self-center font-semibold'>
-                                <p>OPOL COMMUNITY COLLEGE</p>
-                                <p>OPOL, MISAMIS ORIENTAL</p>
-                                <p>OFFICE OR REGISTRAR</p>
-                            </div>
-                            <AppLogo />
-                        </div>
-                    </CardContent>
-                </Card>
+                <GradeHeader subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} schoolYear={schoolYear} />
 
-                <div className=''>
-                    <GradesStudentList
-                        grades={grades}
-                        gradeStatus={gradeStatus}
-                        missingFields={missingFields}
-                        handleGradeChange={handleGradeChange}
-                        setMissingFields={setMissingFields}
-                        allowMidtermUpload={schoolYear.allow_upload_midterm}
-                        allowFinalUpload={schoolYear.allow_upload_final}
-                    />
-                </div>
+                <GradesStudentList
+                    grades={grades}
+                    gradeStatus={gradeStatus}
+                    missingFields={missingFields}
+                    handleGradeChange={handleGradeChange}
+                    setMissingFields={setMissingFields}
+                    allowMidtermUpload={schoolYear.allow_upload_midterm}
+                    allowFinalUpload={schoolYear.allow_upload_final}
+                />
 
                 <div className='w-full flex items-end justify-end no-print mt-4'>
                     <InstructorSubmitButton
@@ -344,49 +304,7 @@ function Grades({
                     />
                 </div>
 
-                <Card className='hidden print:block'>
-                    <CardContent className='pt-6'>
-                        <div className='flex justify-between'>
-                            <div className='text-center'>
-                                <div>
-                                    Sybmitted by:
-                                </div>
-                                <div className='w-52 border-b'>
-                                    <p>
-                                        {user.first_name.toUpperCase()}
-                                        {user.middle_name ? ` ${user.middle_name[0].toUpperCase()}. ` : ' '}
-                                        {user.last_name.toUpperCase()}
-                                    </p>
-                                </div>
-                                <div >
-                                    Instructor
-                                </div>
-                            </div>
-                            <div className='text-center'>
-                                <div>
-                                    Checked by:
-                                </div>
-                                <div className='w-52 border-b h-6'>
-
-                                </div>
-                                <div>
-                                    Program Head
-                                </div>
-                            </div>
-                            <div className='text-center'>
-                                <div>
-                                    Acknowledged by:
-                                </div>
-                                <div className='w-52 border-b h-6'>
-                                    BERNADETH T. NACUA
-                                </div>
-                                <div>
-                                    Registrar 1
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <GradeSignatories yearSectionSubjectsId={yearSectionSubjectsId} />
             </div>
         </div >
     )

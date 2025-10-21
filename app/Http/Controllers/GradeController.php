@@ -19,7 +19,7 @@ class GradeController extends Controller
     public function viewSubmittedGrades()
     {
 
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->orderBy('school_years.start_date', 'DESC')
             ->orderBy('school_years.end_date', 'DESC')
@@ -115,7 +115,6 @@ class GradeController extends Controller
             'faculty' => $faculty,
             'subjects' => $subjects,
         ]);
-
     }
 
     public function viewSubjectStudents($schoolYear, $semester, $facultyId, $yearSectionSubjectsId)
@@ -201,7 +200,7 @@ class GradeController extends Controller
 
     public function instructorListSubmittion()
     {
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->orderBy('school_years.start_date', 'DESC')
             ->orderBy('school_years.end_date', 'DESC')
@@ -215,7 +214,7 @@ class GradeController extends Controller
 
     public function viewVerifiedGrades()
     {
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current', )
+        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->orderBy('school_years.start_date', 'DESC')
             ->orderBy('school_years.end_date', 'DESC')
@@ -379,5 +378,22 @@ class GradeController extends Controller
                 'is_deployed' => 1,
                 'deployed_at' => now(),
             ]);
+    }
+
+    public function programHeadName($yearSectionSubjectsId)
+    {
+        $deptId = YearSectionSubjects::where('year_section_subjects.id', '=', $yearSectionSubjectsId)
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->first()->department_id;
+
+        $programHead = User::select('first_name', 'middle_name', 'last_name')
+            ->where('user_role', '=', 'program_head')
+            ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
+            ->where('department_id', '=', $deptId)
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->first();
+
+        return response()->json($programHead);
     }
 }
