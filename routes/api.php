@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Mobile\AuthController;
 use App\Http\Controllers\Mobile\ClassController;
+use App\Http\Controllers\CsgAttendance\CsgAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mobile/user', [AuthController::class, 'user']);
+    Route::get('/csg-attendance/user', [CsgAttendanceController::class, 'csgAttendanceUser']);
 
     Route::get('/mobile/current-school-year', [ClassController::class, 'getCurrentSchoolYear']);
 
@@ -24,4 +26,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('guest')->group(function () {
     Route::post('/mobile/login', [AuthController::class, 'login']);
+    Route::post('/csg-attendance/login', [CsgAttendanceController::class, 'csgAttendanceLogin']);
 });
