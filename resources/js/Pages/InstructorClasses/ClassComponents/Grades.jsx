@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Button } from '@/Components/ui/button'
-import { Download, FileDown, Printer, Upload } from 'lucide-react'
+import { Download, FileDown, Printer, Upload, Cloud, CloudUpload } from 'lucide-react'
 import axios from 'axios'
 import InstructorSubmitButton from './GradePartials/InstructorSubmitButton'
 import GradesStudentList from './GradePartials/GradesStudentList'
@@ -38,6 +38,10 @@ function Grades({
     )
 
     const [missingFields, setMissingFields] = useState({})
+
+    // Upload status state: 'idle' | 'uploading' | 'saved'
+    const [uploadStatus, setUploadStatus] = useState('saved')
+    const uploadStatusTimeoutRef = useRef(null)
 
     const validateGradesBeforeSubmit = () => {
         const missing = {}
@@ -111,8 +115,8 @@ function Grades({
                 return match
                     ? {
                         ...student,
-                        midterm_grade: !!schoolYear.allow_upload_midterm ? match['MIDTERM'] ?? '' : '',
-                        final_grade: !!schoolYear.allow_upload_final ? match['FINAL'] ?? '' : '',
+                        midterm_grade: !!schoolYear.allow_upload_midterm ? Number(match['MIDTERM']).toFixed(1) ?? '' : '',
+                        final_grade: !!schoolYear.allow_upload_final ? Number(match['FINAL']).toFixed(1) ?? '' : '',
                     }
                     : student
             })
@@ -131,20 +135,33 @@ function Grades({
         reader.readAsArrayBuffer(file)
     }
 
+    // Update your uploadToDatabase function:
     const uploadToDatabase = async (data) => {
+        setUploadStatus('uploading')
+
+        // Clear any existing timeout
+        if (uploadStatusTimeoutRef.current) {
+            clearTimeout(uploadStatusTimeoutRef.current)
+        }
+
         try {
             const response = await axios.post(
                 route('upload.students.grades', { yearSectionSubjectsId }),
                 { data },
                 { headers: { 'Content-Type': 'application/json' } }
             )
+
+            await new Promise((resolve) => setTimeout(resolve, 2000)) // 2-second delay
+            setUploadStatus('saved')
         } catch (error) {
             console.error('Upload failed:', error)
+            setUploadStatus('idle')
         }
     }
 
     const timeoutRefs = useRef({}) // Store timeouts per student field
 
+    // Update your handleGradeChange function to set uploading status:
     const handleGradeChange = (index, field, value) => {
         // Update local UI state
         handleChange(index, field, value)
@@ -156,6 +173,14 @@ function Grades({
         const key = `${studentId}-${field}`
         if (timeoutRefs.current[key]) {
             clearTimeout(timeoutRefs.current[key])
+        }
+
+        // Set status to uploading
+        setUploadStatus('uploading')
+
+        // Clear any existing saved status timeout
+        if (uploadStatusTimeoutRef.current) {
+            clearTimeout(uploadStatusTimeoutRef.current)
         }
 
         // Set new timeout
@@ -174,10 +199,14 @@ function Grades({
                     yearSectionSubjectsId,
                     studentId,
                 }), {
-                    [field]: Number(value), // ensure backend gets a real number
+                    [field]: Number(value),
+                })
+                .then(() => {
+                    setUploadStatus('saved')
                 })
                 .catch((err) => {
                     console.error('Update failed', err)
+                    setUploadStatus('idle')
                 })
         }, 1500)
     }
@@ -202,10 +231,42 @@ function Grades({
         };
     }, [handlePrint]);
 
+    // Add cleanup useEffect at the bottom of your component:
+    useEffect(() => {
+        return () => {
+            if (uploadStatusTimeoutRef.current) {
+                clearTimeout(uploadStatusTimeoutRef.current)
+            }
+            Object.values(timeoutRefs.current).forEach(timeout => {
+                if (timeout) clearTimeout(timeout)
+            })
+        }
+    }, [])
+
     return (
         <div className="p-4 overflow-auto space-y-4">
             <div className="flex justify-between items-center mb-4">
-                <GradeSubmissionStatus gradeStatus={gradeStatus} />
+                <div className="flex items-center gap-4">
+                    <GradeSubmissionStatus gradeStatus={gradeStatus} />
+
+                    {/* Upload Status Indicator - Shows uploading or saved */}
+                    {uploadStatus !== 'idle' && (
+                        <div className="flex items-center gap-2 text-sm">
+                            {uploadStatus === 'uploading' && (
+                                <>
+                                    <CloudUpload className="w-8 h-8 text-blue-500 animate-pulse" />
+                                    <span className="text-blue-600 text-2xl">Uploading...</span>
+                                </>
+                            )}
+                            {uploadStatus === 'saved' && (
+                                <>
+                                    <Cloud className="w-8 h-8 text-green-500" />
+                                    <span className="text-green-600 text-2xl">Saved</span>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
 
                 <div className="flex gap-2 self-end">
                     <Button
@@ -263,6 +324,7 @@ function Grades({
 
                 <div className='w-full flex items-end justify-end no-print mt-4'>
                     <InstructorSubmitButton
+                        disabledButton={true}
                         gradeSubmission={gradeStatus}
                         onSubmit={async () => {
                             if (!validateGradesBeforeSubmit()) return
@@ -300,7 +362,6 @@ function Grades({
                                 }
                             )
                         }}
-
                     />
                 </div>
 

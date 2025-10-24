@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Button } from '@/Components/ui/button'
 import { convertToAMPM } from '@/Lib/Utils'
 import { Clock, Loader2, Send } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip'
 
-export default function InstructorSubmitButton({ gradeSubmission, onSubmit, cancel }) {
+export default function InstructorSubmitButton({ disabledButton, gradeSubmission, onSubmit, cancel }) {
     const {
         submitted_at,
         is_submitted,
@@ -62,6 +63,24 @@ export default function InstructorSubmitButton({ gradeSubmission, onSubmit, canc
                     {is_deployed ? 'Grades Deployed' : 'Grades Approved'}
                 </span>
             </div>
+        )
+    }
+
+    if (disabledButton) {
+        return (
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div>
+                        <Button disabled>
+                            <Send className="w-4 h-4" />
+                            Submit Grades
+                        </Button>
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Finals submission isn’t open yet, you can still record midterm grades.
+                </TooltipContent>
+            </Tooltip>
         )
     }
 
