@@ -8,6 +8,6 @@ class HomeController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Guest/Welcome');
+        return redirect('/login');
     }
 }

@@ -4,11 +4,11 @@ use App\Http\Controllers\Announcement\AnnouncementController;
 use App\Http\Controllers\SchoolYear\SchoolYearController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/enrollment', [SchoolYearController::class, 'viewOngoingEnrollment'])->name('enrollment');
-Route::get('/announcement', [AnnouncementController::class, 'view'])->name('announcement');
+// Route::get('/enrollment', [SchoolYearController::class, 'viewOngoingEnrollment'])->name('enrollment');
+// Route::get('/announcement', [AnnouncementController::class, 'view'])->name('announcement');
 
 Route::middleware(['auth'])->group(function () {
-    Route::post('/announcement/upload', [AnnouncementController::class, 'upload']);
-    Route::post('/announcement/update', [AnnouncementController::class, 'update']);
-    Route::post('/announcement/delete', [AnnouncementController::class, 'delete']);
+    // Route::post('/announcement/upload', [AnnouncementController::class, 'upload']);
+    // Route::post('/announcement/update', [AnnouncementController::class, 'update']);
+    // Route::post('/announcement/delete', [AnnouncementController::class, 'delete']);
 });
