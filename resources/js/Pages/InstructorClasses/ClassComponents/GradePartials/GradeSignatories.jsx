@@ -25,7 +25,7 @@ function GradeSignatories({ yearSectionSubjectsId }) {
                         <div className='flex justify-between'>
                               <div className='text-center'>
                                     <div>
-                                          Sybmitted by:
+                                          Submitted by:
                                     </div>
                                     <div className='w-52 border-b'>
                                           <p>
