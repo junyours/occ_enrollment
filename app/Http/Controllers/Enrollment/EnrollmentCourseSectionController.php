@@ -22,6 +22,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -942,10 +943,21 @@ class EnrollmentCourseSectionController extends Controller
             ->where('section', $section)
             ->first();
 
-        $students = EnrolledStudent::where('year_section_id', $yearSection->id)
+        $students = EnrolledStudent::select(
+            'enrolled_students.id',
+            'user_id_no',
+            'last_name',
+            'first_name',
+            'middle_name',
+            'gender',
+            'email_address',
+            'contact_number',
+            'birthday',
+            'present_address'
+        )
+            ->where('year_section_id', $yearSection->id)
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->select('enrolled_students.id', 'user_id_no', 'last_name', 'first_name', 'middle_name', 'gender', 'email_address', 'contact_number')
             ->orderBy('last_name', 'ASC')
             ->orderBy('first_name', 'ASC')
             ->with('Subjects.Section.Subject')
@@ -969,6 +981,10 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->setCellValue('H1', 'Sex');
         $sheet->setCellValue('I1', 'Email Address');
         $sheet->setCellValue('J1', 'Phone Number');
+        $sheet->setCellValue('K1', 'Date of Birth');
+        $sheet->setCellValue('L1', 'Age');
+        $sheet->setCellValue('M1', 'Civil Status');
+        $sheet->setCellValue('N1', 'Address');
 
         $sheet->getColumnDimension('A')->setWidth(20); // ID Number
         $sheet->getColumnDimension('B')->setWidth(25); // Last Name
@@ -985,7 +1001,10 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->getColumnDimension('H')->setWidth(10); // Sex
         $sheet->getColumnDimension('I')->setWidth(35); // Email Address
         $sheet->getColumnDimension('J')->setWidth(20); // Phone Number
-
+        $sheet->getColumnDimension('K')->setWidth(20); // Date of Birth
+        $sheet->getColumnDimension('L')->setWidth(10); // Age
+        $sheet->getColumnDimension('M')->setWidth(15); // Civil Status
+        $sheet->getColumnDimension('N')->setWidth(40); // Address
 
         // Data
         $row = 2;
@@ -1014,6 +1033,13 @@ class EnrollmentCourseSectionController extends Controller
             $sheet->setCellValue("H$row", $student->gender);
             $sheet->setCellValue("I$row", $student->email_address);
             $sheet->setCellValue("J$row", $student->contact_number);
+            $sheet->setCellValue("K$row", $student->birthday);
+
+            $age = $student->birthday ? Carbon::parse($student->birthday)->age : '';
+
+            $sheet->setCellValue("L$row", $age);
+            $sheet->setCellValue("M$row", $student->civil_status);
+            $sheet->setCellValue("N$row", $student->present_address);
             $row++;
         }
 
