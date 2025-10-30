@@ -158,7 +158,7 @@ function YearLevelSections({
                                     {section.student_count}/{section.max_students}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {userRole == "program_head" && (
+                                    {(userRole == "program_head" || userRole == "registrar") && (
                                         <>
                                             {forSchoolYear ? (
                                                 <Link href={route('school-year.view.class', {

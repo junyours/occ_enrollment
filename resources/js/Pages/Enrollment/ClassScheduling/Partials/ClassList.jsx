@@ -26,6 +26,9 @@ function ClassList({
 }) {
     const { courseName, yearlevel, section } = usePage().props;
 
+    const user = usePage().props.auth.user;
+    const userRole = user.user_role;
+
     const [adding, setAdding] = useState(false);
     const [subjectId, setSubjectId] = useState(0);
 
@@ -57,13 +60,18 @@ function ClassList({
                         <TableHeader>
                             <TableRow>
                                 {/* <TableHead>Class Code</TableHead> */}
-                                <TableHead className="w-28">Subject Code</TableHead>
+                                {userRole === 'program_head' && (
+                                    <TableHead className="w-28">Subject Code</TableHead>
+                                )}
                                 <TableHead>Descriptive Title</TableHead>
                                 <TableHead className="w-36">Day</TableHead>
                                 <TableHead className="w-40">Time</TableHead>
                                 <TableHead className="w-14">Room</TableHead>
                                 <TableHead className="w-32">Instructor</TableHead>
-                                {!isDownloading && <TableHead className="w-12"></TableHead>}
+                                {userRole === 'registrar' && (
+                                    <TableHead className="w-28 text-end">Last updated</TableHead>
+                                )}
+                                {(!isDownloading && userRole !== 'program_head') && <TableHead className="w-12"></TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -74,7 +82,9 @@ function ClassList({
                                 return (
                                     <React.Fragment key={classInfo.id}>
                                         <TableRow className={`${classInfo.secondary_schedule ? 'border-b-0' : ''} ${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(classInfo.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
-                                            <TableCell>{classInfo.subject.subject_code}</TableCell>
+                                            {userRole === 'program_head' && (
+                                                <TableCell>{classInfo.subject.subject_code}</TableCell>
+                                            )}
                                             <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title}</TableCell>
                                             <TableCell>{classInfo.day}</TableCell>
                                             <TableCell>
@@ -88,75 +98,86 @@ function ClassList({
                                             <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
                                                 {classInfo.instructor ? formatFullName(classInfo.instructor.instructor_info) : "TBA"}
                                             </TableCell>
-                                            {!isDownloading && (
+                                            {(!isDownloading && userRole === 'program_head') && (
                                                 <TableCell>
                                                     <div className="w-full flex justify-end space-x-1 h-full">
-                                                        {(classInfo.subject.laboratory_hours && !classInfo.secondary_schedule && !editing) ? (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    {(adding && subjectId == classInfo.id) ? (
-                                                                        <LoaderCircle
+                                                        {userRole === 'program_head' && (
+                                                            <>
+                                                                {(classInfo.subject.laboratory_hours && !classInfo.secondary_schedule && !editing) ? (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            {(adding && subjectId == classInfo.id) ? (
+                                                                                <LoaderCircle
+                                                                                    size={15}
+                                                                                    className='cursor-pointer animate-spin'
+                                                                                />
+                                                                            ) : (
+                                                                                <AlarmClockPlus
+                                                                                    onClick={() => { if (!adding) addSecondSchedule(classInfo.id) }}
+                                                                                    size={15}
+                                                                                    className={`${adding ? '' : 'cursor-pointer'} text-green-500`}
+                                                                                />
+                                                                            )}
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>Add secondary schedule</TooltipContent>
+                                                                    </Tooltip>
+                                                                ) : (
+                                                                    <AlarmClockPlus
+                                                                        size={15}
+                                                                        className={`text-transparent`}
+                                                                    />
+                                                                )}
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Pencil
+                                                                            onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
                                                                             size={15}
-                                                                            className='cursor-pointer animate-spin'
+                                                                            className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
                                                                         />
+                                                                    </TooltipTrigger>
+                                                                    {editing ? (
+                                                                        <></>
                                                                     ) : (
-                                                                        <AlarmClockPlus
-                                                                            onClick={() => { if (!adding) addSecondSchedule(classInfo.id) }}
-                                                                            size={15}
-                                                                            className={`${adding ? '' : 'cursor-pointer'} text-green-500`}
-                                                                        />
+                                                                        <TooltipContent>Edit</TooltipContent>
                                                                     )}
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>Add secondary schedule</TooltipContent>
-                                                            </Tooltip>
-                                                        ) : (
-                                                            <AlarmClockPlus
-                                                                size={15}
-                                                                className={`text-transparent`}
-                                                            />
+                                                                </Tooltip>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Trash
+                                                                            onClick={() => {
+                                                                                if (!editing) {
+                                                                                    setClassIdToDelete(classInfo.id);
+                                                                                    setClassType('main');
+                                                                                    setOpenDeleteDialog(true);
+                                                                                }
+                                                                            }}
+                                                                            size={15}
+                                                                            className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
+                                                                        />
+                                                                    </TooltipTrigger>
+                                                                    {editing ? (
+                                                                        <></>
+                                                                    ) : (
+                                                                        <TooltipContent>Delete</TooltipContent>
+                                                                    )}
+                                                                </Tooltip>
+                                                            </>
                                                         )}
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Pencil
-                                                                    onClick={() => { if (!editing) editSchedule(classInfo, 'main') }}
-                                                                    size={15}
-                                                                    className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                                                />
-                                                            </TooltipTrigger>
-                                                            {editing ? (
-                                                                <></>
-                                                            ) : (
-                                                                <TooltipContent>Edit</TooltipContent>
-                                                            )}
-                                                        </Tooltip>
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Trash
-                                                                    onClick={() => {
-                                                                        if (!editing) {
-                                                                            setClassIdToDelete(classInfo.id);
-                                                                            setClassType('main');
-                                                                            setOpenDeleteDialog(true);
-                                                                        }
-                                                                    }}
-                                                                    size={15}
-                                                                    className={` ${editing ? 'text-transparent' : 'cursor-pointer text-red-500'}`}
-                                                                />
-                                                            </TooltipTrigger>
-                                                            {editing ? (
-                                                                <></>
-                                                            ) : (
-                                                                <TooltipContent>Delete</TooltipContent>
-                                                            )}
-                                                        </Tooltip>
                                                     </div>
                                                 </TableCell>
                                             )}
+                                            {userRole === 'registrar' && (
+                                                <TableHead className="w-28">
+                                                    {new Date(classInfo.updated_at).toLocaleString()}
+                                                </TableHead>
+                                            )}
                                         </TableRow>
 
-                                        {classInfo.secondary_schedule && (
+                                        {/* {classInfo.secondary_schedule && (
                                             <TableRow className={`border-t-0 ${isEditingSecondary ? 'bg-green-500 hover:bg-green-500' : ''} ${secondScheduleConflictList.includes(classInfo.secondary_schedule.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
-                                                <TableCell>{classInfo.subject.subject_code}</TableCell>
+                                                {userRole === 'program_head' && (
+                                                    <TableCell>{classInfo.subject.subject_code}</TableCell>
+                                                )}
                                                 <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">{classInfo.subject.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
                                                 <TableCell>{classInfo.secondary_schedule.day}</TableCell>
                                                 <TableCell>
@@ -170,7 +191,7 @@ function ClassList({
                                                 <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
                                                     {classInfo.instructor ? formatFullName(classInfo.instructor.instructor_info) : "TBA"}
                                                 </TableCell>
-                                                {!isDownloading && (
+                                                {(!isDownloading && userRole === 'program_head') && (
                                                     <TableCell>
                                                         <div className="flex justify-evenly space-x-1 h-full">
                                                             <AlarmClockPlus
@@ -197,7 +218,7 @@ function ClassList({
                                                     </TableCell>
                                                 )}
                                             </TableRow>
-                                        )}
+                                        )} */}
                                     </React.Fragment>
                                 );
                             })}
