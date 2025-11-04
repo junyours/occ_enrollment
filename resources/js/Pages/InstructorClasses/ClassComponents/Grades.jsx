@@ -32,8 +32,12 @@ function Grades({
         students.map((student) => ({
             id_number: student.user_id_no,
             name: `${student.last_name}, ${student.first_name} ${student.middle_name?.charAt(0) || ''}.`,
-            midterm_grade: student.midterm_grade ? Number(student.midterm_grade).toFixed(1) : '',
-            final_grade: student.final_grade ? Number(student.final_grade).toFixed(1) : '',
+            midterm_grade: student.midterm_grade !== null && student.midterm_grade !== undefined
+                ? Number(student.midterm_grade).toFixed(1)
+                : '',
+            final_grade: student.final_grade !== null && student.final_grade !== undefined
+                ? Number(student.final_grade).toFixed(1)
+                : '',
         }))
     )
 
