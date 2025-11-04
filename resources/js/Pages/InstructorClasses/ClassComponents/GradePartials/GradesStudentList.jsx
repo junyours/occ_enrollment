@@ -132,7 +132,7 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                     )}
                                 </TableCell>
                                 <TableCell className="text-center print:p-0">
-                                    {student.midterm_grade == 0.0 || student.final_grade == 0.0 ? (
+                                    {student.midterm_grade == "0.0" || student.final_grade == "0.0" ? (
                                         <span className="text-red-500 font-medium">DROPPED</span>
                                     ) : student.midterm_grade && student.final_grade ? (
                                         (Number(student.midterm_grade) + Number(student.final_grade)) / 2 >= 3.05 ? (
