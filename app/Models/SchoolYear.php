@@ -38,4 +38,9 @@ class SchoolYear extends Model
     {
         return $this->hasMany(YearSection::class, 'school_year_id');
     }
+
+    public function evaluations()
+    {
+        return $this->hasMany(Evaluation::class);
+    }
 }

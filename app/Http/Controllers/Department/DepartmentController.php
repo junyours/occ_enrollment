@@ -45,7 +45,7 @@ class DepartmentController extends Controller
                     $query->select('id', 'department_id', 'course_name', 'course_name_abbreviation', 'major');
                 }
             ])
-            ->get();
+            ->get();    
 
         return response()->json($data);
     }

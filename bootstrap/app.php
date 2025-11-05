@@ -33,9 +33,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'maintenance' => \App\Http\Middleware\DatabaseBasedMaintenance::class,
             'can-manage-maintenance' => \App\Http\Middleware\CanManageMaintenance::class,
             'president' => \App\Http\Middleware\President::class,
+            'Guidance' => \App\Http\Middleware\Guidance::class,
         ]);
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })
+    ->create();

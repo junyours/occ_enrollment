@@ -7,6 +7,7 @@ use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Maintenance\MaintenanceController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Question;
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -32,6 +33,13 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
 
 Route::post('/api/delete/curr-subject/{id}', [CurriculumController::class, 'deleteCurrSubject'])->name('delete.curr.subject');
 
+Route::get('/api/questions/exists', function () {
+    return response()->json([
+        'hasQuestions' => \App\Models\Question::exists()
+    ]);
+});
+
+
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/ClassesRoute.php';
@@ -51,3 +59,4 @@ require __DIR__ . '/SuperAdminRoute.php';
 require __DIR__ . '/UserManagementRoute.php';
 require __DIR__ . '/RoomsRoute.php';
 require __DIR__ . '/CorRoute.php';
+require __DIR__ . '/GuidanceRoute.php';

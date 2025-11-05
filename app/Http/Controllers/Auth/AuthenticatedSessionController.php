@@ -54,6 +54,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('users', absolute: false));
         } else if ($user->user_role == 'president') {
             return redirect()->intended(route('ongoing-enrollment', absolute: false));
+        } else if ($user->user_role == 'guidance') {
+            return redirect()->intended(route('guidance.dashboard'));
         } else {
             return redirect()->intended(route('classes', absolute: false));
         }
