@@ -28,9 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'UserManagementPermission' => \App\Http\Middleware\UserManagementPermission::class,
             'ProgrameadRegistrar' => \App\Http\Middleware\ProgramheadRegistrar::class,
             'SuperAdmin' => \App\Http\Middleware\SuperAdmin::class,
+            'Guidance' => \App\Http\Middleware\Guidance::class,
         ]);
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })
+    ->create();

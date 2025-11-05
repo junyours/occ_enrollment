@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\YearSectionSubjects;
 
 class User extends Authenticatable
 {
@@ -57,7 +58,6 @@ class User extends Authenticatable
         return $this->hasOne(UserInformation::class, 'user_id');
     }
 
-
     public function InstructorInformation()
     {
         return $this->hasOne(UserInformation::class, 'user_id');
@@ -77,4 +77,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(StudentAttendance::class, 'student_id');
     }
+    public function yearSectionSubjects()
+{
+    return $this->hasMany(YearSectionSubjects::class, 'faculty_id');
+}
 }

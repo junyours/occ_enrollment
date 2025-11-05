@@ -1,6 +1,6 @@
 
 import { usePage } from "@inertiajs/react";
-import { BookOpen, User, Presentation, Building, Calendar1, User2, Library, User2Icon, UsersIcon } from "lucide-react";
+import { BookOpen, User, Presentation, Building, Calendar1, User2, Library, User2Icon, UsersIcon, ListChecks, FileQuestion, FolderPlus, ListTodo, ClipboardList, Archive } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
 import {
@@ -45,6 +45,7 @@ export function NavMain() {
             ? [
                 { name: "Classes", route: "classes", icon: Presentation },
                 { name: "Enrollment Record", route: "enrollment-record", icon: Library },
+                { name: "Faculty Evaluation", route: "student.evaluation", icon: ListTodo  },
             ]
             : []
         ),
@@ -65,6 +66,23 @@ export function NavMain() {
                 { name: "Faculty", route: "classes", icon: Presentation },
                 { name: "Student", route: "classes", icon: Presentation },
                 { name: "Recycle Bin", route: "classes", icon: Presentation },
+            ]
+            : []
+        ),
+        ...(user.user_role === "guidance"
+            ? [
+                
+                { name: "Dashboard", route: "guidance.dashboard", icon: Presentation },
+                { name: "Criteria", route: "guidance.criteria", icon: ListChecks },
+                { name: "Questionnaires", route: "guidance.questionnaire", icon: FileQuestion },
+                { name: "Evaluation", route: "guidance.evaluation", icon: FolderPlus },
+                { name: "Faculty", route: "guidance.faculty.index", icon: User2Icon },
+                { name: "Student", route: "guidance.student.index", icon: ClipboardList },
+                { name: "Archives", route: "guidance.dashboard", icon: Archive }
+
+
+                
+                
             ]
             : []
         ),
