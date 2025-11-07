@@ -55,6 +55,24 @@ function ResetCredentials() {
         );
     };
 
+    const [password, setPassword] = useState('');
+
+    const changePassword = () => {
+        if (!user) return;
+
+        router.post(
+            route('super-admin.change-user-password'),
+            {
+                user_id: user.id,
+                password: password,
+            },
+            {
+                preserveScroll: true,
+                preserveState: true,
+            }
+        );
+    };
+
     return (
         <div className="p-6 max-w-xl mx-auto">
             <h1 className="text-2xl font-semibold mb-4">Reset User Credentials</h1>
@@ -71,28 +89,43 @@ function ResetCredentials() {
             </div>
 
             {user && (
-                <Card>
-                    <CardContent className="space-y-4 py-4">
-                        <div>
-                            <Label>Email</Label>
-                            <div>{user.email || 'N/A'}</div>
-                        </div>
-                        <div>
-                            <Label>First Login</Label>
-                            <div>{user.first_login_at || 'N/A'}</div>
-                        </div>
-                        <div>
-                            <Label>Full Name</Label>
+                <div className='space-y-4'>
+                    <Card>
+                        <CardContent className="space-y-4 py-4">
                             <div>
-                                {user.first_name} {user.middle_name ? user.middle_name + ' ' : ''}{user.last_name}
+                                <Label>Email</Label>
+                                <div>{user.email || 'N/A'}</div>
                             </div>
-                        </div>
+                            <div>
+                                <Label>First Login</Label>
+                                <div>{user.first_login_at || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <Label>Full Name</Label>
+                                <div>
+                                    {user.first_name} {user.middle_name ? user.middle_name + ' ' : ''}{user.last_name}
+                                </div>
+                            </div>
 
-                        <Button variant="destructive" onClick={handleReset}>
-                            Reset Credentials
-                        </Button>
-                    </CardContent>
-                </Card>
+                            <Button variant="destructive" onClick={handleReset}>
+                                Reset Credentials
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="space-y-4 py-4">
+                            <div>
+                                <Label>Password</Label>
+                                <Input value={password} onChange={(e) => setPassword(e.target.value)} />
+                            </div>
+
+                            <Button variant="" onClick={changePassword}>
+                                Change password
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
             )}
         </div>
     );

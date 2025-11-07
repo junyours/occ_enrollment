@@ -151,6 +151,14 @@ class SuperAdminController extends Controller
         return Redirect::back()->with('success', 'Credentials successfully reset and emailed.');
     }
 
+    public function changePassword(Request $request)
+    {
+        $user = User::findOrFail($request->user_id);
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+    }
+
     private function getPreparingOrOngoingSchoolYear()
     {
         $today = Carbon::now(); // Get today's date

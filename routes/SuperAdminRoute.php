@@ -10,6 +10,7 @@ Route::middleware(['auth', 'SuperAdmin'])->group(function () {
     Route::get('/reset-credentials', [SuperAdminController::class, 'viewResetPassword'])->name('reset-credentials');
     Route::post('/super-admin/search-user', [SuperAdminController::class, 'searchUser'])->name('super-admin.search-user');
     Route::post('/super-admin/reset-user-credentials', [SuperAdminController::class, 'resetUserCredentials'])->name('super-admin.reset-user-credentials');
+    Route::post('/super-admin/change-user-password', [SuperAdminController::class, 'changePassword'])->name('super-admin.change-user-password');
 
 });
 
