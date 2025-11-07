@@ -130,6 +130,8 @@ function EnrollmentRecord() {
                                                 <TableHead className='w-48'>Instructor</TableHead>
                                                 <TableHead className='w-32'>Subject Code</TableHead>
                                                 <TableHead>Descriptive Title</TableHead>
+                                                <TableHead className='w-24'>Midterm</TableHead>
+                                                <TableHead className='w-24'>Final</TableHead>
                                                 <TableHead className='w-24'>Final Grade</TableHead>
                                                 <TableHead className='w-24'>Remarks</TableHead>
                                             </TableRow>
@@ -146,6 +148,24 @@ function EnrollmentRecord() {
                                                             <TableCell>{classInfo.first_name ? formatFullName(classInfo) : '-'}</TableCell>
                                                             <TableCell>{classInfo.subject_code}</TableCell>
                                                             <TableCell>{classInfo.descriptive_title}</TableCell>
+                                                            <TableCell>
+                                                                {classInfo.midterm_grade === 0.0 ? (
+                                                                    <span className="text-red-500 font-medium">DROPPED</span>
+                                                                ) : classInfo.midterm_grade ? (
+                                                                        classInfo.midterm_grade.toFixed(1)
+                                                                ) : (
+                                                                    '-'
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {classInfo.final_grade === 0.0 ? (
+                                                                    <span className="text-red-500 font-medium">DROPPED</span>
+                                                                ) : classInfo.final_grade ? (
+                                                                        classInfo.final_grade.toFixed(1)
+                                                                ) : (
+                                                                    '-'
+                                                                )}
+                                                            </TableCell>
                                                             <TableCell>
                                                                 {classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
                                                                     <span className="text-red-500 font-medium">DROPPED</span>

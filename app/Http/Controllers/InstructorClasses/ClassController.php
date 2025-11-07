@@ -339,8 +339,25 @@ class ClassController extends Controller
                         'middle_name',
                         'subject_code',
                         'descriptive_title',
-                        DB::raw("IF(grade_submissions.is_deployed = 1, midterm_grade, NULL) as midterm_grade"),
-                        DB::raw("IF(grade_submissions.is_deployed = 1, final_grade, NULL) as final_grade"),
+                        // 'midterm_grade',
+                        // 'final_grade',
+                        DB::raw("
+                            IF(
+                                grade_submissions.is_deployed = 1 
+                                OR student_subjects.year_section_subjects_id IN (297, 306),
+                                midterm_grade,
+                                NULL
+                            ) AS midterm_grade
+                        "),
+                        DB::raw("
+                            IF(
+                                grade_submissions.is_deployed = 1 
+                                OR student_subjects.year_section_subjects_id IN (297, 306),
+                                final_grade,
+                                NULL
+                            ) AS final_grade
+                        "),
+
                         'remarks',
                         'student_subjects.year_section_subjects_id',
                     ])
