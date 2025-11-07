@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
@@ -88,45 +88,45 @@ function ResetCredentials() {
                 </Button>
             </div>
 
-            {user && (
-                <div className='space-y-4'>
-                    <Card>
-                        <CardContent className="space-y-4 py-4">
+            {/* {user && ( */}
+            <div className='space-y-4'>
+                <Card>
+                    <CardContent className="space-y-4 py-4">
+                        <div>
+                            <Label>Email</Label>
+                            <div>{user?.email || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <Label>First Login</Label>
+                            <div>{user?.first_login_at || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <Label>Full Name</Label>
                             <div>
-                                <Label>Email</Label>
-                                <div>{user.email || 'N/A'}</div>
+                                {user?.first_name} {user?.middle_name ? user?.middle_name + ' ' : ''}{user?.last_name}
                             </div>
-                            <div>
-                                <Label>First Login</Label>
-                                <div>{user.first_login_at || 'N/A'}</div>
-                            </div>
-                            <div>
-                                <Label>Full Name</Label>
-                                <div>
-                                    {user.first_name} {user.middle_name ? user.middle_name + ' ' : ''}{user.last_name}
-                                </div>
-                            </div>
+                        </div>
 
-                            <Button variant="destructive" onClick={handleReset}>
-                                Reset Credentials
-                            </Button>
-                        </CardContent>
-                    </Card>
+                        <Button variant="destructive" onClick={handleReset} disabled={!user}>
+                            Reset Credentials
+                        </Button>
+                    </CardContent>
+                </Card>
 
-                    <Card>
-                        <CardContent className="space-y-4 py-4">
-                            <div>
-                                <Label>Password</Label>
-                                <Input value={password} onChange={(e) => setPassword(e.target.value)} />
-                            </div>
+                <Card>
+                    <CardContent className="space-y-4 py-4">
+                        <div>
+                            <Label>Password</Label>
+                            <Input value={password} onChange={(e) => setPassword(e.target.value)} disabled={!user} />
+                        </div>
 
-                            <Button variant="" onClick={changePassword}>
-                                Change password
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+                        <Button variant="" onClick={changePassword} disabled={!user}>
+                            Change password
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+            {/* // )} */}
         </div>
     );
 }
