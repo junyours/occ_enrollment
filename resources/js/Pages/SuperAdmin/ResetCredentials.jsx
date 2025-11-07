@@ -107,7 +107,7 @@ function ResetCredentials() {
                             </div>
                         </div>
 
-                        <Button variant="destructive" onClick={handleReset} disabled={!user}>
+                        <Button variant="destructive" onClick={handleReset} disabled={!user || loading}>
                             Reset Credentials
                         </Button>
                     </CardContent>
