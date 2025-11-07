@@ -117,10 +117,10 @@ function ResetCredentials() {
                     <CardContent className="space-y-4 py-4">
                         <div>
                             <Label>Password</Label>
-                            <Input value={password} onChange={(e) => setPassword(e.target.value)} disabled={!user} />
+                            <Input value={password} onChange={(e) => setPassword(e.target.value)} disabled={!user || loading} />
                         </div>
 
-                        <Button variant="" onClick={changePassword} disabled={!user}>
+                        <Button variant="" onClick={changePassword} disabled={!user || loading}>
                             Change password
                         </Button>
                     </CardContent>
