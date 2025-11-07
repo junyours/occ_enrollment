@@ -51,9 +51,12 @@ function ResetCredentials() {
             {
                 preserveScroll: true,
                 preserveState: true,
+                onStart: () => setLoading(true),
+                onFinish: () => setLoading(false),
             }
         );
     };
+
 
     const [password, setPassword] = useState('');
 
@@ -69,6 +72,8 @@ function ResetCredentials() {
             {
                 preserveScroll: true,
                 preserveState: true,
+                onStart: () => setLoading(true),
+                onFinish: () => setLoading(false),
             }
         );
     };
@@ -77,16 +82,22 @@ function ResetCredentials() {
         <div className="p-6 max-w-xl mx-auto">
             <h1 className="text-2xl font-semibold mb-4">Reset User Credentials</h1>
 
-            <div className="flex items-center gap-2 mb-6">
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault(); // prevent page reload
+                    handleSearch();
+                }}
+                className="flex items-center gap-2 mb-6"
+            >
                 <Input
                     placeholder="Enter User ID No"
                     value={searchId}
                     onChange={(e) => setSearchId(e.target.value)}
                 />
-                <Button onClick={handleSearch} disabled={loading}>
-                    {loading ? 'Searching...' : 'Search'}
+                <Button type="submit" disabled={loading}>
+                    Search
                 </Button>
-            </div>
+            </form>
 
             {/* {user && ( */}
             <div className='space-y-4'>
