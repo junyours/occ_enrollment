@@ -173,7 +173,7 @@ function ClassList({
                                             )}
                                         </TableRow>
 
-                                        {/* {classInfo.secondary_schedule && (
+                                        {classInfo.secondary_schedule && (
                                             <TableRow className={`border-t-0 ${isEditingSecondary ? 'bg-green-500 hover:bg-green-500' : ''} ${secondScheduleConflictList.includes(classInfo.secondary_schedule.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
                                                 {userRole === 'program_head' && (
                                                     <TableCell>{classInfo.subject.subject_code}</TableCell>
@@ -218,7 +218,7 @@ function ClassList({
                                                     </TableCell>
                                                 )}
                                             </TableRow>
-                                        )} */}
+                                        )}
                                     </React.Fragment>
                                 );
                             })}
