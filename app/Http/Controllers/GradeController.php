@@ -98,13 +98,28 @@ class GradeController extends Controller
             )
             ->first();
 
-        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed', 'deployed_at')
+        $subjects = YearSectionSubjects::select(
+            'class_code',
+            'year_section_subjects.id',
+            'descriptive_title',
+            'submitted_at',
+            'verified_at',
+            'is_submitted',
+            'is_verified',
+            'is_rejected',
+            'is_deployed',
+            'deployed_at',
+            'course_name_abbreviation',
+            'year_level_id',
+            'section',
+        )
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
             )
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->where('faculty_id', '=', $faculty->id)
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
             ->join('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
             ->where('school_year_id', '=', $schoolYear->id)
             ->get();

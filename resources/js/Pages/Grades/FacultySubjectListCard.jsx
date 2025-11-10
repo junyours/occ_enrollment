@@ -17,6 +17,7 @@ function FacultySubjectListCard({ subjects, schoolYear, facultyId }) {
                         <TableRow>
                             <TableHead>#</TableHead>
                             <TableHead>SUBJECT</TableHead>
+                            <TableHead>SECTION</TableHead>
                             <TableHead>SUBMITTED AT</TableHead>
                             <TableHead>VERIFIED AT</TableHead>
                             <TableHead>STATUS</TableHead>
@@ -28,6 +29,7 @@ function FacultySubjectListCard({ subjects, schoolYear, facultyId }) {
                             <TableRow key={subject.id}>
                                 <TableCell>{index + 1}.</TableCell>
                                 <TableCell>{subject.descriptive_title}</TableCell>
+                                <TableCell>{subject.course_name_abbreviation}-{subject.year_level_id}{subject.section}</TableCell>
                                 <TableCell>
                                     {(() => {
                                         const [submittedDate, submittedTimeRaw] = subject.submitted_at?.split(' ') || [];
