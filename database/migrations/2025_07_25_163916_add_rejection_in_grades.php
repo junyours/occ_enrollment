@@ -11,12 +11,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('grade_submissions', function (Blueprint $table) {
-            $table->boolean('is_rejected')->default(false)->after('verified_at');
-            $table->text('rejection_message')->nullable()->after('is_rejected');
-            $table->dropColumn('is_denied');
-            $table->dropColumn('denial_message');
-        });
+        // Schema::table('grade_submissions', function (Blueprint $table) {
+        //     $table->boolean('is_rejected')->default(false)->after('verified_at');
+        //     $table->text('rejection_message')->nullable()->after('is_rejected');
+        //     $table->dropColumn('is_denied');
+        //     $table->dropColumn('denial_message');
+        // });
     }
 
     /**
