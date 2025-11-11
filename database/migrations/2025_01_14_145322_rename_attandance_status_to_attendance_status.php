@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::table('student_attendance', function (Blueprint $table) {
             // Add the new column with the correct name
-            $table->enum('attendance_status', ['Present', 'Absent', 'Late', 'Excused'])
-                ->default('Present')
-                ->after('attendance_date');
+            // $table->enum('attendance_status', ['Present', 'Absent', 'Late', 'Excused'])
+            //     ->default('Present')
+            //     ->after('attendance_date');
 
             // Drop the incorrectly named column
             // $table->dropColumn('attandance_status');
