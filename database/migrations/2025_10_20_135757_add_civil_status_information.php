@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('user_information', function (Blueprint $table) {
-            $table->string('civil_status')
-                ->nullable()
-                ->after('birthday');
-        });
+        // Schema::table('user_information', function (Blueprint $table) {
+        //     $table->string('civil_status')
+        //         ->nullable()
+        //         ->after('birthday');
+        // });
     }
 
     /**

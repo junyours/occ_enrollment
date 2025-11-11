@@ -15,8 +15,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('evaluation', function (Blueprint $table) {
-            $table->dropUnique('unique_school_year_in_evaluation');
-        });
+        // Schema::table('evaluation', function (Blueprint $table) {
+        //     $table->dropUnique('unique_school_year_in_evaluation');
+        // });
     }
 };
