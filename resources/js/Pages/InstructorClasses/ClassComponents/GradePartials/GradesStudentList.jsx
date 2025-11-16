@@ -1,12 +1,55 @@
+import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader } from '@/Components/ui/card'
 import { Input } from '@/Components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip'
+import { useToast } from "@/hooks/use-toast";
 import React from 'react'
+import { useGradeSubmissionStore } from './useGradeSubmissionStore'
+import { router } from '@inertiajs/react'
 
-function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChange, setMissingFields, allowMidtermUpload, allowFinalUpload }) {
+function GradesStudentList({ grades, status, missingFields, handleGradeChange, setMissingFields, allowMidtermUpload, allowFinalUpload, yearSectionSubjectsId }) {
+    console.log(status);
+
+    const { toast } = useToast();
+
+    // Call the hook
+
+    const { gradeSubmission, updateGradeSubmission } = useGradeSubmissionStore();
+
+    const validateGradesBeforeSubmit = (type) => {
+        const missing = {}
+
+        grades.forEach((student, index) => {
+            if (!student.is_dropped) {
+                if (type === 'midterm' && !student.midterm_grade) {
+                    missing[index] = { ...missing[index], midterm: true };
+                }
+                if (type === 'final' && !student.final_grade) {
+                    missing[index] = { ...missing[index], final: true };
+                }
+            }
+        });
+
+        setMissingFields(missing)
+
+        if (Object.keys(missing).length != 0) {
+            toast({
+                description: "Fill all grade fields.",
+                variant: "destructive",
+            })
+        }
+
+        return Object.keys(missing).length === 0
+    }
+
+
+    // Handle loading and error states
+    // if (isLoading) return <p>Loading submission...</p>;
+    // if (isError) return <p>Error: {error.message}</p>;
+
     return (
-        <Card className=''>
+        <Card>
             <CardHeader>
                 <CardDescription className='text-red-500 no-print'>
                     Note: If the student iS DROPPED, enter 0.0. Do not leave it blank.
@@ -32,7 +75,7 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                 <TableCell className='print:p-0'>{student.id_number}</TableCell>
                                 <TableCell className='print:p-0'>{student.name}</TableCell>
                                 <TableCell className="text-center print:p-0">
-                                    {((gradeStatus.is_submitted || gradeStatus.is_deployed) && !gradeStatus.is_rejected) ? (
+                                    {(status.midterm_status == 'submitted' || status.midterm_status == 'deployed') ? (
                                         <div>
                                             {student.midterm_grade}
                                         </div>
@@ -72,11 +115,10 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                             </Tooltip>
                                             <div className='hidden print:block'>{student.midterm_grade}</div>
                                         </>
-
                                     )}
                                 </TableCell>
                                 <TableCell className="text-center print:p-0">
-                                    {((gradeStatus.is_submitted || gradeStatus.is_deployed) && !gradeStatus.is_rejected) ? (
+                                    {(status.final_status == 'submitted' || status.final_status == 'deployed') ? (
                                         <>
                                             {student.final_grade}
                                         </>
@@ -125,7 +167,10 @@ function GradesStudentList({ grades, gradeStatus, missingFields, handleGradeChan
                                         (() => {
                                             const avg = (+student.midterm_grade + +student.final_grade) / 2;
                                             const finalRating = avg >= 3.05 ? 5.0 : +avg;
-                                            return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
+                                            return <div className={`${(Number(student.midterm_grade) + Number(student.final_grade)) / 2 >= 3.05
+                                                ? 'text-red-500'
+                                                : ''
+                                                }`}>{(Math.round(finalRating * 10) / 10).toFixed(1)}</div>;
                                         })()
                                     ) : (
                                         '-'

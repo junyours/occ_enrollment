@@ -193,7 +193,7 @@ function ClassList({
                                                 </TableCell>
                                                 {(!isDownloading && userRole === 'program_head') && (
                                                     <TableCell>
-                                                        <div className="flex justify-evenly space-x-1 h-full">
+                                                        <div className="w-full flex justify-end space-x-1 h-full">
                                                             <AlarmClockPlus
                                                                 size={15}
                                                                 className={`text-transparent`}

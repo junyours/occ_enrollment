@@ -1,18 +1,45 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Button } from '@/Components/ui/button'
-import { Download, FileDown, Printer, Upload, Cloud, CloudUpload } from 'lucide-react'
+import { Download, FileDown, Printer, Upload, Cloud, CloudUpload, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react'
 import axios from 'axios'
-import InstructorSubmitButton from './GradePartials/InstructorSubmitButton'
 import GradesStudentList from './GradePartials/GradesStudentList'
 import { useToast } from "@/hooks/use-toast";
 import { router, usePage } from '@inertiajs/react'
-import GradeSubmissionStatus from './GradePartials/GradeSubmissionStatus'
 import { Card, CardContent, CardHeader } from '@/Components/ui/card'
 import { useReactToPrint } from 'react-to-print';
-import AppLogo from '@/Components/AppLogo'
 import GradeSignatories from './GradePartials/GradeSignatories'
 import GradeHeader from './GradePartials/GradeHeader'
+import { useGradeSubmission } from './GradePartials/useGradeSubmission'
+import PreLoader from '@/Components/preloader/PreLoader'
+import {
+    FileText,
+    Send,
+    CheckCircle,
+    XCircle,
+    Rocket,
+} from "lucide-react"
+import InstructorGradeSubmitionButton from './GradePartials/InstructorGradeSubmitionButton'
+
+const statusMap = {
+    draft: { color: "text-gray-500", icon: FileText },
+    submitted: { color: "text-blue-500", icon: Send },
+    verified: { color: "text-green-600", icon: CheckCircle },
+    rejected: { color: "text-red-500", icon: XCircle },
+    deployed: { color: "text-indigo-600", icon: Rocket },
+}
+
+function StatusLabel({ label }) {
+    const status = label?.toLowerCase?.()
+    const { color, icon: Icon } = statusMap[status] || {}
+
+    return (
+        <p className={`flex items-center gap-1`}>
+            {Icon && <Icon size={16} />}
+            Status: <span className={`font-semibold ${color}`}>{status ? status.charAt(0).toUpperCase() + status.slice(1) : "—"}</span>
+        </p>
+    )
+}
 
 function Grades({
     students,
@@ -42,6 +69,8 @@ function Grades({
     )
 
     const [missingFields, setMissingFields] = useState({})
+
+    const [expandedRejection, setExpandedRejection] = useState({ midterm: false, final: false });
 
     // Upload status state: 'idle' | 'uploading' | 'saved'
     const [uploadStatus, setUploadStatus] = useState('saved')
@@ -247,131 +276,267 @@ function Grades({
         }
     }, [])
 
+    const { data, isLoading, isError, error, refetch } = useGradeSubmission(yearSectionSubjectsId);
+    const [submitting, setSubimitting] = useState(false);
+
+    const handleSubmit = (type) => {
+        if (!validateGradesBeforeSubmit(type)) return;
+        setSubimitting(true)
+        const routeName =
+            type === "final"
+                ? "grade-submission.submit-final-grade"
+                : "grade-submission.submit-midterm-grade";
+
+        router.post(
+            route(routeName, yearSectionSubjectsId),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("Submitted successfully");
+                },
+                onError: (errors) => {
+                    if (errors && errors.grades) {
+                        toast({
+                            title: "Submission failed",
+                            description: errors.grades,
+                            variant: "destructive",
+                        });
+                    } else {
+                        toast.error("Failed to submit");
+                    }
+                },
+                onFinish: async () => {
+                    await refetch();
+                    setSubimitting(false)
+                },
+            }
+        );
+    };
+
+    const handleCancel = (type) => {
+        setSubimitting(true)
+
+        const routeName =
+            type === "final"
+                ? "grade-submission.cancel-final-grade"
+                : "grade-submission.cancel-midterm-grade";
+
+        router.post(
+            route(routeName, yearSectionSubjectsId),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("Submitted successfully");
+                },
+                onError: (errors) => {
+                    if (errors && errors.grades) {
+                        toast({
+                            title: "Submission failed",
+                            description: errors.grades,
+                            variant: "destructive",
+                        });
+                    } else {
+                        toast.error("Failed to submit");
+                    }
+                },
+                onFinish: async () => {
+                    await refetch();
+                    setSubimitting(false);
+                }
+            }
+        );
+    }
+
     return (
-        <div className="p-4 overflow-auto space-y-4">
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-4">
-                    <GradeSubmissionStatus gradeStatus={gradeStatus} />
+        <>
+            <div className="relative p-4 overflow-auto space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-4">
+                        {/* <GradeSubmissionStatus gradeStatus={gradeStatus} /> */}
 
-                    {/* Upload Status Indicator - Shows uploading or saved */}
-                    {uploadStatus !== 'idle' && (
-                        <div className="flex items-center gap-2 text-sm">
-                            {uploadStatus === 'uploading' && (
-                                <>
-                                    <CloudUpload className="w-8 h-8 text-blue-500 animate-pulse" />
-                                    <span className="text-blue-600 text-2xl">Uploading...</span>
-                                </>
-                            )}
-                            {uploadStatus === 'saved' && (
-                                <>
-                                    <Cloud className="w-8 h-8 text-green-500" />
-                                    <span className="text-green-600 text-2xl">Saved</span>
-                                </>
-                            )}
-                        </div>
-                    )}
+                        {/* Upload Status Indicator - Shows uploading or saved */}
+                        {uploadStatus !== 'idle' && (
+                            <div className="flex items-center gap-2 text-sm">
+                                {uploadStatus === 'uploading' && (
+                                    <>
+                                        <CloudUpload className="w-8 h-8 text-blue-500 animate-pulse" />
+                                        <span className="text-blue-600 text-2xl">Uploading...</span>
+                                    </>
+                                )}
+                                {uploadStatus === 'saved' && (
+                                    <>
+                                        <Cloud className="w-8 h-8 text-green-500" />
+                                        <span className="text-green-600 text-2xl">Saved</span>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex gap-2 self-end">
+                        <Button
+                            disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
+                            variant="outline"
+                            onClick={downloadExcel}
+                        >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download Template
+                        </Button>
+
+                        <Button
+                            disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
+                            variant="outline"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Students
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            onClick={handlePrint} // quick print
+                        >
+                            <Printer className="w-4 h-4 mr-2" />
+                            Print
+                        </Button>
+
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".xlsx, .xls"
+                            onChange={uploadExcel}
+                            className="hidden"
+                        />
+                    </div>
                 </div>
 
-                <div className="flex gap-2 self-end">
-                    <Button
-                        disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
-                        variant="outline"
-                        onClick={downloadExcel}
-                    >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Template
-                    </Button>
-
-                    <Button
-                        disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Students
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        onClick={handlePrint} // quick print
-                    >
-                        <Printer className="w-4 h-4 mr-2" />
-                        Print
-                    </Button>
-
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".xlsx, .xls"
-                        onChange={uploadExcel}
-                        className="hidden"
-                    />
-                </div>
-            </div>
-
-            {/* <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-2 mb-4 text-sm">
+                {/* <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-2 mb-4 text-sm">
                 ⚠️ Once submitted, grades cannot yet be edited. Edit request functionality is still under development.
             </div> */}
 
-            <div ref={componentRef} className='print:space-y-4 print:p-4'>
-                <GradeHeader subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} schoolYear={schoolYear} />
-
-                <GradesStudentList
-                    grades={grades}
-                    gradeStatus={gradeStatus}
-                    missingFields={missingFields}
-                    handleGradeChange={handleGradeChange}
-                    setMissingFields={setMissingFields}
-                    allowMidtermUpload={schoolYear.allow_upload_midterm}
-                    allowFinalUpload={schoolYear.allow_upload_final}
-                />
-
-                <div className='w-full flex items-end justify-end no-print mt-4'>
-                    <InstructorSubmitButton
-                        disabledButton={true}
-                        gradeSubmission={gradeStatus}
-                        onSubmit={async () => {
-                            if (!validateGradesBeforeSubmit()) return
-
-                            router.post(
-                                route('grade-submission.submit', yearSectionSubjectsId),
-                                {},
-                                {
-                                    preserveScroll: true,
-                                    onSuccess: () => toast.success('Submitted successfully'),
-                                    onError: (errors) => {
-                                        if (errors && errors.grades) {
-                                            toast({
-                                                title: "Submission failed",
-                                                description: errors.grades,
-                                                variant: "destructive",
-                                            })
-                                        } else {
-                                            toast.error('Failed to submit')
-                                        }
-                                    },
-                                }
-                            )
-                        }}
-                        cancel={async () => {
-                            router.post(
-                                route('grade-submission.cancel', yearSectionSubjectsId),
-                                {},
-                                {
-                                    preserveScroll: true,
-                                    onSuccess: () => {
-                                        toast.success('Submission canceled');
-                                    },
-                                    onError: () => toast.error('Failed to cancel'),
-                                }
-                            )
-                        }}
-                    />
+                <div ref={componentRef} className='print:space-y-4 print:p-4'>
+                    <GradeHeader subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} schoolYear={schoolYear} />
+                    {isLoading ? (
+                        <div className='h-full'>
+                            <PreLoader />
+                        </div>
+                    ) : (
+                        <>
+                            <GradesStudentList
+                                grades={grades}
+                                status={data}
+                                missingFields={missingFields}
+                                handleGradeChange={handleGradeChange}
+                                setMissingFields={setMissingFields}
+                                allowMidtermUpload={schoolYear.allow_upload_midterm}
+                                allowFinalUpload={schoolYear.allow_upload_final}
+                                yearSectionSubjectsId={yearSectionSubjectsId}
+                            />
+                        </>
+                    )}
+                    <GradeSignatories yearSectionSubjectsId={yearSectionSubjectsId} />
                 </div>
+            </div >
 
-                <GradeSignatories yearSectionSubjectsId={yearSectionSubjectsId} />
-            </div>
-        </div >
+            <div className='h-24' />
+
+            {/* OUTSIDE the scrollable container */}
+            {!isLoading && (
+                <div className='fixed bottom-0 z-50 flex gap-4 w-full max-w-6xl h-28 px-4'>
+                    {/* Midterm (will appear on the right) */}
+                    <Card className='rounded-none no-print w-96 mb-4'>
+                        <CardHeader className='flex-row justify-between px-4 mt-2'>
+                            {/* Rejection message for midterm */}
+                            <p className='underline w-max'>Midterm grade</p>
+                            {(data.midterm_status == 'rejected' && data.midterm_rejection_message) && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setExpandedRejection({ ...expandedRejection, midterm: !expandedRejection.midterm })}
+                                        className="flex items-center gap-1 text-xs text-red-500 hover:text-red-800 font-medium"
+                                    >
+                                        <AlertCircle className="w-3 h-3" />
+                                        View reason
+                                        {expandedRejection.midterm ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
+                                    </button>
+                                    {expandedRejection.midterm && (
+                                        <div className="absolute bottom-full left-0 mb-2 p-3 bg-red-50 border border-red-200 rounded-lg shadow-lg text-xs text-red-900 w-64 z-50">
+                                            {data.midterm_rejection_message}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </CardHeader>
+                        <CardContent className='py-2 px-4 space-y-2'>
+                            <div className='w-full flex gap-4 max-w-7xl mx-auto'>
+                                <div className='w-48 flex border px-2 h-[37px]'>
+                                    <StatusLabel label={data.midterm_status} />
+                                </div>
+                                <InstructorGradeSubmitionButton
+                                    handleSubmit={handleSubmit}
+                                    disabledButton={!schoolYear.allow_upload_midterm || submitting}
+                                    handleCancel={handleCancel}
+                                    type='midterm'
+                                    status={{
+                                        deployed_at: data.midterm_deployed_at,
+                                        rejection_message: data.midterm_rejection_message,
+                                        status: data.midterm_status,
+                                        submitted_at: data.midterm_submitted_at,
+                                        verified_at: data.midterm_verified_at,
+                                    }}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Final (will appear on the left) */}
+                    <Card className='rounded-none no-print w-96 mb-4'>
+                        <CardHeader className='flex-row justify-between px-4 mt-2'>
+                            {/* Rejection message for midterm */}
+                            <p className='underline w-max'>Final grade</p>
+                            {(data.final_status == 'rejected' && data.final_rejection_message) && (
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setExpandedRejection({ ...expandedRejection, final: !expandedRejection.final })}
+                                        className="flex items-center gap-1 text-xs text-red-500 hover:text-red-800 font-medium"
+                                    >
+                                        <AlertCircle className="w-3 h-3" />
+                                        View reason
+                                        {expandedRejection.final ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
+                                    </button>
+                                    {expandedRejection.final && (
+                                        <div className="absolute bottom-full left-0 mb-2 p-3 bg-red-50 border border-red-200 rounded-lg shadow-lg text-xs text-red-900 w-64 z-50">
+                                            {data.final_rejection_message}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </CardHeader>
+                        <CardContent className='py-2 px-4 space-y-2'>
+                            <div className='w-full flex gap-4 max-w-7xl mx-auto'>
+                                <div className='w-48 flex border px-2 h-[37px]'>
+                                    <StatusLabel label={data.final_status} />
+                                </div>
+                                <InstructorGradeSubmitionButton
+                                    handleSubmit={handleSubmit}
+                                    disabledButton={!schoolYear.allow_upload_final || submitting}
+                                    handleCancel={handleCancel}
+                                    type='final'
+                                    status={{
+                                        deployed_at: data.final_deployed_at,
+                                        rejection_message: data.final_rejection_message,
+                                        status: data.final_status,
+                                        submitted_at: data.final_submitted_at,
+                                        verified_at: data.final_verified_at,
+                                    }}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+        </>
     )
 }
 

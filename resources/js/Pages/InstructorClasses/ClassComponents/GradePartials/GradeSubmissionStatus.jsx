@@ -86,7 +86,7 @@ export default function GradeSubmissionStatus({ gradeStatus, className }) {
                 <div className="font-bold">Not Submitted</div>
                 <div className="text-xs">Waiting for instructor to submit grades.</div>
             </div>
-        </div>
+        </div>  
     );
 }
 

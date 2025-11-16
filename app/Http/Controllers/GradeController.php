@@ -45,12 +45,13 @@ class GradeController extends Controller
             IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
                 CONCAT(SUBSTRING(user_information.middle_name, 1, 1), '.'),
                 '')
-        ) AS name"),
-                DB::raw('COUNT(CASE WHEN grade_submissions.is_submitted = 1
-                            AND (grade_submissions.is_verified IS NULL OR grade_submissions.is_verified = 0)
-                            AND (grade_submissions.is_rejected IS NULL OR grade_submissions.is_rejected = 0)
-                            AND (grade_submissions.is_deployed IS NULL OR grade_submissions.is_deployed = 0)
-                       THEN 1 END) AS submitted_count')
+            ) AS name"),
+                DB::raw('
+                SUM(
+                    (grade_submissions.midterm_status = "submitted")
+                    + (grade_submissions.final_status = "submitted")
+                    ) AS submitted_count
+            ')
             )
             ->join('users', 'users.id', '=', 'faculty.faculty_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
@@ -112,6 +113,12 @@ class GradeController extends Controller
             'course_name_abbreviation',
             'year_level_id',
             'section',
+            'midterm_status',
+            'midterm_submitted_at',
+            'midterm_verified_at',
+            'final_status',
+            'final_submitted_at',
+            'final_verified_at',
         )
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
@@ -185,31 +192,101 @@ class GradeController extends Controller
         return response()->json($students, 200);
     }
 
-    public function verifyGrades($yearSectionSubjectsId)
+    // public function verifyGrades($yearSectionSubjectsId)
+    // {
+    //     GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+    //         ->update([
+    //             'is_verified' => 1,
+    //             'verified_at' => now(),
+    //         ]);
+    // }
+
+    public function verifyMidtermGrades($yearSectionSubjectsId)
     {
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
-                'is_verified' => 1,
-                'verified_at' => now(),
+                'midterm_status' => 'verified',
+                'midterm_verified_at' => now(),
             ]);
     }
 
-    public function rejectGrades($yearSectionSubjectsId, Request $request)
+    public function verifyFinalGrades($yearSectionSubjectsId)
     {
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
-                'is_rejected' => 1,
-                'rejection_message' => $request->message,
+                'final_status' => 'verified',
+                'final_verified_at' => now(),
             ]);
     }
 
+    // public function rejectGrades($yearSectionSubjectsId, Request $request)
+    // {
+    //     GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+    //         ->update([
+    //             'is_rejected' => 1,
+    //             'midterm_rejection_message' => $request->message,
+    //         ]);
+    // }
 
-    public function cancelVerifyGrade($yearSectionSubjectsId)
+    public function rejectMidtermGrades($yearSectionSubjectsId, Request $request)
     {
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
-                'verified_at' => null,
-                'is_verified' => 0,
+                'midterm_status' => 'rejected',
+                'midterm_rejection_message' => $request->message,
+            ]);
+    }
+
+    public function rejectFinalGrades($yearSectionSubjectsId, Request $request)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_status' => 'rejected',
+                'final_rejection_message' => $request->message,
+            ]);
+    }
+
+    public function unrejectMidtermGrades($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'midterm_status' => 'submitted',
+                'midterm_rejection_message' => null,
+            ]);
+    }
+
+    public function unrejectFinalGrades($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_status' => 'submitted',
+                'final_rejection_message' => null,
+            ]);
+    }
+
+    // public function cancelVerifyGrade($yearSectionSubjectsId)
+    // {
+    //     GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+    //         ->update([
+    //             'verified_at' => null,
+    //             'is_verified' => 0,
+    //         ]);
+    // }
+
+    public function unVerifyMidtermGrade($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'midterm_status' => 'submitted',
+                'midterm_verified_at' => now(),
+            ]);
+    }
+    public function unVerifyFinalGrade($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_status' => 'submitted',
+                'final_verified_at' => now(),
             ]);
     }
 
@@ -221,7 +298,7 @@ class GradeController extends Controller
             ->orderBy('school_years.end_date', 'DESC')
             ->orderBy('school_years.semester_id', 'DESC')
             ->get();
-
+        
         return Inertia::render('Grades/SubmittedGrades', [
             'schoolYears' => $schoolYears,
         ]);
@@ -246,15 +323,16 @@ class GradeController extends Controller
         $instructors = Faculty::select(
             'users.user_id_no',
             DB::raw("CONCAT(user_information.last_name, ', ', user_information.first_name, ' ',
-        IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
+         IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
             CONCAT(SUBSTRING(user_information.middle_name, 1, 1), '.'),
             '')
-    ) AS name"),
-            DB::raw('COUNT(CASE
-        WHEN grade_submissions.is_verified = 1
-             AND (grade_submissions.is_rejected IS NULL OR grade_submissions.is_rejected = 0)
-             AND (grade_submissions.is_deployed IS NULL OR grade_submissions.is_deployed = 0)
-        THEN 1 END) AS verified_count')
+            ) AS name"),
+            DB::raw('
+                SUM(
+                    (grade_submissions.midterm_status = "verified")
+                    + (grade_submissions.final_status = "verified")
+                    ) AS verified_count
+            ')
         )
             ->join('users', 'users.id', '=', 'faculty.faculty_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
@@ -302,7 +380,19 @@ class GradeController extends Controller
             )
             ->first();
 
-        $subjects = YearSectionSubjects::select('year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed', 'deployed_at')
+        $subjects = YearSectionSubjects::select(
+            'year_section_subjects.id',
+            'descriptive_title',
+            'midterm_status',
+            'midterm_submitted_at',
+            'midterm_verified_at',
+            'midterm_deployed_at',
+            'final_status',
+            'final_submitted_at',
+            'final_verified_at',
+            'final_rejection_message',
+            'final_deployed_at',
+        )
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
             )
@@ -386,12 +476,50 @@ class GradeController extends Controller
         return response()->json($students, 200);
     }
 
-    public function deployGrades($yearSectionSubjectsId)
+    // public function deployGrades($yearSectionSubjectsId)
+    // {
+    //     GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+    //         ->update([
+    //             'is_deployed' => 1,
+    //             'deployed_at' => now(),
+    //         ]);
+    // }
+
+    public function deployMidtermGrades($yearSectionSubjectsId)
     {
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
-                'is_deployed' => 1,
-                'deployed_at' => now(),
+            'midterm_status' => 'deployed',
+            'midterm_deployed_at' => now(),
+            ]);
+    }
+    
+
+    public function deployFinalGrades($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+            'final_status' => 'deployed',
+            'final_deployed_at' => now(),
+            ]);
+    }
+
+    public function undeployMidtermGrades($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'midterm_status' => 'verified',
+                'midterm_deployed_at' => null,
+            ]);
+    }
+
+
+    public function undeployFinalGrades($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_status' => 'verified',
+                'final_deployed_at' => null,
             ]);
     }
 

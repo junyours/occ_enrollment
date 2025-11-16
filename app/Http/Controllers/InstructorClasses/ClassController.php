@@ -163,6 +163,8 @@ class ClassController extends Controller
             ->update([
                 'midterm_grade' => $request->midterm_grade
             ]);
+
+        return response()->json(['message' => $request->midterm_grade]);
     }
 
     public function updateStudentFinalGrade($yearSectionSubjectsId, $studentId, Request $request)
@@ -198,6 +200,89 @@ class ClassController extends Controller
                 'is_rejected' => 0,
                 'rejection_message' => null,
             ]);
+    }
+
+    public function cancelMidtermSubmission($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'midterm_status' => 'draft',
+                'midterm_submitted_at' => null,
+                'midterm_rejection_message' => null,
+            ]);
+    }
+
+    public function cancelFinalSubmission($yearSectionSubjectsId)
+    {
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_status' => 'draft',
+                'final_submitted_at' => null,
+                'final_rejection_message' => null,
+            ]);
+    }
+
+    public function submitMidtermGrade($yearSectionSubjectsId)
+    {
+        $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
+            ->where(function ($query) {
+                $query->whereNull('midterm_grade')
+                    ->orWhereNull('final_grade');
+            })->first();
+
+        if ($noGrades) {
+            return back()->withErrors([
+                'grades' => 'Some students have missing grades.',
+            ]);
+        }
+
+        GradeSubmission::where('year_section_subjects_id', $yearSectionSubjectsId)
+            ->update([
+                'midterm_status' => 'submitted',
+                'midterm_submitted_at' => now(),
+                'midterm_rejection_message' => null,
+            ]);
+    }
+
+    public function submitFinalGrade($yearSectionSubjectsId)
+    {
+        $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
+            ->where(function ($query) {
+                $query->whereNull('midterm_grade')
+                    ->orWhereNull('final_grade');
+            })->first();
+
+        if ($noGrades) {
+            return back()->withErrors([
+                'grades' => 'Some students have missing grades.',
+            ]);
+        }
+
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_status' => 'submitted',
+                'final_submitted_at' => now(),
+                'final_rejection_message' => null,
+            ]);
+    }
+
+    public function gradeSubmissionSettings($id)
+    {
+        return GradeSubmission::select(
+            'id',
+            'year_section_subjects_id',
+            'midterm_status',
+            'midterm_submitted_at',
+            'midterm_verified_at',
+            'midterm_rejection_message',
+            'midterm_deployed_at',
+            'final_status',
+            'final_submitted_at',
+            'final_verified_at',
+            'final_rejection_message',
+            'final_deployed_at',
+        )
+            ->where('year_section_subjects_id', '=', $id)->first();
     }
 
     public function cancelGrade($yearSectionSubjectsId)
@@ -339,25 +424,8 @@ class ClassController extends Controller
                         'middle_name',
                         'subject_code',
                         'descriptive_title',
-                        // 'midterm_grade',
-                        // 'final_grade',
-                        DB::raw("
-                            IF(
-                                grade_submissions.is_deployed = 1 
-                                OR student_subjects.year_section_subjects_id IN (297, 306),
-                                midterm_grade,
-                                NULL
-                            ) AS midterm_grade
-                        "),
-                        DB::raw("
-                            IF(
-                                grade_submissions.is_deployed = 1 
-                                OR student_subjects.year_section_subjects_id IN (297, 306),
-                                final_grade,
-                                NULL
-                            ) AS final_grade
-                        "),
-
+                        DB::raw("IF(grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed', midterm_grade, NULL) as midterm_grade"),
+                        DB::raw("IF(grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed', final_grade, NULL) as final_grade"),
                         'remarks',
                         'student_subjects.year_section_subjects_id',
                     ])

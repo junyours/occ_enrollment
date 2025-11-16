@@ -3,17 +3,43 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Check, CheckCircle, Clock, SendHorizonal, XCircle } from 'lucide-react';
+import { Check, CheckCircle, Clock, FileText, Rocket, Send, SendHorizonal, XCircle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { router } from '@inertiajs/react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import GradeSubmissionStatus from '../InstructorClasses/ClassComponents/GradePartials/GradeSubmissionStatus';
+import ProgramHeadGradeVerificationButton from './ProgramHeadGradeVerificationButton';
+import { useGradeSubmission } from '../InstructorClasses/ClassComponents/GradePartials/useGradeSubmission';
+
+const statusMap = {
+    draft: { color: "text-gray-500", icon: FileText },
+    submitted: { color: "text-blue-500", icon: Send },
+    verified: { color: "text-green-600", icon: CheckCircle },
+    rejected: { color: "text-red-500", icon: XCircle },
+    deployed: { color: "text-indigo-600", icon: Rocket },
+}
+
+function StatusLabel({ label }) {
+    const status = label?.toLowerCase?.()
+    const { color, icon: Icon } = statusMap[status] || {}
+
+    return (
+        <p className={`flex items-center gap-1`}>
+            {Icon && <Icon size={16} />}
+            Status: <span className={`font-semibold ${color}`}>{status ? status.charAt(0).toUpperCase() + status.slice(1) : "—"}</span>
+        </p>
+    )
+}
 
 function SubjectStudentLIst({ faculty, subject }) {
     const [studentList, setStudentList] = useState([]);
     const [rejectionMessage, setRejectionMessage] = useState('');
+    const [submitting, setSubimitting] = useState(false);
+
+    const { data, isLoading, isError, error, refetch } = useGradeSubmission(subject.id);
+    console.log(data);
 
     const selectSubject = async () => {
         await axios.post(route('faculty.subjects.students'), { yearSectionSubjectsId: subject.id })
@@ -26,38 +52,85 @@ function SubjectStudentLIst({ faculty, subject }) {
         selectSubject();
     }, [subject.id])
 
+    const verify = async (type) => {
+        setSubimitting(true)
+        const routeName =
+            type === "final"
+                ? "verify.grades.final"
+                : "verify.grades.midterm";
 
-    const verify = async () => {
         router.post(
-            route('verify.grades', { yearSectionSubjectsId: subject.id }),
+            route(routeName, { yearSectionSubjectsId: subject.id }),
             {},
             {
                 preserveScroll: true,
+                onFinish: async () => {
+                    await refetch();
+                    setSubimitting(false)
+                },
             }
         )
     }
 
-    const cancel = async () => {
+    const unVerify = async (type) => {
+        setSubimitting(true)
+        const routeName =
+            type === "final"
+                ? "grade-verification.unverify-final"
+                : "grade-verification.unverify-midterm";
+
         router.post(
-            route('grade-verification.cancel', { yearSectionSubjectsId: subject.id }),
+            route(routeName, { yearSectionSubjectsId: subject.id }),
             {},
             {
                 preserveScroll: true,
+                onFinish: async () => {
+                    await refetch();
+                    setSubimitting(false)
+                },
             }
         )
     }
 
-    const handleReject = () => {
+    const handleReject = async (type) => {
+        setSubimitting(true)
+        const routeName =
+            type === "final"
+                ? "reject.grades-final"
+                : "reject.grades-midterm";
+
         router.post(
-            route('reject.grades', { yearSectionSubjectsId: subject.id }), { message: rejectionMessage },
-            {},
+            route(routeName, { yearSectionSubjectsId: subject.id }),
+            { message: rejectionMessage },
             {
                 preserveScroll: true,
+                onFinish: async () => {
+                    await refetch()
+                    setSubimitting(false)
+                }
             }
         )
     }
 
-    const [loading, setLoading] = useState(false)
+    const unReject = async (type) => {
+        setSubimitting(true)
+        const routeName =
+            type === "final"
+                ? "unreject.grades-final"
+                : "unreject.grades-midterm";
+
+        router.post(
+            route(routeName, { yearSectionSubjectsId: subject.id }),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: async () => {
+                    await refetch();
+                    setSubimitting(false)
+                },
+            }
+        )
+    }
 
     return (
         <div className='space-y-4'>
@@ -74,7 +147,6 @@ function SubjectStudentLIst({ faculty, subject }) {
                         </CardContent>
                     </Card>
                 </div>
-                <GradeSubmissionStatus className='w-max' gradeStatus={subject} />
             </div>
             <Card>
                 <CardHeader>
@@ -106,11 +178,11 @@ function SubjectStudentLIst({ faculty, subject }) {
                                         {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
                                             <span className="text-red-500 font-medium">DROPPED</span>
                                         ) : student.midterm_grade && student.final_grade ? (
-                                                (() => {
-                                                    const avg = (+student.midterm_grade + +student.final_grade) / 2;
-                                                    const finalRating = avg >= 3.05 ? 5.0 : +avg.toFixed(1);
-                                                    return <>{finalRating.toFixed(1)}</>;
-                                                })()
+                                            (() => {
+                                                const avg = (+student.midterm_grade + +student.final_grade) / 2;
+                                                const finalRating = avg >= 3.05 ? 5.0 : +avg.toFixed(1);
+                                                return <>{finalRating.toFixed(1)}</>;
+                                            })()
                                         ) : (
                                             '-'
                                         )}
@@ -135,68 +207,70 @@ function SubjectStudentLIst({ faculty, subject }) {
                 </CardContent>
             </Card>
 
-            <div className='w-full flex justify-end'>
-                {
-                    subject.is_deployed ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-green-600 rounded-md">
-                        Deployed <Check className="w-4 h-4" />
-                    </span>
-                    ) : subject.is_verified ? (
-                        <div className="w-full flex items-end justify-end">
-                            <div className="flex flex-col gap-1 text-sm bg-blue-600 border border-blue-300 rounded-xl px-4 py-3 shadow-md max-w-md w-fit">
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4" />
-                                    <span>
-                                        Verified on <span className="font-semibold">{subject.verified_at}</span> at{' '}
-                                        <span className="font-semibold">{convertToAMPM(subject)}</span>
-                                    </span>
+            <div className='h-24' />
+
+            {/* OUTSIDE the scrollable container */}
+            {!isLoading && (
+                <div className='fixed bottom-0 z-50 flex gap-4 w-full max-w-6xl h-28 px-4'>
+                    {/* Midterm (will appear on the right) */}
+                    <Card className='rounded-none no-print w-96 mb-4'>
+                        <CardContent className='py-2 px-4 space-y-2'>
+                            <p className='underline'>Midterm grade</p>
+                            <div className='w-full flex gap-4 max-w-7xl mx-auto'>
+                                <div className='w-48 flex border px-2 h-[37px]'>
+                                    <StatusLabel label={data.midterm_status} />
                                 </div>
-                                <span className="pl-6 text-sm italic">Awaiting deployment</span>
-                                <Button
-                                    onClick={async () => {
-                                        setLoading(true)
-                                        try {
-                                            await cancel()
-                                        } finally {
-                                            setLoading(false)
-                                        }
+                                <ProgramHeadGradeVerificationButton
+                                    disabledButton={submitting}
+                                    handleCancel={unVerify}
+                                    type='midterm'
+                                    status={{
+                                        deployed_at: data.midterm_deployed_at,
+                                        rejection_message: data.midterm_rejection_message,
+                                        status: data.midterm_status,
+                                        submitted_at: data.midterm_submitted_at,
+                                        verified_at: data.midterm_verified_at,
                                     }}
-                                    variant='destructive'
-                                    disabled={loading}
-                                >
-                                    Cancel
-                                </Button>
+                                    rejectionMessage={rejectionMessage}
+                                    setRejectionMessage={setRejectionMessage}
+                                    handleReject={handleReject}
+                                    verify={verify}
+                                    unReject={unReject}
+                                />
                             </div>
-                        </div>
-                    ) : subject.is_rejected ? (<span className="inline-flex items-center gap-1 px-2 py-1 text-sm font-medium text-white bg-red-600 rounded-md">
-                        Rejected <XCircle className="w-4 h-4" />
-                    </span>
-                    ) : subject.is_submitted ? (
-                        <div className='flex gap-2'>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="destructive" className="w-28">Reject</Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-64 space-y-2">
-                                    <Label htmlFor="rejection-message">Message <span className='text-xs italic'>(not required)</span></Label>
-                                    <Input
-                                        id="rejection-message"
-                                        value={rejectionMessage}
-                                        onChange={(e) => setRejectionMessage(e.target.value)}
-                                        className="w-full"
-                                        placeholder="Enter reason for rejection"
-                                    />
-                                    <Button onClick={handleReject}>
-                                        Send <SendHorizonal className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </PopoverContent>
-                            </Popover>
-                            <Button onClick={verify} className='w-28'>Verify</Button>
-                        </div>
-                    ) : (
-                        ''
-                    )
-                }
-            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Final (will appear on the left) */}
+                    <Card className='rounded-none no-print w-96 mb-4'>
+                        <CardContent className='py-2 px-4 space-y-2'>
+                            <p className='underline'>Final grade</p>
+                            <div className='w-full flex gap-4 max-w-7xl mx-auto'>
+                                <div className='w-48 flex border px-2 h-[37px]'>
+                                    <StatusLabel label={data.final_status} />
+                                </div>
+                                <ProgramHeadGradeVerificationButton
+                                    disabledButton={submitting}
+                                    handleCancel={unVerify}
+                                    type='final'
+                                    status={{
+                                        deployed_at: data.final_deployed_at,
+                                        rejection_message: data.final_rejection_message,
+                                        status: data.final_status,
+                                        submitted_at: data.final_submitted_at,
+                                        verified_at: data.final_verified_at,
+                                    }}
+                                    rejectionMessage={rejectionMessage}
+                                    setRejectionMessage={setRejectionMessage}
+                                    handleReject={handleReject}
+                                    verify={verify}
+                                    unReject={unReject}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     )
 }

@@ -8,8 +8,11 @@ import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "@/Components/theme-provider";
 import { Toaster } from "@/Components/ui/sonner";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const appName = import.meta.env.VITE_APP_NAME || "Opol Community College";
+
+const queryClient = new QueryClient();
 
 createInertiaApp({
     title: (title) => `${title ? `${title} - ` : ''}Opol Community College`,
@@ -23,7 +26,9 @@ createInertiaApp({
 
         root.render(
             <ThemeProvider>
-                <App {...props} />
+                <QueryClientProvider client={queryClient}>
+                    <App {...props} />
+                </QueryClientProvider>
                 <Toaster position="top-right" />
             </ThemeProvider>
         );
