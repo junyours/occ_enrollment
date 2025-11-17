@@ -152,7 +152,7 @@ function EnrollmentRecord() {
                                                                 {classInfo.midterm_grade === 0.0 ? (
                                                                     <span className="text-red-500 font-medium">DROPPED</span>
                                                                 ) : classInfo.midterm_grade ? (
-                                                                        classInfo.midterm_grade.toFixed(1)
+                                                                        classInfo.midterm_grade?.toFixed(1)
                                                                 ) : (
                                                                     '-'
                                                                 )}
@@ -161,7 +161,7 @@ function EnrollmentRecord() {
                                                                 {classInfo.final_grade === 0.0 ? (
                                                                     <span className="text-red-500 font-medium">DROPPED</span>
                                                                 ) : classInfo.final_grade ? (
-                                                                        classInfo.final_grade.toFixed(1)
+                                                                        classInfo.final_grade?.toFixed(1)
                                                                 ) : (
                                                                     '-'
                                                                 )}

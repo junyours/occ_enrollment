@@ -144,8 +144,8 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                                     <TableCell className="text-center">{index + 1}.</TableCell>
                                     <TableCell>{student.user_id_no}</TableCell>
                                     <TableCell>{formatFullName(student)}</TableCell>
-                                    <TableCell className="text-center">{student.midterm_grade.toFixed(1)}</TableCell>
-                                    <TableCell className="text-center">{student.final_grade.toFixed(1)}
+                                    <TableCell className="text-center">{student.midterm_grade?.toFixed(1)}</TableCell>
+                                    <TableCell className="text-center">{student.final_grade?.toFixed(1)}
                                     </TableCell>
                                     <TableCell className="text-center">
                                         {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
