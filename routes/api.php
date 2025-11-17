@@ -24,6 +24,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mobile/logout', [AuthController::class, 'logout']);
 });
 
+// CSG-ATTENDANCE
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/csg-attendance/user', [CsgAttendanceController::class, 'csgAttendanceUser']);
+    Route::get('/school-structure', [CsgAttendanceController::class, 'getSchoolStructure']);
+    Route::get('/student-enrollment', [CsgAttendanceController::class, 'getStudentEnrollment']);
+});
+
 Route::middleware('guest')->group(function () {
     Route::post('/mobile/login', [AuthController::class, 'login']);
     Route::post('/csg-attendance/login', [CsgAttendanceController::class, 'csgAttendanceLogin']);
