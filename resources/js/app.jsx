@@ -1,7 +1,5 @@
 import "../css/app.css";
 import "./bootstrap";
-import "froala-editor/css/froala_style.min.css";
-import "froala-editor/css/froala_editor.pkgd.min.css";
 
 import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
@@ -15,7 +13,7 @@ const appName = import.meta.env.VITE_APP_NAME || "Opol Community College";
 const queryClient = new QueryClient();
 
 createInertiaApp({
-    title: (title) => `${title ? `${title} - ` : ''}Opol Community College`,
+    title: (title) => `${title ? `${title} - ` : ''}SIS`,
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,
