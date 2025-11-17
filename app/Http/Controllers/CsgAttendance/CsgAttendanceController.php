@@ -94,7 +94,7 @@ class CsgAttendanceController extends Controller
 
         $departmentIdsAvailable = $yearSections->pluck('course.department_id')->unique();
         $departmentsQuery = Department::with([
-            'courses' => function ($q) use ($yearSections) {
+            'course' => function ($q) use ($yearSections) {
                 $courseIdsInSections = $yearSections->pluck('course_id')->unique();
                 $q->whereIn('id', $courseIdsInSections);
             }
@@ -173,7 +173,16 @@ class CsgAttendanceController extends Controller
                 });
             }
 
-            $userIds = $query->distinct()->pluck('user_id_no');
+            $userIds = $query
+                ->whereHas('user', function ($u) {
+                    $u->where('user_role', 'student');
+                })
+                ->with('user')
+                ->get()
+                ->pluck('user.user_id_no')
+                ->unique()
+                ->values();
+
 
             return response()->json([
                 'user_id_no' => $userIds,
@@ -190,6 +199,20 @@ class CsgAttendanceController extends Controller
             'enrolledStudents.yearSection.yearLevel',
             'enrolledStudents.yearSection.schoolYear.semester'
         ])
+            ->select(
+            'user_id_no',
+                'user_id',
+                'first_name',
+                'last_name',
+                'middle_name',
+                'gender',
+                'birthday',
+                'contact_number',
+                'email_address',
+                'present_address',
+                'zip_code',
+            )
+            ->join('users', 'users.id', '=', 'user_information.user_id')
             ->whereIn('user_id_no', $userIdNos)
             ->get();
 
