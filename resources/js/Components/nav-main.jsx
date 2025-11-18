@@ -158,14 +158,15 @@ export function NavMain() {
                 {
                     label: "People",
                     items: [
-                        { name: "Faculty", route: "classes", icon: Presentation },
-                        { name: "Student", route: "classes", icon: Presentation },
+                        { name: "Users", route: "mis-users", icon: UsersIcon },
+                        // { name: "Faculty", route: "mis-faculty-list", icon: User },
+                        // { name: "Student", route: "mis-student-list", icon: PiStudent },
                     ],
                 },
                 {
                     label: "Others",
                     items: [
-                        { name: "Recycle Bin", route: "classes", icon: Presentation },
+                        { name: "Recycle Bin", route: "recycle-bin", icon: Presentation },
                     ],
                 }
             );
@@ -188,78 +189,23 @@ export function NavMain() {
             });
             break;
 
+        case "guidance":
+            menuSections.push({
+                items: [
+                    { name: "Dashboard", route: "guidance.dashboard", icon: Presentation },
+                    { name: "Criteria", route: "guidance.criteria", icon: ListChecks },
+                    { name: "Questionnaires", route: "guidance.questionnaire", icon: FileQuestion },
+                    { name: "Evaluation", route: "guidance.evaluation", icon: FolderPlus },
+                    { name: "Faculty", route: "guidance.faculty.index", icon: User2Icon },
+                    { name: "Student", route: "guidance.student.index", icon: ClipboardList },
+                    { name: "Archives", route: "guidance.dashboard", icon: Archive }
+                ],
+            });
+            break;
+
         default:
             break;
     }
-
-    // Define menu items based on user role
-    const menuItems = [
-        ...(user.user_role === "registrar"
-            ? [
-                { name: "Department", route: "department", icon: Building },
-                { name: "School year", route: "school-year", icon: Calendar1 },
-                { name: "Classes", route: "classes", icon: Presentation },
-                { name: "Faculty-list", route: "faculty-list", icon: User2 },
-                { name: "Student-list", route: "student-list", icon: PiStudent },
-                { name: "Rooms", route: "rooms", icon: MdOutlineMeetingRoom },
-            ]
-            : []
-        ),
-        ...(user.user_role === "program_head"
-            ? [
-                { name: "Classes", route: "classes", icon: Presentation },
-                { name: "Curriculum", route: "curriculum", icon: BookOpen },
-                { name: "Faculty List", route: "faculty-list", icon: User },
-            ]
-            : []
-        ),
-        ...(user.user_role === "student"
-            ? [
-                { name: "Classes", route: "classes", icon: Presentation },
-                { name: "Enrollment Record", route: "enrollment-record", icon: Library },
-                { name: "Faculty Evaluation", route: "student.evaluation", icon: ListTodo },
-            ]
-            : []
-        ),
-        ...(user.user_role === "faculty"
-            ? [
-                { name: "Classes", route: "classes", icon: Presentation },
-            ]
-            : []
-        ),
-        ...(user.user_role === "super_admin"
-            ? [
-                { name: "Users", route: "users", icon: UsersIcon },
-            ]
-            : []
-        ),
-        ...(user.user_role === "mis"
-            ? [
-                { name: "Faculty", route: "classes", icon: Presentation },
-                { name: "Student", route: "classes", icon: Presentation },
-                { name: "Recycle Bin", route: "classes", icon: Presentation },
-            ]
-            : []
-        ),
-        ...(user.user_role === "guidance"
-            ? [
-
-                { name: "Dashboard", route: "guidance.dashboard", icon: Presentation },
-                { name: "Criteria", route: "guidance.criteria", icon: ListChecks },
-                { name: "Questionnaires", route: "guidance.questionnaire", icon: FileQuestion },
-                { name: "Evaluation", route: "guidance.evaluation", icon: FolderPlus },
-                { name: "Faculty", route: "guidance.faculty.index", icon: User2Icon },
-                { name: "Student", route: "guidance.student.index", icon: ClipboardList },
-                { name: "Archives", route: "guidance.dashboard", icon: Archive }
-            ]
-            : []
-        ),
-        ...(["registrar", "program_head", "evaluator", "faculty"].includes(user.user_role)
-            ? [
-            ]
-            : []
-        ),
-    ];
 
     return (
         <SidebarGroup>

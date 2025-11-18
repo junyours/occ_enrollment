@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'can-manage-maintenance' => \App\Http\Middleware\CanManageMaintenance::class,
             'president' => \App\Http\Middleware\President::class,
             'Guidance' => \App\Http\Middleware\Guidance::class,
+            'mis' => \App\Http\Middleware\Mis::class,
         ]);
         //
     })

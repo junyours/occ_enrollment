@@ -2,12 +2,9 @@
 
 use App\Http\Controllers\Curriculum\CurriculumController;
 use App\Http\Controllers\Enrollment\ClassScheduling\EnrollmentClassSchedulingController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Maintenance\MaintenanceController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Question;
 
 Route::get('/', [HomeController::class, 'index']);
 
@@ -39,15 +36,16 @@ Route::get('/api/questions/exists', function () {
     ]);
 });
 
-
-
 require __DIR__ . '/auth.php';
 require __DIR__ . '/ClassesRoute.php';
 require __DIR__ . '/ClassSchedulingRoute.php';
+require __DIR__ . '/CorRoute.php';
 require __DIR__ . '/DepartmentRoute.php';
 require __DIR__ . '/EnrollmentRoute.php';
 require __DIR__ . '/GradeRoute.php';
 require __DIR__ . '/GuestRoute.php';
+require __DIR__ . '/GuidanceRoute.php';
+require __DIR__ . '/MisRoute.php';
 require __DIR__ . '/MaintenanceRoute.php';
 require __DIR__ . '/PresidentRoute.php';
 require __DIR__ . '/ProfileRoute.php';
@@ -58,5 +56,3 @@ require __DIR__ . '/SchoolYearRoute.php';
 require __DIR__ . '/SuperAdminRoute.php';
 require __DIR__ . '/UserManagementRoute.php';
 require __DIR__ . '/RoomsRoute.php';
-require __DIR__ . '/CorRoute.php';
-require __DIR__ . '/GuidanceRoute.php';

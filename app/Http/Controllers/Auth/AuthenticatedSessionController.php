@@ -50,8 +50,10 @@ class AuthenticatedSessionController extends Controller
 
         if ($ongoingEnrollment && ($user->user_role == 'registrar' || $user->user_role == 'program_head' || $user->user_role == 'evaluator')) {
             return redirect()->intended(route('dashboard', absolute: false));
-        } else if ($user->user_role == 'super_admin' || $user->user_role == 'mis') {
+        } else if ($user->user_role == 'super_admin') {
             return redirect()->intended(route('users', absolute: false));
+        } else if ($user->user_role == 'mis') {
+            return redirect()->intended(route('mis-users', absolute: false));
         } else if ($user->user_role == 'president') {
             return redirect()->intended(route('ongoing-enrollment', absolute: false));
         } else if ($user->user_role == 'guidance') {
