@@ -38,15 +38,25 @@ class HandleInertiaRequests extends Middleware
     {
         $user = Auth::user();
 
-        // Return null id there's no authenticated user
+        // Always share errors for ALL users (including guests)
+        $baseSharedData = [
+            ...parent::share($request),
+            'errors' => function () use ($request) {
+                return $request->session()->get('errors')
+                    ? $request->session()->get('errors')->getBag('default')->getMessages()
+                    : (object) [];
+            },
+        ];
+
+        // Return only errors if there's no authenticated user
         if (!$user) {
-            return [];
+            return $baseSharedData;
         }
 
         // Only returns role - information not needed
         if (in_array($user->user_role, ['super_admin', 'mis', 'president', 'announcement_admin', 'guidance'])) {
             return [
-                ...parent::share($request),
+                ...$baseSharedData,
                 'auth' => [
                     'user' => $user,
                 ],
@@ -58,7 +68,7 @@ class HandleInertiaRequests extends Middleware
 
         // Base for the rest users and if it's impersonated
         $baseData = [
-            ...parent::share($request),
+            ...$baseSharedData,
             'auth' => [
                 'user' => $userData,
                 'impersonating' => Session::has('impersonator_id'),
@@ -70,7 +80,7 @@ class HandleInertiaRequests extends Middleware
             return $baseData;
         }
 
-        // Important data for ooongoing enroollment
+        // Important data for ongoing enrollment
         $enrollmentMeta = $this->getEnrollmentMeta();
 
         // Return base data if there's no enrollment
@@ -80,7 +90,7 @@ class HandleInertiaRequests extends Middleware
 
         // Return necessary data during enrollment
         return [
-            ...parent::share($request),
+            ...$baseSharedData,
             'auth' => [
                 ...$baseData['auth'],
                 ...$enrollmentMeta,

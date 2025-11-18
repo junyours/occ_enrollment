@@ -13,7 +13,7 @@ const appName = import.meta.env.VITE_APP_NAME || "Opol Community College";
 const queryClient = new QueryClient();
 
 createInertiaApp({
-    title: (title) => `${title ? `${title} - ` : ''}SIS`,
+    title: (title) => `${title ? `${title} | ` : ''}SIS - Opol Community College`,
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,

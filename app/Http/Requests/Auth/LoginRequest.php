@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -37,15 +38,29 @@ class LoginRequest extends FormRequest
      *
      * @throws \Illuminate\Validation\ValidationException
      */
+    // app/Http/Requests/Auth/LoginRequest.php
+
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
+        // Check if user with this ID exists
+        $user = User::where('user_id_no', $this->user_id_no)->first();
+
+        if (!$user) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'user_id_no' => __('This ID number does not exist in our records.'),
+            ]);
+        }
+
+        // User exists, now check password
         if (! Auth::attempt($this->only('user_id_no', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'user_id_no' => trans('auth.failed'),
+                'password' => __('The password you entered is incorrect.'),
             ]);
         }
 
