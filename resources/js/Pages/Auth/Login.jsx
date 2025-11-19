@@ -58,12 +58,12 @@ export default function Login({ status }) {
                     <div className="absolute top-3 right-3 z-10">
                         <TwoModeToggle />
                     </div>
-
+                    
                     <div className="grid lg:grid-cols-2 gap-0">
                         {/* Left Side - Desktop Only */}
-                        <div className="hidden lg:flex flex-col justify-center items-center p-8 xl:p-10 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-48 h-48 xl:w-64 xl:h-64 bg-white/5 rounded-full -translate-y-24 translate-x-24"></div>
-                            <div className="absolute bottom-0 left-0 w-64 h-64 xl:w-80 xl:h-80 bg-white/5 rounded-full translate-y-32 -translate-x-32"></div>
+                        <div className="hidden lg:flex flex-col justify-center items-center p-8 xl:p-10 bg-primary text-primary-foreground relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-48 h-48 xl:w-64 xl:h-64 bg-primary-foreground/5 rounded-full -translate-y-24 translate-x-24"></div>
+                            <div className="absolute bottom-0 left-0 w-64 h-64 xl:w-80 xl:h-80 bg-primary-foreground/5 rounded-full translate-y-32 -translate-x-32"></div>
 
                             <div className="relative z-10 text-center space-y-4 xl:space-y-5 w-full max-w-sm">
                                 <div className="space-y-2">
@@ -73,10 +73,10 @@ export default function Login({ status }) {
                                     <p className="text-base xl:text-lg font-semibold opacity-95">
                                         Student Information System
                                     </p>
-                                    <div className="w-20 h-1 bg-white/50 mx-auto rounded-full"></div>
+                                    <div className="w-20 h-1 bg-primary-foreground/50 mx-auto rounded-full"></div>
                                 </div>
 
-                                <div className="space-y-2 text-white/90 text-sm xl:text-base">
+                                <div className="space-y-2 opacity-90 text-sm xl:text-base">
                                     <p>📚 Manage your academic journey</p>
                                     <p>📊 Access grades and schedules</p>
                                     <p>🎓 Stay connected with education</p>
