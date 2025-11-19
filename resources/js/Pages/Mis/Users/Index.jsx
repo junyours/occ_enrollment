@@ -7,9 +7,9 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+} from '@/Components/ui/select';
+import { Input } from '@/Components/ui/input';
+import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UserDetails from './UserDetails';
 import UsersTable from './UsersTable';

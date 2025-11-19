@@ -5,20 +5,20 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/Components/ui/dialog';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from '@/Components/ui/select';
+import { Input } from '@/Components/ui/input';
+import { Button } from '@/Components/ui/button';
+import { Label } from '@/Components/ui/label';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import { Badge } from '@/Components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { AlertCircle, Edit2, Save, X } from 'lucide-react';
 import { formatRole, getRoleBadgeColor } from './Utility';
 

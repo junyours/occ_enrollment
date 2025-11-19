@@ -6,18 +6,18 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/Components/ui/dialog';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+} from '@/Components/ui/select';
+import { Input } from '@/Components/ui/input';
+import { Button } from '@/Components/ui/button';
+import { Label } from '@/Components/ui/label';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
 export default function AddUserDialog({ open, onOpenChange }) {
