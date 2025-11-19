@@ -36,15 +36,15 @@ export default function Login({ status }) {
     };
 
     return (
-        <div className="min-h-screen w-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
+        <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
             <Head title="Login" />
 
             {status && (
-                <div className="fixed top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md">
                     <Alert className="border-green-200 bg-white dark:bg-slate-900 shadow-lg border-l-4 border-l-green-500">
                         <div className="flex gap-3 items-center">
-                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                            <AlertTitle className="text-green-700 dark:text-green-300 font-medium mb-0 text-sm sm:text-base">
+                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0" />
+                            <AlertTitle className="text-green-700 dark:text-green-300 font-medium mb-0 text-sm">
                                 {status}
                             </AlertTitle>
                         </div>
@@ -52,163 +52,160 @@ export default function Login({ status }) {
                 </div>
             )}
 
-            <Card className="relative w-full max-w-[95%] sm:max-w-xl md:max-w-2xl lg:max-w-5xl xl:max-w-6xl overflow-hidden shadow-xl border-0">
-                <div className="absolute top-3 right-3 z-10">
-                    <TwoModeToggle />
-                </div>
-                <div className="grid lg:grid-cols-[1.1fr_1fr] gap-0">
-                    {/* Left Side - Hidden on mobile/tablet, visible on desktop */}
-                    <div className="hidden lg:flex flex-col justify-center items-center p-8 xl:p-16 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white relative">
-                        {/* Simple decorative elements */}
-                        <div className="absolute top-0 right-0 w-48 xl:w-64 h-48 xl:h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32"></div>
-                        <div className="absolute bottom-0 left-0 w-72 xl:w-96 h-72 xl:h-96 bg-white/5 rounded-full translate-y-48 -translate-x-48"></div>
+            {/* Main Container with Max Width */}
+            <div className="w-full max-w-[1400px] flex items-center justify-center">
+                <Card className="relative w-full max-w-sm sm:max-w-md lg:max-w-4xl xl:max-w-5xl overflow-hidden shadow-xl border-0">
+                    <div className="absolute top-3 right-3 z-10">
+                        <TwoModeToggle />
+                    </div>
 
-                        <div className="relative z-10 text-center space-y-6 xl:space-y-8 max-w-md">
-                            <div className="inline-flex items-center justify-center p-3 xl:p-4 bg-white/10 rounded-2xl backdrop-blur-sm">
-                                <GraduationCap className="w-12 h-12 xl:w-16 xl:h-16" />
-                            </div>
+                    <div className="grid lg:grid-cols-2 gap-0">
+                        {/* Left Side - Desktop Only */}
+                        <div className="hidden lg:flex flex-col justify-center items-center p-8 xl:p-10 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-48 h-48 xl:w-64 xl:h-64 bg-white/5 rounded-full -translate-y-24 translate-x-24"></div>
+                            <div className="absolute bottom-0 left-0 w-64 h-64 xl:w-80 xl:h-80 bg-white/5 rounded-full translate-y-32 -translate-x-32"></div>
 
-                            <div className="space-y-2 xl:space-y-3">
-                                <h2 className="text-3xl xl:text-4xl font-bold tracking-tight">
-                                    Opol Community College
-                                </h2>
-                                <p className="text-lg xl:text-xl font-semibold opacity-95">
-                                    Student Information System
-                                </p>
-                                <div className="w-20 h-1 bg-white/50 mx-auto rounded-full"></div>
-                            </div>
+                            <div className="relative z-10 text-center space-y-4 xl:space-y-5 w-full max-w-sm">
+                                <div className="space-y-2">
+                                    <h2 className="text-2xl xl:text-3xl font-bold tracking-tight">
+                                        Opol Community College
+                                    </h2>
+                                    <p className="text-base xl:text-lg font-semibold opacity-95">
+                                        Student Information System
+                                    </p>
+                                    <div className="w-20 h-1 bg-white/50 mx-auto rounded-full"></div>
+                                </div>
 
-                            <div className="space-y-2 xl:space-y-3 text-white/90">
-                                <p className="text-base xl:text-lg">📚 Manage your academic journey</p>
-                                <p className="text-base xl:text-lg">📊 Access grades and schedules</p>
-                                <p className="text-base xl:text-lg">🎓 Stay connected with education</p>
-                            </div>
+                                <div className="space-y-2 text-white/90 text-sm xl:text-base">
+                                    <p>📚 Manage your academic journey</p>
+                                    <p>📊 Access grades and schedules</p>
+                                    <p>🎓 Stay connected with education</p>
+                                </div>
 
-                            <div className="relative mt-8 xl:mt-12">
-                                <img
-                                    src={LoginStudents}
-                                    alt="students"
-                                    className="w-64 xl:w-80 rounded-2xl shadow-2xl mx-auto"
-                                    draggable="false"
-                                    onContextMenu={(e) => e.preventDefault()}
-                                />
+                                <div className="relative mt-4 xl:mt-6">
+                                    <img
+                                        src={LoginStudents}
+                                        alt="students"
+                                        className="w-52 xl:w-64 rounded-2xl shadow-2xl mx-auto"
+                                        draggable="false"
+                                        onContextMenu={(e) => e.preventDefault()}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Right Side - Login Form - Responsive for all devices */}
-                    <div className="flex flex-col justify-center p-6 sm:p-8 md:p-10 lg:p-12 bg-white dark:bg-slate-900">
-                        <CardContent className="space-y-6 sm:space-y-8 p-0">
-                            {/* Logo and Title */}
-                            <div className="text-center space-y-3 sm:space-y-4">
-                                <Link href="/" className="inline-block">
-                                    <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto hover:scale-105 transition-transform">
-                                        <AppLogo />
-                                    </div>
-                                </Link>
-                                <div className="space-y-1 sm:space-y-2">
-                                    <h1 className="text-2xl sm:text-3xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                        Welcome Back
-                                    </h1>
-                                    <p className="text-sm sm:text-base text-muted-foreground">Sign in to continue your journey</p>
-                                </div>
-                            </div>
-
-
-
-                            {/* Login Form */}
-                            <form onSubmit={submit} className="space-y-5 sm:space-y-6">
-                                {/* ID Number Field */}
-                                <div className="space-y-2">
-                                    <label htmlFor="user_id_no" className="text-xs sm:text-sm font-semibold text-foreground">
-                                        ID Number <span className="text-red-500">*</span>
-                                    </label>
-                                    <Input
-                                        type="text"
-                                        id="user_id_no"
-                                        name="user_id_no"
-                                        value={data.user_id_no}
-                                        onChange={(e) => setData("user_id_no", e.target.value)}
-                                        placeholder="Enter your student ID"
-                                        className={`h-11 sm:h-12 text-sm sm:text-base ${errors.user_id_no ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                        required
-                                    />
-                                    {errors.user_id_no && (
-                                        <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
-                                            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0" />
-                                            <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium">
-                                                {errors.user_id_no}
-                                            </p>
+                        {/* Right Side - Login Form */}
+                        <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-8 xl:p-10 bg-white dark:bg-slate-900">
+                            <CardContent className="space-y-5 xl:space-y-6 p-0 w-full max-w-md mx-auto">
+                                {/* Logo and Title */}
+                                <div className="text-center space-y-3">
+                                    <Link href="/" className="inline-block">
+                                        <div className="w-20 h-20 sm:w-20 sm:h-20 lg:w-24 lg:h-24 mx-auto hover:scale-105 transition-transform">
+                                            <AppLogo />
                                         </div>
-                                    )}
+                                    </Link>
+                                    <div className="space-y-1">
+                                        <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                            Welcome Back
+                                        </h1>
+                                        <p className="text-xs sm:text-sm text-muted-foreground">Sign in to continue your journey</p>
+                                    </div>
                                 </div>
 
-                                {/* Password Field */}
-                                <div className="space-y-2">
-                                    <label htmlFor="password" className="text-xs sm:text-sm font-semibold text-foreground">
-                                        Password <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative">
+                                {/* Login Form */}
+                                <form onSubmit={submit} className="space-y-4">
+                                    {/* ID Number Field */}
+                                    <div className="space-y-2">
+                                        <label htmlFor="user_id_no" className="text-xs sm:text-sm font-semibold text-foreground block">
+                                            ID Number <span className="text-red-500">*</span>
+                                        </label>
                                         <Input
-                                            type={showPassword ? "text" : "password"}
-                                            id="password"
-                                            name="password"
-                                            value={data.password}
-                                            onChange={(e) => setData("password", e.target.value)}
-                                            placeholder="Enter your password"
-                                            className={`h-11 sm:h-12 pr-11 sm:pr-12 text-sm sm:text-base ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                            type="text"
+                                            id="user_id_no"
+                                            name="user_id_no"
+                                            value={data.user_id_no}
+                                            onChange={(e) => setData("user_id_no", e.target.value)}
+                                            placeholder="Enter your student ID"
+                                            className={`h-11 text-sm sm:text-base w-full ${errors.user_id_no ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword((prev) => !prev)}
-                                            className="absolute top-1/2 right-3 sm:right-4 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                        >
-                                            {showPassword ? <FaEye size={18} className="sm:w-5 sm:h-5" /> : <FaEyeSlash size={18} className="sm:w-5 sm:h-5" />}
-                                        </button>
+                                        {errors.user_id_no && (
+                                            <div className="flex items-start gap-2 p-2.5 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
+                                                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                                                <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium">
+                                                    {errors.user_id_no}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
-                                    {errors.password && (
-                                        <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
-                                            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0" />
-                                            <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium">
-                                                {errors.password}
-                                            </p>
+
+                                    {/* Password Field */}
+                                    <div className="space-y-2">
+                                        <label htmlFor="password" className="text-xs sm:text-sm font-semibold text-foreground block">
+                                            Password <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <Input
+                                                type={showPassword ? "text" : "password"}
+                                                id="password"
+                                                name="password"
+                                                value={data.password}
+                                                onChange={(e) => setData("password", e.target.value)}
+                                                placeholder="Enter your password"
+                                                className={`h-11 pr-11 text-sm sm:text-base w-full ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword((prev) => !prev)}
+                                                className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                            >
+                                                {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
+                                            </button>
                                         </div>
-                                    )}
-                                </div>
+                                        {errors.password && (
+                                            <div className="flex items-start gap-2 p-2.5 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg">
+                                                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                                                <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm font-medium">
+                                                    {errors.password}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
 
-                                {/* Submit Button */}
-                                <Button
-                                    type="submit"
-                                    disabled={processing || submitting}
-                                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
-                                >
-                                    {submitting ? (
-                                        <span className="flex items-center gap-2">
-                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                            Signing in...
-                                        </span>
-                                    ) : (
-                                        "Sign In"
-                                    )}
-                                </Button>
-                            </form>
-
-                            {/* Forgot Password Link */}
-                            <div className="text-center">
-                                <a href="/forgot-password">
-                                    <Button variant="link" className="font-medium text-sm sm:text-base text-blue-600 dark:text-blue-400">
-                                        Forgot your password?
+                                    {/* Submit Button */}
+                                    <Button
+                                        type="submit"
+                                        disabled={processing || submitting}
+                                        className="w-full h-11 text-sm sm:text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all"
+                                    >
+                                        {submitting ? (
+                                            <span className="flex items-center gap-2">
+                                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                                Signing in...
+                                            </span>
+                                        ) : (
+                                            "Sign In"
+                                        )}
                                     </Button>
-                                </a>
-                            </div>
-                        </CardContent>
+                                </form>
+
+                                {/* Forgot Password Link */}
+                                <div className="text-center pt-1">
+                                    <a href="/forgot-password">
+                                        <Button variant="link" className="font-medium text-xs sm:text-sm text-blue-600 dark:text-blue-400 p-0 h-auto">
+                                            Forgot your password?
+                                        </Button>
+                                    </a>
+                                </div>
+                            </CardContent>
+                        </div>
                     </div>
-                </div>
-            </Card>
+                </Card>
+            </div>
 
             {/* Footer */}
-            <p className="mt-6 sm:mt-8 text-xs sm:text-sm text-muted-foreground text-center">
+            <p className="mt-6 text-xs text-muted-foreground text-center">
                 © 2024 Opol Community College. All rights reserved.
             </p>
         </div>
