@@ -198,7 +198,8 @@ function Grades({
     const handleGradeChange = (index, field, value) => {
         // Update local UI state
         handleChange(index, field, value)
-
+        console.log(value);
+        
         const student = grades[index]
         const studentId = student.id_number
 
@@ -218,7 +219,7 @@ function Grades({
 
         // Set new timeout
         timeoutRefs.current[key] = setTimeout(() => {
-            if (value) {
+            if (value !== '' && value !== null) {
                 handleChange(index, field, Number(value).toFixed(1))
             }
 
@@ -227,21 +228,16 @@ function Grades({
                     ? 'student.midterm.grade'
                     : 'student.final.grade'
 
-            axios
-                .patch(route(routeName, {
-                    yearSectionSubjectsId,
-                    studentId,
-                }), {
-                    [field]: Number(value),
-                })
-                .then(() => {
-                    setUploadStatus('saved')
-                })
+            axios.patch(route(routeName, { yearSectionSubjectsId, studentId }), {
+                [field]: value === '' ? null : Number(value),
+            })
+                .then(() => setUploadStatus('saved'))
                 .catch((err) => {
                     console.error('Update failed', err)
                     setUploadStatus('idle')
                 })
         }, 1500)
+
     }
 
     const componentRef = useRef(null);
