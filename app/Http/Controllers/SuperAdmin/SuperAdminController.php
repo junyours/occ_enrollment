@@ -20,33 +20,75 @@ class SuperAdminController extends Controller
     public function view(Request $request)
     {
         $users = User::query()
-            ->select('users.id', 'first_name', 'middle_name', 'last_name', 'email', 'user_role')
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('first_name', 'like', '%' . $search . '%')
-                        ->orWhere('last_name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
-                });
+            ->select(
+                'users.id',
+                'users.user_id_no',
+                'users.user_role',
+                'user_information.first_name',
+                'user_information.last_name',
+                'user_information.middle_name',
+                'user_information.gender',
+                'user_information.birthday',
+                'user_information.civil_status',
+                'user_information.contact_number',
+                'user_information.email_address as email',
+                'user_information.present_address',
+                'user_information.zip_code'
+            )
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->when($request->role && $request->role !== 'all', function ($query, $role) use ($request) {
+                $query->where('users.user_role', $request->role);
             })
-            ->when($request->role, function ($query, $role) {
-                $query->where('user_role', $role);
+            ->when($request->search, function ($query, $search) use ($request) {
+                $searchField = $request->searchField ?? 'all';
+
+                if ($searchField === 'all') {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('users.user_id_no', 'like', '%' . $search . '%')
+                            ->orWhere('user_information.first_name', 'like', '%' . $search . '%')
+                            ->orWhere('user_information.last_name', 'like', '%' . $search . '%')
+                            ->orWhere('user_information.middle_name', 'like', '%' . $search . '%')
+                            ->orWhere('user_information.email_address', 'like', '%' . $search . '%')
+                            ->orWhere('users.user_role', 'like', '%' . $search . '%')
+                            ->orWhere('user_information.contact_number', 'like', '%' . $search . '%');
+                    });
+                } else {
+                    // Map field names to their table columns
+                    $fieldMap = [
+                        'user_id_no' => 'users.user_id_no',
+                        'first_name' => 'user_information.first_name',
+                        'last_name' => 'user_information.last_name',
+                        'email' => 'user_information.email_address',
+                        'user_role' => 'users.user_role',
+                        'contact_number' => 'user_information.contact_number',
+                    ];
+
+                    if (isset($fieldMap[$searchField])) {
+                        $query->where($fieldMap[$searchField], 'like', '%' . $search . '%');
+                    }
+                }
             })
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->orderByRaw("CASE
-            WHEN user_role = 'program_head' THEN 1
-            WHEN user_role = 'registrar' THEN 2
-            WHEN user_role = 'evaluator' THEN 3
-            WHEN user_role = 'faculty' THEN 4
-            WHEN user_role = 'student' THEN 5
-            ELSE 6
-            END")
+                WHEN user_role = 'super_admin' THEN 1
+                WHEN user_role = 'president' THEN 2
+                WHEN user_role = 'program_head' THEN 3
+                WHEN user_role = 'registrar' THEN 4
+                WHEN user_role = 'evaluator' THEN 5
+                WHEN user_role = 'mis' THEN 6
+                WHEN user_role = 'guidance' THEN 7
+                WHEN user_role = 'announcement_admin' THEN 8
+                WHEN user_role = 'faculty' THEN 9
+                WHEN user_role = 'student' THEN 10
+                ELSE 11
+                END")
+            ->orderByRaw('COALESCE(user_information.last_name, users.user_id_no)')
             ->paginate(10);
 
         $users->appends($request->query());
 
-        return Inertia::render('SuperAdmin/Users', [
+        return Inertia::render('SuperAdmin/Users/Index', [
             'users' => $users,
-            'filters' => $request->only(['search', 'role'])
+            'filters' => $request->only(['search', 'searchField', 'role'])
         ]);
     }
 
@@ -63,7 +105,6 @@ class SuperAdminController extends Controller
 
         Auth::login($userToImpersonate); // ✅ This expects a single Authenticatable model
 
-
         $user = Auth::user();
         $ongoingEnrollment = $this->getPreparingOrOngoingSchoolYear()['school_year'];
 
@@ -76,7 +117,7 @@ class SuperAdminController extends Controller
         } else if ($user->user_role == 'president') {
             return redirect()->intended(route('ongoing-enrollment', absolute: false));
         } else if ($user->user_role == 'guidance') {
-            return redirect()->intended(route('guidance.dashboard'));
+            return redirect()->intended(route('guidance.dashboard', absolute: false));
         } else {
             return redirect()->intended(route('classes', absolute: false));
         }

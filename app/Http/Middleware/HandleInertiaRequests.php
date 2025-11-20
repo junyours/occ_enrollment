@@ -59,6 +59,7 @@ class HandleInertiaRequests extends Middleware
                 ...$baseSharedData,
                 'auth' => [
                     'user' => $user,
+                    'impersonating' => Session::has('impersonator_id'),
                 ],
             ];
         }
