@@ -21,6 +21,10 @@ class UserInformation extends Model
         'email_address',
         'present_address',
         'zip_code',
+        'civil_status',
+        'suffix',
+        'nationality',
+        'religion',
     ];
 
     protected $hidden = [

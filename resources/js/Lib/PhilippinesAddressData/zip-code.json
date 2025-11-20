@@ -1,0 +1,8352 @@
+[
+    {
+        "Province": "Abra",
+        "City": "Bangued",
+        "zip_code": 2800
+    },
+    {
+        "Province": "Abra",
+        "City": "Boliney",
+        "zip_code": 2815
+    },
+    {
+        "Province": "Abra",
+        "City": "Bucloc",
+        "zip_code": 2817
+    },
+    {
+        "Province": "Abra",
+        "City": "Bucay",
+        "zip_code": 2805
+    },
+    {
+        "Province": "Abra",
+        "City": "Daguioman",
+        "zip_code": 2816
+    },
+    {
+        "Province": "Abra",
+        "City": "Danglas",
+        "zip_code": 2825
+    },
+    {
+        "Province": "Abra",
+        "City": "Dolores",
+        "zip_code": 2801
+    },
+    {
+        "Province": "Abra",
+        "City": "La Paz",
+        "zip_code": 2826
+    },
+    {
+        "Province": "Abra",
+        "City": "Lacub",
+        "zip_code": 2821
+    },
+    {
+        "Province": "Abra",
+        "City": "Lagayan",
+        "zip_code": 2824
+    },
+    {
+        "Province": "Abra",
+        "City": "Lagangilang",
+        "zip_code": 2802
+    },
+    {
+        "Province": "Abra",
+        "City": "Langiden",
+        "zip_code": 2807
+    },
+    {
+        "Province": "Abra",
+        "City": "Licuan-Baay",
+        "zip_code": 2819
+    },
+    {
+        "Province": "Abra",
+        "City": "Luba",
+        "zip_code": 2813
+    },
+    {
+        "Province": "Abra",
+        "City": "Malibcong",
+        "zip_code": 2820
+    },
+    {
+        "Province": "Abra",
+        "City": "Manabo",
+        "zip_code": 2810
+    },
+    {
+        "Province": "Abra",
+        "City": "Peñarrubia",
+        "zip_code": 2804
+    },
+    {
+        "Province": "Abra",
+        "City": "Pidigan",
+        "zip_code": 2806
+    },
+    {
+        "Province": "Abra",
+        "City": "Pilar",
+        "zip_code": 2812
+    },
+    {
+        "Province": "Abra",
+        "City": "Sal-Lapadan",
+        "zip_code": 2818
+    },
+    {
+        "Province": "Abra",
+        "City": "San Isidro",
+        "zip_code": 2809
+    },
+    {
+        "Province": "Abra",
+        "City": "San Juan",
+        "zip_code": 2823
+    },
+    {
+        "Province": "Abra",
+        "City": "San Quintin",
+        "zip_code": 2808
+    },
+    {
+        "Province": "Abra",
+        "City": "Tayum",
+        "zip_code": 2803
+    },
+    {
+        "Province": "Abra",
+        "City": "Tineg",
+        "zip_code": 2822
+    },
+    {
+        "Province": "Abra",
+        "City": "Tubo",
+        "zip_code": 2814
+    },
+    {
+        "Province": "Abra",
+        "City": "Villaviciosa",
+        "zip_code": 2811
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Buenavista",
+        "zip_code": 8601
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Butuan City",
+        "zip_code": 8600
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Cabadbaran",
+        "zip_code": 8605
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Carmen",
+        "zip_code": 8603
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Jabonga",
+        "zip_code": 8607
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Kitcharao",
+        "zip_code": 8609
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Las Nieves",
+        "zip_code": 8610
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Magallanes",
+        "zip_code": 8604
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Nasipit",
+        "zip_code": 8602
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Remedios T. Romualdez",
+        "zip_code": 8611
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Santiago",
+        "zip_code": 8608
+    },
+    {
+        "Province": "Agusan del Norte",
+        "City": "Tubay",
+        "zip_code": 8606
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Bayugan",
+        "zip_code": 8502
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Bunawan",
+        "zip_code": 8506
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Esperanza",
+        "zip_code": 8513
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "La Paz",
+        "zip_code": 8508
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Loreto",
+        "zip_code": 8507
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Prosperidad",
+        "zip_code": 8500
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Rosario",
+        "zip_code": 8504
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "San Francisco",
+        "zip_code": 8501
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "San Luis",
+        "zip_code": 8511
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Sibagat",
+        "zip_code": 8503
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Sta. Josefa",
+        "zip_code": 8512
+    },
+    
+    {
+        "Province": "Agusan del Sur",
+        "City": "Talacogon",
+        "zip_code": 8510
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Trento",
+        "zip_code": 8505
+    },
+    {
+        "Province": "Agusan del Sur",
+        "City": "Veruela",
+        "zip_code": 8509
+    },
+    {
+        "Province": "Aklan",
+        "City": "Altavas",
+        "zip_code": 5616
+    },
+    {
+        "Province": "Aklan",
+        "City": "Balete",
+        "zip_code": 5614
+    },
+    {
+        "Province": "Aklan",
+        "City": "Banga",
+        "zip_code": 5601
+    },
+    {
+        "Province": "Aklan",
+        "City": "Batan",
+        "zip_code": 5615
+    },
+    {
+        "Province": "Aklan",
+        "City": "Buruanga",
+        "zip_code": 5609
+    },
+    {
+        "Province": "Aklan",
+        "City": "Ibajay",
+        "zip_code": 5613
+    },
+    {
+        "Province": "Aklan",
+        "City": "Kalibo",
+        "zip_code": 5600
+    },
+    {
+        "Province": "Aklan",
+        "City": "Lezo",
+        "zip_code": 5605
+    },
+    {
+        "Province": "Aklan",
+        "City": "Libacao",
+        "zip_code": 5602
+    },
+    {
+        "Province": "Aklan",
+        "City": "Madalag",
+        "zip_code": 5603
+    },
+    {
+        "Province": "Aklan",
+        "City": "Makato",
+        "zip_code": 5611
+    },
+    {
+        "Province": "Aklan",
+        "City": "Malay",
+        "zip_code": 5608
+    },
+    {
+        "Province": "Aklan",
+        "City": "Malinao",
+        "zip_code": 5606
+    },
+    {
+        "Province": "Aklan",
+        "City": "Nabas",
+        "zip_code": 5607
+    },
+    {
+        "Province": "Aklan",
+        "City": "New Washington",
+        "zip_code": 5610
+    },
+    {
+        "Province": "Aklan",
+        "City": "Numancia",
+        "zip_code": 5604
+    },
+    {
+        "Province": "Aklan",
+        "City": "Tangalan",
+        "zip_code": 5612
+    },
+    {
+        "Province": "Albay",
+        "City": "Bacacay",
+        "zip_code": 4509
+    },
+    {
+        "Province": "Albay",
+        "City": "Camalig",
+        "zip_code": 4502
+    },
+    {
+        "Province": "Albay",
+        "City": "Daraga (Locsin)",
+        "zip_code": 4501
+    },
+    {
+        "Province": "Albay",
+        "City": "Guinobatan",
+        "zip_code": 4503
+    },
+    {
+        "Province": "Albay",
+        "City": "Jovellar",
+        "zip_code": 4515
+    },
+    {
+        "Province": "Albay",
+        "City": "Legazpi City",
+        "zip_code": 4500
+    },
+    {
+        "Province": "Albay",
+        "City": "Libon",
+        "zip_code": 4507
+    },
+    {
+        "Province": "Albay",
+        "City": "Ligao",
+        "zip_code": 4504
+    },
+    {
+        "Province": "Albay",
+        "City": "Malilipot",
+        "zip_code": 4510
+    },
+    {
+        "Province": "Albay",
+        "City": "Malinao",
+        "zip_code": 4512
+    },
+    {
+        "Province": "Albay",
+        "City": "Manito",
+        "zip_code": 4514
+    },
+    {
+        "Province": "Albay",
+        "City": "Oas",
+        "zip_code": 4505
+    },
+    {
+        "Province": "Albay",
+        "City": "Pio Duran (Malacbalac)",
+        "zip_code": 4516
+    },
+    {
+        "Province": "Albay",
+        "City": "Polangui",
+        "zip_code": 4506
+    },
+    {
+        "Province": "Albay",
+        "City": "Rapu-Rapu",
+        "zip_code": 4517
+    },
+    {
+        "Province": "Albay",
+        "City": "Sto. Domingo",
+        "zip_code": 4508
+    },
+    {
+        "Province": "Albay",
+        "City": "Tabaco",
+        "zip_code": 4511
+    },
+    {
+        "Province": "Albay",
+        "City": "Tiwi",
+        "zip_code": 4513
+    },
+    {
+        "Province": "Antique",
+        "City": "Anini-y",
+        "zip_code": 5717
+    },
+    {
+        "Province": "Antique",
+        "City": "Barbaza",
+        "zip_code": 5706
+    },
+    {
+        "Province": "Antique",
+        "City": "Belison",
+        "zip_code": 5701
+    },
+    {
+        "Province": "Antique",
+        "City": "Bugasong",
+        "zip_code": 5704
+    },
+    {
+        "Province": "Antique",
+        "City": "Caluya",
+        "zip_code": 5711
+    },
+    {
+        "Province": "Antique",
+        "City": "Culasi",
+        "zip_code": 5708
+    },
+    {
+        "Province": "Antique",
+        "City": "Hamtic",
+        "zip_code": 5715
+    },
+    {
+        "Province": "Antique",
+        "City": "Laua-an",
+        "zip_code": 5705
+    },
+    {
+        "Province": "Antique",
+        "City": "Libertad",
+        "zip_code": 5710
+    },
+    {
+        "Province": "Antique",
+        "City": "Pandan",
+        "zip_code": 5712
+    },
+    {
+        "Province": "Antique",
+        "City": "Patnongon",
+        "zip_code": 5702
+    },
+    {
+        "Province": "Antique",
+        "City": "San Jose",
+        "zip_code": 5700
+    },
+    {
+        "Province": "Antique",
+        "City": "San Remegio",
+        "zip_code": 5714
+    },
+    {
+        "Province": "Antique",
+        "City": "Sebaste",
+        "zip_code": 5709
+    },
+    {
+        "Province": "Antique",
+        "City": "Sibalom",
+        "zip_code": 5713
+    },
+    {
+        "Province": "Antique",
+        "City": "Tibiao",
+        "zip_code": 5707
+    },
+    {
+        "Province": "Antique",
+        "City": "Tobias Fornier (Dao)",
+        "zip_code": 5716
+    },
+    {
+        "Province": "Antique",
+        "City": "Valderrama",
+        "zip_code": 5703
+    },
+    {
+        "Province": "Apayao",
+        "City": "Calanasan",
+        "zip_code": 3814
+    },
+    {
+        "Province": "Apayao",
+        "City": "Conner",
+        "zip_code": 3807
+    },
+    {
+        "Province": "Apayao",
+        "City": "Flora",
+        "zip_code": 3810
+    },
+    {
+        "Province": "Apayao",
+        "City": "Kabugao",
+        "zip_code": 3809
+    },
+    {
+        "Province": "Apayao",
+        "City": "Luna",
+        "zip_code": 3813
+    },
+    {
+        "Province": "Apayao",
+        "City": "Pudtol",
+        "zip_code": 3812
+    },
+    {
+        "Province": "Apayao",
+        "City": "Sta. Marcela",
+        "zip_code": 3811
+    },
+    {
+        "Province": "Aurora",
+        "City": "Baler",
+        "zip_code": 3200
+    },
+    {
+        "Province": "Aurora",
+        "City": "Casiguran",
+        "zip_code": 3204
+    },
+    {
+        "Province": "Aurora",
+        "City": "Dilasag",
+        "zip_code": 3205
+    },
+    {
+        "Province": "Aurora",
+        "City": "Dinalungan",
+        "zip_code": 3206
+    },
+    {
+        "Province": "Aurora",
+        "City": "Dingalan",
+        "zip_code": 3207
+    },
+    {
+        "Province": "Aurora",
+        "City": "Dipaculao",
+        "zip_code": 3203
+    },
+    {
+        "Province": "Aurora",
+        "City": "Maria Aurora",
+        "zip_code": 3202
+    },
+    {
+        "Province": "Aurora",
+        "City": "San Luis",
+        "zip_code": 3201
+    },
+    {
+        "Province": "Basilan",
+        "City": "Akbar",
+        "zip_code": 7307
+    },
+    {
+        "Province": "Basilan",
+        "City": "Al-Barka",
+        "zip_code": 7308
+    },
+    {
+        "Province": "Basilan",
+        "City": "Hadji Mohammad Ajul",
+        "zip_code": 7309
+    },
+    {
+        "Province": "Basilan",
+        "City": "Hadji Muhtamad",
+        "zip_code": 7310
+    },
+    {
+        "Province": "Basilan",
+        "City": "Isabela de Basilan",
+        "zip_code": 7300
+    },
+    {
+        "Province": "Basilan",
+        "City": "Lamitan",
+        "zip_code": 7302
+    },
+    {
+        "Province": "Basilan",
+        "City": "Lantawan",
+        "zip_code": 7301
+    },
+    {
+        "Province": "Basilan",
+        "City": "Maluso",
+        "zip_code": 7303
+    },
+    {
+        "Province": "Basilan",
+        "City": "Sumisip",
+        "zip_code": 7305
+    },
+    {
+        "Province": "Basilan",
+        "City": "Tabuan-Lasa",
+        "zip_code": 7312
+    },
+    {
+        "Province": "Basilan",
+        "City": "Tipo-Tipo",
+        "zip_code": 7304
+    },
+    {
+        "Province": "Basilan",
+        "City": "Tuburan",
+        "zip_code": 7306
+    },
+    {
+        "Province": "Basilan",
+        "City": "Ungkaya Pukan",
+        "zip_code": 7311
+    },
+    {
+        "Province": "Bataan",
+        "City": "Abucay",
+        "zip_code": 2114
+    },
+    {
+        "Province": "Bataan",
+        "City": "Cabcaben",
+        "zip_code": 2109
+    },
+    {
+        "Province": "Bataan",
+        "City": "Bagac",
+        "zip_code": 2107
+    },
+    {
+        "Province": "Bataan",
+        "City": "Balanga",
+        "zip_code": 2100
+    },
+    {
+        "Province": "Bataan",
+        "City": "Bataan Export Processing Zone",
+        "zip_code": 2106
+    },
+    {
+        "Province": "Bataan",
+        "City": "Dinalupihan",
+        "zip_code": 2110
+    },
+    {
+        "Province": "Bataan",
+        "City": "Hermosa",
+        "zip_code": 2111
+    },
+    {
+        "Province": "Bataan",
+        "City": "Lamao",
+        "zip_code": 2104
+    },
+    {
+        "Province": "Bataan",
+        "City": "Limay",
+        "zip_code": 2103
+    },
+    {
+        "Province": "Bataan",
+        "City": "Mariveles",
+        "zip_code": 2105
+    },
+    {
+        "Province": "Bataan",
+        "City": "Morong",
+        "zip_code": 2108
+    },
+    {
+        "Province": "Bataan",
+        "City": "Orani",
+        "zip_code": 2112
+    },
+    {
+        "Province": "Bataan",
+        "City": "Orion",
+        "zip_code": 2102
+    },
+    {
+        "Province": "Bataan",
+        "City": "Pilar",
+        "zip_code": 2101
+    },
+    {
+        "Province": "Bataan",
+        "City": "Samal",
+        "zip_code": 2113
+    },
+    {
+        "Province": "Batanes",
+        "City": "Basco",
+        "zip_code": 3900
+    },
+    {
+        "Province": "Batanes",
+        "City": "Itbayat",
+        "zip_code": 3905
+    },
+    {
+        "Province": "Batanes",
+        "City": "Ivana",
+        "zip_code": 3902
+    },
+    {
+        "Province": "Batanes",
+        "City": "Mahatao",
+        "zip_code": 3901
+    },
+    {
+        "Province": "Batanes",
+        "City": "Sabtang",
+        "zip_code": 3904
+    },
+    {
+        "Province": "Batanes",
+        "City": "Uyugan",
+        "zip_code": 3903
+    },
+    {
+        "Province": "Batangas",
+        "City": "Agoncillo",
+        "zip_code": 4211
+    },
+    {
+        "Province": "Batangas",
+        "City": "Alitagtag",
+        "zip_code": 4205
+    },
+    {
+        "Province": "Batangas",
+        "City": "Balayan",
+        "zip_code": 4213
+    },
+    {
+        "Province": "Batangas",
+        "City": "Balete",
+        "zip_code": 4219
+    },
+    {
+        "Province": "Batangas",
+        "City": "Batangas City",
+        "zip_code": 4200
+    },
+    {
+        "Province": "Batangas",
+        "City": "Bauan",
+        "zip_code": 4201
+    },
+    {
+        "Province": "Batangas",
+        "City": "Calaca",
+        "zip_code": 4212
+    },
+    {
+        "Province": "Batangas",
+        "City": "Calatagan",
+        "zip_code": 4215
+    },
+    {
+        "Province": "Batangas",
+        "City": "Cuenca",
+        "zip_code": 4222
+    },
+    {
+        "Province": "Batangas",
+        "City": "Fernando Airbase",
+        "zip_code": 4218
+    },
+    {
+        "Province": "Batangas",
+        "City": "Ibaan",
+        "zip_code": 4230
+    },
+    {
+        "Province": "Batangas",
+        "City": "Laurel",
+        "zip_code": 4221
+    },
+    {
+        "Province": "Batangas",
+        "City": "Lemery",
+        "zip_code": 4209
+    },
+    {
+        "Province": "Batangas",
+        "City": "Lian",
+        "zip_code": 4216
+    },
+    {
+        "Province": "Batangas",
+        "City": "Lipa City",
+        "zip_code": 4217
+    },
+    {
+        "Province": "Batangas",
+        "City": "Lobo",
+        "zip_code": 4229
+    },
+    {
+        "Province": "Batangas",
+        "City": "Mabini",
+        "zip_code": 4202
+    },
+    {
+        "Province": "Batangas",
+        "City": "Malvar",
+        "zip_code": 4233
+    },
+    {
+        "Province": "Batangas",
+        "City": "Mataas na Kahoy",
+        "zip_code": 4223
+    },
+    {
+        "Province": "Batangas",
+        "City": "Nasugbu",
+        "zip_code": 4231
+    },
+    {
+        "Province": "Batangas",
+        "City": "Padre Garcia",
+        "zip_code": 4224
+    },
+    {
+        "Province": "Batangas",
+        "City": "Rosario",
+        "zip_code": 4225
+    },
+    {
+        "Province": "Batangas",
+        "City": "San Jose",
+        "zip_code": 4227
+    },
+    {
+        "Province": "Batangas",
+        "City": "San Juan",
+        "zip_code": 4226
+    },
+    {
+        "Province": "Batangas",
+        "City": "San Luis",
+        "zip_code": 4210
+    },
+    {
+        "Province": "Batangas",
+        "City": "San Nicolas",
+        "zip_code": 4207
+    },
+    {
+        "Province": "Batangas",
+        "City": "San Pascual",
+        "zip_code": 4204
+    },
+    {
+        "Province": "Batangas",
+        "City": "Sta. Teresita",
+        "zip_code": 4206
+    },
+    {
+        "Province": "Batangas",
+        "City": "Sto. Tomas",
+        "zip_code": 4234
+    },
+    {
+        "Province": "Batangas",
+        "City": "Taal",
+        "zip_code": 4208
+    },
+    {
+        "Province": "Batangas",
+        "City": "Talisay",
+        "zip_code": 4220
+    },
+    {
+        "Province": "Batangas",
+        "City": "Tanauan",
+        "zip_code": 4232
+    },
+    {
+        "Province": "Batangas",
+        "City": "Taysan",
+        "zip_code": 4228
+    },
+    {
+        "Province": "Batangas",
+        "City": "Tingloy",
+        "zip_code": 4203
+    },
+    {
+        "Province": "Batangas",
+        "City": "Tuy",
+        "zip_code": 4214
+    },
+    {
+        "Province": "Benguet",
+        "City": "Atok",
+        "zip_code": 2612
+    },
+    {
+        "Province": "Benguet",
+        "City": "Baguio City",
+        "zip_code": 2600
+    },
+    {
+        "Province": "Benguet",
+        "City": "Bakun",
+        "zip_code": 2610
+    },
+    {
+        "Province": "Benguet",
+        "City": "Bokod",
+        "zip_code": 2605
+    },
+    {
+        "Province": "Benguet",
+        "City": "Bugias",
+        "zip_code": 2607
+    },
+    {
+        "Province": "Benguet",
+        "City": "Itogon",
+        "zip_code": 2604
+    },
+    {
+        "Province": "Benguet",
+        "City": "Kabayan",
+        "zip_code": 2606
+    },
+    
+    {
+        "Province": "Benguet",
+        "City": "Kapangan",
+        "zip_code": 2613
+    },
+    {
+        "Province": "Benguet",
+        "City": "Kibungan",
+        "zip_code": 2611
+    },
+    {
+        "Province": "Benguet",
+        "City": "La Trinidad",
+        "zip_code": 2601
+    },
+    {
+        "Province": "Benguet",
+        "City": "Lepanto",
+        "zip_code": 2609
+    },
+    {
+        "Province": "Benguet",
+        "City": "Mankayan",
+        "zip_code": 2608
+    },
+    {
+        "Province": "Benguet",
+        "City": "Philippine Military Academy (PMA)",
+        "zip_code": 2602
+    },
+    {
+        "Province": "Benguet",
+        "City": "Sablan",
+        "zip_code": 2614
+    },
+    {
+        "Province": "Benguet",
+        "City": "Tuba",
+        "zip_code": 2603
+    },
+    {
+        "Province": "Benguet",
+        "City": "Tublay",
+        "zip_code": 2615
+    },
+    {
+        "Province": "Biliran",
+        "City": "Almeria",
+        "zip_code": 6544
+    },
+    {
+        "Province": "Biliran",
+        "City": "Biliran",
+        "zip_code": 6549
+    },
+    {
+        "Province": "Biliran",
+        "City": "Cabucgayan",
+        "zip_code": 6550
+    },
+    {
+        "Province": "Biliran",
+        "City": "Caibiran",
+        "zip_code": 6548
+    },
+    {
+        "Province": "Biliran",
+        "City": "Culaba",
+        "zip_code": 6547
+    },
+    {
+        "Province": "Biliran",
+        "City": "Kawayan",
+        "zip_code": 6545
+    },
+    {
+        "Province": "Biliran",
+        "City": "Maripipi",
+        "zip_code": 6546
+    },
+    {
+        "Province": "Biliran",
+        "City": "Naval",
+        "zip_code": 6543
+    },
+    {
+        "Province": "Bohol",
+        "City": "Alburquerque",
+        "zip_code": 6302
+    },
+    {
+        "Province": "Bohol",
+        "City": "Alicia",
+        "zip_code": 6314
+    },
+    {
+        "Province": "Bohol",
+        "City": "Anda",
+        "zip_code": 6311
+    },
+    {
+        "Province": "Bohol",
+        "City": "Antequera",
+        "zip_code": 6335
+    },
+    {
+        "Province": "Bohol",
+        "City": "Baclayon",
+        "zip_code": 6301
+    },
+    {
+        "Province": "Bohol",
+        "City": "Balilihan",
+        "zip_code": 6342
+    },
+    {
+        "Province": "Bohol",
+        "City": "Batuan",
+        "zip_code": 6318
+    },
+    {
+        "Province": "Bohol",
+        "City": "Bien Unido",
+        "zip_code": 6326
+    },
+    {
+        "Province": "Bohol",
+        "City": "Bilar",
+        "zip_code": 6317
+    },
+    {
+        "Province": "Bohol",
+        "City": "Buenavista",
+        "zip_code": 6333
+    },
+    {
+        "Province": "Bohol",
+        "City": "Calape",
+        "zip_code": 6328
+    },
+    {
+        "Province": "Bohol",
+        "City": "Candijay",
+        "zip_code": 6312
+    },
+    {
+        "Province": "Bohol",
+        "City": "Carmen",
+        "zip_code": 6319
+    },
+    {
+        "Province": "Bohol",
+        "City": "Catigbian",
+        "zip_code": 6343
+    },
+    {
+        "Province": "Bohol",
+        "City": "Clarin",
+        "zip_code": 6330
+    },
+    {
+        "Province": "Bohol",
+        "City": "Corella",
+        "zip_code": 6337
+    },
+    {
+        "Province": "Bohol",
+        "City": "Cortes",
+        "zip_code": 6341
+    },
+    {
+        "Province": "Bohol",
+        "City": "Dagohoy",
+        "zip_code": 6322
+    },
+    {
+        "Province": "Bohol",
+        "City": "Danao",
+        "zip_code": 6344
+    },
+    {
+        "Province": "Bohol",
+        "City": "Dauis",
+        "zip_code": 6339
+    },
+    {
+        "Province": "Bohol",
+        "City": "Dimiao",
+        "zip_code": 6305
+    },
+    {
+        "Province": "Bohol",
+        "City": "Duero",
+        "zip_code": 6309
+    },
+    {
+        "Province": "Bohol",
+        "City": "Garcia Hernandez",
+        "zip_code": 6307
+    },
+    {
+        "Province": "Bohol",
+        "City": "Guindulman",
+        "zip_code": 6310
+    },
+    {
+        "Province": "Bohol",
+        "City": "Inabanga",
+        "zip_code": 6332
+    },
+    {
+        "Province": "Bohol",
+        "City": "Jagna",
+        "zip_code": 6308
+    },
+    {
+        "Province": "Bohol",
+        "City": "Jetafe",
+        "zip_code": 6334
+    },
+    {
+        "Province": "Bohol",
+        "City": "Lila",
+        "zip_code": 6304
+    },
+    {
+        "Province": "Bohol",
+        "City": "Loay",
+        "zip_code": 6303
+    },
+    {
+        "Province": "Bohol",
+        "City": "Loboc",
+        "zip_code": 6316
+    },
+    {
+        "Province": "Bohol",
+        "City": "Loon",
+        "zip_code": 6327
+    },
+    {
+        "Province": "Bohol",
+        "City": "Mabini",
+        "zip_code": 6313
+    },
+    {
+        "Province": "Ad\n\n"
+    },
+    {
+        "Province": "Bohol",
+        "City": "Maribojoc",
+        "zip_code": 6336
+    },
+    {
+        "Province": "Bohol",
+        "City": "Panglao",
+        "zip_code": 6340
+    },
+    {
+        "Province": "Bohol",
+        "City": "Pilar",
+        "zip_code": 6321
+    },
+    {
+        "Province": "Bohol",
+        "City": "President Carlos P. Garcia",
+        "zip_code": 6346
+    },
+    {
+        "Province": "Bohol",
+        "City": "Sagbayan",
+        "zip_code": 6331
+    },
+    {
+        "Province": "Bohol",
+        "City": "San Isidro",
+        "zip_code": 6345
+    },
+    {
+        "Province": "Bohol",
+        "City": "San Miguel",
+        "zip_code": 6323
+    },
+    {
+        "Province": "Bohol",
+        "City": "Sevilla",
+        "zip_code": 6347
+    },
+    {
+        "Province": "Bohol",
+        "City": "Sierra Bullones",
+        "zip_code": 6320
+    },
+    {
+        "Province": "Bohol",
+        "City": "Sikatuna",
+        "zip_code": 6338
+    },
+    {
+        "Province": "Bohol",
+        "City": "Tagbilaran City",
+        "zip_code": 6300
+    },
+    {
+        "Province": "Bohol",
+        "City": "Talibon",
+        "zip_code": 6325
+    },
+    {
+        "Province": "Bohol",
+        "City": "Trinidad",
+        "zip_code": 6324
+    },
+    {
+        "Province": "Bohol",
+        "City": "Tubigon",
+        "zip_code": 6329
+    },
+    {
+        "Province": "Bohol",
+        "City": "Ubay",
+        "zip_code": 6315
+    },
+    {
+        "Province": "Bohol",
+        "City": "Valencia",
+        "zip_code": 6306
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Baungon",
+        "zip_code": 8707
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Cabanglasan",
+        "zip_code": 8723
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Damulog",
+        "zip_code": 8721
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Dangcagan",
+        "zip_code": 8719
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Don Carlos",
+        "zip_code": 8712
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Impasugong",
+        "zip_code": 8702
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Kadingilan",
+        "zip_code": 8713
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Kalilangan",
+        "zip_code": 8718
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Kibawe",
+        "zip_code": 8720
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Kitaotao",
+        "zip_code": 8716
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Lantapan",
+        "zip_code": 8722
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Libona",
+        "zip_code": 8706
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Malaybalay",
+        "zip_code": 8700
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Malitbog",
+        "zip_code": 8704
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Manolo Fortich",
+        "zip_code": 8703
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Maramag",
+        "zip_code": 8714
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Musuan",
+        "zip_code": 8710
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Pangantucan",
+        "zip_code": 8717
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Phillips",
+        "zip_code": 8705
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Quezon",
+        "zip_code": 8715
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "San Fernando",
+        "zip_code": 8711
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Sumilao",
+        "zip_code": 8701
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Talakag",
+        "zip_code": 8708
+    },
+    {
+        "Province": "Bukidnon",
+        "City": "Valencia",
+        "zip_code": 8709
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Angat",
+        "zip_code": 3012
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Balagtas",
+        "zip_code": 3016
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Baliuag",
+        "zip_code": 3006
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Bocaue",
+        "zip_code": 3018
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Bulacan",
+        "zip_code": 3017
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Bustos",
+        "zip_code": 3007
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Calumpit",
+        "zip_code": 3003
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Cruz na Daan",
+        "zip_code": 3025
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Doña Remedios Trinidad",
+        "zip_code": 3009
+    },
+    
+    {
+        "Province": "Bulacan",
+        "City": "Guiguinto",
+        "zip_code": 3015
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Hagonoy",
+        "zip_code": 3002
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Malolos",
+        "zip_code": 3000
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Marilao",
+        "zip_code": 3019
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Meycauayan",
+        "zip_code": 3020
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Norzagaray",
+        "zip_code": 3013
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Obando",
+        "zip_code": 3021
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Pandi",
+        "zip_code": 3014
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Paombong",
+        "zip_code": 3001
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Plaridel",
+        "zip_code": 3004
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Pulilan",
+        "zip_code": 3005
+    },
+    {
+        "Province": "Bulacan",
+        "City": "San Ildefonso",
+        "zip_code": 3010
+    },
+    {
+        "Province": "Bulacan",
+        "City": "San Jose Del Monte",
+        "zip_code": 3023
+    },
+    {
+        "Province": "Bulacan",
+        "City": "San Miguel",
+        "zip_code": 3011
+    },
+    {
+        "Province": "Bulacan",
+        "City": "San Rafael",
+        "zip_code": 3008
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Sapang Palay",
+        "zip_code": 3024
+    },
+    {
+        "Province": "Bulacan",
+        "City": "Sta. Maria",
+        "zip_code": 3022
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Abulug",
+        "zip_code": 3517
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Alcala",
+        "zip_code": 3507
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Allacapan",
+        "zip_code": 3523
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Amulung",
+        "zip_code": 3505
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Aparri",
+        "zip_code": 3515
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Baggao",
+        "zip_code": 3506
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Ballesteros",
+        "zip_code": 3516
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Buguey",
+        "zip_code": 3511
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Calayan",
+        "zip_code": 3520
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Camalaniugan",
+        "zip_code": 3510
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Claveria",
+        "zip_code": 3519
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Enrile",
+        "zip_code": 3501
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Gattaran",
+        "zip_code": 3508
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Gonzaga",
+        "zip_code": 3513
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Iguig",
+        "zip_code": 3504
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Lal-lo",
+        "zip_code": 3509
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Lasam",
+        "zip_code": 3524
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Pamplona",
+        "zip_code": 3522
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Peñablanca",
+        "zip_code": 3502
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Piat",
+        "zip_code": 3527
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Rizal",
+        "zip_code": 3526
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Sanchez Mira",
+        "zip_code": 3518
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Solana",
+        "zip_code": 3503
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Sta. Ana",
+        "zip_code": 3514
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Sta. Praxedes",
+        "zip_code": 3521
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Sta. Teresita",
+        "zip_code": 3512
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Sto. Niño",
+        "zip_code": 3525
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Tuao",
+        "zip_code": 3528
+    },
+    {
+        "Province": "Cagayan",
+        "City": "Tuguegarao City",
+        "zip_code": 3500
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Basud",
+        "zip_code": 4608
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Capalonga",
+        "zip_code": 4607
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Daet",
+        "zip_code": 4600
+    },
+    
+    {
+        "Province": "Camarines Norte",
+        "City": "San Lorenzo Ruiz (formerly Imelda)",
+        "zip_code": 4610
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Jose Panganiban",
+        "zip_code": 4606
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Labo",
+        "zip_code": 4604
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Mercedes",
+        "zip_code": 4601
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Paracale",
+        "zip_code": 4605
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "San Vicente",
+        "zip_code": 4609
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Sta. Elena",
+        "zip_code": 4611
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Talisay",
+        "zip_code": 4602
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Tulay na Lupa",
+        "zip_code": 4612
+    },
+    {
+        "Province": "Camarines Norte",
+        "City": "Vinzons",
+        "zip_code": 4603
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Baao",
+        "zip_code": 4432
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Balatan",
+        "zip_code": 4436
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Bato",
+        "zip_code": 4435
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Bombon",
+        "zip_code": 4404
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Buhi",
+        "zip_code": 4433
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Bula",
+        "zip_code": 4430
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Cabusao",
+        "zip_code": 4406
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Calabanga",
+        "zip_code": 4405
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Camaligan",
+        "zip_code": 4401
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Canaman",
+        "zip_code": 4402
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Caramoan",
+        "zip_code": 4429
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Del Gallego",
+        "zip_code": 4411
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Gainza",
+        "zip_code": 4412
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Garchitorena",
+        "zip_code": 4428
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Goa",
+        "zip_code": 4422
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Iriga City",
+        "zip_code": 4431
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Lagonoy",
+        "zip_code": 4425
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Libmanan",
+        "zip_code": 4407
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Lupi",
+        "zip_code": 4409
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Magarao",
+        "zip_code": 4403
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Milaor",
+        "zip_code": 4413
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Minalabac",
+        "zip_code": 4414
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Nabua",
+        "zip_code": 4434
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Naga City",
+        "zip_code": 4400
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Ocampo",
+        "zip_code": 4419
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Pamplona",
+        "zip_code": 4416
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Pasacao",
+        "zip_code": 4417
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Pili",
+        "zip_code": 4418
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Presentacion",
+        "zip_code": 4424
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Ragay",
+        "zip_code": 4410
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Sagnay",
+        "zip_code": 4421
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "San Fernando",
+        "zip_code": 4415
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "San Jose",
+        "zip_code": 4423
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Sipocot",
+        "zip_code": 4408
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Siruma",
+        "zip_code": 4427
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Tigaon",
+        "zip_code": 4420
+    },
+    {
+        "Province": "Camarines Sur",
+        "City": "Tinambac",
+        "zip_code": 4426
+    },
+    {
+        "Province": "Camiguin",
+        "City": "Catarman",
+        "zip_code": 9104
+    },
+    {
+        "Province": "Camiguin",
+        "City": "Guinsiliban",
+        "zip_code": 9102
+    },
+    
+    {
+        "Province": "Camiguin",
+        "City": "Mahinog",
+        "zip_code": 9101
+    },
+    {
+        "Province": "Camiguin",
+        "City": "Mambajao",
+        "zip_code": 9100
+    },
+    {
+        "Province": "Camiguin",
+        "City": "Sagay",
+        "zip_code": 9103
+    },
+    {
+        "Province": "Capiz",
+        "City": "Cuartero",
+        "zip_code": 5811
+    },
+    {
+        "Province": "Capiz",
+        "City": "Dao",
+        "zip_code": 5810
+    },
+    {
+        "Province": "Capiz",
+        "City": "Dumalag",
+        "zip_code": 5813
+    },
+    {
+        "Province": "Capiz",
+        "City": "Dumarao",
+        "zip_code": 5812
+    },
+    {
+        "Province": "Capiz",
+        "City": "Ivisan",
+        "zip_code": 5805
+    },
+    {
+        "Province": "Capiz",
+        "City": "Jamindan",
+        "zip_code": 5808
+    },
+    {
+        "Province": "Capiz",
+        "City": "Ma-ayon",
+        "zip_code": 5809
+    },
+    {
+        "Province": "Capiz",
+        "City": "Mambusao",
+        "zip_code": 5807
+    },
+    {
+        "Province": "Capiz",
+        "City": "Panay",
+        "zip_code": 5801
+    },
+    {
+        "Province": "Capiz",
+        "City": "Panitan",
+        "zip_code": 5815
+    },
+    {
+        "Province": "Capiz",
+        "City": "Pilar",
+        "zip_code": 5804
+    },
+    {
+        "Province": "Capiz",
+        "City": "Pres. Roxas",
+        "zip_code": 5803
+    },
+    {
+        "Province": "Capiz",
+        "City": "Pontevedra",
+        "zip_code": 5802
+    },
+    {
+        "Province": "Capiz",
+        "City": "Roxas City",
+        "zip_code": 5800
+    },
+    {
+        "Province": "Capiz",
+        "City": "Sapian",
+        "zip_code": 5806
+    },
+    {
+        "Province": "Capiz",
+        "City": "Sigma",
+        "zip_code": 5816
+    },
+    {
+        "Province": "Capiz",
+        "City": "Tapaz",
+        "zip_code": 5814
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Bagamanoc",
+        "zip_code": 4807
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Baras",
+        "zip_code": 4803
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Bato",
+        "zip_code": 4801
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Caramoran",
+        "zip_code": 4808
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Gigmoto",
+        "zip_code": 4804
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Pandan",
+        "zip_code": 4809
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Panganiban",
+        "zip_code": 4806
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "San Andres",
+        "zip_code": 4810
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "San Miguel",
+        "zip_code": 4802
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Viga",
+        "zip_code": 4805
+    },
+    {
+        "Province": "Catanduanes",
+        "City": "Virac",
+        "zip_code": 4800
+    },
+    {
+        "Province": "Cavite",
+        "City": "1st Cavite Industrial Estate",
+        "zip_code": 4126
+    },
+    {
+        "Province": "Cavite",
+        "City": "Alfonso",
+        "zip_code": 4123
+    },
+    {
+        "Province": "Cavite",
+        "City": "Amadeo",
+        "zip_code": 4119
+    },
+    {
+        "Province": "Cavite",
+        "City": "Bacoor",
+        "zip_code": 4102
+    },
+    {
+        "Province": "Cavite",
+        "City": "Carmona",
+        "zip_code": 4116
+    },
+    {
+        "Province": "Cavite",
+        "City": "Cavite City",
+        "zip_code": 4100
+    },
+    {
+        "Province": "Cavite",
+        "City": "Cavite Naval Base",
+        "zip_code": 4101
+    },
+    {
+        "Province": "Cavite",
+        "City": "Corregidor",
+        "zip_code": 4125
+    },
+    {
+        "Province": "Cavite",
+        "City": "Dasmariñas",
+        "zip_code": 4114
+    },
+    {
+        "Province": "Cavite",
+        "City": "Dasmariñas Resettlement Area",
+        "zip_code": 4115
+    },
+    {
+        "Province": "Cavite",
+        "City": "Gen. Aguinaldo (Bailen)",
+        "zip_code": 4124
+    },
+    {
+        "Province": "Cavite",
+        "City": "Gen. Mariano Alvarez",
+        "zip_code": 4117
+    },
+    {
+        "Province": "Cavite",
+        "City": "Gen. Trias",
+        "zip_code": 4107
+    },
+    {
+        "Province": "Cavite",
+        "City": "Imus",
+        "zip_code": 4103
+    },
+    {
+        "Province": "Cavite",
+        "City": "Indang",
+        "zip_code": 4122
+    },
+    {
+        "Province": "Cavite",
+        "City": "Kawit",
+        "zip_code": 4104
+    },
+    {
+        "Province": "Cavite",
+        "City": "Magallanes",
+        "zip_code": 4113
+    },
+    {
+        "Province": "Cavite",
+        "City": "Maragondon",
+        "zip_code": 4112
+    },
+    {
+        "Province": "Cavite",
+        "City": "Mendez",
+        "zip_code": 4121
+    },
+    {
+        "Province": "Cavite",
+        "City": "Molino",
+        "zip_code": 4135
+    },
+    {
+        "Province": "Cavite",
+        "City": "Naic",
+        "zip_code": 4110
+    },
+    {
+        "Province": "Cavite",
+        "City": "Noveleta",
+        "zip_code": 4105
+    },
+    {
+        "Province": "Cavite",
+        "City": "Rosario",
+        "zip_code": 4106
+    },
+    {
+        "Province": "Cavite",
+        "City": "Silang",
+        "zip_code": 4118
+    },
+    {
+        "Province": "Cavite",
+        "City": "Tagaytay",
+        "zip_code": 4120
+    },
+    {
+        "Province": "Cavite",
+        "City": "Tanza",
+        "zip_code": 4108
+    },
+    {
+        "Province": "Cavite",
+        "City": "Ternate",
+        "zip_code": 4111
+    },
+    {
+        "Province": "Cavite",
+        "City": "Trece Martirez City",
+        "zip_code": 4109
+    },
+    {
+        "Province": "Cebu",
+        "City": "Alcantara",
+        "zip_code": 6033
+    },
+    {
+        "Province": "Cebu",
+        "City": "Alcoy",
+        "zip_code": 6023
+    },
+    {
+        "Province": "Cebu",
+        "City": "Alegria",
+        "zip_code": 6030
+    },
+    {
+        "Province": "Cebu",
+        "City": "Aloguinsan",
+        "zip_code": 6040
+    },
+    {
+        "Province": "Cebu",
+        "City": "Argao",
+        "zip_code": 6021
+    },
+    {
+        "Province": "Cebu",
+        "City": "Asturias",
+        "zip_code": 6042
+    },
+    {
+        "Province": "Cebu",
+        "City": "Badian",
+        "zip_code": 6031
+    },
+    {
+        "Province": "Cebu",
+        "City": "Balamban",
+        "zip_code": 6041
+    },
+    {
+        "Province": "Cebu",
+        "City": "Bantayan",
+        "zip_code": 6052
+    },
+    {
+        "Province": "Cebu",
+        "City": "Barili",
+        "zip_code": 6036
+    },
+    {
+        "Province": "Cebu",
+        "City": "Bogo",
+        "zip_code": 6010
+    },
+    {
+        "Province": "Cebu",
+        "City": "Boljoon",
+        "zip_code": 6024
+    },
+    {
+        "Province": "Cebu",
+        "City": "Borbon",
+        "zip_code": 6008
+    },
+    {
+        "Province": "Cebu",
+        "City": "Carcar",
+        "zip_code": 6019
+    },
+    {
+        "Province": "Cebu",
+        "City": "Carmen",
+        "zip_code": 6005
+    },
+    {
+        "Province": "Cebu",
+        "City": "Catmon",
+        "zip_code": 6006
+    },
+    {
+        "Province": "Cebu",
+        "City": "Cebu City",
+        "zip_code": 6000
+    },
+    {
+        "Province": "Cebu",
+        "City": "Compostela",
+        "zip_code": 6003
+    },
+    {
+        "Province": "Cebu",
+        "City": "Consolacion",
+        "zip_code": 6001
+    },
+    {
+        "Province": "Cebu",
+        "City": "Cordova",
+        "zip_code": 6017
+    },
+    {
+        "Province": "Cebu",
+        "City": "Daang-Bantayan",
+        "zip_code": 6013
+    },
+    {
+        "Province": "Cebu",
+        "City": "Dalaguete",
+        "zip_code": 6022
+    },
+    {
+        "Province": "Cebu",
+        "City": "Danao City",
+        "zip_code": 6004
+    },
+    {
+        "Province": "Cebu",
+        "City": "Dumanjug",
+        "zip_code": 6035
+    },
+    {
+        "Province": "Cebu",
+        "City": "Ginatilan",
+        "zip_code": 6028
+    },
+    {
+        "Province": "Cebu",
+        "City": "Lapu-Lapu City",
+        "zip_code": 6015
+    },
+    {
+        "Province": "Cebu",
+        "City": "Liloan",
+        "zip_code": 6002
+    },
+    {
+        "Province": "Cebu",
+        "City": "Mactan Airport",
+        "zip_code": 6016
+    },
+    {
+        "Province": "Cebu",
+        "City": "Madridejos",
+        "zip_code": 6053
+    },
+    {
+        "Province": "Cebu",
+        "City": "Malabuyoc",
+        "zip_code": 6029
+    },
+    {
+        "Province": "Cebu",
+        "City": "Mandaue City",
+        "zip_code": 6014
+    },
+    {
+        "Province": "Cebu",
+        "City": "Medellin",
+        "zip_code": 6012
+    },
+    {
+        "Province": "Cebu",
+        "City": "Minglanilla",
+        "zip_code": 6046
+    },
+    {
+        "Province": "Cebu",
+        "City": "Moalboal",
+        "zip_code": 6032
+    },
+    {
+        "Province": "Cebu",
+        "City": "Naga",
+        "zip_code": 6037
+    },
+    {
+        "Province": "Cebu",
+        "City": "Oslob",
+        "zip_code": 6025
+    },
+    {
+        "Province": "Cebu",
+        "City": "Pilar",
+        "zip_code": 6048
+    },
+    {
+        "Province": "Cebu",
+        "City": "Pinamungajan",
+        "zip_code": 6039
+    },
+    {
+        "Province": "Cebu",
+        "City": "Poro",
+        "zip_code": 6049
+    },
+    {
+        "Province": "Cebu",
+        "City": "Ronda",
+        "zip_code": 6034
+    },
+    {
+        "Province": "Cebu",
+        "City": "Samboan",
+        "zip_code": 6027
+    },
+    {
+        "Province": "Cebu",
+        "City": "San Fernando",
+        "zip_code": 6018
+    },
+    {
+        "Province": "Cebu",
+        "City": "San Francisco",
+        "zip_code": 6050
+    },
+    {
+        "Province": "Cebu",
+        "City": "San Remegio",
+        "zip_code": 6011
+    },
+    {
+        "Province": "Cebu",
+        "City": "Santa Fe",
+        "zip_code": 6047
+    },
+    {
+        "Province": "Cebu",
+        "City": "Santander",
+        "zip_code": 6026
+    },
+    {
+        "Province": "Cebu",
+        "City": "Sibonga",
+        "zip_code": 6020
+    },
+    {
+        "Province": "Cebu",
+        "City": "Sogod",
+        "zip_code": 6007
+    },
+    {
+        "Province": "Cebu",
+        "City": "Tabogon",
+        "zip_code": 6009
+    },
+    {
+        "Province": "Cebu",
+        "City": "Tabuelan",
+        "zip_code": 6044
+    },
+    {
+        "Province": "Cebu",
+        "City": "Talisay",
+        "zip_code": 6045
+    },
+    {
+        "Province": "Cebu",
+        "City": "Toledo City",
+        "zip_code": 6038
+    },
+    {
+        "Province": "Cebu",
+        "City": "Tuburan",
+        "zip_code": 6043
+    },
+    {
+        "Province": "Cebu",
+        "City": "Tudela",
+        "zip_code": 6051
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Compostela",
+        "zip_code": 8803
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Laak (formerly San Vicente)",
+        "zip_code": 8810
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Mabini",
+        "zip_code": 8807
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Maco",
+        "zip_code": 8806
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Maragusan (formerly San Mariano)",
+        "zip_code": 8808
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Mawab",
+        "zip_code": 8802
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Monkayo",
+        "zip_code": 8805
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Montevista",
+        "zip_code": 8801
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Nabunturan",
+        "zip_code": 8800
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "New Bataan",
+        "zip_code": 8804
+    },
+    {
+        "Province": "Davao de Oro (Compostela Valley)",
+        "City": "Pantukan",
+        "zip_code": 8809
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Asuncion (formerly Saug)",
+        "zip_code": 8102
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Babak",
+        "zip_code": 8118
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Braulio E. Dujali",
+        "zip_code": 8106
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Carmen",
+        "zip_code": 8101
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Kapalong",
+        "zip_code": 8113
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Kaputian",
+        "zip_code": 8120
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "New Corella",
+        "zip_code": 8104
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Panabo",
+        "zip_code": 8105
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Samal",
+        "zip_code": 8119
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "San Isidro",
+        "zip_code": 8121
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Santo Tomas",
+        "zip_code": 8112
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Tagum",
+        "zip_code": 8100
+    },
+    {
+        "Province": "Davao del Norte",
+        "City": "Talaingod",
+        "zip_code": 8107
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Ateneo",
+        "zip_code": 8016
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Bansalan",
+        "zip_code": 8005
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Bunawan",
+        "zip_code": 8017
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Calinan",
+        "zip_code": 8018
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Davao City",
+        "zip_code": 8000
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Davao International Airport",
+        "zip_code": 8019
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Digos",
+        "zip_code": 8002
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Hagonoy",
+        "zip_code": 8006
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Kiblawan",
+        "zip_code": 8008
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Magsaysay",
+        "zip_code": 8004
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Malalag",
+        "zip_code": 8010
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Mandug",
+        "zip_code": 8020
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Matanao",
+        "zip_code": 8003
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Matina",
+        "zip_code": 8021
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Mintal",
+        "zip_code": 8022
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Padada",
+        "zip_code": 8007
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Santa Cruz",
+        "zip_code": 8001
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Sulop",
+        "zip_code": 8009
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Talomo",
+        "zip_code": 8023
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Tibungco",
+        "zip_code": 8024
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "Toril",
+        "zip_code": 8025
+    },
+    {
+        "Province": "Davao del Sur",
+        "City": "University of Mindanao",
+        "zip_code": 8026
+    },
+    {
+        "Province": "Davao Occidental",
+        "City": "Don Marcelino",
+        "zip_code": 8013
+    },
+    {
+        "Province": "Davao Occidental",
+        "City": "Jose Abad Santos",
+        "zip_code": 8014
+    },
+    {
+        "Province": "Davao Occidental",
+        "City": "Malita",
+        "zip_code": 8012
+    },
+    {
+        "Province": "Davao Occidental",
+        "City": "Santa Maria",
+        "zip_code": 8011
+    },
+    {
+        "Province": "Davao Occidental",
+        "City": "Sarangani",
+        "zip_code": 8015
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Baganga",
+        "zip_code": 8204
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Banaybanay",
+        "zip_code": 8208
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Boston",
+        "zip_code": 8206
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Caraga",
+        "zip_code": 8203
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Cateel",
+        "zip_code": 8205
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Gov. Generoso",
+        "zip_code": 8210
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Lupon",
+        "zip_code": 8207
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Manay",
+        "zip_code": 8202
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Mati",
+        "zip_code": 8200
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "San Isidro",
+        "zip_code": 8209
+    },
+    {
+        "Province": "Davao Oriental",
+        "City": "Tarragona",
+        "zip_code": 8201
+    },
+    {
+        "Province": "Dinagat Islands",
+        "City": "Basilisa (formerly Rizal)",
+        "zip_code": 8413
+    },
+    {
+        "Province": "Dinagat Islands",
+        "City": "Cagdianao",
+        "zip_code": 8411
+    },
+    {
+        "Province": "Dinagat Islands",
+        "City": "Dinagat",
+        "zip_code": 8412
+    },
+    {
+        "Province": "Dinagat Islands",
+        "City": "Libjo (formerly Albor)",
+        "zip_code": 8414
+    },
+    {
+        "Province": "Dinagat Islands",
+        "City": "Loreto",
+        "zip_code": 8415
+    },
+    {
+        "Province": "Dinagat Islands",
+        "City": "San Jose",
+        "zip_code": 8427
+    },
+    {
+        "Province": "Dinagat Islands",
+        "City": "Tubajon",
+        "zip_code": 8426
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Arteche",
+        "zip_code": 6822
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Balangiga",
+        "zip_code": 6812
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Balangkayan",
+        "zip_code": 6801
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Borongan",
+        "zip_code": 6800
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Can-Avid",
+        "zip_code": 6806
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Dolores",
+        "zip_code": 6817
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Gen. MacArthur",
+        "zip_code": 6805
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Giporlos",
+        "zip_code": 6811
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Guiuan",
+        "zip_code": 6809
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Hernani",
+        "zip_code": 6804
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Jipapad",
+        "zip_code": 6819
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Lawaan",
+        "zip_code": 6813
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Llorente",
+        "zip_code": 6803
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Maslog",
+        "zip_code": 6820
+    },
+    
+    {
+        "Province": "Eastern Samar",
+        "City": "Maydolong",
+        "zip_code": 6802
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Mercedes",
+        "zip_code": 6808
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Oras",
+        "zip_code": 6818
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Quinapondan",
+        "zip_code": 6810
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Salcedo",
+        "zip_code": 6807
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "San Julian",
+        "zip_code": 6814
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "San Policarpio",
+        "zip_code": 6821
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Sulat",
+        "zip_code": 6815
+    },
+    {
+        "Province": "Eastern Samar",
+        "City": "Taft",
+        "zip_code": 6816
+    },
+    {
+        "Province": "Guimaras",
+        "City": "Buenavista",
+        "zip_code": 5044
+    },
+    {
+        "Province": "Guimaras",
+        "City": "Jordan",
+        "zip_code": 5045
+    },
+    {
+        "Province": "Guimaras",
+        "City": "Nueva Valencia",
+        "zip_code": 5046
+    },
+    {
+        "Province": "Guimaras",
+        "City": "San Lorenzo",
+        "zip_code": 5047
+    },
+    {
+        "Province": "Guimaras",
+        "City": "Sibunag",
+        "zip_code": 5048
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Aguinaldo",
+        "zip_code": 3606
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Asipulo",
+        "zip_code": 3610
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Banaue",
+        "zip_code": 3601
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Hingyon",
+        "zip_code": 3607
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Hungduan",
+        "zip_code": 3603
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Kiangan",
+        "zip_code": 3604
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Lagawe",
+        "zip_code": 3600
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Lamut",
+        "zip_code": 3605
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Mayoyao",
+        "zip_code": 3602
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Potia",
+        "zip_code": 3608
+    },
+    {
+        "Province": "Ifugao",
+        "City": "Tinoc",
+        "zip_code": 3609
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Adams",
+        "zip_code": 2922
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Bacarra",
+        "zip_code": 2916
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Badoc",
+        "zip_code": 2904
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Bangui",
+        "zip_code": 2920
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Batac",
+        "zip_code": 2906
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Burgos",
+        "zip_code": 2918
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Carasi",
+        "zip_code": 2911
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Currimao",
+        "zip_code": 2903
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Dingras",
+        "zip_code": 2913
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Dumalneg",
+        "zip_code": 2921
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Espiritu",
+        "zip_code": 2908
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Laoag City",
+        "zip_code": 2900
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Marcos",
+        "zip_code": 2907
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Nueva Era",
+        "zip_code": 2909
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Pagudpud",
+        "zip_code": 2919
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Paoay",
+        "zip_code": 2902
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Pasuquin",
+        "zip_code": 2917
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Piddig",
+        "zip_code": 2912
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Pinili",
+        "zip_code": 2905
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "San Nicolas",
+        "zip_code": 2901
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Sarrat",
+        "zip_code": 2914
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Solsona",
+        "zip_code": 2910
+    },
+    {
+        "Province": "Ilocos Norte",
+        "City": "Vintar",
+        "zip_code": 2915
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Alilem",
+        "zip_code": 2716
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Banayoyo",
+        "zip_code": 2708
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Bantay",
+        "zip_code": 2727
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Burgos",
+        "zip_code": 2724
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Cabugao",
+        "zip_code": 2732
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Candon",
+        "zip_code": 2710
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Caoayan",
+        "zip_code": 2702
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Cervantes",
+        "zip_code": 2718
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Galimuyod",
+        "zip_code": 2709
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Gregorio del Pilar",
+        "zip_code": 2720
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Lidlida",
+        "zip_code": 2723
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Magsingal",
+        "zip_code": 2730
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Nagbukel",
+        "zip_code": 2725
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Narvacan",
+        "zip_code": 2704
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Quirino",
+        "zip_code": 2721
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Salcedo",
+        "zip_code": 2711
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "San Emilio",
+        "zip_code": 2722
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "San Esteban",
+        "zip_code": 2706
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "San Ildefonso",
+        "zip_code": 2728
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "San Juan",
+        "zip_code": 2731
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "San Vicente",
+        "zip_code": 2726
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Santa",
+        "zip_code": 2703
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Santa Catalina",
+        "zip_code": 2701
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Santa Cruz",
+        "zip_code": 2713
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Santa Lucia",
+        "zip_code": 2712
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Santa Maria",
+        "zip_code": 2705
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Santiago",
+        "zip_code": 2707
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Santo Domingo",
+        "zip_code": 2729
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Sigay",
+        "zip_code": 2719
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Sinait",
+        "zip_code": 2733
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Sugpon",
+        "zip_code": 2717
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Suyo",
+        "zip_code": 2715
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Tagudin",
+        "zip_code": 2714
+    },
+    {
+        "Province": "Ilocos Sur",
+        "City": "Vigan",
+        "zip_code": 2700
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Ajuy",
+        "zip_code": 5012
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Alimodian",
+        "zip_code": 5028
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Anilao",
+        "zip_code": 5009
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Badiangan",
+        "zip_code": 5033
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Balasan",
+        "zip_code": 5018
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Banate",
+        "zip_code": 5010
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Barotac Nuevo",
+        "zip_code": 5007
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Barotac Viejo",
+        "zip_code": 5011
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Batad",
+        "zip_code": 5016
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Bingawan",
+        "zip_code": 5041
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Cabatuan",
+        "zip_code": 5031
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Calinog",
+        "zip_code": 5040
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Carles",
+        "zip_code": 5019
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Concepcion",
+        "zip_code": 5013
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Dingle",
+        "zip_code": 5035
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Dueñas",
+        "zip_code": 5038
+    },
+    
+    {
+        "Province": "Iloilo",
+        "City": "Dumangas",
+        "zip_code": 5006
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Estancia",
+        "zip_code": 5017
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Guimbal",
+        "zip_code": 5022
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Igbaras",
+        "zip_code": 5029
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Iloilo City",
+        "zip_code": 5000
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Janiuay",
+        "zip_code": 5034
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Lambunao",
+        "zip_code": 5042
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Leganes",
+        "zip_code": 5003
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Lemery",
+        "zip_code": 5043
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Leon",
+        "zip_code": 5026
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Maasin",
+        "zip_code": 5030
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Miagao",
+        "zip_code": 5023
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Mina",
+        "zip_code": 5032
+    },
+    {
+        "Province": "Iloilo",
+        "City": "New Lucena",
+        "zip_code": 5005
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Oton",
+        "zip_code": 5020
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Passi",
+        "zip_code": 5037
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Pavia",
+        "zip_code": 5001
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Pototan",
+        "zip_code": 5008
+    },
+    {
+        "Province": "Iloilo",
+        "City": "San Dionisio",
+        "zip_code": 5015
+    },
+    {
+        "Province": "Iloilo",
+        "City": "San Enrique",
+        "zip_code": 5036
+    },
+    {
+        "Province": "Iloilo",
+        "City": "San Joaquin",
+        "zip_code": 5024
+    },
+    {
+        "Province": "Iloilo",
+        "City": "San Miguel",
+        "zip_code": 5025
+    },
+    {
+        "Province": "Iloilo",
+        "City": "San Rafael",
+        "zip_code": 5039
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Santa Barbara",
+        "zip_code": 5002
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Sara",
+        "zip_code": 5014
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Tigbauan",
+        "zip_code": 5021
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Tubungan",
+        "zip_code": 5027
+    },
+    {
+        "Province": "Iloilo",
+        "City": "Zarraga",
+        "zip_code": 5004
+    },
+    {
+        "Province": "Isabela",
+        "City": "Alicia",
+        "zip_code": 3306
+    },
+    {
+        "Province": "Isabela",
+        "City": "Angadanan",
+        "zip_code": 3307
+    },
+    {
+        "Province": "Isabela",
+        "City": "Aurora",
+        "zip_code": 3316
+    },
+    {
+        "Province": "Isabela",
+        "City": "Benito Soliven",
+        "zip_code": 3331
+    },
+    {
+        "Province": "Isabela",
+        "City": "Burgos",
+        "zip_code": 3322
+    },
+    {
+        "Province": "Isabela",
+        "City": "Cabagan",
+        "zip_code": 3328
+    },
+    {
+        "Province": "Isabela",
+        "City": "Cabatuan",
+        "zip_code": 3315
+    },
+    {
+        "Province": "Isabela",
+        "City": "City of Cauayan",
+        "zip_code": 3305
+    },
+    {
+        "Province": "Isabela",
+        "City": "City of Ilagan",
+        "zip_code": 3300
+    },
+    {
+        "Province": "Isabela",
+        "City": "Cordon",
+        "zip_code": 3312
+    },
+    {
+        "Province": "Isabela",
+        "City": "Delfin Albano",
+        "zip_code": 3326
+    },
+    {
+        "Province": "Isabela",
+        "City": "Dinapigue",
+        "zip_code": 3336
+    },
+    {
+        "Province": "Isabela",
+        "City": "Divilacan",
+        "zip_code": 3335
+    },
+    {
+        "Province": "Isabela",
+        "City": "Echague",
+        "zip_code": 3309
+    },
+    {
+        "Province": "Isabela",
+        "City": "Gamu",
+        "zip_code": 3301
+    },
+    {
+        "Province": "Isabela",
+        "City": "Jones",
+        "zip_code": 3313
+    },
+    {
+        "Province": "Isabela",
+        "City": "Luna",
+        "zip_code": 3304
+    },
+    {
+        "Province": "Isabela",
+        "City": "Maconacon",
+        "zip_code": 3333
+    },
+    {
+        "Province": "Isabela",
+        "City": "Mallig",
+        "zip_code": 3323
+    },
+    {
+        "Province": "Isabela",
+        "City": "Naguillan",
+        "zip_code": 3302
+    },
+    {
+        "Province": "Isabela",
+        "City": "Palanan",
+        "zip_code": 3334
+    },
+    {
+        "Province": "Isabela",
+        "City": "Quezon",
+        "zip_code": 3324
+    },
+    {
+        "Province": "Isabela",
+        "City": "Quirino",
+        "zip_code": 3321
+    },
+    {
+        "Province": "Isabela",
+        "City": "Ramon",
+        "zip_code": 3319
+    },
+    {
+        "Province": "Isabela",
+        "City": "Reina Mercedes",
+        "zip_code": 3303
+    },
+    {
+        "Province": "Isabela",
+        "City": "Roxas",
+        "zip_code": 3320
+    },
+    {
+        "Province": "Isabela",
+        "City": "San Agustin",
+        "zip_code": 3314
+    },
+    {
+        "Province": "Isabela",
+        "City": "San Guillermo",
+        "zip_code": 3308
+    },
+    {
+        "Province": "Isabela",
+        "City": "San Isidro",
+        "zip_code": 3310
+    },
+    {
+        "Province": "Isabela",
+        "City": "San Manuel",
+        "zip_code": 3317
+    },
+    {
+        "Province": "Isabela",
+        "City": "San Mariano",
+        "zip_code": 3332
+    },
+    {
+        "Province": "Isabela",
+        "City": "San Mateo",
+        "zip_code": 3318
+    },
+    {
+        "Province": "Isabela",
+        "City": "San Pablo",
+        "zip_code": 3329
+    },
+    {
+        "Province": "Isabela",
+        "City": "Santiago CIty",
+        "zip_code": 3311
+    },
+    {
+        "Province": "Isabela",
+        "City": "Sta. Maria",
+        "zip_code": 3330
+    },
+    {
+        "Province": "Isabela",
+        "City": "Sto. Tomas",
+        "zip_code": 3327
+    },
+    {
+        "Province": "Isabela",
+        "City": "Tumauini",
+        "zip_code": 3325
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Balbalan",
+        "zip_code": 3801
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Lubuagan",
+        "zip_code": 3802
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Pasil",
+        "zip_code": 3803
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Pinukpok",
+        "zip_code": 3806
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Rizal",
+        "zip_code": 3808
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Tabuk City",
+        "zip_code": 3800
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Tanudan",
+        "zip_code": 3805
+    },
+    {
+        "Province": "Kalinga",
+        "City": "Tinglayan",
+        "zip_code": 3804
+    },
+    {
+        "Province": "La Union",
+        "City": "Agoo",
+        "zip_code": 2504
+    },
+    {
+        "Province": "La Union",
+        "City": "Aringay",
+        "zip_code": 2503
+    },
+    {
+        "Province": "La Union",
+        "City": "Bacnotan",
+        "zip_code": 2515
+    },
+    {
+        "Province": "La Union",
+        "City": "Bagulin",
+        "zip_code": 2512
+    },
+    {
+        "Province": "La Union",
+        "City": "Balaoan",
+        "zip_code": 2517
+    },
+    {
+        "Province": "La Union",
+        "City": "Bangar",
+        "zip_code": 2519
+    },
+    {
+        "Province": "La Union",
+        "City": "Bauang",
+        "zip_code": 2501
+    },
+    {
+        "Province": "La Union",
+        "City": "Burgos",
+        "zip_code": 2510
+    },
+    {
+        "Province": "La Union",
+        "City": "Caba",
+        "zip_code": 2502
+    },
+    {
+        "Province": "La Union",
+        "City": "Damortis",
+        "zip_code": 2507
+    },
+    {
+        "Province": "La Union",
+        "City": "Luna",
+        "zip_code": 2518
+    },
+    {
+        "Province": "La Union",
+        "City": "Naguilian",
+        "zip_code": 2511
+    },
+    {
+        "Province": "La Union",
+        "City": "Pugo",
+        "zip_code": 2508
+    },
+    {
+        "Province": "La Union",
+        "City": "Rosario",
+        "zip_code": 2506
+    },
+    {
+        "Province": "La Union",
+        "City": "San Fernando",
+        "zip_code": 2500
+    },
+    {
+        "Province": "La Union",
+        "City": "San Gabriel",
+        "zip_code": 2513
+    },
+    {
+        "Province": "La Union",
+        "City": "San Juan",
+        "zip_code": 2514
+    },
+    {
+        "Province": "La Union",
+        "City": "Santol",
+        "zip_code": 2516
+    },
+    {
+        "Province": "La Union",
+        "City": "Sto. Tomas",
+        "zip_code": 2505
+    },
+    {
+        "Province": "La Union",
+        "City": "Sudipen",
+        "zip_code": 2520
+    },
+    {
+        "Province": "La Union",
+        "City": "Tubao",
+        "zip_code": 2509
+    },
+    {
+        "Province": "Laguna",
+        "City": "Alaminos",
+        "zip_code": 4001
+    },
+    {
+        "Province": "Laguna",
+        "City": "Bay",
+        "zip_code": 4033
+    },
+    {
+        "Province": "Laguna",
+        "City": "Biñan",
+        "zip_code": 4024
+    },
+    {
+        "Province": "Laguna",
+        "City": "Botocan",
+        "zip_code": 4006
+    },
+    
+    {
+        "Province": "Laguna",
+        "City": "Cabuyao",
+        "zip_code": 4025
+    },
+    {
+        "Province": "Laguna",
+        "City": "Calamba",
+        "zip_code": 4027
+    },
+    {
+        "Province": "Laguna",
+        "City": "Caluan",
+        "zip_code": 4012
+    },
+    {
+        "Province": "Laguna",
+        "City": "Camp Vicente Lim",
+        "zip_code": 4029
+    },
+    {
+        "Province": "Laguna",
+        "City": "Canlubang",
+        "zip_code": 4028
+    },
+    {
+        "Province": "Laguna",
+        "City": "Cavinti",
+        "zip_code": 4013
+    },
+    {
+        "Province": "Laguna",
+        "City": "College Los Baños",
+        "zip_code": 4031
+    },
+    {
+        "Province": "Laguna",
+        "City": "Famy",
+        "zip_code": 4021
+    },
+    {
+        "Province": "Laguna",
+        "City": "Kalayaan",
+        "zip_code": 4015
+    },
+    {
+        "Province": "Laguna",
+        "City": "Laguna Technopark",
+        "zip_code": 4034
+    },
+    {
+        "Province": "Laguna",
+        "City": "Liliw",
+        "zip_code": 4004
+    },
+    {
+        "Province": "Laguna",
+        "City": "Los Baños",
+        "zip_code": 4030
+    },
+    {
+        "Province": "Laguna",
+        "City": "Luisiana",
+        "zip_code": 4032
+    },
+    {
+        "Province": "Laguna",
+        "City": "Lumban",
+        "zip_code": 4014
+    },
+    {
+        "Province": "Laguna",
+        "City": "Mabitac",
+        "zip_code": 4020
+    },
+    {
+        "Province": "Laguna",
+        "City": "Magdalena",
+        "zip_code": 4007
+    },
+    {
+        "Province": "Laguna",
+        "City": "Majayjay",
+        "zip_code": 4005
+    },
+    {
+        "Province": "Laguna",
+        "City": "Nagcarlan",
+        "zip_code": 4002
+    },
+    {
+        "Province": "Laguna",
+        "City": "Paete",
+        "zip_code": 4016
+    },
+    {
+        "Province": "Laguna",
+        "City": "Pagsanjan",
+        "zip_code": 4008
+    },
+    {
+        "Province": "Laguna",
+        "City": "Pakil",
+        "zip_code": 4017
+    },
+    {
+        "Province": "Laguna",
+        "City": "Pangil",
+        "zip_code": 4018
+    },
+    {
+        "Province": "Laguna",
+        "City": "Pila",
+        "zip_code": 4010
+    },
+    {
+        "Province": "Laguna",
+        "City": "Rizal",
+        "zip_code": 4003
+    },
+    {
+        "Province": "Laguna",
+        "City": "San Pablo City",
+        "zip_code": 4000
+    },
+    {
+        "Province": "Laguna",
+        "City": "San Pedro",
+        "zip_code": 4023
+    },
+    {
+        "Province": "Laguna",
+        "City": "Siniloan",
+        "zip_code": 4019
+    },
+    {
+        "Province": "Laguna",
+        "City": "Sta. Cruz",
+        "zip_code": 4009
+    },
+    {
+        "Province": "Laguna",
+        "City": "Sta. Maria",
+        "zip_code": 4022
+    },
+    {
+        "Province": "Laguna",
+        "City": "Sta. Rosa",
+        "zip_code": 4026
+    },
+    {
+        "Province": "Laguna",
+        "City": "Victoria",
+        "zip_code": 4011
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Bacolod",
+        "zip_code": 9205
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Baloi",
+        "zip_code": 9217
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Baroy",
+        "zip_code": 9210
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Iligan City",
+        "zip_code": 9200
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Kapatagan",
+        "zip_code": 9214
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Kauswagan",
+        "zip_code": 9202
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Kolambugan",
+        "zip_code": 9207
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Lala",
+        "zip_code": 9211
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Linamon",
+        "zip_code": 9201
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Magsaysay",
+        "zip_code": 9221
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Maigo",
+        "zip_code": 9206
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Matungao",
+        "zip_code": 9203
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Munai",
+        "zip_code": 9219
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Nunungan",
+        "zip_code": 9216
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Pantao Ragat",
+        "zip_code": 9208
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Pantar",
+        "zip_code": 9218
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Poona Piagapo",
+        "zip_code": 9204
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Salvador",
+        "zip_code": 9212
+    },
+    
+    {
+        "Province": "Lanao del Norte",
+        "City": "Sapad",
+        "zip_code": 9213
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Sultan Naga Dimaporo (formerly Karomatan)",
+        "zip_code": 9215
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Tagoloan",
+        "zip_code": 9222
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Tangcal",
+        "zip_code": 9220
+    },
+    {
+        "Province": "Lanao del Norte",
+        "City": "Tubod",
+        "zip_code": 9209
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Bacolod Grande",
+        "zip_code": 9316
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Balabagan",
+        "zip_code": 9302
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Bayang",
+        "zip_code": 9309
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Balindong",
+        "zip_code": 9318
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Binidayan",
+        "zip_code": 9310
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Buadiposo Buntong",
+        "zip_code": 9714
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Bubong",
+        "zip_code": 9708
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Bumbaran",
+        "zip_code": 9320
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Butig",
+        "zip_code": 9305
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Calanogas",
+        "zip_code": 9319
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Ganassi",
+        "zip_code": 9311
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Kapai",
+        "zip_code": 9709
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Kapatagan",
+        "zip_code": 9322
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Lumba Bayabao",
+        "zip_code": 9703
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Lumbaca Unayan",
+        "zip_code": 9323
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Lumbatan",
+        "zip_code": 9307
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Lumbayanague",
+        "zip_code": 9306
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Macador Andong",
+        "zip_code": 9308
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Madalum",
+        "zip_code": 9315
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Madamba",
+        "zip_code": 9314
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Maguing",
+        "zip_code": 9715
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Malabang",
+        "zip_code": 9300
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Marantao",
+        "zip_code": 9711
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Marawi City",
+        "zip_code": 9700
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Marogong",
+        "zip_code": 9303
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Masiu",
+        "zip_code": 9706
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Mulondo",
+        "zip_code": 9702
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Pagayawan",
+        "zip_code": 9312
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Piagapo",
+        "zip_code": 9710
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Picong (formerly Sultan Gumander)",
+        "zip_code": 9301
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Poona Bayabao",
+        "zip_code": 9705
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Pualas",
+        "zip_code": 9313
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Ramain-Ditsaan",
+        "zip_code": 9713
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Saguiaran",
+        "zip_code": 9701
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Sultan Domalondong",
+        "zip_code": 9324
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Sultan Gumander",
+        "zip_code": 9301
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Tagoloan - II",
+        "zip_code": 9321
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Tamparan",
+        "zip_code": 9704
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Taraka",
+        "zip_code": 9712
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Tubaran",
+        "zip_code": 9304
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Tugaya",
+        "zip_code": 9317
+    },
+    {
+        "Province": "Lanao del Sur",
+        "City": "Wao",
+        "zip_code": 9716
+    },
+    {
+        "Province": "Leyte",
+        "City": "Abuyog",
+        "zip_code": 6510
+    },
+    {
+        "Province": "Leyte",
+        "City": "Alangalang",
+        "zip_code": 6517
+    },
+    
+    {
+        "Province": "Leyte",
+        "City": "Albuera",
+        "zip_code": 6542
+    },
+    {
+        "Province": "Leyte",
+        "City": "Babatngon",
+        "zip_code": 6520
+    },
+    {
+        "Province": "Leyte",
+        "City": "Burauen",
+        "zip_code": 6516
+    },
+    {
+        "Province": "Leyte",
+        "City": "Barugo",
+        "zip_code": 6519
+    },
+    {
+        "Province": "Leyte",
+        "City": "Bato",
+        "zip_code": 6525
+    },
+    {
+        "Province": "Leyte",
+        "City": "Baybay",
+        "zip_code": 6521
+    },
+    {
+        "Province": "Leyte",
+        "City": "Calubian",
+        "zip_code": 6534
+    },
+    {
+        "Province": "Leyte",
+        "City": "Capoocan",
+        "zip_code": 6530
+    },
+    {
+        "Province": "Leyte",
+        "City": "Carigara",
+        "zip_code": 6529
+    },
+    {
+        "Province": "Leyte",
+        "City": "Dagami",
+        "zip_code": 6515
+    },
+    {
+        "Province": "Leyte",
+        "City": "Dulag",
+        "zip_code": 6505
+    },
+    {
+        "Province": "Leyte",
+        "City": "Hilongos",
+        "zip_code": 6524
+    },
+    {
+        "Province": "Leyte",
+        "City": "Hindang",
+        "zip_code": 6523
+    },
+    {
+        "Province": "Leyte",
+        "City": "Inopacan",
+        "zip_code": 6522
+    },
+    {
+        "Province": "Leyte",
+        "City": "Isabel",
+        "zip_code": 6539
+    },
+    {
+        "Province": "Leyte",
+        "City": "Jaro",
+        "zip_code": 6527
+    },
+    {
+        "Province": "Leyte",
+        "City": "Javier",
+        "zip_code": 6511
+    },
+    {
+        "Province": "Leyte",
+        "City": "Julita",
+        "zip_code": 6506
+    },
+    {
+        "Province": "Leyte",
+        "City": "Kananga",
+        "zip_code": 6531
+    },
+    {
+        "Province": "Leyte",
+        "City": "La Paz",
+        "zip_code": 6508
+    },
+    {
+        "Province": "Leyte",
+        "City": "Leyte",
+        "zip_code": 6533
+    },
+    {
+        "Province": "Leyte",
+        "City": "Macarthur",
+        "zip_code": 6509
+    },
+    {
+        "Province": "Leyte",
+        "City": "Mahaplag",
+        "zip_code": 6512
+    },
+    {
+        "Province": "Leyte",
+        "City": "Matag-ob",
+        "zip_code": 6532
+    },
+    {
+        "Province": "Leyte",
+        "City": "Matalom",
+        "zip_code": 6526
+    },
+    {
+        "Province": "Leyte",
+        "City": "Mayorga",
+        "zip_code": 6507
+    },
+    {
+        "Province": "Leyte",
+        "City": "Merida",
+        "zip_code": 6540
+    },
+    {
+        "Province": "Leyte",
+        "City": "Ormoc City",
+        "zip_code": 6541
+    },
+    {
+        "Province": "Leyte",
+        "City": "Palo",
+        "zip_code": 6501
+    },
+    {
+        "Province": "Leyte",
+        "City": "Palompon",
+        "zip_code": 6538
+    },
+    {
+        "Province": "Leyte",
+        "City": "Pastrana",
+        "zip_code": 6514
+    },
+    {
+        "Province": "Leyte",
+        "City": "San Isidro",
+        "zip_code": 6535
+    },
+    {
+        "Province": "Leyte",
+        "City": "San Miguel",
+        "zip_code": 6518
+    },
+    {
+        "Province": "Leyte",
+        "City": "Sta. Fe",
+        "zip_code": 6513
+    },
+    {
+        "Province": "Leyte",
+        "City": "Tabango",
+        "zip_code": 6536
+    },
+    {
+        "Province": "Leyte",
+        "City": "Tabontabon",
+        "zip_code": 6504
+    },
+    {
+        "Province": "Leyte",
+        "City": "Tacloban City",
+        "zip_code": 6500
+    },
+    {
+        "Province": "Leyte",
+        "City": "Tanauan",
+        "zip_code": 6502
+    },
+    {
+        "Province": "Leyte",
+        "City": "Tolosa",
+        "zip_code": 6503
+    },
+    {
+        "Province": "Leyte",
+        "City": "Tunga",
+        "zip_code": 6528
+    },
+    {
+        "Province": "Leyte",
+        "City": "Villaba",
+        "zip_code": 6537
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Ampatuan",
+        "zip_code": 9609
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Barira",
+        "zip_code": 9614
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Buldon",
+        "zip_code": 9615
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Buluan",
+        "zip_code": 9616
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Cotabato City",
+        "zip_code": 9600
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Odin Sinsuat (Dinaig)",
+        "zip_code": 9601
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Paglas",
+        "zip_code": 9617
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Piang",
+        "zip_code": 9607
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Abdullah Sangki",
+        "zip_code": 9621
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Anggal Midtimbang",
+        "zip_code": 9622
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Blah T. Sinsuat",
+        "zip_code": 9623
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Hoffer Ampatuan",
+        "zip_code": 9624
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Montawal (formerly Pagagawan)",
+        "zip_code": 9631
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Salibo",
+        "zip_code": 9625
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Saudi-Ampatuan",
+        "zip_code": 9626
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Datu Unsay",
+        "zip_code": 9627
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "General Salipada K. Pendatun",
+        "zip_code": 9618
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Guindulungan",
+        "zip_code": 9628
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Kabuntulan",
+        "zip_code": 9606
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Shariff Aguak (formerly Maganoy)",
+        "zip_code": 9608
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Mamasapano",
+        "zip_code": 9629
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Mangudadatu",
+        "zip_code": 9620
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Matanog",
+        "zip_code": 9613
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Northern Kabuntalan",
+        "zip_code": 9630
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Paglat",
+        "zip_code": 9632
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Pandag",
+        "zip_code": 9633
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Pagalungan",
+        "zip_code": 9610
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Parang",
+        "zip_code": 9604
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Rajah Buayan",
+        "zip_code": 9634
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Shariff Saydona Mustapha",
+        "zip_code": 9635
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Sultan Mastura",
+        "zip_code": 9636
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Sultan Sumagka (formerly Talitay)",
+        "zip_code": 9637
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "South Upi",
+        "zip_code": 9603
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Sultan Kudarat",
+        "zip_code": 9605
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Sultan Sa Barongis",
+        "zip_code": 9611
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Talayan",
+        "zip_code": 9612
+    },
+    {
+        "Province": "Maguindanao",
+        "City": "Upi",
+        "zip_code": 9602
+    },
+    {
+        "Province": "Marinduque",
+        "City": "Boac",
+        "zip_code": 4900
+    },
+    {
+        "Province": "Marinduque",
+        "City": "Buenavista",
+        "zip_code": 4904
+    },
+    {
+        "Province": "Marinduque",
+        "City": "Gasan",
+        "zip_code": 4905
+    },
+    {
+        "Province": "Marinduque",
+        "City": "Mogpog",
+        "zip_code": 4901
+    },
+    {
+        "Province": "Marinduque",
+        "City": "Sta. Cruz",
+        "zip_code": 4902
+    },
+    {
+        "Province": "Marinduque",
+        "City": "Torrijos",
+        "zip_code": 4903
+    },
+    {
+        "Province": "Masbate",
+        "City": "Aroroy",
+        "zip_code": 5414
+    },
+    {
+        "Province": "Masbate",
+        "City": "Baleno",
+        "zip_code": 5413
+    },
+    {
+        "Province": "Masbate",
+        "City": "Balud",
+        "zip_code": 5412
+    },
+    {
+        "Province": "Masbate",
+        "City": "Batuan",
+        "zip_code": 5415
+    },
+    {
+        "Province": "Masbate",
+        "City": "Buenavista",
+        "zip_code": 5421
+    },
+    {
+        "Province": "Masbate",
+        "City": "Cataingan",
+        "zip_code": 5405
+    },
+    {
+        "Province": "Masbate",
+        "City": "Cawayan",
+        "zip_code": 5409
+    },
+    {
+        "Province": "Masbate",
+        "City": "Claveria",
+        "zip_code": 5419
+    },
+    {
+        "Province": "Masbate",
+        "City": "Dimasalang",
+        "zip_code": 5403
+    },
+    {
+        "Province": "Masbate",
+        "City": "Esperanza",
+        "zip_code": 5407
+    },
+    {
+        "Province": "Masbate",
+        "City": "Mandaon",
+        "zip_code": 5411
+    },
+    {
+        "Province": "Masbate",
+        "City": "Masbate",
+        "zip_code": 5400
+    },
+    {
+        "Province": "Masbate",
+        "City": "Milagros",
+        "zip_code": 5410
+    },
+    {
+        "Province": "Masbate",
+        "City": "Mobo",
+        "zip_code": 5401
+    },
+    
+    {
+        "Province": "Masbate",
+        "City": "Monreal",
+        "zip_code": 5418
+    },
+    {
+        "Province": "Masbate",
+        "City": "Palanas",
+        "zip_code": 5404
+    },
+    {
+        "Province": "Masbate",
+        "City": "Pio V. Corpuz",
+        "zip_code": 5406
+    },
+    {
+        "Province": "Masbate",
+        "City": "Placer",
+        "zip_code": 5408
+    },
+    {
+        "Province": "Masbate",
+        "City": "San Fernando",
+        "zip_code": 5416
+    },
+    {
+        "Province": "Masbate",
+        "City": "San Jacinto",
+        "zip_code": 5417
+    },
+    {
+        "Province": "Masbate",
+        "City": "San Pascual",
+        "zip_code": 5420
+    },
+    {
+        "Province": "Masbate",
+        "City": "Uson",
+        "zip_code": 5402
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Aloran",
+        "zip_code": 7206
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Baliangao",
+        "zip_code": 7211
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Bonifacio",
+        "zip_code": 7215
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Calamba",
+        "zip_code": 7210
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Clarin",
+        "zip_code": 7201
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Concepcion",
+        "zip_code": 7213
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Don Victoriano Chiongbian",
+        "zip_code": 7216
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Jimenez",
+        "zip_code": 7204
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Lopez Jaena",
+        "zip_code": 7208
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Oroquieta City",
+        "zip_code": 7207
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Ozamis City",
+        "zip_code": 7200
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Panaon",
+        "zip_code": 7205
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Plaridel",
+        "zip_code": 7209
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Sapang dalaga",
+        "zip_code": 7212
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Sinacaban",
+        "zip_code": 7203
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Tangub City",
+        "zip_code": 7214
+    },
+    {
+        "Province": "Misamis Occidental",
+        "City": "Tudela",
+        "zip_code": 7202
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Alubijid",
+        "zip_code": 9018
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Balingasag",
+        "zip_code": 9005
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Balingoan",
+        "zip_code": 9011
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Binuangan",
+        "zip_code": 9008
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Cagayan de Oro City",
+        "zip_code": 9000
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Claveria",
+        "zip_code": 9004
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "City Of El Salvador",
+        "zip_code": 9017
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Gingoog City",
+        "zip_code": 9014
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Gitagum",
+        "zip_code": 9020
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Initao",
+        "zip_code": 9022
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Jasaan",
+        "zip_code": 9003
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Kinoguitan",
+        "zip_code": 9010
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Laguindingan",
+        "zip_code": 9019
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Lagonglong",
+        "zip_code": 9006
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Libertad",
+        "zip_code": 9021
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Lugait",
+        "zip_code": 9025
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Magsaysay",
+        "zip_code": 9015
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Manticao",
+        "zip_code": 9024
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Medina",
+        "zip_code": 9013
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Naawan",
+        "zip_code": 9023
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Opol",
+        "zip_code": 9016
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Salay",
+        "zip_code": 9007
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Sugbongcogon",
+        "zip_code": 9009
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Tagoloan",
+        "zip_code": 9001
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Talisayan",
+        "zip_code": 9012
+    },
+    {
+        "Province": "Misamis Oriental",
+        "City": "Villanueva",
+        "zip_code": 9002
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Barlig",
+        "zip_code": 2623
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Baukod",
+        "zip_code": 2621
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Besao",
+        "zip_code": 2618
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Bontoc",
+        "zip_code": 2616
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Natonin",
+        "zip_code": 2624
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Paracelis",
+        "zip_code": 2625
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Sabangan",
+        "zip_code": 2622
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Sadanga",
+        "zip_code": 2617
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Sagada",
+        "zip_code": 2619
+    },
+    {
+        "Province": "Mountain Province",
+        "City": "Tadian",
+        "zip_code": 2620
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Bacolod City",
+        "zip_code": 6100
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Bago City",
+        "zip_code": 6101
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Binalbagan",
+        "zip_code": 6107
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Cadiz City",
+        "zip_code": 6121
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Calatrava",
+        "zip_code": 6126
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Candoni",
+        "zip_code": 6110
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Cauayan",
+        "zip_code": 6112
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Don Salvador Benedicto",
+        "zip_code": 6133
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Enrique Magalona",
+        "zip_code": 6118
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Escalante",
+        "zip_code": 6124
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Himamaylan",
+        "zip_code": 6108
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Hinigaran",
+        "zip_code": 6106
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Hinoba-an",
+        "zip_code": 6114
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Ilog",
+        "zip_code": 6109
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Isabela",
+        "zip_code": 6128
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Kabankalan",
+        "zip_code": 6111
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "La Carlota City",
+        "zip_code": 6130
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "La Castellana",
+        "zip_code": 6131
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Manapla",
+        "zip_code": 6120
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Moises Padilla",
+        "zip_code": 6132
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Murcia",
+        "zip_code": 6129
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Paraiso (Fabrica)",
+        "zip_code": 6123
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Pontevedra",
+        "zip_code": 6105
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Pulupandan",
+        "zip_code": 6102
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Sagay",
+        "zip_code": 6122
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "San Carlos City",
+        "zip_code": 6127
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "San Enrique",
+        "zip_code": 6104
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Silay City",
+        "zip_code": 6116
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Silay Hawaiian Central",
+        "zip_code": 6117
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Sipalay",
+        "zip_code": 6113
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Talisay",
+        "zip_code": 6115
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Toboso",
+        "zip_code": 6125
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Valladolid",
+        "zip_code": 6103
+    },
+    {
+        "Province": "Negros Occidental",
+        "City": "Victorias",
+        "zip_code": 6119
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Amlan",
+        "zip_code": 6203
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Ayungon",
+        "zip_code": 6210
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Bacung",
+        "zip_code": 6216
+    },
+    
+    {
+        "Province": "Negros Oriental",
+        "City": "Bais City",
+        "zip_code": 6206
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Basay",
+        "zip_code": 6222
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Bayawan",
+        "zip_code": 6221
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Bindoy",
+        "zip_code": 6209
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Canlaon City",
+        "zip_code": 6223
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Dauin",
+        "zip_code": 6217
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Dumaguete City",
+        "zip_code": 6200
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Guihulngan",
+        "zip_code": 6214
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Jimalalud",
+        "zip_code": 6212
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "La Libertad",
+        "zip_code": 6213
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Mabinay",
+        "zip_code": 6207
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Manjuyod",
+        "zip_code": 6208
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Pamplona",
+        "zip_code": 6205
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "San Jose",
+        "zip_code": 6202
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Siaton",
+        "zip_code": 6219
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Sibulan",
+        "zip_code": 6201
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Sta. Catalina",
+        "zip_code": 6220
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Tanjay",
+        "zip_code": 6204
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Tayasan",
+        "zip_code": 6211
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Valencia",
+        "zip_code": 6215
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Valle hermoso",
+        "zip_code": 6224
+    },
+    {
+        "Province": "Negros Oriental",
+        "City": "Zamboanguita",
+        "zip_code": 6218
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Alamada",
+        "zip_code": 9413
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Aleosan",
+        "zip_code": 9415
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Antipas",
+        "zip_code": 9414
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Arakan",
+        "zip_code": 9417
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Banisilan",
+        "zip_code": 9416
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Carmen",
+        "zip_code": 9408
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Kabacan",
+        "zip_code": 9407
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Kidapawan",
+        "zip_code": 9400
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Libungan",
+        "zip_code": 9411
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Magpet",
+        "zip_code": 9404
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Makilala",
+        "zip_code": 9401
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Matalam",
+        "zip_code": 9406
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Midsayap",
+        "zip_code": 9410
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "M'lang",
+        "zip_code": 9402
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Pigkawayan",
+        "zip_code": 9412
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Pikit",
+        "zip_code": 9409
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Pre. Roxas",
+        "zip_code": 9405
+    },
+    {
+        "Province": "North Cotabato",
+        "City": "Tulunan",
+        "zip_code": 9403
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Allen",
+        "zip_code": 6405
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Biri",
+        "zip_code": 6410
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Bobon",
+        "zip_code": 6401
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Capul",
+        "zip_code": 6408
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Catarman",
+        "zip_code": 6400
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Catubig",
+        "zip_code": 6418
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Gamay",
+        "zip_code": 6422
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Las Navas",
+        "zip_code": 6420
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Laoang",
+        "zip_code": 6411
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Lapineg",
+        "zip_code": 6423
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Lavezares",
+        "zip_code": 6404
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Lope de Vega",
+        "zip_code": 6403
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Mapanas",
+        "zip_code": 6412
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Mondragon",
+        "zip_code": 6417
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Palapag",
+        "zip_code": 6421
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Pambujan",
+        "zip_code": 6413
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Rosario",
+        "zip_code": 6416
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "San Antonio",
+        "zip_code": 6407
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "San Isidro",
+        "zip_code": 6409
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "San Jose",
+        "zip_code": 6402
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "San Roque",
+        "zip_code": 6415
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "San Vicente",
+        "zip_code": 6419
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Silvino Lobos",
+        "zip_code": 6414
+    },
+    {
+        "Province": "Northern Samar",
+        "City": "Victoria",
+        "zip_code": 6406
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Aliaga",
+        "zip_code": 3111
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Bongabon",
+        "zip_code": 3128
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Cabanatuan City",
+        "zip_code": 3100
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Cabiao",
+        "zip_code": 3107
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Carrangalan",
+        "zip_code": 3123
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Central Luzon State University",
+        "zip_code": 3120
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Cuyapo",
+        "zip_code": 3117
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Fort Magsaysay",
+        "zip_code": 3130
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Gabaldon",
+        "zip_code": 3131
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Gapan City",
+        "zip_code": 3105
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Gen. M. Natividad",
+        "zip_code": 3125
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Gen. Tinio",
+        "zip_code": 3104
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Guimba",
+        "zip_code": 3115
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Jaen",
+        "zip_code": 3109
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Laur",
+        "zip_code": 3129
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Licab",
+        "zip_code": 3112
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Llanera",
+        "zip_code": 3126
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Lupao",
+        "zip_code": 3122
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Muñoz",
+        "zip_code": 3119
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Nampicuan",
+        "zip_code": 3116
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Palayan City",
+        "zip_code": 3132
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Pantabangan",
+        "zip_code": 3124
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Peñaranda",
+        "zip_code": 3103
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Quezon",
+        "zip_code": 3113
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Rizal",
+        "zip_code": 3127
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "San Antonio",
+        "zip_code": 3108
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "San Isidro",
+        "zip_code": 3106
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "San Jose City",
+        "zip_code": 3121
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "San Leonardo",
+        "zip_code": 3102
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Sta. Rosa",
+        "zip_code": 3101
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Sto. Domingo",
+        "zip_code": 3133
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Talavera",
+        "zip_code": 3114
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Talugtog",
+        "zip_code": 3118
+    },
+    {
+        "Province": "Nueva Ecija",
+        "City": "Zaragoza",
+        "zip_code": 3110
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Alfonso Castañeda",
+        "zip_code": 3714
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Ambaguio",
+        "zip_code": 3701
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Aritao",
+        "zip_code": 3704
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Bagabag",
+        "zip_code": 3711
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Bambang",
+        "zip_code": 3702
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Bayombong",
+        "zip_code": 3700
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Diadi",
+        "zip_code": 3712
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Dupax del Norte",
+        "zip_code": 3706
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Dupax del Sur",
+        "zip_code": 3707
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Kasibu",
+        "zip_code": 3703
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Kayapa",
+        "zip_code": 3708
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Quezon",
+        "zip_code": 3713
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Solano",
+        "zip_code": 3709
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Sta. Fe",
+        "zip_code": 3705
+    },
+    {
+        "Province": "Nueva Vizcaya",
+        "City": "Villaverde",
+        "zip_code": 3710
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Abra de Ilog",
+        "zip_code": 5108
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Calintaan",
+        "zip_code": 5102
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Looc",
+        "zip_code": 5111
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Lubang",
+        "zip_code": 5109
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Magsaysay",
+        "zip_code": 5101
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Mamburao",
+        "zip_code": 5106
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Palauan",
+        "zip_code": 5107
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Rizal",
+        "zip_code": 5103
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Sablayan",
+        "zip_code": 5104
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "San Jose",
+        "zip_code": 5100
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Sta. Cruz",
+        "zip_code": 5105
+    },
+    {
+        "Province": "Occidental Mindoro",
+        "City": "Tilik",
+        "zip_code": 5110
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Baco",
+        "zip_code": 5201
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Bansud",
+        "zip_code": 5210
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Bongabong",
+        "zip_code": 5211
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Bulalacao",
+        "zip_code": 5214
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Calapan",
+        "zip_code": 5200
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Gloria",
+        "zip_code": 5209
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Mansalay",
+        "zip_code": 5213
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Naujan",
+        "zip_code": 5204
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Pinamalayan",
+        "zip_code": 5208
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Pola",
+        "zip_code": 5206
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Puerto Galera",
+        "zip_code": 5203
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Roxas",
+        "zip_code": 5212
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "San Teodoro",
+        "zip_code": 5202
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Socorro",
+        "zip_code": 5207
+    },
+    {
+        "Province": "Oriental Mindoro",
+        "City": "Victoria",
+        "zip_code": 5205
+    },
+    {
+        "Province": "Palawan",
+        "City": "Aborlan",
+        "zip_code": 5302
+    },
+    {
+        "Province": "Palawan",
+        "City": "Agutaya",
+        "zip_code": 5320
+    },
+    {
+        "Province": "Palawan",
+        "City": "Araceli",
+        "zip_code": 5311
+    },
+    {
+        "Province": "Palawan",
+        "City": "Balabac",
+        "zip_code": 5307
+    },
+    {
+        "Province": "Palawan",
+        "City": "Batazara",
+        "zip_code": 5306
+    },
+    {
+        "Province": "Palawan",
+        "City": "Brooke's Point",
+        "zip_code": 5305
+    },
+    {
+        "Province": "Palawan",
+        "City": "Busuanga",
+        "zip_code": 5317
+    },
+    {
+        "Province": "Palawan",
+        "City": "Cagayancillo",
+        "zip_code": 5321
+    },
+    {
+        "Province": "Palawan",
+        "City": "Coron",
+        "zip_code": 5316
+    },
+    {
+        "Province": "Palawan",
+        "City": "Culion",
+        "zip_code": 5315
+    },
+    {
+        "Province": "Palawan",
+        "City": "Cuyo",
+        "zip_code": 5318
+    },
+    {
+        "Province": "Palawan",
+        "City": "Dumaran",
+        "zip_code": 5310
+    },
+    {
+        "Province": "Palawan",
+        "City": "El Nido (Baquit)",
+        "zip_code": 5313
+    },
+    {
+        "Province": "Palawan",
+        "City": "Iwahig Penal Colony",
+        "zip_code": 5301
+    },
+    {
+        "Province": "Palawan",
+        "City": "Kalayaan",
+        "zip_code": 5322
+    },
+    {
+        "Province": "Palawan",
+        "City": "Linapacan",
+        "zip_code": 5314
+    },
+    {
+        "Province": "Palawan",
+        "City": "Magsaysay",
+        "zip_code": 5319
+    },
+    {
+        "Province": "Palawan",
+        "City": "Narra (Panacan)",
+        "zip_code": 5303
+    },
+    {
+        "Province": "Palawan",
+        "City": "Puerto Princesa City",
+        "zip_code": 5300
+    },
+    {
+        "Province": "Palawan",
+        "City": "Quezon",
+        "zip_code": 5304
+    },
+    {
+        "Province": "Palawan",
+        "City": "Roxas",
+        "zip_code": 5308
+    },
+    {
+        "Province": "Palawan",
+        "City": "Rizal (Marcos)",
+        "zip_code": 5323
+    },
+    {
+        "Province": "Palawan",
+        "City": "San Vicente",
+        "zip_code": 5309
+    },
+    {
+        "Province": "Palawan",
+        "City": "Sofronio Española",
+        "zip_code": 5324
+    },
+    {
+        "Province": "Palawan",
+        "City": "Taytay",
+        "zip_code": 5312
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Angeles City",
+        "zip_code": 2009
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Apalit",
+        "zip_code": 2016
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Arayat",
+        "zip_code": 2012
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Bacolor",
+        "zip_code": 2001
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Balibago",
+        "zip_code": 2024
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Basa airbase",
+        "zip_code": 2007
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Candaba",
+        "zip_code": 2013
+    },
+    {
+        "Province": "Pampanga",
+        "City": "CSEZ, Clark",
+        "zip_code": 2023
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Dau, Mabalacat",
+        "zip_code": 2026
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Floridablanca",
+        "zip_code": 2006
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Guagua",
+        "zip_code": 2003
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Lubao",
+        "zip_code": 2005
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Mabalacat",
+        "zip_code": 2010
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Macabebe",
+        "zip_code": 2018
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Magalang",
+        "zip_code": 2011
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Masantol",
+        "zip_code": 2017
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Mexico",
+        "zip_code": 2021
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Minalin",
+        "zip_code": 2019
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Porac",
+        "zip_code": 2008
+    },
+    {
+        "Province": "Pampanga",
+        "City": "San Fernando",
+        "zip_code": 2000
+    },
+    {
+        "Province": "Pampanga",
+        "City": "San Luis",
+        "zip_code": 2014
+    },
+    {
+        "Province": "Pampanga",
+        "City": "San simon",
+        "zip_code": 2015
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Sexmoan (Sasmuan)",
+        "zip_code": 2004
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Sta. Ana",
+        "zip_code": 2022
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Sta. Cruz, Lubao",
+        "zip_code": 2025
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Sta. Rita",
+        "zip_code": 2002
+    },
+    {
+        "Province": "Pampanga",
+        "City": "Sto. Tomas",
+        "zip_code": 2020
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Agno",
+        "zip_code": 2408
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Aguilar",
+        "zip_code": 2415
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Alaminos",
+        "zip_code": 2404
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Alcala",
+        "zip_code": 2425
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Anda",
+        "zip_code": 2405
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Asingan",
+        "zip_code": 2439
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Balungao",
+        "zip_code": 2442
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Bani",
+        "zip_code": 2407
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Basista",
+        "zip_code": 2422
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Bautista",
+        "zip_code": 2424
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Bayambang",
+        "zip_code": 2423
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Binalonan",
+        "zip_code": 2436
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Binmaley",
+        "zip_code": 2417
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Bolinao",
+        "zip_code": 2406
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Bugallon",
+        "zip_code": 2416
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Burgos",
+        "zip_code": 2410
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Calasiao",
+        "zip_code": 2418
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Dagupan City",
+        "zip_code": 2400
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Dasol",
+        "zip_code": 2411
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Infanta",
+        "zip_code": 2412
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Labrador",
+        "zip_code": 2402
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Laoac",
+        "zip_code": 2437
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Lingayen",
+        "zip_code": 2401
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Mabini",
+        "zip_code": 2409
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Malasiqui",
+        "zip_code": 2421
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Manaoag",
+        "zip_code": 2430
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Mangaldan",
+        "zip_code": 2432
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Mangatarem",
+        "zip_code": 2413
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Mapandan",
+        "zip_code": 2429
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Natividad",
+        "zip_code": 2446
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Pozorrubio",
+        "zip_code": 2435
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Rosales",
+        "zip_code": 2441
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "San Carlos City",
+        "zip_code": 2420
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "San Fabian",
+        "zip_code": 2433
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "San Jacinto",
+        "zip_code": 2431
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "San Manuel",
+        "zip_code": 2438
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "San Nicolas",
+        "zip_code": 2447
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "San Quintin",
+        "zip_code": 2444
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Sison",
+        "zip_code": 2434
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Sta. Barbara",
+        "zip_code": 2419
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Sta. Maria",
+        "zip_code": 2440
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Sto. Tomas",
+        "zip_code": 2426
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Sual",
+        "zip_code": 2403
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Tayug",
+        "zip_code": 2445
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Umingan",
+        "zip_code": 2443
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Urbiztondo",
+        "zip_code": 2414
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Urdaneta",
+        "zip_code": 2428
+    },
+    {
+        "Province": "Pangasinan",
+        "City": "Villasis",
+        "zip_code": 2427
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Agdangan",
+        "zip_code": 4304
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Alabat",
+        "zip_code": 4333
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Atimonan",
+        "zip_code": 4331
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Buenavista",
+        "zip_code": 4320
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Burdeos",
+        "zip_code": 4340
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Calauag",
+        "zip_code": 4318
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Candelaria",
+        "zip_code": 4323
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Catanauan",
+        "zip_code": 4311
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Dolores",
+        "zip_code": 4326
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "General Luna",
+        "zip_code": 4310
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "General Nakar",
+        "zip_code": 4338
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Guinayangan",
+        "zip_code": 4319
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Gumaca",
+        "zip_code": 4307
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Hondagua",
+        "zip_code": 4317
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Infanta",
+        "zip_code": 4336
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Jomalig",
+        "zip_code": 4342
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Lopez",
+        "zip_code": 4316
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Lucban",
+        "zip_code": 4328
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Lucena City",
+        "zip_code": 4301
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Macalelon",
+        "zip_code": 4309
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Mauban",
+        "zip_code": 4330
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Mulanay",
+        "zip_code": 4312
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Padre Burgos",
+        "zip_code": 4303
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Pagbilao",
+        "zip_code": 4302
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Panukulan",
+        "zip_code": 4337
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Patnanungan",
+        "zip_code": 4341
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Perez",
+        "zip_code": 4334
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Pitogo",
+        "zip_code": 4308
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Plaridel",
+        "zip_code": 4306
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Polilio",
+        "zip_code": 4339
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Quezon",
+        "zip_code": 4332
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Quezon Capitol",
+        "zip_code": 4300
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Real",
+        "zip_code": 4335
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Sampaloc",
+        "zip_code": 4329
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "San Andres",
+        "zip_code": 4314
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "San Antonio",
+        "zip_code": 4324
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "San Francisco",
+        "zip_code": 4315
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "San Narciso",
+        "zip_code": 4313
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Sariaya",
+        "zip_code": 4322
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Tagkawayan",
+        "zip_code": 4321
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Tayabas",
+        "zip_code": 4327
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Tiaong",
+        "zip_code": 4325
+    },
+    {
+        "Province": "Quezon Province",
+        "City": "Unisan",
+        "zip_code": 4305
+    },
+    {
+        "Province": "Quirino",
+        "City": "Aglipay",
+        "zip_code": 3403
+    },
+    {
+        "Province": "Quirino",
+        "City": "Cabarroguis",
+        "zip_code": 3400
+    },
+    {
+        "Province": "Quirino",
+        "City": "Diffun",
+        "zip_code": 3401
+    },
+    {
+        "Province": "Quirino",
+        "City": "Maddela",
+        "zip_code": 3404
+    },
+    {
+        "Province": "Quirino",
+        "City": "Nagtipunan",
+        "zip_code": 3405
+    },
+    {
+        "Province": "Quirino",
+        "City": "Saguday",
+        "zip_code": 3402
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Angono",
+        "zip_code": 1930
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Antipolo",
+        "zip_code": 1870
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Bagong Nayon (Cogeo)",
+        "zip_code": 1872
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Baras",
+        "zip_code": 1970
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Binangonan",
+        "zip_code": 1940
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Cainta",
+        "zip_code": 1900
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Cardona",
+        "zip_code": 1950
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Cupang",
+        "zip_code": 1873
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Jala-Jala",
+        "zip_code": 1990
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Langhaya",
+        "zip_code": 1874
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Mambagat",
+        "zip_code": 1875
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Mayamot",
+        "zip_code": 1871
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Montalban (Rodriguez)",
+        "zip_code": 1860
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Morong",
+        "zip_code": 1960
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Pilillia",
+        "zip_code": 1910
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "San Mateo",
+        "zip_code": 1850
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Tanay",
+        "zip_code": 1980
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Taytay",
+        "zip_code": 1920
+    },
+    {
+        "Province": "Rizal Province",
+        "City": "Teresa",
+        "zip_code": 1880
+    },
+    {
+        "Province": "Romblon",
+        "City": "Alcantara",
+        "zip_code": 5509
+    },
+    {
+        "Province": "Romblon",
+        "City": "Banton (Jones)",
+        "zip_code": 5515
+    },
+    {
+        "Province": "Romblon",
+        "City": "Cajidiocan",
+        "zip_code": 5512
+    },
+    {
+        "Province": "Romblon",
+        "City": "Calatrava",
+        "zip_code": 5503
+    },
+    {
+        "Province": "Romblon",
+        "City": "Concepcion",
+        "zip_code": 5516
+    },
+    {
+        "Province": "Romblon",
+        "City": "Corcuera",
+        "zip_code": 5514
+    },
+    {
+        "Province": "Romblon",
+        "City": "Ferrol",
+        "zip_code": 5506
+    },
+    {
+        "Province": "Romblon",
+        "City": "Sta. Maria (formerly Imelda)",
+        "zip_code": 5502
+    },
+    {
+        "Province": "Romblon",
+        "City": "Looc",
+        "zip_code": 5507
+    },
+    {
+        "Province": "Romblon",
+        "City": "Magdiwang",
+        "zip_code": 5511
+    },
+    {
+        "Province": "Romblon",
+        "City": "Odiongan",
+        "zip_code": 5505
+    },
+    {
+        "Province": "Romblon",
+        "City": "Romblon",
+        "zip_code": 5500
+    },
+    {
+        "Province": "Romblon",
+        "City": "San Agustin",
+        "zip_code": 5501
+    },
+    {
+        "Province": "Romblon",
+        "City": "San Andres",
+        "zip_code": 5504
+    },
+    {
+        "Province": "Romblon",
+        "City": "San fernando",
+        "zip_code": 5513
+    },
+    {
+        "Province": "Romblon",
+        "City": "San Jose",
+        "zip_code": 5510
+    },
+    {
+        "Province": "Romblon",
+        "City": "Sta. Fe",
+        "zip_code": 5508
+    },
+    {
+        "Province": "Samar",
+        "City": "Almagro",
+        "zip_code": 6724
+    },
+    {
+        "Province": "Samar",
+        "City": "Basey",
+        "zip_code": 6720
+    },
+    {
+        "Province": "Samar",
+        "City": "Calbayog City",
+        "zip_code": 6710
+    },
+    {
+        "Province": "Samar",
+        "City": "Calbiga",
+        "zip_code": 6715
+    },
+    {
+        "Province": "Samar",
+        "City": "Catbalogan",
+        "zip_code": 6700
+    },
+    {
+        "Province": "Samar",
+        "City": "Daram",
+        "zip_code": 6722
+    },
+    {
+        "Province": "Samar",
+        "City": "Gandara",
+        "zip_code": 6706
+    },
+    {
+        "Province": "Samar",
+        "City": "Hinabangan",
+        "zip_code": 6713
+    },
+    {
+        "Province": "Samar",
+        "City": "Jiabong",
+        "zip_code": 6701
+    },
+    {
+        "Province": "Samar",
+        "City": "Marabut",
+        "zip_code": 6721
+    },
+    {
+        "Province": "Samar",
+        "City": "Matuguinao",
+        "zip_code": 6708
+    },
+    {
+        "Province": "Samar",
+        "City": "Motiong",
+        "zip_code": 6702
+    },
+    {
+        "Province": "Samar",
+        "City": "Pagsanghan",
+        "zip_code": 6705
+    },
+    {
+        "Province": "Samar",
+        "City": "Pinabacdao",
+        "zip_code": 6716
+    },
+    {
+        "Province": "Samar",
+        "City": "San Jorge",
+        "zip_code": 6707
+    },
+    {
+        "Province": "Samar",
+        "City": "San Jose de Buan",
+        "zip_code": 6723
+    },
+    {
+        "Province": "Samar",
+        "City": "San Sebastian",
+        "zip_code": 6714
+    },
+    {
+        "Province": "Samar",
+        "City": "Sta. Margarita",
+        "zip_code": 6709
+    },
+    {
+        "Province": "Samar",
+        "City": "Sta. Rita",
+        "zip_code": 6718
+    },
+    {
+        "Province": "Samar",
+        "City": "Sto. Niño",
+        "zip_code": 6711
+    },
+    {
+        "Province": "Samar",
+        "City": "Tagapul-an",
+        "zip_code": 6712
+    },
+    {
+        "Province": "Samar",
+        "City": "Talalora",
+        "zip_code": 6719
+    },
+    {
+        "Province": "Samar",
+        "City": "Tarangnan",
+        "zip_code": 6704
+    },
+    {
+        "Province": "Samar",
+        "City": "Villareal",
+        "zip_code": 6717
+    },
+    {
+        "Province": "Samar",
+        "City": "Wright",
+        "zip_code": 6703
+    },
+    {
+        "Province": "Samar",
+        "City": "Zumarraga",
+        "zip_code": 6725
+    },
+    {
+        "Province": "Sarangani",
+        "City": "Alabel",
+        "zip_code": 9501
+    },
+    {
+        "Province": "Sarangani",
+        "City": "Glan",
+        "zip_code": 9517
+    },
+    {
+        "Province": "Sarangani",
+        "City": "Kiamba",
+        "zip_code": 9514
+    },
+    {
+        "Province": "Sarangani",
+        "City": "Maasim",
+        "zip_code": 9502
+    },
+    {
+        "Province": "Sarangani",
+        "City": "Maitum",
+        "zip_code": 9515
+    },
+    {
+        "Province": "Sarangani",
+        "City": "Malapatan",
+        "zip_code": 9516
+    },
+    {
+        "Province": "Sarangani",
+        "City": "Malungon",
+        "zip_code": 9503
+    },
+    {
+        "Province": "Siquijor",
+        "City": "Enrique Villanueva",
+        "zip_code": 6230
+    },
+    {
+        "Province": "Siquijor",
+        "City": "Larena",
+        "zip_code": 6226
+    },
+    {
+        "Province": "Siquijor",
+        "City": "Lazi",
+        "zip_code": 6228
+    },
+    {
+        "Province": "Siquijor",
+        "City": "Maria",
+        "zip_code": 6229
+    },
+    {
+        "Province": "Siquijor",
+        "City": "San Juan",
+        "zip_code": 6227
+    },
+    {
+        "Province": "Siquijor",
+        "City": "Siquijor",
+        "zip_code": 6225
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Bacon",
+        "zip_code": 4701
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Barcelona",
+        "zip_code": 4712
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Bulan",
+        "zip_code": 4706
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Bulusan",
+        "zip_code": 4704
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Casiguran",
+        "zip_code": 4702
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Castilla",
+        "zip_code": 4713
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Donsol",
+        "zip_code": 4715
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Gubat",
+        "zip_code": 4710
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Irosin",
+        "zip_code": 4707
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Juban",
+        "zip_code": 4703
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Magallanes",
+        "zip_code": 4705
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Matnog",
+        "zip_code": 4708
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Pilar",
+        "zip_code": 4714
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Prieto Diaz",
+        "zip_code": 4711
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Sorsogon",
+        "zip_code": 4700
+    },
+    {
+        "Province": "Sorsogon",
+        "City": "Sta. Magdalena",
+        "zip_code": 4709
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Banga",
+        "zip_code": 9511
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "General Santos City",
+        "zip_code": 9500
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Koronadal",
+        "zip_code": 9506
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Lake Sebu",
+        "zip_code": 9518
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Norala",
+        "zip_code": 9508
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Polomolok",
+        "zip_code": 9504
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Sto. Niño",
+        "zip_code": 9509
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Surallah",
+        "zip_code": 9512
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Tampakan",
+        "zip_code": 9507
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Tantangan",
+        "zip_code": 9510
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "T'boli",
+        "zip_code": 9513
+    },
+    {
+        "Province": "South Cotabato",
+        "City": "Tupi",
+        "zip_code": 9505
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Anahawan",
+        "zip_code": 6610
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Bontoc",
+        "zip_code": 6604
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Hinunangan",
+        "zip_code": 6608
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Hinundayan",
+        "zip_code": 6609
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Libagon",
+        "zip_code": 6615
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Liloan",
+        "zip_code": 6612
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Limasawa",
+        "zip_code": 6618
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Maasin",
+        "zip_code": 6600
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Macrohon",
+        "zip_code": 6601
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Malitbog",
+        "zip_code": 6603
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Padre Burgos",
+        "zip_code": 6602
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Pintuyan",
+        "zip_code": 6614
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "San Francisco",
+        "zip_code": 6613
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "San Juan (Cabalian)",
+        "zip_code": 6611
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "San Ricardo",
+        "zip_code": 6617
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Silago",
+        "zip_code": 6607
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Sogod",
+        "zip_code": 6606
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "St. Bernard",
+        "zip_code": 6616
+    },
+    {
+        "Province": "Southern Leyte",
+        "City": "Tomas Oppus",
+        "zip_code": 6605
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Bagumbayan",
+        "zip_code": 9810
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Columbio",
+        "zip_code": 9801
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Esperanza (Ampatuan)",
+        "zip_code": 9806
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Isulan",
+        "zip_code": 9805
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Kalamansig",
+        "zip_code": 9808
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Lebak (Salaman)",
+        "zip_code": 9807
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Lutayan",
+        "zip_code": 9803
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Mariano Marcos",
+        "zip_code": 9802
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Palimbang",
+        "zip_code": 9809
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Pres. Quirino",
+        "zip_code": 9804
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Sen. Ninoy Aquino",
+        "zip_code": 9811
+    },
+    {
+        "Province": "Sultan Kudarat",
+        "City": "Tacurong",
+        "zip_code": 9800
+    },
+    {
+        "Province": "Sulu",
+        "City": "Banguingui (formerly Tongkil)",
+        "zip_code": 7406
+    },
+    {
+        "Province": "Sulu",
+        "City": "Hadji Panglima Tahil (formerly Marungas)",
+        "zip_code": 7413
+    },
+    {
+        "Province": "Sulu",
+        "City": "Indanan",
+        "zip_code": 7407
+    },
+    {
+        "Province": "Sulu",
+        "City": "Jolo",
+        "zip_code": 7400
+    },
+    {
+        "Province": "Sulu",
+        "City": "Kalingalan Kalauang",
+        "zip_code": 7416
+    },
+    {
+        "Province": "Sulu",
+        "City": "Lugus",
+        "zip_code": 7411
+    },
+    {
+        "Province": "Sulu",
+        "City": "Luuk",
+        "zip_code": 7404
+    },
+    {
+        "Province": "Sulu",
+        "City": "Maimbung",
+        "zip_code": 7409
+    },
+    {
+        "Province": "Sulu",
+        "City": "Omar",
+        "zip_code": 7417
+    },
+    {
+        "Province": "Sulu",
+        "City": "Panamao",
+        "zip_code": 7402
+    },
+    {
+        "Province": "Sulu",
+        "City": "Pandami",
+        "zip_code": 7418
+    },
+    {
+        "Province": "Sulu",
+        "City": "Panglima Estino",
+        "zip_code": 7415
+    },
+    {
+        "Province": "Sulu",
+        "City": "Panguntaran",
+        "zip_code": 7414
+    },
+    {
+        "Province": "Sulu",
+        "City": "Parang",
+        "zip_code": 7408
+    },
+    {
+        "Province": "Sulu",
+        "City": "Pata",
+        "zip_code": 7405
+    },
+    {
+        "Province": "Sulu",
+        "City": "Patikul",
+        "zip_code": 7401
+    },
+    {
+        "Province": "Sulu",
+        "City": "Siasi",
+        "zip_code": 7412
+    },
+    {
+        "Province": "Sulu",
+        "City": "Talipao",
+        "zip_code": 7403
+    },
+    {
+        "Province": "Sulu",
+        "City": "Tapul",
+        "zip_code": 7410
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Alegria",
+        "zip_code": 8425
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Bacuag",
+        "zip_code": 8408
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Burgos",
+        "zip_code": 8424
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Claver",
+        "zip_code": 8410
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Dapa",
+        "zip_code": 8417
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Del Carmen",
+        "zip_code": 8418
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Gen. Luna",
+        "zip_code": 8419
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Gigaquit",
+        "zip_code": 8409
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Mainit",
+        "zip_code": 8407
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Malimono",
+        "zip_code": 8402
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Pilar",
+        "zip_code": 8420
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Placer",
+        "zip_code": 8405
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "San Benito",
+        "zip_code": 8423
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "San Francisco",
+        "zip_code": 8401
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "San Isidro",
+        "zip_code": 8421
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Sison",
+        "zip_code": 8404
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Socorro",
+        "zip_code": 8416
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Sta. Monica",
+        "zip_code": 8422
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Surigao City",
+        "zip_code": 8400
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Tagana-an",
+        "zip_code": 8403
+    },
+    {
+        "Province": "Surigao del Norte",
+        "City": "Tubod",
+        "zip_code": 8406
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Barobo",
+        "zip_code": 8309
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Bayabas",
+        "zip_code": 8303
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Bislig",
+        "zip_code": 8311
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Cagwait",
+        "zip_code": 8304
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Cantilan",
+        "zip_code": 8317
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Carmen",
+        "zip_code": 8315
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Carrascal",
+        "zip_code": 8318
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Cortez",
+        "zip_code": 8313
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Hinatuan",
+        "zip_code": 8310
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Lanuza",
+        "zip_code": 8314
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Lianga",
+        "zip_code": 8307
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Lingig",
+        "zip_code": 8312
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Madrid",
+        "zip_code": 8316
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Malixi",
+        "zip_code": 8319
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Marihatag",
+        "zip_code": 8306
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "San Agustin",
+        "zip_code": 8305
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "San Miguel",
+        "zip_code": 8301
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Tagbina",
+        "zip_code": 8308
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Tago",
+        "zip_code": 8302
+    },
+    {
+        "Province": "Surigao del Sur",
+        "City": "Tandag",
+        "zip_code": 8300
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Anao",
+        "zip_code": 2310
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Bamban",
+        "zip_code": 2317
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Camiling",
+        "zip_code": 2306
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Capas",
+        "zip_code": 2315
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Concepcion",
+        "zip_code": 2316
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Gerona",
+        "zip_code": 2302
+    },
+    {
+        "Province": "Tarlac",
+        "City": "La Paz",
+        "zip_code": 2314
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Mayantoc",
+        "zip_code": 2304
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Moncada",
+        "zip_code": 2308
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Paniqui",
+        "zip_code": 2307
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Pura",
+        "zip_code": 2312
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Ramos",
+        "zip_code": 2311
+    },
+    {
+        "Province": "Tarlac",
+        "City": "San Clemente",
+        "zip_code": 2305
+    },
+    {
+        "Province": "Tarlac",
+        "City": "San Jose",
+        "zip_code": 2318
+    },
+    {
+        "Province": "Tarlac",
+        "City": "San Manuel",
+        "zip_code": 2309
+    },
+    {
+        "Province": "Tarlac",
+        "City": "San Miguel",
+        "zip_code": 2301
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Sta. Ignacia",
+        "zip_code": 2303
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Tarlac",
+        "zip_code": 2300
+    },
+    {
+        "Province": "Tarlac",
+        "City": "Victoria",
+        "zip_code": 2313
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Bongao",
+        "zip_code": 7500
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Languyan",
+        "zip_code": 7509
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Mapun (formerly Cagayan de Sulu)",
+        "zip_code": 7508
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Panglima Sugala (formerly Balimbing)",
+        "zip_code": 7501
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Sapa-Sapa",
+        "zip_code": 7503
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Sibutu",
+        "zip_code": 7510
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Simunul",
+        "zip_code": 7505
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Sitangkai",
+        "zip_code": 7506
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "South Ubian",
+        "zip_code": 7504
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Turtle Island (Taganak)",
+        "zip_code": 7507
+    },
+    {
+        "Province": "Tawi-Tawi",
+        "City": "Tandu Bas",
+        "zip_code": 7502
+    },
+    {
+        "Province": "Zambales",
+        "City": "Botolan",
+        "zip_code": 2202
+    },
+    {
+        "Province": "Zambales",
+        "City": "Cabangan",
+        "zip_code": 2203
+    },
+    {
+        "Province": "Zambales",
+        "City": "Candelaria",
+        "zip_code": 2212
+    },
+    {
+        "Province": "Zambales",
+        "City": "Castillejos",
+        "zip_code": 2208
+    },
+    {
+        "Province": "Zambales",
+        "City": "Iba",
+        "zip_code": 2201
+    },
+    {
+        "Province": "Zambales",
+        "City": "Masinloc",
+        "zip_code": 2211
+    },
+    {
+        "Province": "Zambales",
+        "City": "Olongapo City",
+        "zip_code": 2200
+    },
+    {
+        "Province": "Zambales",
+        "City": "Palauig",
+        "zip_code": 2210
+    },
+    {
+        "Province": "Zambales",
+        "City": "San Antonio",
+        "zip_code": 2206
+    },
+    {
+        "Province": "Zambales",
+        "City": "San Felipe",
+        "zip_code": 2204
+    },
+    {
+        "Province": "Zambales",
+        "City": "San Marcelino",
+        "zip_code": 2207
+    },
+    {
+        "Province": "Zambales",
+        "City": "San Narciso",
+        "zip_code": 2205
+    },
+    {
+        "Province": "Zambales",
+        "City": "Sta. Cruz",
+        "zip_code": 2213
+    },
+    {
+        "Province": "Zambales",
+        "City": "Subic",
+        "zip_code": 2209
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Leon B. Postigo (Bacungan)",
+        "zip_code": 7125
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Liloy",
+        "zip_code": 7115
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Manukan",
+        "zip_code": 7110
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Mutia",
+        "zip_code": 7107
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Pinan",
+        "zip_code": 7105
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Polanco",
+        "zip_code": 7106
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Rizal",
+        "zip_code": 7104
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Roxas",
+        "zip_code": 7102
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Salug",
+        "zip_code": 7114
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Sergio Osmeña",
+        "zip_code": 7108
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Siayan",
+        "zip_code": 7113
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Sibuco",
+        "zip_code": 7122
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Sibutad",
+        "zip_code": 7103
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Sindangan",
+        "zip_code": 7112
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Siocon",
+        "zip_code": 7120
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Siraway",
+        "zip_code": 7121
+    },
+    {
+        "Province": "Zamboanga del Norte",
+        "City": "Tampilisan",
+        "zip_code": 7116
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Aurora",
+        "zip_code": 7020
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Bayog",
+        "zip_code": 7011
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Dimataling",
+        "zip_code": 7032
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Dinas",
+        "zip_code": 7030
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Don Mariano Marcos",
+        "zip_code": 7022
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Dumalinao",
+        "zip_code": 7015
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Dumingag",
+        "zip_code": 7028
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Guipos",
+        "zip_code": 7042
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Josefina",
+        "zip_code": 7027
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Kumalarang",
+        "zip_code": 7013
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Labangan",
+        "zip_code": 7017
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Lakewood",
+        "zip_code": 7014
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Lapuyan",
+        "zip_code": 7037
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Mahayag",
+        "zip_code": 7026
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Margo sa Tubig",
+        "zip_code": 7035
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Midsalip",
+        "zip_code": 7021
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Molave",
+        "zip_code": 7023
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Pagadian City",
+        "zip_code": 7016
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Pitogo",
+        "zip_code": 7033
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Ramon Magsaysay",
+        "zip_code": 7024
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "San Miguel",
+        "zip_code": 7029
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "San Pablo",
+        "zip_code": 7031
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Tabina",
+        "zip_code": 7034
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Tambulig",
+        "zip_code": 7025
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Tigbao",
+        "zip_code": 7043
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Tukuran",
+        "zip_code": 7019
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Vicencio Sagun",
+        "zip_code": 7036
+    },
+    {
+        "Province": "Zamboanga del Sur",
+        "City": "Zamboanga City",
+        "zip_code": 7000
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Alicia",
+        "zip_code": 7040
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Buug",
+        "zip_code": 7009
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Diplahan",
+        "zip_code": 7039
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Imelda",
+        "zip_code": 7007
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Ipil",
+        "zip_code": 7001
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Kabasalan",
+        "zip_code": 7005
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Mabuhay",
+        "zip_code": 7010
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Malangas",
+        "zip_code": 7038
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Naga",
+        "zip_code": 7004
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Olutanga",
+        "zip_code": 7041
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Payao",
+        "zip_code": 7008
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Roseller Lim",
+        "zip_code": 7002
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Siay",
+        "zip_code": 7006
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Talusan",
+        "zip_code": 7012
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Titay",
+        "zip_code": 7003
+    },
+    {
+        "Province": "Zamboanga Sibugay",
+        "City": "Tungawan",
+        "zip_code": 7018
+    }
+]

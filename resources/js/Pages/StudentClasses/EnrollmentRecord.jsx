@@ -2,20 +2,21 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { PageTitle } from '@/Components/ui/PageTitle';
-import { Separator } from '@/Components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM, formatFullName, formatFullNameFML } from '@/Lib/Utils';
+import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Head, usePage } from '@inertiajs/react';
 import html2canvas from 'html2canvas';
 import { Download, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
+import FillUpPrompt from './CollectStudentData/FillUpPrompt';
 
-function EnrollmentRecord() {
+function EnrollmentRecord({ need_fill_up }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [records, setRecords] = useState([]);
     const { user } = usePage().props.auth;
+
 
     const getStudentEnrollmentRecord = async () => {
         await axios.post(route('enrollment-record'))
@@ -74,6 +75,7 @@ function EnrollmentRecord() {
         }
     };
 
+    if (need_fill_up) return <FillUpPrompt />
 
     if (loading) return <PreLoader title="Enrollment Record" />;
 
@@ -152,7 +154,7 @@ function EnrollmentRecord() {
                                                                 {classInfo.midterm_grade === 0.0 ? (
                                                                     <span className="text-red-500 font-medium">DROPPED</span>
                                                                 ) : classInfo.midterm_grade ? (
-                                                                        classInfo.midterm_grade?.toFixed(1)
+                                                                    classInfo.midterm_grade?.toFixed(1)
                                                                 ) : (
                                                                     '-'
                                                                 )}
@@ -161,7 +163,7 @@ function EnrollmentRecord() {
                                                                 {classInfo.final_grade === 0.0 ? (
                                                                     <span className="text-red-500 font-medium">DROPPED</span>
                                                                 ) : classInfo.final_grade ? (
-                                                                        classInfo.final_grade?.toFixed(1)
+                                                                    classInfo.final_grade?.toFixed(1)
                                                                 ) : (
                                                                     '-'
                                                                 )}

@@ -11,6 +11,7 @@ use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\StudentType;
 use App\Models\User;
+use App\Models\UserInformation;
 use App\Models\YearLevel;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
@@ -593,13 +594,16 @@ class SchoolYearController extends Controller
 
     public function enrollmentRecordView()
     {
-        $userRole = Auth::user()->user_role;
-        if ($userRole == 'registrar') {
+        $user = Auth::user();
+        if ($user->user_role == 'registrar') {
             return Inertia::render('SchoolYear/EnrollmentRecord', [
                 'schoolYears' => $this->schoolYearsList(),
             ]);
-        } else if ($userRole == 'student') {
-            return Inertia::render('StudentClasses/EnrollmentRecord');
+        } else if ($user->user_role == 'student') {
+            $info = UserInformation::where('user_id', $user->id)->first();
+            return Inertia::render('StudentClasses/EnrollmentRecord', [
+                'need_fill_up' =>  $info->civil_status ? false : true
+            ]);
         } else {
             return redirect('/login');
         }
