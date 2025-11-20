@@ -23,7 +23,7 @@ import {
     FolderPlus,
     User2Icon,
     ListChecks,
-} from "lucide-react"; 
+} from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
@@ -120,6 +120,7 @@ export function NavMain() {
                 items: [
                     { name: "Classes", route: "classes", icon: Presentation },
                     { name: "Enrollment Record", route: "enrollment-record", icon: Library },
+                    { name: "Faculty Evaluation", route: "student.evaluation", icon: ListTodo },
                 ],
             });
             break;
