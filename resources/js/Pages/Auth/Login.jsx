@@ -36,7 +36,7 @@ export default function Login({ status }) {
     };
 
     return (
-        <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
+        <div className="h-svh w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
             <Head title="Login" />
 
             {status && (
