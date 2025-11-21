@@ -204,11 +204,11 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
         if (section === 3) {
             if (!formData.fatherFirstName) newErrors.fatherFirstName = true
             if (!formData.fatherLastName) newErrors.fatherLastName = true
-            if (formData.fatherContact.length < 11) newErrors.fatherContact = true
+            // if (formData.fatherContact.length < 11) newErrors.fatherContact = true
 
             if (!formData.motherFirstName) newErrors.motherFirstName = true
             if (!formData.motherLastName) newErrors.motherLastName = true
-            if (formData.motherContact.length < 11) newErrors.motherContact = true
+            // if (formData.motherContact.length < 11) newErrors.motherContact = true
         }
 
         if (section === 1) {
@@ -232,8 +232,8 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
     }
 
     const handleSubmit = () => {
-        setSubmitting(true);
         if (validateSection(currentSection)) {
+            setSubmitting(true);
             router.post(route('update-additional-info'), {
                 ...formData
             }, {
@@ -295,7 +295,7 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="h-[100dvh] w-full max-w-full p-0 gap-0 rounded-none sm:rounded-xl sm:h-auto sm:max-w-2xl">
+            <DialogContent className="w-full max-w-full p-0 gap-0 rounded-none sm:rounded-xl sm:h-auto sm:max-w-2xl">
                 {/* Progress Steps */}
                 <div className="px-6 py-4 border-b bg-muted/30 max-h-min">
                     <div className="flex items-center justify-between">
@@ -328,8 +328,8 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                     </div>
                 </div>
 
-                <Card className="border-none shadow-none flex-1 flex flex-col h-full">
-                    <CardContent className="px-6 py-4 flex-1 overflow-y-auto overscroll-contain">
+                <Card className="border-none shadow-none flex-1 flex flex-col">
+                    <CardContent className="px-6 py-4 flex-1">
                         {/* Section 1: Address */}
                         {currentSection === 2 && (
                             <div className="space-y-6 animate-in fade-in duration-300">
@@ -434,7 +434,7 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                                         />
                                     </div>
 
-                                    <div className="h-20" />
+                                    {/* <div className="h-20" /> */}
                                 </div>
                             </div>
                         )}
@@ -522,7 +522,7 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium mb-1.5 block">
-                                                    Contact Number <span className="text-destructive">*</span>
+                                                    Contact Number
                                                 </label>
                                                 <Input
                                                     placeholder=""
@@ -601,7 +601,7 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                                             </div>
                                             <div>
                                                 <label className="text-sm font-medium mb-1.5 block">
-                                                    Contact Number <span className="text-destructive">*</span>
+                                                    Contact Number
                                                 </label>
                                                 <Input
                                                     placeholder="+63 XXX XXX XXXX"
@@ -641,11 +641,6 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                                             onChange={(e) => handleInputChange('nationality', e.target.value)}
                                             className={`text-base ${errors.nationality ? 'border-destructive' : ''}`}
                                         />
-                                        {errors.nationality && (
-                                            <p className="text-xs text-destructive mt-1.5 flex items-center gap-1">
-                                                <AlertCircle className="w-3 h-3" /> {errors.nationality}
-                                            </p>
-                                        )}
                                     </div>
 
                                     {/* Birthday */}
@@ -659,11 +654,6 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                                             onChange={(e) => handleInputChange('birthday', e.target.value)}
                                             className={`text-base ${errors.birthday ? 'border-destructive' : ''}`}
                                         />
-                                        {errors.birthday && (
-                                            <p className="text-xs text-destructive mt-1.5 flex items-center gap-1">
-                                                <AlertCircle className="w-3 h-3" /> {errors.birthday}
-                                            </p>
-                                        )}
                                     </div>
 
                                     {/* Civil Status */}
@@ -686,11 +676,6 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                                                 <SelectItem value="Divorced">Divorced</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        {errors.civilStatus && (
-                                            <p className="text-xs text-destructive mt-1.5 flex items-center gap-1">
-                                                <AlertCircle className="w-3 h-3" /> {errors.civilStatus}
-                                            </p>
-                                        )}
                                     </div>
                                     <div>
                                         <label className="text-sm font-medium mb-1.5 block">
@@ -735,8 +720,7 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
                                         </p>
                                     </div>
 
-
-                                    <div className="h-24" />
+                                    {/* <div className="h-24" /> */}
                                 </div>
                             </div>
                         )}
