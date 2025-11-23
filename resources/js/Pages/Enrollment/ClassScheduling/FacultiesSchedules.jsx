@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Head } from '@inertiajs/react';
-import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
+import { convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Button } from '@/Components/ui/button';
@@ -15,9 +15,98 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover
 import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import html2canvas from "html2canvas";
+import * as XLSX from 'xlsx'
 
 export default function FacultySchedules({ schoolYearId, departmentId }) {
     const [faculties, setFaculties] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const donwloadExcel = () => {
+        if (!faculties || faculties.length === 0) return;
+
+        setIsLoading(true);
+
+        setTimeout(() => {
+            const excelData = faculties.flatMap(faculty =>
+                faculty.schedules.flatMap(schedule => {
+                    const baseRow = {
+                        Name: formatName(faculty),
+                        ClassCode: schedule.class_code,
+                        Subject: schedule.descriptive_title,
+                        Day: schedule.day,
+                        StartTime: convertToAMPM(schedule.start_time),
+                        EndTime: convertToAMPM(schedule.end_time),
+                        Room: schedule.room_name,
+                        StudentCount: schedule.student_count,
+                    };
+
+                    if (schedule.secondary_schedule) {
+                        const second = schedule.secondary_schedule;
+                        const secondRow = {
+                            Name: formatName(faculty),
+                            ClassCode: schedule.class_code,
+                            Subject: `${schedule.descriptive_title} (2nd schedule)`,
+                            Day: second.day,
+                            StartTime: convertToAMPM(second.start_time),
+                            EndTime: convertToAMPM(second.end_time),
+                            Room: second.room_name,
+                            StudentCount: schedule.student_count,
+                        };
+                        return [baseRow, secondRow];
+                    }
+
+                    return [baseRow];
+                })
+            );
+
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // widen columns
+            ws['!cols'] = [
+                { wch: 25 },
+                { wch: 12 },
+                { wch: 50 }, 
+                { wch: 12 },
+                { wch: 10 },
+                { wch: 10 },
+                { wch: 12 },
+                { wch: 14 },
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Faculty Schedules');
+            XLSX.writeFile(wb, 'faculty_schedules.xlsx');
+
+            setIsLoading(false);
+        }, 300);
+    };
+
+    const formatName = (faculty) => {
+        const formatWord = (word) =>
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+
+        // Last name - fully uppercase (as requested before)
+        const last = faculty.last_name
+            ? faculty.last_name.toUpperCase()
+            : '';
+
+        // First name - handles multiple words like "RYAN JAY"
+        const first = faculty.first_name
+            ? faculty.first_name
+                .split(' ')
+                .map(formatWord)
+                .join(' ')
+            : '';
+
+        // Middle initial
+        const middle = faculty.middle_name
+            ? faculty.middle_name.charAt(0).toUpperCase() + '.'
+            : '';
+
+        return `${last}, ${first} ${middle}`.trim();
+    };
+
     const [loading, setLoading] = useState(true);
     const [colorful, setColorful] = useState(true);
     const [selectedFaculty, setSelectedFaculty] = useState("All");
@@ -222,7 +311,12 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
                             </PopoverContent>
                         </Popover>
 
-                        <Button className="bg-green-600 hover:bg-green-500" variant="">
+                        <Button
+                            disabled={isLoading}
+                            onClick={() => donwloadExcel()}
+                            className="bg-green-600 hover:bg-green-500"
+                            variant=""
+                        >
                             <FileDown />
                             Excel
                         </Button>

@@ -16,9 +16,70 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover
 import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import html2canvas from "html2canvas";
+import * as XLSX from "xlsx";
 
 export default function RoomSchedules({ schoolYearId, departmentId }) {
     const [rooms, setRooms] = useState([]);
+
+    // Convert time to AM/PM
+    const convertToAMPM = (time) => {
+        const [hour, minute] = time.split(":").map(Number);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const h = hour % 12 === 0 ? 12 : hour % 12;
+        return `${h}:${minute.toString().padStart(2, "0")} ${ampm}`;
+    };
+
+    // Format name properly: last, first middle-initial (handles multiple first names)
+    const formatName = (faculty) => {
+        const last = faculty.last_name
+            ? faculty.last_name.charAt(0).toUpperCase() + faculty.last_name.slice(1).toLowerCase()
+            : "";
+        const first = faculty.first_name
+            ? faculty.first_name
+                .split(" ")
+                .map((f) => f.charAt(0).toUpperCase() + f.slice(1).toLowerCase())
+                .join(" ")
+            : "";
+        const middle = faculty.middle_name ? `${faculty.middle_name.charAt(0).toUpperCase()}.` : "";
+        return `${last}, ${first} ${middle}`.trim();
+    };
+
+    const downloadExcel = () => {
+        setLoading(true);
+
+        const excelData = rooms.flatMap((room) =>
+            room.schedules.map((sched) => ({
+                Name: formatName(sched),
+                ClassCode: sched.class_code,
+                Subject: sched.descriptive_title,
+                Day: sched.day,
+                StartTime: convertToAMPM(sched.start_time),
+                EndTime: convertToAMPM(sched.end_time),
+                Room: room.room_name,
+            }))
+        );
+
+        const ws = XLSX.utils.json_to_sheet(excelData, { header: ["Name", "ClassCode", "Subject", "Day", "StartTime", "EndTime", "Room"] });
+
+        // Set column width for descriptive title
+        const wscols = [
+            { wch: 25 }, // Name
+            { wch: 10 }, // ClassCode
+            { wch: 50 }, // Subject
+            { wch: 12 }, // Day
+            { wch: 10 }, // StartTime
+            { wch: 10 }, // EndTime
+            { wch: 10 }, // Room
+        ];
+        ws["!cols"] = wscols;
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "RoomSchedules");
+        XLSX.writeFile(wb, "RoomSchedules.xlsx");
+
+        setLoading(false);
+    };
+    
     const [loading, setLoading] = useState(true);
     const [colorful, setColorful] = useState(true);
     const [selectedRoom, setSelectedRoom] = useState("All");
@@ -213,9 +274,12 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
                             </PopoverContent>
                         </Popover>
 
-                        <Button className="bg-green-600 hover:bg-green-500" variant="">
-                            <FileDown />
-                            Excel
+                        <Button
+                            onClick={downloadExcel}
+                            className="bg-green-600 hover:bg-green-500"
+                            disabled={loading}
+                        >
+                            {loading ? "Loading..." : <><FileDown /> Excel</>}
                         </Button>
                         <Button
                             className="bg-blue-700 hover:bg-blue-600"
