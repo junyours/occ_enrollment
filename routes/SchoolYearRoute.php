@@ -55,4 +55,6 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
     Route::get('/enrollment-record', [SchoolYearController::class, 'enrollmentRecordView'])->name('enrollment-record');
 });
 
+Route::middleware(['auth'])->post('/school-years-data', [SchoolYearController::class, 'schoolYearsData'])->name('school-years-data');
+
 Route::post('/enrollment-data', [SchoolYearController::class, 'enrollmentData'])->name('enrollment-data');

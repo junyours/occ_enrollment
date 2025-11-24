@@ -23,6 +23,8 @@ import {
     FolderPlus,
     User2Icon,
     ListChecks,
+    BookOpenText,
+    Inbox,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -126,12 +128,20 @@ export function NavMain() {
             break;
 
         case "faculty":
-            menuSections.push({
-                label: "Academic",
-                items: [
-                    { name: "Classes", route: "classes", icon: Presentation },
-                ],
-            });
+            menuSections.push(
+                {
+                    label: "Academic",
+                    items: [
+                        { name: "Classes", route: "classes", icon: Presentation },
+                    ],
+                },
+                {
+                    label: "Grades",
+                    items: [
+                        { name: "Subjects", route: "subjects-list", icon: BookOpenText },
+                        { name: "Requests", route: "requests", icon: Inbox },
+                    ],
+                });
             break;
 
         case "evaluator":

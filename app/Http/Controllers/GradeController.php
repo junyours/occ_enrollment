@@ -539,4 +539,12 @@ class GradeController extends Controller
 
         return response()->json($programHead);
     }
+
+    public function gradesSubjectsList(){
+        return Inertia::render('Grades/InstructorSubejctsList');
+    }
+
+    public function gradesInstructorRequests(){
+        return Inertia::render('Grades/InstructorRequests');
+    }
 }

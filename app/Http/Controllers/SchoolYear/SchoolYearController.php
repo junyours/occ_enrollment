@@ -1194,4 +1194,12 @@ class SchoolYearController extends Controller
             ->orderBy('school_years.semester_id', 'DESC')
             ->get();
     }
+
+    public function schoolYearsData()
+    {
+        $schoolYears = SchoolYear::with('Semester')
+            ->get();
+        
+        return response()->json($schoolYears);
+    }
 }
