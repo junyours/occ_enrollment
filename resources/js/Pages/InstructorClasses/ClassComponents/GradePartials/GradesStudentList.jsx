@@ -9,8 +9,7 @@ import { useGradeSubmissionStore } from './useGradeSubmissionStore'
 import { router } from '@inertiajs/react'
 
 function GradesStudentList({ grades, status, missingFields, handleGradeChange, setMissingFields, allowMidtermUpload, allowFinalUpload, yearSectionSubjectsId }) {
-    console.log(status);
-
+    
     const { toast } = useToast();
 
     // Call the hook

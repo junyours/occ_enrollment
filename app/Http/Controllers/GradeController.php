@@ -7,7 +7,9 @@ use App\Models\GradeSubmission;
 use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\StudentSubject;
+use App\Models\Subject;
 use App\Models\User;
+use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -298,7 +300,7 @@ class GradeController extends Controller
             ->orderBy('school_years.end_date', 'DESC')
             ->orderBy('school_years.semester_id', 'DESC')
             ->get();
-        
+
         return Inertia::render('Grades/SubmittedGrades', [
             'schoolYears' => $schoolYears,
         ]);
@@ -489,18 +491,18 @@ class GradeController extends Controller
     {
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
-            'midterm_status' => 'deployed',
-            'midterm_deployed_at' => now(),
+                'midterm_status' => 'deployed',
+                'midterm_deployed_at' => now(),
             ]);
     }
-    
+
 
     public function deployFinalGrades($yearSectionSubjectsId)
     {
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
-            'final_status' => 'deployed',
-            'final_deployed_at' => now(),
+                'final_status' => 'deployed',
+                'final_deployed_at' => now(),
             ]);
     }
 
@@ -540,11 +542,88 @@ class GradeController extends Controller
         return response()->json($programHead);
     }
 
-    public function gradesSubjectsList(){
+    public function gradesSubjectsList()
+    {
         return Inertia::render('Grades/InstructorSubejctsList');
     }
 
-    public function gradesInstructorRequests(){
+    public function gradesInstructorRequests()
+    {
         return Inertia::render('Grades/InstructorRequests');
+    }
+
+    public function instructorSubjects(Request $request)
+    {
+        $facultyId = Auth::id();
+
+        $subjects = YearSectionSubjects::select(
+            'year_section_subjects.id',
+            'descriptive_title',
+            'midterm_status',
+            'midterm_submitted_at',
+            'midterm_verified_at',
+            'midterm_deployed_at',
+            'final_status',
+            'final_submitted_at',
+            'final_verified_at',
+            'final_rejection_message',
+            'final_deployed_at',
+            'section',
+            'year_level_id',
+            'course_name_abbreviation',
+        )
+            ->selectRaw(
+                "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
+            )
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->where('faculty_id', '=', $facultyId)
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->join('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
+            ->where('school_year_id', '=', $request->schoolYearId)
+            ->get();
+
+        return response()->json($subjects, 200);
+    }
+
+    public function instructorSubjectsViewSubject($id)
+    {
+        $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$id])
+            ->first();
+
+        $subject = Subject::where('id', '=', $yearSectionSubjects->subject_id)->first();
+
+        $courseSection = YearSection::join('course', 'course.id', '=', 'year_section.course_id')
+            ->where('year_section.id', $yearSectionSubjects->year_section_id)
+            ->first();
+
+        $gradeStatus = GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjects->id)->first();
+
+        if (!$gradeStatus) {
+            $gradeStatus = GradeSubmission::create([
+                'year_section_subjects_id' => $yearSectionSubjects->id
+            ]);
+        }
+
+        $schoolYear = SchoolYear::where('school_years.id', '=', $courseSection->school_year_id)
+            ->select(
+                'allow_upload_final',
+                'allow_upload_midterm',
+                'start_year',
+                'end_year',
+                'semester_name'
+            )
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
+        return Inertia::render('Grades/InstructorSubjectView', [
+            'id' => $yearSectionSubjects->id,
+            'subjectCode' => $subject->subject_code,
+            'descriptiveTitle' => $subject->descriptive_title,
+            'courseSection' => $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section,
+            'gradeStatus' => $gradeStatus,
+            'schoolYear' => $schoolYear,
+        ]);
     }
 }

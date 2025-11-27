@@ -4,6 +4,7 @@ namespace App\Http\Controllers\InstructorClasses;
 
 use App\Http\Controllers\Controller;
 use App\Models\EnrolledStudent;
+use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
 use App\Models\SchoolYear;
 use App\Models\StudentSubject;
@@ -226,8 +227,7 @@ class ClassController extends Controller
     {
         $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
             ->where(function ($query) {
-                $query->whereNull('midterm_grade')
-                    ->orWhereNull('final_grade');
+                $query->whereNull('midterm_grade');
             })->first();
 
         if ($noGrades) {
@@ -248,8 +248,7 @@ class ClassController extends Controller
     {
         $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
             ->where(function ($query) {
-                $query->whereNull('midterm_grade')
-                    ->orWhereNull('final_grade');
+                $query->orWhereNull('final_grade');
             })->first();
 
         if ($noGrades) {
@@ -447,6 +446,54 @@ class ClassController extends Controller
         }
 
         return response()->json($data, 200);
+    }
+
+    public function requestEditMidtermSubmission($yearSectionSubjectsId)
+    {
+        GradeEditRequest::create([
+            'year_section_subjects_id' => $yearSectionSubjectsId,
+            'period' => 'midterm',
+            'status' => 'pending',
+            'request_date' => now(),
+        ]);
+    }
+
+    public function cancelRequestEditMidtermSubmission($requestId)
+    {
+        GradeEditRequest::where('id', $requestId)->delete();
+    }
+
+    public function requestEditFinalSubmission($yearSectionSubjectsId)
+    {
+        GradeEditRequest::create([
+            'year_section_subjects_id' => $yearSectionSubjectsId,
+            'period' => 'final',
+            'status' => 'pending',
+            'request_date' => now(),
+        ]);
+    }
+
+    public function cancelRequestEditFinalSubmission($requestId)
+    {
+        GradeEditRequest::where('id', $requestId)->delete();
+    }
+
+    public function getGradeRequestStatus($yearSectionSubjectsId)
+    {
+        $midtermRequestStatus = GradeEditRequest::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->where('period', 'midterm')
+            ->whereNot('status', '=', 'submitted')
+            ->first();
+
+        $finalRequestStatus = GradeEditRequest::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->where('period', 'final')
+            ->whereNot('status', '=', 'submitted')
+            ->first();
+
+        return response()->json([
+            'midtermRequestStatus' => $midtermRequestStatus,
+            'finalRequestStatus' => $finalRequestStatus,
+        ], 200);
     }
 
     public function downloadStudentsExcel($id)

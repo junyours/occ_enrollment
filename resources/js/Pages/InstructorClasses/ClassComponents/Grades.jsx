@@ -20,6 +20,7 @@ import {
     Rocket,
 } from "lucide-react"
 import InstructorGradeSubmitionButton from './GradePartials/InstructorGradeSubmitionButton'
+import GradeRequestEditAction from './GradePartials/GradeRequestEditAction'
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -76,12 +77,12 @@ function Grades({
     const [uploadStatus, setUploadStatus] = useState('saved')
     const uploadStatusTimeoutRef = useRef(null)
 
-    const validateGradesBeforeSubmit = () => {
+    const validateGradesBeforeSubmit = (type) => {
         const missing = {}
 
         grades.forEach((student, index) => {
-            const missingMidterm = student.midterm_grade === '' || student.midterm_grade === null || student.midterm_grade === undefined
-            const missingFinal = student.final_grade === '' || student.final_grade === null || student.final_grade === undefined
+            const missingMidterm = type == 'midterm' ? (student.midterm_grade === '' || student.midterm_grade === null || student.midterm_grade === undefined) : false
+            const missingFinal = type == 'final' ? (student.final_grade === '' || student.final_grade === null || student.final_grade === undefined) : false
 
             if (missingMidterm || missingFinal) {
                 missing[index] = {
@@ -198,8 +199,7 @@ function Grades({
     const handleGradeChange = (index, field, value) => {
         // Update local UI state
         handleChange(index, field, value)
-        console.log(value);
-        
+
         const student = grades[index]
         const studentId = student.id_number
 
@@ -345,15 +345,98 @@ function Grades({
         );
     }
 
+    const handleRequestEdit = (type) => {
+        setSubimitting(true)
+
+        const routeName =
+            type === "final"
+                ? "grades.request-edit.final-grade"
+                : "grades.request-edit.midterm-grade";
+
+        router.post(
+            route(routeName, yearSectionSubjectsId),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("Request successfully sent");
+                },
+                onError: (errors) => {
+                    if (errors && errors.grades) {
+                        toast.success("Something went wrong");
+                    } else {
+                        toast.error("Failed to submit");
+                    }
+                },
+                onFinish: async () => {
+                    await getChangeRequests();
+                    setSubimitting(false);
+                }
+            }
+        );
+    }
+
+
+    const [midtermRequestStatus, setMidtermRequestStatus] = useState([]);
+    const [finalRequestStatus, setFinalRequestStatus] = useState([]);
+
+    const getChangeRequests = async () => {
+        if (data.midterm_status != 'deployed' || data.final_status != 'deployed') return
+
+        await axios.post(route('grades.edit-request-status', yearSectionSubjectsId))
+            .then(response => {
+                setMidtermRequestStatus(response.data.midtermRequestStatus);
+                setFinalRequestStatus(response.data.finalRequestStatus);
+            })
+    }
+
+    useEffect(() => {
+        if (!data) return
+        getChangeRequests();
+    }, [data])
+
+    const handleCancelRequestEdit = (type) => {
+        setSubimitting(true)
+
+        const routeName =
+            type === "final"
+                ? "grades.request-edit-cancel.final-grade"
+                : "grades.request-edit-cancel.midterm-grade";
+                
+        const requestId = type == 'final' ? finalRequestStatus.id : midtermRequestStatus.id
+
+        router.post(
+            route(routeName, requestId),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("Request canceled");
+                },
+                onError: (errors) => {
+                    if (errors && errors.grades) {
+                        toast.success("Something went wrong");
+                    } else {
+                        toast.error("Failed to submit");
+                    }
+                },
+                onFinish: async () => {
+                    await getChangeRequests();
+                    setSubimitting(false);
+                }
+            }
+        );
+    }
+
     return (
         <>
             <div className="relative p-4 overflow-auto space-y-4">
                 <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-4">
-                        {/* <GradeSubmissionStatus gradeStatus={gradeStatus} /> */}
+                    {/* <div className="flex items-center gap-4"> */}
+                    {/* <GradeSubmissionStatus gradeStatus={gradeStatus} /> */}
 
-                        {/* Upload Status Indicator - Shows uploading or saved */}
-                        {uploadStatus !== 'idle' && (
+                    {/* Upload Status Indicator - Shows uploading or saved */}
+                    {/* {uploadStatus !== 'idle' && (
                             <div className="flex items-center gap-2 text-sm">
                                 {uploadStatus === 'uploading' && (
                                     <>
@@ -368,8 +451,8 @@ function Grades({
                                     </>
                                 )}
                             </div>
-                        )}
-                    </div>
+                        )} */}
+                    {/* </div> */}
 
                     <div className="flex gap-2 self-end">
                         <Button
@@ -443,9 +526,19 @@ function Grades({
                 <div className='fixed bottom-0 z-50 flex gap-4 w-full max-w-6xl h-28 px-4'>
                     {/* Midterm (will appear on the right) */}
                     <Card className='rounded-none no-print w-96 mb-4'>
-                        <CardHeader className='flex-row justify-between px-4 mt-2'>
+                        <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
                             {/* Rejection message for midterm */}
                             <p className='underline w-max'>Midterm grade</p>
+
+                            <GradeRequestEditAction
+                                gradeSubmissionStatus={data.midterm_status}
+                                isDisabled={submitting}
+                                handleRequestEdit={handleRequestEdit}
+                                type='midterm'
+                                requestStatus={midtermRequestStatus}
+                                handleCancelRequestEdit={handleCancelRequestEdit}
+                            />
+
                             {(data.midterm_status == 'rejected' && data.midterm_rejection_message) && (
                                 <div className="relative">
                                     <button
@@ -488,9 +581,19 @@ function Grades({
 
                     {/* Final (will appear on the left) */}
                     <Card className='rounded-none no-print w-96 mb-4'>
-                        <CardHeader className='flex-row justify-between px-4 mt-2'>
+                        <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
                             {/* Rejection message for midterm */}
                             <p className='underline w-max'>Final grade</p>
+                            
+                            <GradeRequestEditAction
+                                gradeSubmissionStatus={data.final_status}
+                                isDisabled={submitting}
+                                handleRequestEdit={handleRequestEdit}
+                                type='final'
+                                requestStatus={finalRequestStatus}
+                                handleCancelRequestEdit={handleCancelRequestEdit}
+                            />
+
                             {(data.final_status == 'rejected' && data.final_rejection_message) && (
                                 <div className="relative">
                                     <button

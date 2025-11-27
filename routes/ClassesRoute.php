@@ -25,6 +25,14 @@ Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function 
     Route::post('/submit-student-final-grades/{yearSectionSubjectsId}', [ClassController::class, 'submitFinalGrade'])->name('grade-submission.submit-final-grade');
     Route::post('/cancel-student-final-grades/{yearSectionSubjectsId}', [ClassController::class, 'cancelFinalSubmission'])->name('grade-submission.cancel-final-grade');
 
+    // Request Edit for MIDTERM and FINAL grades
+    Route::post('/request-edit-student-midterm-grades/{yearSectionSubjectsId}', [ClassController::class, 'requestEditMidtermSubmission'])->name('grades.request-edit.midterm-grade');
+    Route::post('/cancel/request-edit-student-midterm-grades/{requestId}', [ClassController::class, 'cancelRequestEditMidtermSubmission'])->name('grades.request-edit-cancel.midterm-grade');
+    Route::post('/request-edit-student-final-grades/{yearSectionSubjectsId}', [ClassController::class, 'requestEditFinalSubmission'])->name('grades.request-edit.final-grade');
+    Route::post('/cancel/request-edit-student-final-grades/{requestId}', [ClassController::class, 'cancelRequestEditFinalSubmission'])->name('grades.request-edit-cancel.final-grade');
+
+    Route::post('/grades/edit-request-status/{id}', [ClassController::class, 'getGradeRequestStatus'])->name('grades.edit-request-status');
+
     Route::post('/submit-student-grades/cancel/{yearSectionSubjectsId}', [ClassController::class, 'cancelGrade'])->name('grade-submission.cancel');
 
     Route::get('/classes/classroom/{id}/students/download', [ClassController::class, 'downloadStudentsExcel'])->name('class.students.download');
