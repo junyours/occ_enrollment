@@ -215,10 +215,10 @@ function StudentQuestionnaire() {
   return (
     <>
       <Head title="Faculty Evaluation Questionnaire" />
-      <div className="py-12 max-w-7xl mx-auto px-4 space-y-6 dark:bg-gray-900 dark:text-white">
-        <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4">Student Evaluation Questionnaire</h1>
+      <div className="px-4 py-12 mx-auto space-y-6 max-w-7xl dark:bg-gray-900 dark:text-white">
+        <h1 className="mb-4 text-2xl font-bold text-blue-800 dark:text-blue-300">Student Evaluation Questionnaire</h1>
 
-        <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-4 rounded shadow flex justify-between">
+        <div className="flex justify-between p-4 bg-white border border-gray-300 rounded shadow dark:bg-gray-800 dark:border-gray-600">
           <p className="font-medium">
             Faculty: <span className="font-bold">{evaluation.instructor_first_name} {evaluation.instructor_last_name}</span>
           </p>
@@ -227,11 +227,11 @@ function StudentQuestionnaire() {
           </p>
         </div>
 
-        <div className="relative border border-blue-200 dark:border-blue-700 rounded p-4 bg-blue-50 dark:bg-blue-900 shadow">
-          <h2 className="absolute -top-3 left-4 px-6 bg-blue-50 dark:bg-blue-900 text-blue-700 text-large font-semibold">
+        <div className="relative p-4 border border-blue-200 rounded shadow dark:border-blue-700 bg-blue-50 dark:bg-blue-900">
+          <h2 className="absolute px-6 font-semibold text-blue-700 -top-3 left-4 bg-blue-50 dark:bg-blue-900 text-large">
             Rating Legend
           </h2>
-          <div className="mt-2 font-bold grid grid-cols-5 gap-4 text-sm text-gray-800 dark:text-gray-200 text-center">
+          <div className="grid grid-cols-5 gap-4 mt-2 text-sm font-bold text-center text-gray-800 dark:text-gray-200">
             <span>5 - Strongly Agree</span>
             <span>4 - Agree</span>
             <span>3 - Neutral</span>
@@ -240,15 +240,15 @@ function StudentQuestionnaire() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
+        <div className="flex flex-col items-center justify-between w-full gap-4 md:flex-row">
           <div className="flex-1">
-            <div className="text-sm mb-1">
+            <div className="mb-1 text-sm">
               Progress: {answeredCount} / {totalQuestions} questions,
               {strengths ? " ✓ Strengths," : " ✗ Strengths,"}
               {weaknesses ? " ✓ Weaknesses" : " ✗ Weaknesses"}
             </div>
-            <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-3 bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+            <div className="w-full h-3 overflow-hidden bg-gray-200 rounded-full dark:bg-gray-700">
+              <div className="h-3 transition-all duration-300 bg-blue-500 rounded-full" style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
 
@@ -272,7 +272,7 @@ function StudentQuestionnaire() {
 
         <div
           ref={dragRef}
-          className="fixed z-50 group cursor-move"
+          className="fixed z-50 cursor-move group"
           style={{ left: dragPos.x, top: dragPos.y, width: "56px", height: "56px" }}
           title={`${progressPercent}% Complete`}
         >
@@ -287,7 +287,7 @@ function StudentQuestionnaire() {
                 strokeLinecap="round"
                 className="text-blue-500 transition-all duration-300" />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-blue-700 group-hover:scale-110 transition-transform">
+            <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-blue-700 transition-transform group-hover:scale-110">
               {progressPercent}%
             </div>
           </div>
@@ -296,11 +296,11 @@ function StudentQuestionnaire() {
         {criteria.map((c) => (
           <Card key={c.id} className="border dark:border-gray-700">
             <CardHeader
-              className="bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-t space-y-2"
+              className="px-4 py-2 space-y-2 bg-gray-100 rounded-t dark:bg-gray-800"
               onClick={() => setOpenSections(prev => ({ ...prev, [c.id]: !prev[c.id] }))}
             >
-              <div className="flex justify-between items-center cursor-pointer">
-                <h2 className="font-bold text-lg">{c.title}</h2>
+              <div className="flex items-center justify-between cursor-pointer">
+                <h2 className="text-lg font-bold">{c.title}</h2>
                 <span>{openSections[c.id] ? "−" : "+"}</span>
               </div>
               <div className="grid grid-cols-[1fr_repeat(5,_4rem)] items-center bg-gray-200 dark:bg-gray-700 rounded px-2 py-1 text-sm font-semibold">
@@ -313,8 +313,13 @@ function StudentQuestionnaire() {
             {openSections[c.id] && (
               <CardContent className="pt-4">
                 {c.questions.map((q, index) => (
-                  <div key={q.id} className="grid grid-cols-[1fr_repeat(5,_4rem)] items-center border-b dark:border-gray-600 py-3">
-                    <p className="font-medium pl-2">{index + 1}. {q.question_text}</p>
+                 <div
+                key={q.id}
+                className={`grid grid-cols-[1fr_repeat(5,_4rem)] items-center border-b dark:border-gray-600 py-3
+                    ${!answers[q.id] ? "bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 font-semibold" : ""}
+                `}
+                >
+                    <p className="pl-2 font-medium">{index + 1}. {q.question_text}</p>
                     {[5, 4, 3, 2, 1].map((opt) => (
                       <div key={opt} className="flex justify-center px-2">
                         <input
@@ -335,12 +340,12 @@ function StudentQuestionnaire() {
           </Card>
         ))}
 
-        <div className="flex flex-col md:flex-row gap-6 mt-4">
+        <div className="flex flex-col gap-6 mt-4 md:flex-row">
           <div className="w-full">
-            <label className="font-medium mb-2 block">Strengths</label>
+            <label className="block mb-2 font-medium">Strengths</label>
             <textarea
               ref={strengthsRef}
-              className="w-full border rounded p-2 dark:bg-gray-800 dark:border-gray-600"
+              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600"
               rows="3"
               value={strengths}
               onChange={(e) => !isPreview && setStrengths(e.target.value)}
@@ -348,10 +353,10 @@ function StudentQuestionnaire() {
             />
           </div>
           <div className="w-full">
-            <label className="font-medium mb-2 block">Weaknesses</label>
+            <label className="block mb-2 font-medium">Weaknesses</label>
             <textarea
               ref={weaknessesRef}
-              className="w-full border rounded p-2 dark:bg-gray-800 dark:border-gray-600"
+              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600"
               rows="3"
               value={weaknesses}
               onChange={(e) => !isPreview && setWeaknesses(e.target.value)}

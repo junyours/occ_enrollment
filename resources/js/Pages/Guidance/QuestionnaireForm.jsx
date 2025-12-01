@@ -117,12 +117,12 @@ export default function QuestionnaireForm({ criteria = [] }) {
     return (
         <>
             <Head title="Evaluation Questionnaire" />
-            <div className="p-6 space-y-6 max-w-5xl mx-auto">
-                <div className="flex justify-between items-center mb-4">
+            <div className="max-w-5xl p-6 mx-auto space-y-6">
+                <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => window.history.back()}
-                            className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                            className="px-3 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
                         >
                             ← Back
                         </button>
@@ -130,7 +130,7 @@ export default function QuestionnaireForm({ criteria = [] }) {
                     {!editingOrder ? (
                         <button
                             onClick={() => setEditingOrder(true)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
                         >
                             Edit Arrangement
                         </button>
@@ -140,20 +140,20 @@ export default function QuestionnaireForm({ criteria = [] }) {
                                 setEditingOrder(false);
                                 saveArrangementToServer();
                             }}
-                            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                            className="px-4 py-2 text-white bg-gray-500 rounded hover:bg-gray-600"
                         >
                             Done Editing
                         </button>
                     )}
                 </div>
-                <h1 className="text-center text-2xl font-bold text-blue-800">
+                <h1 className="text-2xl font-bold text-center text-blue-800">
                     Evaluation Form
                 </h1>
-                <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 p-4 rounded shadow">
-                    <h2 className="font-medium text-base text-blue-700 mb-2">
+                <div className="p-4 border border-blue-200 rounded shadow bg-blue-50 dark:bg-blue-900 dark:border-blue-700">
+                    <h2 className="mb-2 text-base font-medium text-blue-700">
                         Rating Legend:
                     </h2>
-                    <div className="font-bold grid grid-cols-5 gap-4 text-sm text-gray-800 dark:text-gray-200">
+                    <div className="grid grid-cols-5 gap-4 text-sm font-bold text-gray-800 dark:text-gray-200">
                         <span className="text-center">5 - Strongly Agree</span>
                         <span className="text-center">4 - Agree</span>
                         <span className="text-center">3 - Neutral</span>
@@ -177,9 +177,9 @@ export default function QuestionnaireForm({ criteria = [] }) {
                                 id={criteria.id}
                                 disabled={!editingOrder}
                             >
-                                <div className="border rounded-lg p-6 mb-6 bg-white dark:bg-gray-800 shadow-md">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-xl font-semibold text-blue-600 flex items-center gap-2">
+                                <div className="p-6 mb-6 bg-white border rounded-lg shadow-md dark:bg-gray-800">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="flex items-center gap-2 text-xl font-semibold text-blue-600">
                                             {editingOrder && (
                                                 <span className="text-sm text-blue-400">
                                                     ⇅
@@ -187,7 +187,7 @@ export default function QuestionnaireForm({ criteria = [] }) {
                                             )}
                                             {criteria.title}
                                         </h2>
-                                        <div className="grid grid-cols-5 gap-4 text-xs text-gray-500 w-1/3 justify-end text-center">
+                                        <div className="grid justify-end w-1/3 grid-cols-5 gap-4 text-xs text-center text-gray-500">
                                             {[5, 4, 3, 2, 1].map((num) => (
                                                 <span
                                                     key={num}
@@ -229,8 +229,8 @@ export default function QuestionnaireForm({ criteria = [] }) {
                                                                 !editingOrder
                                                             }
                                                         >
-                                                            <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-md shadow-sm">
-                                                                <div className="text-gray-700 dark:text-gray-100 text-sm font-medium w-2/3 pr-4 flex items-center gap-2">
+                                                            <div className="flex items-center justify-between px-4 py-2 rounded-md shadow-sm bg-gray-50 dark:bg-gray-900">
+                                                                <div className="flex items-center w-2/3 gap-2 pr-4 text-sm font-medium text-gray-700 dark:text-gray-100">
                                                                     {editingOrder && (
                                                                         <span className="text-xs text-blue-400">
                                                                             ⇅
@@ -240,7 +240,7 @@ export default function QuestionnaireForm({ criteria = [] }) {
                                                                         question.text
                                                                     }
                                                                 </div>
-                                                                <div className="grid grid-cols-5 gap-4 w-1/3 justify-end">
+                                                                <div className="grid justify-end w-1/3 grid-cols-5 gap-4">
                                                                     {[
                                                                         5, 4, 3,
                                                                         2, 1,
@@ -260,7 +260,7 @@ export default function QuestionnaireForm({ criteria = [] }) {
                                                                                     value={
                                                                                         num
                                                                                     }
-                                                                                    className="form-radio text-blue-600 focus:ring-blue-500"
+                                                                                    className="text-blue-600 form-radio focus:ring-blue-500"
                                                                                     checked={
                                                                                         question.rating ===
                                                                                         num

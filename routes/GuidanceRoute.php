@@ -6,10 +6,12 @@ use App\Http\Controllers\Guidance\GuidanceController;
 Route::middleware(['auth', 'Guidance'])->group(function () {
     Route::get('/guidance/dashboard', [GuidanceController::class, 'index'])->name('guidance.dashboard');
 
+
     // Criteria Routes
     Route::get('/guidance/criteria', [GuidanceController::class, 'criteria'])->name('guidance.criteria');
     Route::get('/criteria/create', [GuidanceController::class, 'create'])->name('criteria.create');
     Route::post('/criteria', [GuidanceController::class, 'store'])->name('criteria.store');
+    Route::post('/criteria/save', [GuidanceController::class, 'save'])->name('criteria.save');
     Route::delete('/criteria/{id}', [GuidanceController::class, 'destroy'])->name('criteria.destroy');
     Route::put('/criteria/{id}', [GuidanceController::class, 'criteria_update'])->name('criteria.update');
 
@@ -36,14 +38,68 @@ Route::middleware(['auth', 'Guidance'])->group(function () {
     Route::get('/faculty', [GuidanceController::class, 'facultyList'])->name('guidance.faculty.index');
     Route::get('/faculty/{id}/subjects', [GuidanceController::class, 'showSubjects'])->name('guidance.faculty.subjects');
     Route::get('/guidance/faculty/{facultyId}/subject/{studentSubjectId}/evaluation', [GuidanceController::class, 'facultyEvaluationResult'])->name('guidance.faculty.subject.evaluation');
-
     Route::get('/faculty/evaluation/{faculty_id}/{subject_id}/{evaluation_id}/respondents', [GuidanceController::class, 'viewEvaluationRespondents'])
     ->name('faculty.evaluation.respondents');
+    Route::get('ranking', [GuidanceController::class, 'facultyRanking']) ->name('guidance.faculty.ranking');
+    Route::get('/faculty/top5/certificate/{facultyId}', [GuidanceController::class, 'generateCertificate'])->name('faculty.certificate');
 
     //Student List Routes
     Route::get('/student', [GuidanceController::class, 'studentList'])->name('guidance.student.index');
     Route::get('/guidance/student/{id}/subjects', [GuidanceController::class, 'studentSubjects'])
     ->name('guidance.student.subjects');
+
+    //Program Head
+
+// Route::middleware(['auth', 'program_head'])->group(function () {
+
+    // List all faculty from Program Head’s department
+    // Route::get('/program-head/faculty',
+    //     [GuidanceController::class, 'facultyReport']
+    // )->name('ph.faculty.list');
+
+    // View report for a specific faculty
+    // Route::get('/program-head/faculty/{facultyId}/report',
+    //     [GuidanceController::class, 'facultyEvaluationReport']
+    // )->name('ph.faculty.report');
+
+// });
+
+
+    //ARchives
+    Route::get('/guidance/archive', [GuidanceController::class, 'Archive'])->name('guidance.archive');
+
+    //Faculty Evaluation Result Archives
+    Route::get('/archives/', [GuidanceController::class, 'evalResult']);
+    Route::get('/faculty-list/{schoolYearId}', [GuidanceController::class, 'evalfacultyList'])
+     ->name('faculty.list');
+    Route::get('/faculty-subjects/{facultyId}/{schoolYearId}', [GuidanceController::class, 'facultySubjects'])
+    ->name('faculty.subjects');
+    Route::get('/faculty-evaluation/{facultyId}/{studentSubjectId}/{schoolYearId}',
+    [GuidanceController::class, 'archiveEvaluationResult']
+    )->name('faculty.evaluation');
+
+
+    //Student Archives
+     Route::get('/studarchives/', [GuidanceController::class, 'studEval']);
+     // Student list for archives (optional schoolYearId)
+    Route::get('/archives/students/{schoolYearId?}', [GuidanceController::class, 'archivestudentList'])
+        ->name('archives.students.list');
+
+    // Fetch subjects for a specific student in archives (optional schoolYearId)
+    Route::get('/archives/students/{studentId}/subjects/{schoolYearId?}', [GuidanceController::class, 'archivestudentSubjects'])
+    ->name('archives.students.subjects');
+
+    //Faculty Rabking
+    Route::get('/rankarchives/', [GuidanceController::class, 'rankEval']);
+    Route::get('/archives/ranking/{schoolYearId?}', [GuidanceController::class, 'archiveRanking'])
+        ->name('archives.facuulty.rank');
+
+    //Trash
+    Route::get('/guidance/trash', [GuidanceController::class, 'Trash'])->name('guidance.trash');
+     Route::post('/trash/restore', [GuidanceController::class, 'restore'])->name('trash.restore');
+    Route::delete('/trash/delete/{type}/{id}', [GuidanceController::class, 'delete'])->name('trash.delete');
+    Route::post('/trash/restore-all', [GuidanceController::class, 'restoreAll']);
+    Route::delete('/trash/delete-all', [GuidanceController::class, 'deleteAll']);
 
 
 });
@@ -61,5 +117,11 @@ Route::middleware(['auth', 'Guidance'])->group(function () {
     Route::get('/student/evaluation/draft/{evaluation}/{studentSubject}', [GuidanceController::class, 'loadDraft']);
     Route::post('/draft/save', [GuidanceController::class, 'saveDraft'])->name('student.evaluation.draft.save');
     Route::delete('/draft/{evaluation}/{studentSubject}', [GuidanceController::class, 'deleteDraft']);
+});
+
+ Route::middleware(['auth', 'program_head'])->group(function () {
+     Route::get('/program-head/faculty',
+        [GuidanceController::class, 'facultyReport']
+    )->name('ph.faculty.list');
 });
 
