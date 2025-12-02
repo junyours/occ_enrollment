@@ -5,8 +5,8 @@ import DataTable from "@/Components/ui/dTable";
 import { Dialog } from "@headlessui/react";
 import axios from "axios";
 
-export default function StudentListPage({ auth, students, schoolYear, semester, noActiveEval }) {
-    const { data = [], meta = {}, links = [] } = students || {}; // ✅ safe defaults
+export default function StudentList({ auth, students, schoolYear, semester }) {
+    const { data, meta, links } = students;
 
     // Modal state
     const [isOpen, setIsOpen] = useState(false);
@@ -24,20 +24,20 @@ export default function StudentListPage({ auth, students, schoolYear, semester, 
         return true;
     });
 
-
     // Open modal & fetch subjects
     const handleViewSubjects = async (student) => {
-        setSelectedStudent(student);
-        try {
-            const response = await axios.get(
-                route("guidance.student.subjects", { id: student.student_id })
-            );
-            setSubjects(response.data.subjects);
-            setIsOpen(true);
-        } catch (error) {
-            console.error("Failed to fetch subjects", error);
-        }
-    };
+    setSelectedStudent(student);
+    try {
+        const response = await axios.get(
+            route("archives.students.subjects", { studentId: student.student_id, schoolYearId: schoolYear.id })
+        );
+        setSubjects(response.data.subjects);
+        setIsOpen(true);
+    } catch (error) {
+        console.error("Failed to fetch subjects", error);
+    }
+};
+
 
     // Table columns
     const columns = [
@@ -112,7 +112,6 @@ export default function StudentListPage({ auth, students, schoolYear, semester, 
             <Head title="Student List" />
 
             <div className="px-4 py-8 mx-auto space-y-6 max-w-7xl sm:px-6 lg:px-8">
-
                 {/* Title */}
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -121,7 +120,7 @@ export default function StudentListPage({ auth, students, schoolYear, semester, 
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                         School Year:{" "}
                         <span className="font-semibold">
-                            {schoolYear?.start_year}–{schoolYear?.end_year}
+                            {schoolYear.start_year}–{schoolYear.end_year}
                         </span>
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -129,62 +128,49 @@ export default function StudentListPage({ auth, students, schoolYear, semester, 
                     </p>
                 </div>
 
-                {/* Elegant message if no active evaluation */}
-                {noActiveEval && (
-                    <div className="p-4 text-center text-yellow-800 bg-yellow-100 border-l-4 border-yellow-400 rounded-md shadow-md">
-                        <p className="text-lg font-semibold">
-                            No active evaluation yet.
-                        </p>
-                        <p className="text-sm">
-                            Subjects and student evaluations will appear here once an evaluation is activated.
-                        </p>
-                    </div>
-                )}
-
                 {/* Tabs */}
-                {!noActiveEval && (
-                    <>
-                        <div className="flex mb-4 border-b border-gray-200 dark:border-gray-700">
-                            {["all", "completed", "pending"].map((tab) => {
-                                const label = tab === "all" ? "All" : tab === "completed" ? "Completed" : "Pending";
-                                const isActive = filter === tab;
-                                return (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setFilter(tab)}
-                                        className={`px-4 py-2 -mb-px font-medium text-sm transition-colors duration-200 ${
-                                            isActive
-                                                ? "border-b-2 border-blue-600 text-blue-600"
-                                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                                        }`}
-                                    >
-                                        {label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                <div className="flex mb-4 border-b border-gray-200 dark:border-gray-700">
+                    {["all", "completed", "pending"].map((tab) => {
+                        const label = tab === "all" ? "All" : tab === "completed" ? "Completed" : "Pending";
+                        const isActive = filter === tab;
+                        return (
+                            <button
+                                key={tab}
+                                onClick={() => setFilter(tab)}
+                                className={`px-4 py-2 -mb-px font-medium text-sm transition-colors duration-200 ${
+                                    isActive
+                                        ? "border-b-2 border-blue-600 text-blue-600"
+                                        : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                        {/* Data Table */}
-                        <DataTable
-                            columns={columns}
-                            data={filteredStudents.map(s => ({
-                                ...s,
-                                full_name: `${s.last_name}, ${s.first_name} ${s.middle_name ?? ""}`
-                            }))}
-                            paginationMeta={meta}
-                            paginationLinks={links}
-                            onPageChange={(page) =>
-                                router.get(
-                                    route("guidance.student.index"),
-                                    { page },
-                                    { preserveScroll: true }
-                                )
-                            }
-                            searchCol="full_name"
-                            columnsFilter
-                        />
-                    </>
-                )}
+
+
+                {/* Data Table */}
+                <DataTable
+                    columns={columns}
+                    data={filteredStudents.map(s => ({
+                        ...s,
+                        full_name: `${s.last_name}, ${s.first_name} ${s.middle_name ?? ""}`
+                    }))}  // ⭐ Add computed full_name
+                    paginationMeta={meta}
+                    paginationLinks={links}
+                    onPageChange={(page) =>
+                        router.get(
+                            route("archives.students.subjects"),
+                            { page },
+                            { preserveScroll: true }
+                        )
+                    }
+                    searchCol="full_name"
+                    columnsFilter
+                />
+
             </div>
 
             {/* Modal */}

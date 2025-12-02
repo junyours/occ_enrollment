@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import React from 'react';
 import { Edit3, X, CheckCircle2, Clock } from 'lucide-react';
 

@@ -14,9 +14,10 @@ import {
     LabelList,
 } from "recharts";
 import { CSSTransition } from "react-transition-group";
-import "./analyticsTransition.css"; // CSS for smooth animation
+import "@/Pages/Guidance/analyticsTransition.css";
 
-export default function FacultySubjectsPage({ auth, faculty, subjects }) {
+
+export default function FacultySubjects({ auth, faculty, subjects,  schoolYearId}) {
     const [showAnalytics, setShowAnalytics] = React.useState(true);
 
     // Map backend data for DataTable
@@ -43,28 +44,31 @@ export default function FacultySubjectsPage({ auth, faculty, subjects }) {
     const overallDescription = overallRating > 0 ? getDescription(overallRating) : "";
 
     const columns = [
-        { accessorKey: "subject_code", header: "Subject Code", colName: "Subject Code" },
-        { accessorKey: "descriptive_title", header: "Descriptive Title", colName: "Descriptive Title" },
-        { accessorKey: "student_count", header: "Students", colName: "Students" },
-        { accessorKey: "mean", header: "Rating", colName: "Rating" },
-        {
-            id: "actions",
-            header: "Actions",
-            colName: "Actions",
-            cell: ({ row }) => (
-                <Link
-                    href={route("guidance.faculty.subject.evaluation", {
-                        facultyId: faculty.id,
-                        studentSubjectId: row.original.student_subject_id,
-                    })}
-                    className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-1.5 rounded-md hover:bg-green-700 transition text-sm font-medium shadow-sm"
-                >
-                    <BarChart2 className="w-4 h-4" />
-                    View Evaluation
-                </Link>
-            ),
-        },
-    ];
+    { accessorKey: "subject_code", header: "Subject Code", colName: "Subject Code" },
+    { accessorKey: "descriptive_title", header: "Descriptive Title", colName: "Descriptive Title" },
+    { accessorKey: "student_count", header: "Students", colName: "Students" },
+    { accessorKey: "mean", header: "Rating", colName: "Rating" },
+    {
+        id: "actions",
+        header: "Actions",
+        colName: "Actions",
+        cell: ({ row }) => {
+    const studentSubjectId = row.original.student_subject_id; // <- this is the correct ID
+    const facultyId = faculty.id;
+
+    return (
+        <Link
+            href={route("faculty.evaluation", { facultyId, studentSubjectId, schoolYearId, })}
+            className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-1.5 rounded-md hover:bg-green-700 transition text-sm font-medium shadow-sm"
+        >
+            <BarChart2 className="w-4 h-4" />
+            View Evaluation
+        </Link>
+    );
+}
+
+    }
+];
 
     // Graph data
     const graphData = subjectsWithRating.map((s) => {

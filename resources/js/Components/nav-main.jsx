@@ -25,6 +25,8 @@ import {
     ListChecks,
     BookOpenText,
     Inbox,
+    Trash2,
+    FileChartColumn,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -202,14 +204,37 @@ export function NavMain() {
 
         case "guidance":
             menuSections.push({
+                label: "Dashboard",
                 items: [
                     { name: "Dashboard", route: "guidance.dashboard", icon: Presentation },
+                ],
+            },
+            {
+                label: "Evaluation Manager",
+                items: [
                     { name: "Criteria", route: "guidance.criteria", icon: ListChecks },
                     { name: "Questionnaires", route: "guidance.questionnaire", icon: FileQuestion },
                     { name: "Evaluation", route: "guidance.evaluation", icon: FolderPlus },
+                ],
+            },
+            {
+                label: "People",
+                items: [
                     { name: "Faculty", route: "guidance.faculty.index", icon: User2Icon },
+                    { name: "Faculty Ranking", route: "guidance.faculty.ranking", icon: FileChartColumn },
                     { name: "Student", route: "guidance.student.index", icon: ClipboardList },
-                    { name: "Archives", route: "guidance.dashboard", icon: Archive }
+                ],
+            },
+            {
+                label: "Archives",
+                items: [
+                    { name: "Archives", route: "guidance.archive", icon: Archive },
+                ],
+            },
+            {
+                label: "Trash",
+                items: [
+                    { name: "Trash", route: "guidance.trash", icon: Trash2 }
                 ],
             });
             break;
@@ -222,7 +247,7 @@ export function NavMain() {
         <SidebarGroup>
             {menuSections.map((section) => (
                 <SidebarMenu key={section.label} className="space-y-0.5 mb-4">
-                    <SidebarGroupLabel className="text-xs uppercase text-muted-foreground px-3 h-min">
+                    <SidebarGroupLabel className="px-3 text-xs uppercase text-muted-foreground h-min">
                         {section.label}
                     </SidebarGroupLabel>
                     {section.items.map((item) => (
@@ -238,7 +263,7 @@ export function NavMain() {
                             >
                                 <Link
                                     href={route(item.route)}
-                                    className="w-full flex items-center gap-2"
+                                    className="flex items-center w-full gap-2"
                                 >
                                     <item.icon size={18} />
                                     <span>{item.name}</span>

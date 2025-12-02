@@ -20,7 +20,7 @@ const getRandomColor = () => {
     return color;
 };
 
-export default function FacultyEvaluationResultPage({
+export default function EvaluationResult({
     auth,
     faculty,
     subject,
@@ -384,4 +384,3 @@ export default function FacultyEvaluationResultPage({
 
     );
 }
-

@@ -38,6 +38,7 @@ export default function Evaluation({ schoolYears: initialSchoolYears }) {
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+
     const { toast } = useToast();
 
     const [form, setForm] = useState({
@@ -246,7 +247,7 @@ const confirmDelete = async () => {
     return (
         <div className="pb-24">
             <Head title="Evaluation Schedule Manager" />
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Evaluation Schedule Manager</h2>
                 <div className="flex gap-2">
                     <Input
@@ -271,120 +272,129 @@ const confirmDelete = async () => {
             </div>
 
             {loading && (
-                <div className="flex items-center gap-2 text-blue-600 mb-4">
-                    <Loader2 className="animate-spin h-5 w-5" /> Updating...
+                <div className="flex items-center gap-2 mb-4 text-blue-600">
+                    <Loader2 className="w-5 h-5 animate-spin" /> Updating...
                 </div>
             )}
 
             {viewMode === "tile" ? (
                 // ✅ TILE VIEW
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                     {filteredSchoolYears.map((sy) => (
-                        <Card key={sy.id}>
-                            <CardHeader>
-                                <CardTitle className="text-center">
-                                    {`${sy.start_year}-${sy.end_year}`}
-                                </CardTitle>
-                                <p className="text-center text-md -mt-2">
-                                    {sy.semester.semester_name} Semester
-                                </p>
-                            </CardHeader>
-                            <CardContent className="text-center">
+                        <Card
+                            key={sy.id}
+                            className="relative overflow-hidden transition-all duration-200 bg-white border border-gray-200 shadow-lg rounded-xl hover:shadow-2xl"
+                            >
+                            {/* Header */}
+                            <CardHeader
+                                className="relative flex items-center justify-between p-4 text-white bg-gradient-to-r from-indigo-500 to-purple-500"
+                            >
+                                <div>
+                                <CardTitle className="text-lg font-semibold">{`${sy.start_year}-${sy.end_year}`}</CardTitle>
+                                <p className="mt-1 text-sm opacity-90">{sy.semester.semester_name} Semester</p>
+                                </div>
+
+                                {/* Active Ribbon */}
                                 {sy.is_current === 1 && (
-                                    <div className="my-2">
-                                        <Badge className="bg-green-600 text-white">Active</Badge>
-                                    </div>
+                                <Badge className="absolute px-3 py-1 text-white bg-green-500 rounded-full shadow top-3 right-3">
+                                    Active
+                                </Badge>
                                 )}
+                            </CardHeader>
+
+                            <CardContent className="p-4 space-y-4">
+                                {/* Evaluations */}
                                 {(sy.evaluations ?? []).length > 0 ? (
-                                    <>
-                                        <p className="text-gray-600 text-left mt-3">Evaluation:</p>
-                                        <ul className="mt-2 pl-4 list-disc text-sm text-left space-y-1 text-gray-600">
-                                            {sy.evaluations.map((evalItem) => (
-                                                <li
-                                                    key={evalItem.id}
-                                                    className="flex justify-between items-center"
-                                                >
-                                                    <span>
-                                                        {formatDateShort(evalItem.start_date)} to{" "}
-                                                        {formatDateShort(evalItem.end_date)} —{" "}
-                                                        <Badge
-                                                            className={`${getBadgeColor(
-                                                                evalItem.status
-                                                            )} text-white ml-1`}
-                                                        >
-                                                            {evalItem.status}
-                                                        </Badge>
-                                                    </span>
-                                                    <div className="flex items-center gap-1">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="ghost"
-                                                            onClick={() =>
-                                                                setPreviewEval({
-                                                                    ...evalItem,
-                                                                    semester: sy.semester,
-                                                                    yearRange: `${sy.start_year}-${sy.end_year}`,
-                                                                })
-                                                            }
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                        {sy.is_current === 1 && (
-                                                            <>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="ghost"
-                                                                    onClick={() => {
-                                                                        setEditingEval(evalItem);
-                                                                        setForm({
-                                                                            school_year_id: sy.id,
-                                                                            start_date: evalItem.start_date,
-                                                                            end_date: evalItem.end_date,
-                                                                            status: evalItem.status,
-                                                                        });
-                                                                        setAddingFor(sy);
-                                                                    }}
-                                                                >
-                                                                    <Pencil className="h-4 w-4" />
-                                                                </Button>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="ghost"
-                                                                    onClick={() =>
-                                                                        deleteEvaluation(evalItem.id, sy.id)
-                                                                    }
-                                                                >
-                                                                    <Trash2 className="w-4 h-4 text-red-600" />
-                                                                </Button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </>
-                                ) : sy.is_current === 1 ? (
-                                    <Button
-                                        className="mt-3"
-                                        onClick={() => {
-                                            setForm({
-                                                school_year_id: sy.id,
-                                                start_date: "",
-                                                end_date: "",
-                                                status: "pending",
-                                            });
-                                            setAddingFor(sy);
-                                        }}
+                                <div className="space-y-3">
+                                    {sy.evaluations.map((evalItem) => (
+                                    <div
+                                        key={evalItem.id}
+                                        className="flex items-center justify-between p-3 transition border border-gray-100 rounded-lg shadow-sm bg-gray-50 hover:bg-white"
                                     >
-                                        Add Evaluation
-                                    </Button>
+                                        {/* Evaluation info */}
+                                        <div className="flex flex-col space-y-1">
+                                        <span className="font-medium text-gray-800">
+                                            {formatDateShort(evalItem.start_date)} - {formatDateShort(evalItem.end_date)}
+                                        </span>
+                                        <Badge
+                                            className={`${getBadgeColor(evalItem.status)} text-white px-2 py-0.5 rounded-full`}
+                                        >
+                                            {evalItem.status}
+                                        </Badge>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="hover:bg-gray-200"
+                                            onClick={() =>
+                                            setPreviewEval({
+                                                ...evalItem,
+                                                semester: sy.semester,
+                                                yearRange: `${sy.start_year}-${sy.end_year}`,
+                                            })
+                                            }
+                                        >
+                                            <Eye className="w-4 h-4 text-gray-700" />
+                                        </Button>
+
+
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="hover:bg-gray-200"
+                                                onClick={() => {
+                                                setEditingEval(evalItem);
+                                                setForm({
+                                                    school_year_id: sy.id,
+                                                    start_date: evalItem.start_date,
+                                                    end_date: evalItem.end_date,
+                                                    status: evalItem.status,
+                                                });
+                                                setAddingFor(sy);
+                                                }}
+                                            >
+                                                <Pencil className="w-4 h-4 text-gray-700" />
+                                            </Button>
+                                            {sy.is_current === 1 && (
+                                            <>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="hover:bg-red-100"
+                                                onClick={() => deleteEvaluation(evalItem.id, sy.id)}
+                                            >
+                                                <Trash2 className="w-4 h-4 text-red-600" />
+                                            </Button>
+                                            </>
+                                        )}
+                                        </div>
+                                    </div>
+                                    ))}
+                                </div>
+                                ) : sy.is_current === 1 ? (
+                                <Button
+                                    className="w-full mt-2 text-white bg-indigo-500 hover:bg-indigo-600"
+                                    onClick={() => {
+                                    setForm({
+                                        school_year_id: sy.id,
+                                        start_date: "",
+                                        end_date: "",
+                                        status: "pending",
+                                    });
+                                    setAddingFor(sy);
+                                    }}
+                                >
+                                    Add Evaluation
+                                </Button>
                                 ) : (
-                                    <p className="text-gray-400 text-center mt-3 italic">
-                                        No evaluations yet.
-                                    </p>
+                                <p className="mt-3 italic text-center text-gray-400">No evaluations yet.</p>
                                 )}
                             </CardContent>
-                        </Card>
+                            </Card>
+
                     ))}
                 </div>
             ) : (
@@ -435,8 +445,7 @@ const confirmDelete = async () => {
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </Button>
-                                                {sy.is_current === 1 && (
-                                                    <>
+
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
@@ -453,6 +462,8 @@ const confirmDelete = async () => {
                                                         >
                                                             <Pencil className="w-4 h-4" />
                                                         </Button>
+                                                        {sy.is_current === 1 && (
+                                                    <>
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
@@ -579,10 +590,10 @@ const confirmDelete = async () => {
                                 )
                             ).map((group, idx) => (
                                 <div key={idx}>
-                                    <h3 className="font-semibold text-sm text-gray-800 dark:text-gray-200">
+                                    <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                                         {group.title}
                                     </h3>
-                                    <ul className="list-disc ml-6 text-sm text-gray-600 dark:text-gray-400">
+                                    <ul className="ml-6 text-sm text-gray-600 list-disc dark:text-gray-400">
                                         {group.questions.map((q) => (
                                             <li key={q.id}>
                                                 {q.question_text}
@@ -591,7 +602,7 @@ const confirmDelete = async () => {
                                     </ul>
                                 </div>
                             ))}
-                            
+
                     </div>
                 </DialogContent>
             </Dialog>
@@ -645,7 +656,7 @@ const confirmDelete = async () => {
 
 
            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-md xl:ml-64">
-    <div className="max-w-7xl mx-auto px-4 py-3 flex justify-center flex-wrap gap-2">
+    <div className="flex flex-wrap justify-center gap-2 px-4 py-3 mx-auto max-w-7xl">
         {paginationLinks.map((link, index) => (
             <Button
                 key={index}
@@ -657,13 +668,13 @@ const confirmDelete = async () => {
             />
         ))}
     </div>
-    
+
 </div>
 
 
         </div>
 
-        
+
     );
 }
 
