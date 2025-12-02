@@ -75,25 +75,103 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                         </div>
                     </Button>
                 </div>
+                
+                {!isCollapsed && (
+                    <div className={`transition-all duration-300 ease-in-out ${!isCollapsed ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
+                        {/* Expanded vertical view */}
+                        <Card className="w-min h-min">
+                            <CardHeader className='px-2 mt-2 flex flex-row items-center justify-between space-y-0'>
+                                <CardTitle>School Year</CardTitle>
+                                <Button
+                                    onClick={toggleCollapse}
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="space-y-2 px-2 pb-2">
+                                <div>
+                                    {/* School Year Select */}
+                                    <div className="w-52 mt-2">
+                                        <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select School Year" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {uniqueSchoolYears.map((year) => (
+                                                    <SelectItem key={year} value={year}>
+                                                        {year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                <div className={`transition-all duration-300 ease-in-out ${!isCollapsed ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
-                    {/* Expanded vertical view */}
-                    <Card className="w-min h-min">
-                        <CardHeader className='px-2 mt-2 flex flex-row items-center justify-between space-y-0'>
-                            <CardTitle>School Year</CardTitle>
+                                    {/* Semester Select */}
+                                    <div className="w-52 mt-2">
+                                        <Select value={selectedSemester} onValueChange={handleSemesterChange}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Semester" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {allSemesters.map((sem) => (
+                                                    <SelectItem
+                                                        key={sem}
+                                                        value={sem}
+                                                        disabled={!availableSemesters.includes(sem)}
+                                                    >
+                                                        {sem}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Vertical layout
+    return (
+        <div className='w-max'>
+            <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+                {/* Collapsed horizontal view - shows as arrow button */}
+                <Button
+                    onClick={toggleCollapse}
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center"
+                >
+                    <ChevronDown className="h-4 w-4" />
+                    <span className="text-xs">{selectedSchoolYear} | {selectedSemester} sem</span>
+                </Button>
+            </div>
+            {!isCollapsed && (
+
+                <div className={`transition-all duration-300 ease-in-out ${!isCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+                    {/* Expanded horizontal view */}
+                    <Card className="max-w-max p-2 space-y-2">
+                        <CardHeader className='p-0 m-0 flex flex-row items-center justify-between space-y-0'>
+                            <CardTitle className='pl-2'>School Year</CardTitle>
                             <Button
                                 onClick={toggleCollapse}
                                 size="sm"
                                 variant="ghost"
-                                className="h-6 w-6 p-0"
+                                className="h-6 w-6 p-0 m-0"
                             >
-                                <ChevronLeft className="h-4 w-4" />
+                                <ChevronUp className="h-4 w-4" />
                             </Button>
                         </CardHeader>
-                        <CardContent className="space-y-2 px-2 pb-2">
-                            <div>
+                        <CardContent className='p-0'>
+                            <div className="flex gap-4 items-start">
                                 {/* School Year Select */}
-                                <div className="w-52 mt-2">
+                                <div className="w-44">
                                     <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select School Year" />
@@ -109,7 +187,7 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                                 </div>
 
                                 {/* Semester Select */}
-                                <div className="w-52 mt-2">
+                                <div className="w-28">
                                     <Select value={selectedSemester} onValueChange={handleSemesterChange}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Semester" />
@@ -131,81 +209,7 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                         </CardContent>
                     </Card>
                 </div>
-            </div>
-        );
-    }
-
-    // Vertical layout
-    return (
-        <div className='w-max'>
-            <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
-                {/* Collapsed horizontal view - shows as arrow button */}
-                <Button
-                    onClick={toggleCollapse}
-                    size="sm"
-                    variant="outline"
-                    className="flex items-center"
-                >
-                    <ChevronDown className="h-4 w-4" />
-                    <span className="text-xs">{selectedSchoolYear} | {selectedSemester} sem</span>
-                </Button>
-            </div>
-
-            <div className={`transition-all duration-300 ease-in-out ${!isCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
-                {/* Expanded horizontal view */}
-                <Card className="max-w-max p-2 space-y-2">
-                    <CardHeader className='p-0 m-0 flex flex-row items-center justify-between space-y-0'>
-                        <CardTitle className='pl-2'>School Year</CardTitle>
-                        <Button
-                            onClick={toggleCollapse}
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 m-0"
-                        >
-                            <ChevronUp className="h-4 w-4" />
-                        </Button>
-                    </CardHeader>
-                    <CardContent className='p-0'>
-                        <div className="flex gap-4 items-start">
-                            {/* School Year Select */}
-                            <div className="w-44">
-                                <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select School Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {uniqueSchoolYears.map((year) => (
-                                            <SelectItem key={year} value={year}>
-                                                {year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Semester Select */}
-                            <div className="w-28">
-                                <Select value={selectedSemester} onValueChange={handleSemesterChange}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Semester" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {allSemesters.map((sem) => (
-                                            <SelectItem
-                                                key={sem}
-                                                value={sem}
-                                                disabled={!availableSemesters.includes(sem)}
-                                            >
-                                                {sem}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            )}
         </div>
     );
 }

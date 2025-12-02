@@ -35,6 +35,10 @@ Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::get('/verified-grades/{schoolYear}/{semester}/{facultyId}/{yearSectionSubjectsId}', [GradeController::class, 'viewVerifiedSubjectStudents'])->name('verified.faculty.subject.students');
     Route::post('/verified-grades/subject-students', [GradeController::class, 'viewFacultyVerifiedSubjectStudents'])->name('faculty.verified.subjects.students');
 
+
+    Route::get('/change-requests', [GradeController::class, 'changeRequestView'])->name('change-requests');
+    Route::post('/change-requests-list', [GradeController::class, 'changeRequestList'])->name('change-requests-list');
+
     // Deploying grades
     Route::post('/verified-grades/deploy/{yearSectionSubjectsId}', [GradeController::class, 'deployGrades'])->name('deploy.grades');
     Route::post('/verified-grades/deploy/midterm-grades/{yearSectionSubjectsId}', [GradeController::class, 'deployMidtermGrades'])->name('deploy.midterm-grades');
@@ -53,7 +57,13 @@ Route::middleware(['auth', 'ClassesPermission'])->group(function () {
     Route::post('/instructor-subjects', [GradeController::class, 'instructorSubjects'])->name('instructor-subjects');
 
     Route::get('/subjects-list/{id}', [GradeController::class, 'instructorSubjectsViewSubject'])->name('instructor-subjects.view-subject');
-    
-    Route::get('/requests', [GradeController::class, 'gradesInstructorRequests'])->name('requests');
 
+    Route::get('/requests', [GradeController::class, 'gradesInstructorRequests'])->name('requests');
+    Route::post('/requests-list', [GradeController::class, 'requestsList'])->name('instructor-requests-list');
+    Route::post('/approve-request', [GradeController::class, 'approveRequest'])->name('approve-request');
+    Route::post('/reject-request', [GradeController::class, 'rejectRequest'])->name('reject-request');
+    Route::get('/requests-list/{hashedGradeEditRequestsId}', [GradeController::class, 'viewEditRequest'])->name('reject-request.view');
+    Route::post('/edit-request-grades', [GradeController::class, 'getEditRequestGrades'])->name('edit-request-grades');
+
+    Route::post('/submit-edit-request-changes', [GradeController::class, 'submitEditRequestChanges'])->name('submit-edit-request-changes');
 });

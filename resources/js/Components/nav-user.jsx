@@ -50,12 +50,12 @@ export function NavUser() {
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
                                 <AvatarFallback className="rounded-lg bg-sidebar-primary">
-                                    {user.user_role.charAt(0).toUpperCase()}
+                                    {user.first_name ? user.first_name.charAt(0) : user.user_role.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-semibold">
-                                    {user.user_role.replace(/_/g, ' ').toUpperCase()}
+                                    {user.first_name ? formatFullNameFML(user) : user.user_role.replace(/_/g, ' ').toUpperCase()}
                                 </span>
                                 <span className="truncate text-xs">{user.email_address}</span>
                             </div>
@@ -73,12 +73,12 @@ export function NavUser() {
                                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                     <Avatar className="h-8 w-8 rounded-lg">
                                         <AvatarFallback className="rounded-lg">
-                                            {user.user_role.charAt(0).toUpperCase()}
+                                            {user.first_name ? user.first_name.charAt(0) : user.user_role.charAt(0).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
                                         <span className="truncate font-semibold">
-                                            {user.user_role.replace(/_/g, ' ').toUpperCase()}
+                                            {user.first_name ? formatFullNameFML(user) : user.user_role.replace(/_/g, ' ').toUpperCase()}
                                         </span>
                                         <span className="truncate text-xs">
                                             {user.email_address}

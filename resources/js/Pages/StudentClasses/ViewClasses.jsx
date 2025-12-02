@@ -15,35 +15,29 @@ import MobileViewClasses from './MobileViewClasses';
 import html2canvas from 'html2canvas';
 import { Button } from '@/Components/ui/button';
 import { ImageDown } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 const ViewClasses = ({ currentSchoolYear }) => {
     const [loading, setLoading] = useState(true);
-    const [classes, setClasses] = useState([]);
-    const [error, setError] = useState(null);
     const [scheduleType, setScheduleType] = useState('tabular');
 
-    const getStudentClasses = async () => {
-        try {
-            const response = await axios.post(route('student.classes'), {
-                schoolYearId: currentSchoolYear.id
-            });
-            setClasses(response.data);
-        } catch (error) {
-            if (error.response && error.response.data?.error) {
-                setError(error.response.data.error);
-            } else {
-                setError("An unexpected error occurred.");
-            }
-        } finally {
-            setLoading(false);
-        }
+    const fetchStudentClasses = async ({ queryKey }) => {
+        const [, schoolYearId] = queryKey;
+        const response = await axios.post(route('student.classes'), {
+            schoolYearId,
+        });
+        return response.data;
     };
 
-    useEffect(() => {
-        getStudentClasses();
-    }, []);
+    const { data: classes, error, isLoading, isError } = useQuery({
+        queryKey: ['studentClasses', currentSchoolYear.id],
+        queryFn: fetchStudentClasses,
+        enabled: !!currentSchoolYear?.id,
+        staleTime: 1000 * 60 * 60 * 24 * 30, // cache for 30 days
+        retry: 1,
+    });
 
-    if (loading) return <PreLoader title="Classes" />
+    if (isLoading) return <PreLoader title="Classes" />
 
     if (!currentSchoolYear) {
         return (
@@ -81,7 +75,6 @@ const ViewClasses = ({ currentSchoolYear }) => {
             console.error('Error downloading image:', error);
         }
     };
-
 
     return (
         <div className='space-y-4'>
