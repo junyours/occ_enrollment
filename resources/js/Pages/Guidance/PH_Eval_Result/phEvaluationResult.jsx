@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import {
@@ -9,11 +9,6 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import logo from "/resources/images/OCC_LOGO.png";
-import {
-  Card, CardHeader, CardContent
-} from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
-
 
 // Utility function to generate a random hex color
 const getRandomColor = () => {
@@ -25,9 +20,7 @@ const getRandomColor = () => {
     return color;
 };
 
-
-
-export default function FacultyEvaluationResultPage({
+export default function phEvaluationResult({
     auth,
     faculty,
     subject,
@@ -38,8 +31,6 @@ export default function FacultyEvaluationResultPage({
     totalStudentsHandled,
     schoolYear,
     feedback,
-    respondentDetails,
-    detailedAnswers = []
 }) {
     const getRatingInfo = (average) => {
         const avg = parseFloat(average);
@@ -84,8 +75,8 @@ export default function FacultyEvaluationResultPage({
             };
         }
         return {
-            score: "-",
-            range: "-",
+            score: "0",
+            range: "≤ 0",
             description: "No rating",
             interpretation: "No interpretation available.",
         };
@@ -106,49 +97,11 @@ export default function FacultyEvaluationResultPage({
         .filter(wk => wk && wk !== '');
 
 
-    const [showEvaluators, setShowEvaluators] = useState(false);
-    const [showPreview, setShowPreview] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState(null);
-
-    const filteredStudentAnswers = selectedStudent
-        ? detailedAnswers.filter(a => a.first_name === selectedStudent.first_name)
-        : [];
-
-    const studentFeedback = selectedStudent
-        ? feedback.find(f => f.student_subject_id === selectedStudent.student_subject_id) || {}
-        : {};
-
-
-    const groupedByCriteria = detailedAnswers.reduce((acc, answer) => {
-    const criteriaId = answer.criteria_id;
-    if (!acc[criteriaId]) {
-        acc[criteriaId] = {
-            id: criteriaId,
-            title: answer.criteria_title,
-            questions: [],
-        };
-    }
-
-    // Only push question if it doesn't already exist
-    if (!acc[criteriaId].questions.some(q => q.question_id === answer.question_id)) {
-        acc[criteriaId].questions.push({
-            question_id: answer.question_id,
-            question_text: answer.question_text,
-        });
-    }
-
-    return acc;
-}, {});
-
-const criteriaArray = Object.values(groupedByCriteria);
-
-
 
     return (
         <AuthenticatedLayout user={auth.user}>
             <Head title="Evaluation Results" />
 
-            <div className="px-6 py-8 mx-auto space-y-8 max-w-7xl">
                 <button
                     onClick={() => window.history.back()}
                     className="inline-flex items-center px-4 py-2 mb-4 text-sm font-medium text-gray-800 bg-gray-200 rounded-md shadow dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 dark:text-white"
@@ -156,7 +109,15 @@ const criteriaArray = Object.values(groupedByCriteria);
                     ← Back
                 </button>
 
-                {/* Header Section */}
+                {!evaluation && (
+                <div className="p-4 mx-6 mt-6 text-center text-red-700 bg-red-100 border border-red-300 rounded-lg">
+                    Evaluation has not yet started.
+                </div>
+            )}
+
+            {evaluation && (
+                <div className="px-6 py-8 mx-auto space-y-8 max-w-7xl">
+                    {/* Header Section */}
                 <div className="relative flex items-center justify-between p-4 border rounded-md">
                     <div className="absolute left-4">
                         <img src={logo} alt="OCC Logo" className="w-auto h-16" />
@@ -411,151 +372,15 @@ const criteriaArray = Object.values(groupedByCriteria);
                             )}
                         </div>
                     </div>
+
                 )}
-            </div>
-
-            {/* Evaluator List Modal */}
-            {showEvaluators && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="w-full max-w-lg p-6 bg-white rounded-lg shadow-lg dark:bg-gray-900">
-                        <h2 className="mb-4 text-xl font-bold text-center text-gray-800 dark:text-white">
-                            Evaluator List ({respondentDetails.length})
-                        </h2>
-
-                        <div className="overflow-y-auto border rounded-lg max-h-80">
-                            <table className="w-full text-sm text-left text-gray-700 dark:text-gray-200">
-                                <thead className="bg-gray-200 dark:bg-gray-800">
-                                    <tr>
-                                        <th className="px-3 py-2 border">Name</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {respondentDetails.map((s, idx) => (
-                                        <tr
-                                            key={idx}
-                                            className="hover:bg-gray-100 dark:hover:bg-gray-800"
-                                        >
-                                            <td
-                                                className="px-3 py-2 text-blue-600 border cursor-pointer hover:underline"
-                                                onClick={() => {
-                                                    setSelectedStudent(s);
-                                                    setShowPreview(true);
-                                                }}
-                                            >
-                                                {s.first_name} {s.last_name}
-                                            </td>
-
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <button
-                            onClick={() => setShowEvaluators(false)}
-                            className="w-full px-4 py-2 mt-5 text-white bg-purple-600 rounded-lg hover:bg-purple-700"
-                        >
-                            Close
-                        </button>
-                    </div>
                 </div>
             )}
 
-{showPreview && selectedStudent && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <Card className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg dark:bg-gray-900 dark:text-white">
-      <CardHeader className="pb-2 border-b dark:border-gray-700">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-          Answers of {selectedStudent.anonymous
-            ? selectedStudent.first_name // Pseudo-ID
-            : `${selectedStudent.first_name} ${selectedStudent.last_name}`}
-        </h2>
-      </CardHeader>
-
-      <CardContent className="pt-4 space-y-4 max-h-[80vh] overflow-y-auto">
-        {criteriaArray.map((c) => {
-          // Map each question for this criteria and attach the selected student's rating
-          const studentQuestions = c.questions.map((q) => {
-            const studentAnswer = detailedAnswers.find(
-              (a) =>
-                a.student_subject_id === selectedStudent.student_subject_id &&
-                a.question_id === q.question_id
-            )?.rating;
-
-            return { ...q, rating: studentAnswer };
-          });
-
-          return (
-            <Card key={c.id} className="border dark:border-gray-700">
-              <CardHeader className="px-4 py-2 space-y-2 bg-gray-100 rounded-t dark:bg-gray-800">
-                <h3 className="text-lg font-bold">{c.title}</h3>
-                <div className="grid grid-cols-[1fr_repeat(5,_4rem)] items-center bg-gray-200 dark:bg-gray-700 rounded px-2 py-1 text-sm font-semibold">
-                  <span></span>
-                  {[5, 4, 3, 2, 1].map((num) => (
-                    <span key={num} className="text-center">{num}</span>
-                  ))}
-                </div>
-              </CardHeader>
-
-              <CardContent className="pt-4">
-                {studentQuestions.map((q, index) => (
-                  <div
-                    key={q.question_id}
-                    className="grid grid-cols-[1fr_repeat(5,_4rem)] items-center border-b dark:border-gray-600 py-3"
-                  >
-                    <p className="pl-2 font-medium">{index + 1}. {q.question_text}</p>
-                    {[5, 4, 3, 2, 1].map((opt) => (
-                      <div key={opt} className="flex justify-center px-2">
-                        <input
-                          type="radio"
-                          value={opt}
-                          checked={q.rating === opt}
-                          disabled
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          );
-        })}
-
-        {/* Strengths & Weaknesses */}
-        <div className="flex flex-col gap-6 mt-4 md:flex-row">
-          <div className="w-full">
-            <label className="block mb-2 font-medium">Strengths</label>
-            <textarea
-              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600"
-              rows="3"
-              value={studentFeedback.strengths || ""}
-              disabled
-            />
-          </div>
-          <div className="w-full">
-            <label className="block mb-2 font-medium">Weaknesses</label>
-            <textarea
-              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600"
-              rows="3"
-              value={studentFeedback.weaknesses || ""}
-              disabled
-            />
-          </div>
-        </div>
-
-        <Button
-          className="w-full px-4 py-2 mt-5 text-white bg-purple-600 rounded-lg hover:bg-purple-700 dark:hover:bg-purple-500"
-          onClick={() => setShowPreview(false)}
-        >
-          Close
-        </Button>
-      </CardContent>
-    </Card>
-  </div>
-)}
 
 
 
         </AuthenticatedLayout>
+
     );
 }

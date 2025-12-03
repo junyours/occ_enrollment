@@ -334,7 +334,7 @@ export default function Questionnaire({ criteria = [] }) {
                     </div>
                 )}
 
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center justify-between mb-4">
                     <h1 className="text-2xl font-bold text-blue-800">
                         Evaluation Questionnaire Builder
                     </h1>
@@ -382,16 +382,16 @@ export default function Questionnaire({ criteria = [] }) {
                                                     e.target.value
                                                 )
                                             }
-                                            className="font-bold text-lg bg-blue-100 dark:bg-blue-900 text-gray-900 dark:text-white px-4 py-2 rounded-t-md border-none focus-visible:ring-0"
+                                            className="px-4 py-2 text-lg font-bold text-gray-900 bg-blue-100 border-none dark:bg-blue-900 dark:text-white rounded-t-md focus-visible:ring-0"
                                         />
                                     </CardHeader>
 
-                                    <CardContent className="space-y-2 pt-4">
+                                    <CardContent className="pt-4 space-y-2">
                                         {criteria.questions.map(
                                             (question, qIdx) => (
                                                 <div
                                                     key={qIdx}
-                                                    className="flex gap-2 items-center"
+                                                    className="flex items-center gap-2"
                                                 >
                                                     <Input
                                                         type="text"
@@ -422,13 +422,13 @@ export default function Questionnaire({ criteria = [] }) {
                                                                 )
                                                             }
                                                         >
-                                                            <X className="h-4 w-4" />
+                                                            <X className="w-4 h-4" />
                                                         </Button>
                                                     )}
                                                 </div>
                                             )
                                         )}
-                                        <div className="flex gap-2 justify-between">
+                                        <div className="flex justify-between gap-2">
                                             {!editMode && (
                                                 <Button
                                                     type="button"
@@ -489,11 +489,11 @@ export default function Questionnaire({ criteria = [] }) {
                                 onChange={handleNewCriteriaChange}
                             />
                         </CardHeader>
-                        <CardContent className="space-y-4 pt-4">
+                        <CardContent className="pt-4 space-y-4">
                             {newCriteria.questions.map((question, index) => (
                                 <div
                                     key={index}
-                                    className="flex gap-2 items-center"
+                                    className="flex items-center gap-2"
                                 >
                                     <Input
                                         type="text"
@@ -520,7 +520,7 @@ export default function Questionnaire({ criteria = [] }) {
                                             });
                                         }}
                                     >
-                                        <X className="h-4 w-4" />
+                                        <X className="w-4 h-4" />
                                     </Button>
                                 </div>
                             ))}
