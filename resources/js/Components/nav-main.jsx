@@ -72,6 +72,12 @@ export function NavMain() {
                     items: [
                         { name: "Submitted Grades", route: "submitted-grades", icon: FileText },
                     ],
+                },
+                {
+                    label: "Evalaution Result",
+                    items: [
+                        { name: "Faculty Result", route: "ph.faculty.report", icon: User },
+                    ],
                 }
             );
             break;
