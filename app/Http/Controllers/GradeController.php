@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use App\Models\Faculty;
+use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
 use App\Models\SchoolYear;
 use App\Models\Semester;
@@ -478,6 +480,46 @@ class GradeController extends Controller
         return response()->json($students, 200);
     }
 
+    public function changeRequestView()
+    {
+        return Inertia::render('Grades/ChangeRequests');
+    }
+
+    public function changeRequestList(Request $request)
+    {
+
+        $requestsList = GradeEditRequest::select(
+            'grade_edit_requests.id',
+            'year_section_subjects_id',
+            'period',
+            'status',
+            'request_date',
+            'rejection_date',
+            'approval_date',
+            'submission_date',
+            'rejection_message',
+            'changes',
+            'course_name_abbreviation',
+            'year_level_id',
+            'section',
+            'descriptive_title',
+            'first_name',
+            'middle_name',
+            'last_name',
+        )
+            ->where('school_year_id', '=', $request->schoolYearId)
+            ->join('year_section_subjects', 'year_section_subjects.id', '=', 'grade_edit_requests.year_section_subjects_id')
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->join('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('request_date', 'ASC')
+            ->get();
+
+        return response()->json($requestsList);
+    }
+
     // public function deployGrades($yearSectionSubjectsId)
     // {
     //     GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
@@ -550,6 +592,171 @@ class GradeController extends Controller
     public function gradesInstructorRequests()
     {
         return Inertia::render('Grades/InstructorRequests');
+    }
+
+    public function viewEditRequest($hashedGradeEditRequestsId)
+    {
+        $gradeEditRequest = GradeEditRequest::whereRaw('MD5(id) = ?', [$hashedGradeEditRequestsId])->first();
+
+        if (!$gradeEditRequest) {
+            return Inertia::render('Grades/EditGrade/Error', [
+                'error' => [
+                    'type' => 'not_found',
+                    'message' => 'Grade edit request not found or may have been deleted.',
+                ]
+            ]);
+        }
+
+        $yearSectionSubject = YearSectionSubjects::find($gradeEditRequest->year_section_subjects_id);
+
+        if (!$yearSectionSubject) {
+            return Inertia::render('Grades/EditGrade/Error', [
+                'error' => [
+                    'type' => 'not_found',
+                    'message' => 'Related subject record not found.',
+                ]
+            ]);
+        }
+
+        if (Auth::id() !== $yearSectionSubject->faculty_id) {
+            return Inertia::render('Grades/EditGrade/Error', [
+                'error' => [
+                    'type' => 'unauthorized',
+                    'message' => 'You are not authorized to view this grade edit request.',
+                ]
+            ]);
+        }
+
+        $classInfo = YearSectionSubjects::select(
+            'course_name_abbreviation',
+            'year_level_id',
+            'section',
+            'descriptive_title',
+        )
+            ->where('year_section_subjects.id', '=', $gradeEditRequest->year_section_subjects_id)
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->first();
+
+        return Inertia::render('Grades/EditGrade/EditGrade', [
+            'gradeEditRequest' => $gradeEditRequest,
+            'classInfo' => $classInfo,
+        ]);
+    }
+
+    public function getEditRequestGrades(Request $request)
+    {
+        $gradeRequest = GradeEditRequest::where('id', '=', $request->editRequestId)
+            ->first();
+
+        if ($gradeRequest->period == 'midterm') {
+            $grades = StudentSubject::where('year_section_subjects_id', '=', $gradeRequest->year_section_subjects_id)
+                ->select(
+                    'student_subjects.id',
+                    'users.user_id_no',
+                    'first_name',
+                    'middle_name',
+                    'last_name',
+                    'midterm_grade as grade',
+                )
+                ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+                ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+                ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+                ->orderBy('last_name', 'ASC')
+                ->orderBy('first_name', 'ASC')
+                ->get();
+        } else {
+            $grades = StudentSubject::where('year_section_subjects_id', '=', $gradeRequest->year_section_subjects_id)
+                ->select(
+                    'student_subjects.id',
+                    'users.user_id_no',
+                    'first_name',
+                    'middle_name',
+                    'last_name',
+                    'final_grade as grade',
+                )
+                ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+                ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+                ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+                ->orderBy('last_name', 'ASC')
+                ->get();
+        }
+
+        return response()->json($grades);
+    }
+
+    public function requestsList(Request $request)
+    {
+        $requestsList = GradeEditRequest::where('school_year_id', '=', $request->schoolYearId)
+            ->select(
+                'descriptive_title',
+                'course_name_abbreviation',
+                'year_level_id',
+                'request_date',
+                'grade_edit_requests.status',
+                'rejection_message',
+                'section',
+            )
+            ->addSelect(DB::raw("MD5(grade_edit_requests.id) as hashed_grade_edit_requests_id"))
+            ->join('year_section_subjects', 'year_section_subjects.id', '=', 'grade_edit_requests.year_section_subjects_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->orderBy('request_date', 'DESC')
+            ->where('year_section_subjects.faculty_id', '=', Auth::id())
+            ->get();
+
+        return response()->json($requestsList);
+    }
+
+    public function submitEditRequestChanges(Request $request)
+    {
+        $gradeEditRequest = GradeEditRequest::find($request->editRequestId);
+
+        foreach ($request->changes as $change) {
+            $newGrade = $change['newGrade']; // important
+
+            if ($gradeEditRequest->period === 'midterm') {
+                StudentSubject::where('id', $change['id'])
+                    ->update([
+                        'midterm_grade' => $newGrade,
+                    ]);
+            }
+
+            if ($gradeEditRequest->period === 'final') {
+                StudentSubject::where('id', $change['id'])
+                    ->update([
+                        'final_grade' => $newGrade,
+                    ]);
+            }
+        }
+
+        $gradeEditRequest->update([
+            'changes' => $request->changes,
+            'submission_date' => now(),
+            'status' => 'submitted',
+        ]);
+    }
+
+
+    public function approveRequest(Request $request)
+    {
+        GradeEditRequest::where('id', '=', $request->requestId)
+            ->update([
+                'status' => 'approved',
+                'approval_date' => now(),
+            ]);
+    }
+
+    public function rejectRequest(Request $request)
+    {
+        GradeEditRequest::where('id', '=', $request->requestId)
+            ->update([
+                'status' => 'rejected',
+                'rejection_date' => now(),
+                'rejection_message' => $request->rejectionMessage,
+            ]);
     }
 
     public function instructorSubjects(Request $request)

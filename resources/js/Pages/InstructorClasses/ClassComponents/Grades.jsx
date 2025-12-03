@@ -273,11 +273,11 @@ function Grades({
     }, [])
 
     const { data, isLoading, isError, error, refetch } = useGradeSubmission(yearSectionSubjectsId);
-    const [submitting, setSubimitting] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = (type) => {
         if (!validateGradesBeforeSubmit(type)) return;
-        setSubimitting(true)
+        setSubmitting(true)
         const routeName =
             type === "final"
                 ? "grade-submission.submit-final-grade"
@@ -304,14 +304,14 @@ function Grades({
                 },
                 onFinish: async () => {
                     await refetch();
-                    setSubimitting(false)
+                    setSubmitting(false)
                 },
             }
         );
     };
 
     const handleCancel = (type) => {
-        setSubimitting(true)
+        setSubmitting(true)
 
         const routeName =
             type === "final"
@@ -339,14 +339,14 @@ function Grades({
                 },
                 onFinish: async () => {
                     await refetch();
-                    setSubimitting(false);
+                    setSubmitting(false);
                 }
             }
         );
     }
 
     const handleRequestEdit = (type) => {
-        setSubimitting(true)
+        setSubmitting(true)
 
         const routeName =
             type === "final"
@@ -370,7 +370,7 @@ function Grades({
                 },
                 onFinish: async () => {
                     await getChangeRequests();
-                    setSubimitting(false);
+                    setSubmitting(false);
                 }
             }
         );
@@ -396,7 +396,7 @@ function Grades({
     }, [data])
 
     const handleCancelRequestEdit = (type) => {
-        setSubimitting(true)
+        setSubmitting(true)
 
         const routeName =
             type === "final"
@@ -422,7 +422,7 @@ function Grades({
                 },
                 onFinish: async () => {
                     await getChangeRequests();
-                    setSubimitting(false);
+                    setSubmitting(false);
                 }
             }
         );

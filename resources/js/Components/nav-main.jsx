@@ -103,7 +103,7 @@ export function NavMain() {
                     label: "Grades",
                     items: [
                         { name: "Verified Grades", route: "verified-grades", icon: FileText },
-                        { name: "Change Request", route: "classes", icon: RefreshCcw },
+                        { name: "Change Request", route: "change-requests", icon: RefreshCcw },
                     ]
                 },
                 {

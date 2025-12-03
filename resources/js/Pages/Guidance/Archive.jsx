@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/Components/ui/input";
 import { Folder, FileText, Search, Settings } from "lucide-react";
 import { Dialog } from "@headlessui/react";
 
