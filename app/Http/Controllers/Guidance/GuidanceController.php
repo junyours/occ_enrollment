@@ -292,63 +292,34 @@ class GuidanceController extends Controller
         return Inertia::render('Guidance/AddCriteria');
     }
 
+    //Building Questionnaire
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255|unique:criterias,title',
-            'questions' => 'nullable|array',
-            'questions.*' => 'nullable|string'
-        ]);
+        $validated = $request->validate(
+            [
+                'title' => 'required|string|max:255|unique:criterias,title',
+                'questions' => 'nullable|array',
+                'questions.*' => 'nullable|string'
+            ],
+            [
+                'title.unique' => 'This criteria title already exists. Please use a different title.',
+            ]
+        );
+
+        $lastPosition = Criteria::max('position') ?? 0;
+
 
         $criteria = Criteria::create([
             'title' => $validated['title'],
+            'position' => $lastPosition + 1,
         ]);
 
-        $savedQuestions = [];
+
 
         if (!empty($validated['questions'])) {
             foreach ($validated['questions'] as $q) {
                 if (trim($q) !== '') {
-                    $newQ = $criteria->questions()->create([
-                        'text' => $q
-                    ]);
-
-                    $savedQuestions[] = [
-                        'id' => $newQ->id,
-                        'text' => $newQ->text,
-                    ];
-                }
-            }
-        }
-
-        return response()->json([
-            'id' => $criteria->id,
-            'title' => $criteria->title,
-            'saved_questions' => $savedQuestions,
-            'message' => 'Criteria and questions added successfully.'
-        ]);
-    }
-
-    public function save(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'questions' => 'nullable|array',
-            'questions.*' => 'nullable|string',
-        ]);
-
-        // Create the criteria
-        $criteria = Criteria::create([
-            'title' => $validated['title'],
-        ]);
-
-        // Save questions if provided
-        if (!empty($validated['questions'])) {
-            foreach ($validated['questions'] as $q) {
-                if (trim($q) !== '') {
-                    $criteria->questions()->create([
-                        'question' => $q,
-                    ]);
+                    $criteria->questions()->create(['text' => $q]);
                 }
             }
         }
@@ -356,6 +327,33 @@ class GuidanceController extends Controller
         return redirect()->route('guidance.criteria')
             ->with('success', 'Criteria and questions added successfully.');
     }
+
+    //Adding Criteria
+    public function save(Request $request)
+    {
+        $validated = $request->validate(
+            [
+                'title' => 'required|string|max:255|unique:criterias,title',
+                'recommendation' => 'nullable|string',
+                'suggestion' => 'nullable|string',
+            ],
+            [
+                'title.unique' => 'This criteria title already exists.',
+            ]
+        );
+
+        $criteria = Criteria::create([
+            'title' => $validated['title'],
+            'recommendation' => $validated['recommendation'] ?? null,
+            'suggestion' => $validated['suggestion'] ?? null,
+            'position' => (Criteria::max('position') ?? 0) + 1,
+        ]);
+
+        return redirect()->route('guidance.criteria')
+            ->with('success', 'Criteria added successfully.');
+    }
+
+
 
 
     public function destroy($id)
@@ -394,11 +392,18 @@ class GuidanceController extends Controller
 
     public function quesCri()
     {
-        $criteria = Criteria::with('questions')->get();
+        $criteria = Criteria::with('questions')
+            ->orderBy('position', 'asc')
+            ->get();
+
+        $lastPosition = Criteria::max('position') ?? 0;
+
         return Inertia::render('Guidance/Questionnaire', [
-            'criteria' => $criteria
+            'criteria' => $criteria,
+            'lastPosition' => $lastPosition
         ]);
     }
+
 
     public function storeQuestions(Request $request, $id)
     {
@@ -1801,20 +1806,32 @@ class GuidanceController extends Controller
         // ------------------------------------
         // 🚫 Prevent unsafe deletion
         // ------------------------------------
-        if ($type === 'criteria' && $item->questions()->exists()) {
-            return Inertia::location(
-                url()->previous() . '?message=' . urlencode('Cannot delete criteria — it is used in evaluations.') . '&type=error'
-            );
+        if ($type === 'criteria') {
+            $isUsed = DB::table('evaluation_questions')
+                ->where('criteria_id', $item->id)
+                ->exists();
+
+            if ($isUsed) {
+                return Inertia::location(
+                    url()->previous() . '?message=' . urlencode('Cannot delete criteria — it is used in an evaluation.') . '&type=error'
+                );
+            }
         }
 
-        if ($type === 'question' && $item->criteria()->exists()) {
-            return Inertia::location(
-                url()->previous() . '?message=' . urlencode('Cannot delete question — it is used in evaluations.') . '&type=error'
-            );
+        if ($type === 'question') {
+            $isUsed = DB::table('evaluation_questions')
+                ->where('question_id', $item->id)
+                ->exists();
+
+            if ($isUsed) {
+                return Inertia::location(
+                    url()->previous() . '?message=' . urlencode('Cannot delete question — it is used in an evaluation.') . '&type=error'
+                );
+            }
         }
 
         // ------------------------------------
-        // 🗑 Safe delete
+        // 🗑 Safe delete (Criteria/Question not used)
         // ------------------------------------
         $item->forceDelete();
 
@@ -1822,6 +1839,7 @@ class GuidanceController extends Controller
             url()->previous() . '?message=' . urlencode('Item permanently deleted') . '&type=success'
         );
     }
+
 
     public function restoreAll(Request $request)
     {
@@ -1861,22 +1879,36 @@ class GuidanceController extends Controller
     {
         $type = $request->type ?? 'all';
 
-        // ------------------------------------
+        // -------------------------------------------------
         // 🔥 DELETE EVERYTHING
-        // ------------------------------------
+        // -------------------------------------------------
         if ($type === 'all') {
-            // Delete questions safely
-            Question::onlyTrashed()->forceDelete();
 
-            // Delete criteria ONLY if safe
+            // Delete Questions only if NOT used in evaluations
+            $questions = Question::onlyTrashed()->get();
+            foreach ($questions as $question) {
+                $isUsed = DB::table('evaluation_questions')
+                    ->where('question_id', $question->id)
+                    ->exists();
+
+                if (!$isUsed) {
+                    $question->forceDelete();
+                }
+            }
+
+            // Delete Criterias only if NOT used in evaluations
             $criterias = Criteria::onlyTrashed()->get();
             foreach ($criterias as $criteria) {
-                if (!$criteria->questions()->exists()) {
+                $isUsed = DB::table('evaluation_questions')
+                    ->where('criteria_id', $criteria->id)
+                    ->exists();
+
+                if (!$isUsed) {
                     $criteria->forceDelete();
                 }
             }
 
-            // Evaluations have no dependency → safe to delete all
+            // Evaluations have no dependencies → always safe
             Evaluation::onlyTrashed()->forceDelete();
 
             return Inertia::location(
@@ -1884,30 +1916,49 @@ class GuidanceController extends Controller
             );
         }
 
-        // ------------------------------------
+        // -------------------------------------------------
         // 🔥 DELETE BY TYPE
-        // ------------------------------------
+        // -------------------------------------------------
+
         if ($type === 'criteria') {
             $criterias = Criteria::onlyTrashed()->get();
+
             foreach ($criterias as $criteria) {
-                if (!$criteria->questions()->exists()) {
+                $isUsed = DB::table('evaluation_questions')
+                    ->where('criteria_id', $criteria->id)
+                    ->exists();
+
+                if (!$isUsed) {
                     $criteria->forceDelete();
                 }
             }
+
             return Inertia::location(
                 url()->previous() . '?message=Criteria+deleted+where+safe&type=success'
             );
         }
 
         if ($type === 'question') {
-            Question::onlyTrashed()->forceDelete();
+            $questions = Question::onlyTrashed()->get();
+
+            foreach ($questions as $question) {
+                $isUsed = DB::table('evaluation_questions')
+                    ->where('question_id', $question->id)
+                    ->exists();
+
+                if (!$isUsed) {
+                    $question->forceDelete();
+                }
+            }
+
             return Inertia::location(
-                url()->previous() . '?message=Questions+deleted&type=success'
+                url()->previous() . '?message=Questions+deleted+where+safe&type=success'
             );
         }
 
         if ($type === 'evaluation') {
             Evaluation::onlyTrashed()->forceDelete();
+
             return Inertia::location(
                 url()->previous() . '?message=Evaluations+deleted&type=success'
             );
@@ -1917,6 +1968,7 @@ class GuidanceController extends Controller
             url()->previous() . '?message=Invalid+type&type=error'
         );
     }
+
 
     private function getModel($type)
     {
@@ -1976,11 +2028,19 @@ class GuidanceController extends Controller
         ]);
     }
 
-    // 3. New PHFacultyReport method
+
     public function phFacultyReport()
     {
         return Inertia::render('Guidance/PH_Eval_Result/PHFacultyReport', [
             'title' => 'PH Faculty Evaluation Report',
+            'schoolYears' => $this->getSchoolYearsWithEval(),
+        ]);
+    }
+
+    public function FacultyResult()
+    {
+        return Inertia::render('Guidance/FesFacultyResult/FacultyFesReport', [
+            'title' => 'Faculty Evaluation Report',
             'schoolYears' => $this->getSchoolYearsWithEval(),
         ]);
     }
@@ -2951,6 +3011,253 @@ class GuidanceController extends Controller
             ->get();
 
         return Inertia::render('Guidance/PH_Eval_Result/phEvaluationResult', [
+            'faculty' => $faculty,
+            'subject' => $subjectInfo,
+            'evaluation' => $evaluation,
+            'criteria' => $criteriaGrouped,
+            'overallAverage' => $overallAverage,
+            'totalRespondents' => $respondents,
+            'totalStudentsHandled' => $totalStudents,
+            'schoolYear' => $schoolYear,
+            'feedback' => $feedback,
+            'message' => null,
+        ]);
+    }
+
+    //Faculty Side Result
+
+    public function FesfacultySubjects($schoolYearId, Request $request)
+    {
+        // Get the signed-in faculty ID
+        $facultyId = auth()->id();
+
+        // STEP 0 — Load school year + semester
+        $schoolYear = DB::table('school_years as sy')
+            ->join('semesters as s', 'sy.semester_id', '=', 's.id')
+            ->where('sy.id', $schoolYearId)
+            ->select('sy.*', 's.semester_name')
+            ->first();
+
+        if (!$schoolYear) {
+            abort(404, 'School year not found');
+        }
+
+        // STEP 1 — Get subjects handled by this faculty in this school year
+        $subjects = DB::table('year_section_subjects as yss')
+            ->join('subjects as s', 'yss.subject_id', '=', 's.id')
+            ->join('year_section as ys', 'yss.year_section_id', '=', 'ys.id')
+            ->join('student_subjects as ss', 'yss.id', '=', 'ss.year_section_subjects_id')
+            ->where('yss.faculty_id', $facultyId)
+            ->where('ys.school_year_id', $schoolYearId)
+            ->select(
+                's.id as subject_id',
+                's.subject_code',
+                's.descriptive_title',
+                DB::raw('MIN(ss.id) as student_subject_id')
+            )
+            ->groupBy('s.id', 's.subject_code', 's.descriptive_title')
+            ->get();
+
+        // STEP 2 — Compute rating per subject
+        foreach ($subjects as $subject) {
+
+            // Get all student_subject_ids for this faculty & subject
+            $relatedIds = DB::table('student_subjects as ss')
+                ->join('year_section_subjects as yss', 'ss.year_section_subjects_id', '=', 'yss.id')
+                ->join('year_section as ys', 'yss.year_section_id', '=', 'ys.id')
+                ->where('yss.faculty_id', $facultyId)
+                ->where('yss.subject_id', $subject->subject_id)
+                ->where('ys.school_year_id', $schoolYearId)
+                ->pluck('ss.id');
+
+            $subject->student_count = $relatedIds->count();
+
+            if ($relatedIds->isEmpty()) {
+                $subject->overall_average = null;
+                continue;
+            }
+
+            // Total enrolled students for weighting
+            $totalStudents = DB::table('student_subjects as ss')
+                ->join('enrolled_students as es', 'ss.enrolled_students_id', '=', 'es.id')
+                ->whereIn('ss.id', $relatedIds)
+                ->distinct('es.student_id')
+                ->count('es.student_id');
+
+            if ($totalStudents === 0) {
+                $subject->overall_average = null;
+                continue;
+            }
+
+            // Get all answers with criteria & question
+            $answers = DB::table('student_answers as sa')
+                ->join('evaluation_questions as eq', 'sa.evaluation_question_id', '=', 'eq.id')
+                ->join('criterias as c', 'eq.criteria_id', '=', 'c.id')
+                ->whereIn('sa.student_subject_id', $relatedIds)
+                ->select('c.id as criteria_id', 'eq.id as question_id', 'sa.rating')
+                ->get();
+
+            if ($answers->isEmpty()) {
+                $subject->overall_average = null;
+                continue;
+            }
+
+            // Group answers by criteria and question
+            $criteriaGrouped = $answers->groupBy('criteria_id')->map(function ($group) use ($totalStudents) {
+                $questions = $group->groupBy('question_id')->map(function ($qGroup) use ($totalStudents) {
+                    $sumRatings = $qGroup->sum('rating');
+                    $avgRating = $totalStudents ? $sumRatings / $totalStudents : 0;
+                    return round($avgRating, 2);
+                })->values();
+
+                return round($questions->avg(), 2); // criteria average
+            })->values();
+
+            // Compute overall average across criteria
+            $subject->overall_average = round($criteriaGrouped->avg(), 2);
+        }
+
+        // STEP 3 — Compute overall rating across all subjects
+        $validSubjects = $subjects->filter(fn($s) => $s->overall_average !== null);
+        $overallRating = $validSubjects->count()
+            ? round($validSubjects->avg('overall_average'), 2)
+            : null;
+
+        // STEP 4 — Get faculty info (signed-in faculty)
+        $faculty = DB::table('users as u')
+            ->join('user_information as ui', 'u.id', '=', 'ui.user_id')
+            ->leftJoin('faculty as f', 'u.id', '=', 'f.faculty_id')
+            ->leftJoin('department as d', 'f.department_id', '=', 'd.id')
+            ->where('u.id', $facultyId)
+            ->select('u.id', 'ui.first_name', 'ui.last_name', 'ui.middle_name', 'd.department_name')
+            ->first();
+
+        return Inertia::render('Guidance/FesFacultyResult/FesfacultySubjects', [
+            'faculty'       => $faculty,
+            'schoolYear'    => $schoolYear,
+            'schoolYearId'  => $schoolYearId,
+            'subjects'      => $subjects,
+            'overallRating' => $overallRating,
+        ]);
+    }
+
+    public function facEvaluationResult($facultyId, $studentSubjectId, $schoolYearId)
+    {
+        // Step 1: Get subject info
+        $subjectInfo = DB::table('student_subjects as ss')
+            ->join('year_section_subjects as yss', 'ss.year_section_subjects_id', '=', 'yss.id')
+            ->join('subjects as s', 'yss.subject_id', '=', 's.id')
+            ->where('ss.id', $studentSubjectId)
+            ->select('s.id as subject_id', 's.subject_code', 's.descriptive_title')
+            ->first();
+
+        if (!$subjectInfo) abort(404, 'Subject not found.');
+
+        // Step 2: Get all student_subject_ids for the same faculty & subject
+        $relatedStudentSubjectIds = DB::table('student_subjects as ss')
+            ->join('year_section_subjects as yss', 'ss.year_section_subjects_id', '=', 'yss.id')
+            ->where('yss.faculty_id', $facultyId)
+            ->where('yss.subject_id', $subjectInfo->subject_id)
+            ->pluck('ss.id');
+
+        // Step 3: Get the evaluation for that school year
+        $evaluation = DB::table('evaluation as e')
+            ->join('school_years as sy', 'e.school_year_id', '=', 'sy.id')
+            ->join('semesters as sem', 'sy.semester_id', '=', 'sem.id')
+            ->where('e.school_year_id', $schoolYearId)
+            ->latest('e.start_date')
+            ->select('e.*', 'sy.start_year', 'sy.end_year', 'sem.semester_name')
+            ->first();
+
+        if (!$evaluation) {
+            return Inertia::render('Guidance/FesFacultyResult/facEvaluationResult', [
+                'faculty' => null,
+                'subject' => null,
+                'evaluation' => null,
+                'criteria' => [],
+                'overallAverage' => null,
+                'totalRespondents' => 0,
+                'totalStudentsHandled' => 0,
+                'schoolYear' => null,
+                'feedback' => [],
+                'message' => 'Evaluation has not yet started.',
+            ]);
+        }
+
+        // Step 4: Total students for weighting
+        $totalStudents = DB::table('student_subjects as ss')
+            ->join('enrolled_students as es', 'ss.enrolled_students_id', '=', 'es.id')
+            ->whereIn('ss.id', $relatedStudentSubjectIds)
+            ->distinct('es.student_id')
+            ->count('es.student_id');
+
+        // Step 5: Get all answers
+        $answers = DB::table('student_answers as sa')
+            ->join('evaluation_questions as eq', 'sa.evaluation_question_id', '=', 'eq.id')
+            ->join('criterias as c', 'eq.criteria_id', '=', 'c.id')
+            ->whereIn('sa.student_subject_id', $relatedStudentSubjectIds)
+            ->where('eq.evaluation_session_id', $evaluation->id)
+            ->select('c.id as criteria_id', 'c.title as criteria_title', 'eq.id as question_id', 'eq.question_text', 'sa.rating')
+            ->get();
+
+        // Step 6: Group answers per criteria and question, calculate averages based on total students
+        $criteriaGrouped = $answers->groupBy('criteria_id')->map(function ($group, $criteriaId) use ($totalStudents) {
+            $criteriaTitle = $group->first()->criteria_title;
+
+            $questions = $group->groupBy('question_id')->map(function ($qGroup, $questionId) use ($totalStudents) {
+                $sumRatings = $qGroup->sum('rating');
+                $avgRating = $totalStudents ? round($sumRatings / $totalStudents, 2) : 0;
+
+                return [
+                    'question_id' => $questionId,
+                    'question_text' => $qGroup->first()->question_text,
+                    'average' => $avgRating,
+                ];
+            })->values();
+
+            $criteriaAvg = $questions->avg('average');
+
+            return [
+                'criteria_id' => $criteriaId,
+                'criteria_title' => $criteriaTitle,
+                'questions' => $questions,
+                'average' => round($criteriaAvg, 2),
+            ];
+        })->values();
+
+        // Step 7: Overall average = mean of criteria averages
+        $overallAverage = $criteriaGrouped->avg('average');
+        $overallAverage = round($overallAverage, 2);
+
+        // Step 8: School year info
+        $schoolYear = [
+            'start_year' => $evaluation->start_year,
+            'end_year' => $evaluation->end_year,
+            'semester' => $evaluation->semester_name,
+            'formatted' => 'S.Y. ' . $evaluation->start_year . '-' . $evaluation->end_year . ' (' . $evaluation->semester_name . ')',
+        ];
+
+        // Step 9: Count unique student respondents
+        $respondents = DB::table('student_answers')
+            ->whereIn('student_subject_id', $relatedStudentSubjectIds)
+            ->distinct('student_id')
+            ->count('student_id');
+
+        // Step 10: Get faculty info
+        $faculty = DB::table('users as u')
+            ->join('user_information as ui', 'u.id', '=', 'ui.user_id')
+            ->where('u.id', $facultyId)
+            ->select('u.id', 'ui.first_name', 'ui.last_name', 'ui.middle_name')
+            ->first();
+
+        // Step 11: Get feedback
+        $feedback = DB::table('evaluation_feedback')
+            ->whereIn('student_subject_id', $relatedStudentSubjectIds)
+            ->select('strengths', 'weaknesses', 'anonymous', 'created_at')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return Inertia::render('Guidance/FesFacultyResult/facEvaluationResult', [
             'faculty' => $faculty,
             'subject' => $subjectInfo,
             'evaluation' => $evaluation,

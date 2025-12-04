@@ -76,9 +76,9 @@ export function NavMain() {
                 {
                     label: "Evalaution Result",
                     items: [
-                        { name: "Faculty Result", route: "ph.faculty.report", icon: User },
+                        { name: "Faculty Result", route: "ph.result", icon: User },
                     ],
-                }
+                },
             );
             break;
 
@@ -149,7 +149,14 @@ export function NavMain() {
                         { name: "Subjects", route: "subjects-list", icon: BookOpenText },
                         { name: "Requests", route: "requests", icon: Inbox },
                     ],
-                });
+                },
+                {
+                    label: "Evalaution Result",
+                    items: [
+                        { name: "Faculty Result", route: "fac.faculty.report", icon: User },
+                    ],
+                }
+            );
             break;
 
         case "evaluator":
