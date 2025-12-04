@@ -11,11 +11,12 @@ class Criteria extends Model
         'title',
         'recommendation',
         'suggestion',
+        'position',
     ];
      use SoftDeletes;
 
     protected $dates = ['deleted_at'];
-    
+
     public function questions()
 {
     return $this->hasMany(Question::class)->orderBy('position');

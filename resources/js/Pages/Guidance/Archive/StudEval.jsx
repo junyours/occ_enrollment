@@ -4,29 +4,39 @@ import { Head, Link } from "@inertiajs/react";
 import { Calendar, ChevronRight, School } from "lucide-react";
 
 const SchoolYearCard = ({ item }) => (
-  <Link
-    href={route("archives.students.list", { schoolYearId: item.id })}
-    className="flex items-center gap-4 p-5 transition-shadow duration-200 bg-white shadow-sm dark:bg-gray-800 rounded-xl hover:shadow-lg"
-  >
-    {/* Icon */}
-    <div className="flex items-center justify-center p-3 bg-indigo-100 dark:bg-indigo-800 rounded-xl">
-      <School className="w-6 h-6 text-indigo-700 dark:text-indigo-200" />
-    </div>
+    <Link
+        href={route("archives.students.list", { schoolYearId: item.id })}
+        className="flex items-center gap-4 p-5 transition-shadow duration-200 bg-white shadow-sm dark:bg-gray-800 rounded-xl hover:shadow-lg"
+    >
+        {/* Icon */}
+        <div className="flex items-center justify-center p-3 bg-indigo-100 dark:bg-indigo-800 rounded-xl">
+            <School className="w-6 h-6 text-indigo-700 dark:text-indigo-200" />
+        </div>
 
-    {/* Info */}
-    <div className="flex-1 space-y-1">
-      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-        {item.school_year} – {item.semester_name}
-      </p>
-      <p className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-        <Calendar className="w-4 h-4" /> {item.start_date} to {item.end_date}
-      </p>
-      <p className="text-xs text-gray-500 dark:text-gray-400">Status: {item.status}</p>
-    </div>
+        {/* Info */}
+        <div className="flex-1 space-y-1">
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                {item.school_year} – {item.semester_name}
+            </p>
+            <p className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
+                <Calendar className="w-4 h-4" /> {item.start_date} to{" "}
+                {item.end_date}
+            </p>
+            <p
+                className={
+                    "mt-1 text-xs font-semibold " +
+                    (item.status === "active"
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400")
+                }
+            >
+                Status: {item.status}
+            </p>
+        </div>
 
-    {/* Arrow */}
-    <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-  </Link>
+        {/* Arrow */}
+        <ChevronRight className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+    </Link>
 );
 
 export default function StudEval({ auth, schoolYears }) {

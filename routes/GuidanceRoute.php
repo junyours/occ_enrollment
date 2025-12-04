@@ -105,7 +105,8 @@ Route::middleware(['auth', 'student'])->group(function () {
 
 
 Route::middleware(['auth', 'program_head'])->group(function () {
-    Route::get('/faculty-result/', [GuidanceController::class, 'phFacultyReport'])->name('ph.faculty.report');
+    Route::get('/program-head/facresult', [GuidanceController::class, 'phFacultyReport'])->name('ph.result');
+    // Route::get('/faculty-result/', [GuidanceController::class, 'phFacultyReport'])->name('faculty-report');
     Route::get('/program-head/faculty-list/{schoolYearId}', [GuidanceController::class, 'facultyReport'])
         ->name('ph.faculty.list');
     Route::get('/program-head/faculty-subjects/{facultyId}/{schoolYearId}', [GuidanceController::class, 'phfacultySubjects'])
@@ -114,4 +115,14 @@ Route::middleware(['auth', 'program_head'])->group(function () {
         '/program-head/faculty-evaluation/{facultyId}/{studentSubjectId}/{schoolYearId}',
         [GuidanceController::class, 'phEvaluationResult']
     )->name('ph.faculty.evaluation');
+});
+
+
+Route::middleware(['auth', 'faculty'])->group(function () {
+    Route::get('/faculty-result/', [GuidanceController::class, 'FacultyResult'])->name('fac.faculty.report');
+    Route::get('/faculty/subjects/{schoolYearId}', [GuidanceController::class, 'FesfacultySubjects'])->name('fac.facultySubjects');
+    Route::get(
+        '/faculty/faculty-evaluation/{facultyId}/{studentSubjectId}/{schoolYearId}',
+        [GuidanceController::class, 'facEvaluationResult']
+    )->name('fac.faculty.evaluation');
 });
