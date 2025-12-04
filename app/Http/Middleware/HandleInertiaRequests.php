@@ -40,12 +40,7 @@ class HandleInertiaRequests extends Middleware
 
         // Always share errors for ALL users (including guests)
         $baseSharedData = [
-            ...parent::share($request),
-            'errors' => function () use ($request) {
-                return $request->session()->get('errors')
-                    ? $request->session()->get('errors')->getBag('default')->getMessages()
-                    : (object) [];
-            },
+            ...parent::share($request)
         ];
 
         // Return only errors if there's no authenticated user

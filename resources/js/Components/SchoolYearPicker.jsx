@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Button } from '@/Components/ui/button';
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Calendar } from 'lucide-react';
 import { useSchoolYearStore } from './useSchoolYearStore';
 
 function SchoolYearPicker({ layout = 'horizontal' }) {
@@ -75,13 +75,23 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                         </div>
                     </Button>
                 </div>
-                
+
                 {!isCollapsed && (
                     <div className={`transition-all duration-300 ease-in-out ${!isCollapsed ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
                         {/* Expanded vertical view */}
                         <Card className="w-min h-min">
                             <CardHeader className='px-2 mt-2 flex flex-row items-center justify-between space-y-0'>
-                                <CardTitle>School Year</CardTitle>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <CardTitle className='pl-2'>School Year</CardTitle>
+                                        {!!selectedSchoolYearEntry?.is_current && (
+                                            <div className="flex items-center gap-1 text-xs text-primary px-2 py-0.5 rounded bg-primary/10">
+                                                <Calendar className="h-3 w-3" />
+                                                <span>Current</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                                 <Button
                                     onClick={toggleCollapse}
                                     size="sm"
@@ -158,7 +168,17 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                     {/* Expanded horizontal view */}
                     <Card className="max-w-max p-2 space-y-2">
                         <CardHeader className='p-0 m-0 flex flex-row items-center justify-between space-y-0'>
-                            <CardTitle className='pl-2'>School Year</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
+                                    <CardTitle className='pl-2'>School Year</CardTitle>
+                                    {!!selectedSchoolYearEntry?.is_current && (
+                                        <div className="flex items-center gap-1 text-xs text-primary px-2 py-0.5 rounded bg-primary/10">
+                                            <Calendar className="h-3 w-3" />
+                                            <span>Current</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                             <Button
                                 onClick={toggleCollapse}
                                 size="sm"
