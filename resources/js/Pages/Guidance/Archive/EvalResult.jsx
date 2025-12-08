@@ -47,8 +47,15 @@ export default function EvalResult({ auth, schoolYears }) {
                                     <Calendar className="w-4 h-4" /> {item.start_date} to {item.end_date}
                                 </p>
 
-                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                    Status: {item.status}
+                                <p
+                                className={
+                                    "mt-1 text-xs font-semibold " +
+                                    (item.status === "active"
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-red-600 dark:text-red-400")
+                                }
+                                >
+                                Status: {item.status}
                                 </p>
                             </div>
 

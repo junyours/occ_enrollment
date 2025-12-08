@@ -3,7 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 import { Calendar, ChevronRight, School } from "lucide-react";
 
-export default function PHFacultyReport({ auth, schoolYears }) {
+export default function FacultyFesReport({ auth, schoolYears }) {
   return (
     <AuthenticatedLayout user={auth.user}>
       <Head title="Evaluation Results" />
@@ -27,13 +27,14 @@ export default function PHFacultyReport({ auth, schoolYears }) {
 
           {schoolYears.map((item) => (
             <Link
-              key={item.id + "-" + item.semester_name}
-              href={route("ph.faculty.list", {
+            key={item.id + "-" + item.semester_name}
+            href={route("fac.facultySubjects", {
                 schoolYearId: item.id,
-                semester: item.semester_name,
-              })}
-              className="flex items-center gap-4 p-4 transition bg-white shadow dark:bg-gray-800 rounded-xl hover:shadow-md"
+                semester: item.semester_name, // pass semester
+            })}
+            className="flex items-center gap-4 p-4 transition bg-white shadow dark:bg-gray-800 rounded-xl hover:shadow-md"
             >
+
               {/* Icon */}
               <div className="p-3 bg-indigo-100 dark:bg-indigo-800 rounded-xl">
                 <School className="w-6 h-6 text-indigo-700 dark:text-indigo-200" />
@@ -49,7 +50,7 @@ export default function PHFacultyReport({ auth, schoolYears }) {
                   <Calendar className="w-4 h-4" /> {item.start_date} to {item.end_date}
                 </p>
 
-                 <p
+                <p
                 className={
                     "mt-1 text-xs font-semibold " +
                     (item.status === "active"
@@ -59,6 +60,7 @@ export default function PHFacultyReport({ auth, schoolYears }) {
                 >
                 Status: {item.status}
                 </p>
+
               </div>
 
               {/* Arrow */}

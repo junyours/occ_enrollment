@@ -153,7 +153,7 @@ const Criteria = () => {
                             setPageIndex={setPageIndex}
                         />
                     ) : (
-                        <div className="text-center text-gray-500 py-8 text-sm">
+                        <div className="py-8 text-sm text-center text-gray-500">
                             No data available.
                         </div>
                     )}
