@@ -53,20 +53,20 @@ export default function ForgotPassword({ status, user_found, user_data }) {
 
             <div className="w-full max-w-md space-y-6">
                 {/* Logo */}
-                <div className="text-center">
+                {/* <div className="text-center">
                     <a href="/" className="inline-block">
                         <div className="w-16 h-16 mx-auto hover:scale-105 transition-transform">
                             <AppLogo />
                         </div>
                     </a>
-                </div>
+                </div> */}
 
                 {/* Main Card */}
                 <Card className="shadow-xl border-0 overflow-hidden">
-                    <CardHeader className="text-center space-y-3 pb-6 bg-gradient-to-b from-primary/5 to-transparent mt-0">
-                        <div className="mx-auto w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center ring-8 ring-primary/5 mt-4">
+                    <CardHeader className="text-center space-y-3 pb-6 bg-gradient-to-b from-primary/5 to-transparent mt-0 pt-6">
+                        {/* <div className="mx-auto w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center ring-8 ring-primary/5 mt-4">
                             <KeyRound className="w-7 h-7 text-primary" />
-                        </div>
+                        </div> */}
                         <CardTitle className="text-2xl font-bold text-foreground">
                             Forgot Password?
                         </CardTitle>
@@ -256,6 +256,30 @@ export default function ForgotPassword({ status, user_found, user_data }) {
                                     Sign in here
                                 </a>
                             </p>
+                        </div>
+
+                        {/* Email Incorrect Notice - Always Visible */}
+                        <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 border border-amber-200 dark:border-amber-900">
+                            <div className="flex gap-3 items-start">
+                                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                                        Email Incorrect or Changed?
+                                    </p>
+                                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                                        If your registered email is incorrect or outdated, please{' '}
+                                        <a
+                                            href="https://docs.google.com/forms/d/e/1FAIpQLSem_KPPd2CsZ-HgAd_22u1zKNZbN_PCTE6CROGA0EAXycFumg/viewform"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-200 transition-colors"
+                                        >
+                                            fill out this form
+                                        </a>
+                                        {' '}to update your information.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Help Text */}
