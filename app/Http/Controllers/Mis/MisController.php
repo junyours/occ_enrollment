@@ -136,7 +136,7 @@ class MisController extends Controller
             'first_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
-            'gender' => ['nullable', 'in:male,female'],
+            'gender' => ['nullable', 'in:Male,Female'],
             'birthday' => ['nullable', 'date'],
             'civil_status' => ['nullable', 'string', 'max:50'],
             'contact_number' => ['nullable', 'string', 'max:20'],

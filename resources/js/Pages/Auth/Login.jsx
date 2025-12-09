@@ -10,6 +10,7 @@ import { Alert, AlertTitle } from "@/Components/ui/alert";
 import { CheckCircle2, GraduationCap, AlertCircle } from "lucide-react";
 import AppLogo from "@/Components/AppLogo";
 import { TwoModeToggle } from "@/Components/two-modes-toggle";
+import { Checkbox } from "@/Components/ui/checkbox";
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -125,7 +126,7 @@ export default function Login({ status }) {
                                             name="user_id_no"
                                             value={data.user_id_no}
                                             onChange={(e) => setData("user_id_no", e.target.value)}
-                                            placeholder="Enter your student ID"
+                                            placeholder="Enter your ID Number"
                                             className={`h-11 text-sm sm:text-base w-full ${errors.user_id_no ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
@@ -171,6 +172,23 @@ export default function Login({ status }) {
                                                 </p>
                                             </div>
                                         )}
+                                    </div>
+
+
+
+                                    {/* Remember Me Checkbox */}
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="remember"
+                                            checked={data.remember}
+                                            onCheckedChange={(checked) => setData("remember", checked)}
+                                        />
+                                        <label
+                                            htmlFor="remember"
+                                            className="text-xs sm:text-sm font-medium text-foreground cursor-pointer select-none"
+                                        >
+                                            Remember me
+                                        </label>
                                     </div>
 
                                     {/* Submit Button */}
