@@ -149,6 +149,7 @@ class MisController extends Controller
         $user->update([
             'user_id_no' => $validated['user_id_no'],
             'user_role' => $validated['user_role'],
+            'email' => $validated['email'] ?? null,
         ]);
 
         // Update or create user information
