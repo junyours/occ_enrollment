@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
@@ -133,12 +134,41 @@ class PasswordResetLinkController extends Controller
             'email' => $user->email,
         ]));
 
-        // Send custom email
-        Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($emailUser, $resetUrl, $token));
+        try {
+            // Send custom email
+            Mail::to($user->email)->send(new \App\Mail\PasswordResetMail($emailUser, $resetUrl, $token));
 
-        // Return to the main forgot password page with success message
-        return Inertia::render('Auth/ForgotPassword', [
-            'status' => 'We have emailed your password reset link!',
-        ]);
+            // Return success
+            return Inertia::render('Auth/ForgotPassword', [
+                'status' => 'We have emailed your password reset link!',
+            ]);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Password reset email failed: ' . $e->getMessage());
+
+            // Check if it's a rate limit error
+            if (
+                str_contains($e->getMessage(), 'Daily user sending limit exceeded') ||
+                str_contains($e->getMessage(), '550-5.4.5')
+            ) {
+                // return back()->withErrors(['email' => 'Daily email sending limit exceeded. Please try again tomorrow or contact support.']);
+                return Inertia::render('Auth/ForgotPassword', [
+                    'errors' => [
+                        'email' => 'Daily email sending limit exceeded. Please try again tomorrow or contact support.',
+                    ],
+                ]);
+            }
+
+            // Generic email error
+            // return back()->withErrors([
+            //     'email' => 'Failed to send password reset email. Please try again later or contact support.',
+            // ]);
+
+            return Inertia::render('Auth/ForgotPassword', [
+                'errors' => [
+                    'email' => 'Failed to send password reset email. Please try again later or contact support.',
+                ],
+            ]);
+        }
     }
 }

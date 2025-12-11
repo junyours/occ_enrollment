@@ -24,7 +24,7 @@ function GradeSignatories({ yearSectionSubjectsId }) {
                   <CardContent className='pt-6'>
                         <div className='flex justify-between'>
                               <div className='text-center'>
-                                    <div>
+                                    <div className='mb-6'>
                                           Submitted by:
                                     </div>
                                     <div className='w-52 border-b'>
@@ -39,7 +39,7 @@ function GradeSignatories({ yearSectionSubjectsId }) {
                                     </div>
                               </div>
                               <div className='text-center'>
-                                    <div>
+                                    <div className='mb-6'>
                                           Checked by:
                                     </div>
                                     <div className='w-52 border-b h-6'>
@@ -54,7 +54,7 @@ function GradeSignatories({ yearSectionSubjectsId }) {
                                     </div>
                               </div>
                               <div className='text-center'>
-                                    <div>
+                                    <div className='mb-6'>
                                           Acknowledged by:
                                     </div>
                                     <div className='w-52 border-b h-6'>

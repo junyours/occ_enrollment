@@ -21,6 +21,8 @@ export default function ForgotPassword({ status, user_found, user_data }) {
     const findUser = (e) => {
         e.preventDefault();
         post(route('password.find-user'), {
+            preserveScroll: true,
+            preserveState: true,
             onSuccess: (page) => {
                 if (page.props.user_found) {
                     setStep(2);
@@ -33,7 +35,10 @@ export default function ForgotPassword({ status, user_found, user_data }) {
 
     const sendResetLink = (e) => {
         e.preventDefault();
-        post(route('password.email'));
+        post(route('password.email'), {
+            preserveScroll: true,
+            preserveState: true,
+        });
     };
 
     const startOver = () => {
@@ -63,7 +68,7 @@ export default function ForgotPassword({ status, user_found, user_data }) {
 
                 {/* Main Card */}
                 <Card className="shadow-xl border-0 overflow-hidden">
-                    <CardHeader className="text-center space-y-3 pb-6 bg-gradient-to-b from-primary/5 to-transparent mt-0 pt-6">
+                    <CardHeader className="text-center space-y-3 pb-0 bg-gradient-to-b from-primary/5 to-transparent mt-0 pt-6">
                         {/* <div className="mx-auto w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center ring-8 ring-primary/5 mt-4">
                             <KeyRound className="w-7 h-7 text-primary" />
                         </div> */}
