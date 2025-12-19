@@ -35,7 +35,6 @@ class GradeController extends Controller
         $departmentId = Faculty::where('faculty_id', '=', $user->id)->first()->department_id;
 
         return Inertia::render('Grades/SubmittedGrades', [
-            'schoolYears' => $schoolYears,
             'departmentId' => $departmentId,
         ]);
     }
@@ -303,9 +302,7 @@ class GradeController extends Controller
             ->orderBy('school_years.semester_id', 'DESC')
             ->get();
 
-        return Inertia::render('Grades/SubmittedGrades', [
-            'schoolYears' => $schoolYears,
-        ]);
+        return Inertia::render('Grades/SubmittedGrades');
     }
 
     public function viewVerifiedGrades()

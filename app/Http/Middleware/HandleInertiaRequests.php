@@ -9,6 +9,7 @@ use App\Models\Course;
 use Carbon\Carbon;
 use App\Models\SchoolYear;
 use App\Models\User;
+use App\Models\UserInformation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
@@ -60,19 +61,20 @@ class HandleInertiaRequests extends Middleware
         }
 
         // User data
-        $userData = $this->getUserWithInfo($user->id);
+        $user = User::with('information')->find($user->id);
+        $userPayload = $this->mapUser($user);
 
         // Base for the rest users and if it's impersonated
         $baseData = [
             ...$baseSharedData,
             'auth' => [
-                'user' => $userData,
+                'user' => $userPayload,
                 'impersonating' => Session::has('impersonator_id'),
             ],
         ];
 
         // Student and faculty only need basedata
-        if (in_array($user->user_role, ['student', 'faculty'])) {
+        if (in_array($userPayload, ['student', 'faculty'])) {
             return $baseData;
         }
 
@@ -158,10 +160,24 @@ class HandleInertiaRequests extends Middleware
         return $courses;
     }
 
+    protected function mapUser(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'user_id_no' => $user->user_id_no,
+            'user_role' => $user->user_role,
+            'first_name' => $user->information?->first_name,
+            'middle_name' => $user->information?->middle_name,
+            'last_name' => $user->information?->last_name,
+            'email_address' => $user->email,
+            'password_change' => $user->password_change,
+        ];
+    }
+
     // Function to getting userinformation
     protected function getUserWithInfo(int $id): User|null
     {
-        return User::join('user_information', 'users.id', '=', 'user_information.user_id')
+        return User::leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->where('users.id', $id)
             ->select(
                 'users.id',
