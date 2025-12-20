@@ -216,7 +216,7 @@ class GuidanceController extends Controller
         ];
 
 
-        // STUDENTS PER DEPARTMENT INSIGHTS
+         // STUDENTS PER DEPARTMENT INSIGHTS
         $departmentStats = DB::table('enrolled_students as es')
             ->join('year_section as ys', 'es.year_section_id', '=', 'ys.id')
             ->join('course as c', 'ys.course_id', '=', 'c.id')
@@ -227,16 +227,16 @@ class GuidanceController extends Controller
                     ->on('sa.student_id', '=', 'es.student_id');
             })
             ->where('ys.school_year_id', $schoolYearId)
-            ->groupBy('es.id', 'd.department_name', 'department')
+            ->groupBy('es.id', 'd.department_name')
             ->select(
-                'd.department_name_abbreviation as department',
+            'd.department_name_abbreviation as department',
                 'es.id as student_id',
                 DB::raw('COUNT(ss.id) as total_subjects'),
                 DB::raw('COUNT(sa.id) as evaluated_subjects'),
                 DB::raw('CASE WHEN COUNT(ss.id) > 0 AND COUNT(sa.id) = COUNT(ss.id) THEN "Completed" ELSE "Pending" END as status')
             )
             ->get()
-            ->groupBy('department_name_abbreviation') // group by department in Laravel Collection
+            ->groupBy('department') // group by department in Laravel Collection
             ->map(function ($students, $dept) {
                 $total = $students->count();
                 $completed = $students->where('status', 'Completed')->count();
@@ -250,6 +250,7 @@ class GuidanceController extends Controller
                     'pending_percentage' => $total ? round($pending / $total * 100, 2) : 0,
                 ];
             })->values();
+
 
 
         // ------------------------------------------------------------------
@@ -1119,7 +1120,6 @@ class GuidanceController extends Controller
             ],
         ]);
     }
-
 
 
     public function showSubjects($id)
@@ -3270,4 +3270,6 @@ class GuidanceController extends Controller
             'message' => null,
         ]);
     }
+
+
 }

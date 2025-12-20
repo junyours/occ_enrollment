@@ -50,7 +50,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         // Only returns role - information not needed
-        if (in_array($user->user_role, ['super_admin', 'mis', 'president', 'announcement_admin', 'guidance'])) {
+        if (in_array($user->user_role, ['super_admin', 'mis', 'president', 'announcement_admin', 'guidance', 'vpaa'])) {
             return [
                 ...$baseSharedData,
                 'auth' => [
