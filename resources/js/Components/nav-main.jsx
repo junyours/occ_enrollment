@@ -252,6 +252,35 @@ export function NavMain() {
             });
             break;
 
+        case "vpaa":
+            menuSections.push(
+                {
+                    label: "Dashboard",
+                    items: [
+                        {
+                            name: "Dashboard",
+                            route: "vdashboard",
+                            icon: Presentation,
+                        },
+                    ],
+                },
+            {
+                label: "People",
+                items: [
+                    { name: "Faculty", route: "vpaa.faculty.index", icon: User2Icon },
+                    { name: "Faculty Ranking", route: "vpaa.faculty.ranking", icon: FileChartColumn },
+                    { name: "Student", route: "vpaa.student.index", icon: ClipboardList },
+                ],
+            },
+            {
+                label: "Archives",
+                items: [
+                    { name: "Archives", route: "vpaa.archive", icon: Archive },
+                ],
+            },
+            );
+            break;
+
         default:
             break;
     }

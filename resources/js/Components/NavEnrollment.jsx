@@ -45,7 +45,7 @@ export function NavEnrollment() {
                                                 className={cn("h-10 text-md", isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
                                                 asChild
                                             >
-                                                <Link onClick={() => setOpenMobile(false)} href={courseUrl} className="w-full flex items-center">
+                                                <Link onClick={() => setOpenMobile(false)} href={courseUrl} className="flex items-center w-full">
                                                     <BookOpen />
                                                     <span>{course.course_name_abbreviation}</span>
                                                 </Link>
@@ -63,7 +63,7 @@ export function NavEnrollment() {
                                         <Link
                                             onClick={() => setOpenMobile(false)}
                                             href={route("dashboard")}
-                                            className="w-full flex items-center">
+                                            className="flex items-center w-full">
                                             <LayoutDashboard />
                                             <span>Dashboard</span>
                                         </Link>
@@ -80,7 +80,7 @@ export function NavEnrollment() {
                                                 <Link
                                                     onClick={() => setOpenMobile(false)}
                                                     href={route("enrollment.room-schedules")}
-                                                    className="w-full flex items-center">
+                                                    className="flex items-center w-full">
                                                     <DoorClosed />
                                                     <span>Rooms</span>
                                                 </Link>
@@ -95,7 +95,7 @@ export function NavEnrollment() {
                                                 <Link
                                                     onClick={() => setOpenMobile(false)}
                                                     href={route("enrollment.faculties-schedules")}
-                                                    className="w-full flex items-center">
+                                                    className="flex items-center w-full">
                                                     <User />
                                                     <span>Faculties</span>
                                                 </Link>
@@ -110,7 +110,7 @@ export function NavEnrollment() {
                                                 <Link
                                                     onClick={() => setOpenMobile(false)}
                                                     href={route("enrollment.subjects-schedules")}
-                                                    className="w-full flex items-center">
+                                                    className="flex items-center w-full">
                                                     <NotebookText />
                                                     <span>Subjects</span>
                                                 </Link>
@@ -122,7 +122,7 @@ export function NavEnrollment() {
                         </SidebarGroup>
                     }
                 </>
-                
+
             )}
         </>
     );
