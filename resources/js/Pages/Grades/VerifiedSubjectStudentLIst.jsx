@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { formatFullName } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AlertCircle, CheckCircle, FileText, Rocket, Send, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, BookOpen, CheckCircle, FileText, Loader2, Rocket, Send, XCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useGradeSubmission } from '../InstructorClasses/ClassComponents/GradePartials/useGradeSubmission';
 import RegistrarHeadGradeDeploymentButton from './RegistrarHeadGradeDeploymentButton';
 
 import { toast } from "sonner";
+import { useQuery } from '@tanstack/react-query';
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -31,9 +32,8 @@ function StatusLabel({ label }) {
 }
 
 function VerifiedSubjectStudentLIst({ faculty, subject }) {
-    const [studentList, setStudentList] = useState([]);
 
-    const { data, isLoading, isError, error, refetch } = useGradeSubmission(subject.id);
+    const { data, isLoading, refetch } = useGradeSubmission(subject.id);
     const [submitting, setSubimitting] = useState(false);
 
     const selectSubject = async () => {
@@ -46,6 +46,18 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
     useEffect(() => {
         selectSubject();
     }, [subject.id])
+
+    const fetchSubjectsStudents = async () => {
+        const response = await axios.post(route('faculty.verified.subjects.students'), { yearSectionSubjectsId: subject.id });
+        return response.data;
+    };
+
+    const { data: studentList, isLoading: studentLoading, isError } = useQuery({
+        queryKey: ['faculty.verified.subjects.students', subject.id],
+        queryFn: fetchSubjectsStudents,
+        enabled: !!subject.id,
+    });
+
 
     const deploy = async (type) => {
         setSubimitting(true);
@@ -91,7 +103,7 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                 preserveScroll: true,
                 onError: (errors) => {
                     if (errors && errors.grades) {
-                        
+
                     } else {
                         toast.error("Failed to submit");
                     }
@@ -108,6 +120,15 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
         <div className='space-y-4'>
             <div className='flex justify-between'>
                 <div className='flex gap-2 h-min self-end'>
+                    <Card
+                        className='cursor-pointer hover:bg-gray-100'
+                        onClick={() => window.history.back()}
+                    >
+                        <CardContent className='flex items-center gap-2 px-4 py-2'>
+                            <ArrowLeft className='w-5 h-5' />
+                            <span>Back</span>
+                        </CardContent>
+                    </Card>
                     <Card className='w-max'>
                         <CardContent className='px-4 py-2'>
                             <h1>{faculty.name.toUpperCase()}</h1>
@@ -126,57 +147,76 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                     <CardTitle className='text-lg mb-2'>{subject.descriptive_title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-8 text-center">#</TableHead>
-                                <TableHead>ID NUMBER</TableHead>
-                                <TableHead>STUDENT NAME</TableHead>
-                                <TableHead className="text-center">MIDTERM</TableHead>
-                                <TableHead className="text-center">FINAL</TableHead>
-                                <TableHead className="text-center">FINAL RATING</TableHead>
-                                <TableHead className="text-center">REMARKS</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {studentList.map((student, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className="text-center">{index + 1}.</TableCell>
-                                    <TableCell>{student.user_id_no}</TableCell>
-                                    <TableCell>{formatFullName(student)}</TableCell>
-                                    <TableCell className="text-center">{student.midterm_grade?.toFixed(1)}</TableCell>
-                                    <TableCell className="text-center">{student.final_grade?.toFixed(1)}
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
-                                            <span className="text-red-500 font-medium">DROPPED</span>
-                                        ) : student.midterm_grade && student.final_grade ? (
-                                            (() => {
-                                                const avg = (+student.midterm_grade + +student.final_grade) / 2;
-                                                const finalRating = avg >= 3.05 ? 5.0 : +avg;
-                                                return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
-                                            })()
-                                        ) : (
-                                            '-'
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                        {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
-                                            <span className="text-red-500 font-medium">DROPPED</span>
-                                        ) : student.midterm_grade && student.final_grade ? (
-                                            ((+student.midterm_grade + +student.final_grade) / 2).toFixed(1) > 3 ? (
-                                                <span className="text-red-500 font-medium">FAILED</span>
-                                            ) : (
-                                                <span className="text-green-600 font-medium">PASSED</span>
-                                            )
-                                        ) : (
-                                            '-'
-                                        )}
-                                    </TableCell>
+                    {studentLoading ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                            <Loader2 className="w-8 h-8 animate-spin mb-3" />
+                            <p className="text-sm">Loading requests...</p>
+                        </div>
+                    ) : isError ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-destructive">
+                            <AlertCircle className="w-8 h-8 mb-3" />
+                            <p className="text-sm font-medium">Failed to load requests</p>
+                            <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+                        </div>
+                    ) : studentList.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                            <BookOpen className="w-12 h-12 mb-3 opacity-30" />
+                            <p className="text-sm font-medium">No requests</p>
+                            <p className="text-xs mt-1">Check back later or contact administration</p>
+                        </div>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-8 text-center">#</TableHead>
+                                    <TableHead>ID NUMBER</TableHead>
+                                    <TableHead>STUDENT NAME</TableHead>
+                                    <TableHead className="text-center">MIDTERM</TableHead>
+                                    <TableHead className="text-center">FINAL</TableHead>
+                                    <TableHead className="text-center">FINAL RATING</TableHead>
+                                    <TableHead className="text-center">REMARKS</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {studentList.map((student, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell className="text-center">{index + 1}.</TableCell>
+                                        <TableCell>{student.user_id_no}</TableCell>
+                                        <TableCell>{formatFullName(student)}</TableCell>
+                                        <TableCell className="text-center">{student.midterm_grade?.toFixed(1)}</TableCell>
+                                        <TableCell className="text-center">{student.final_grade?.toFixed(1)}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
+                                                <span className="text-red-500 font-medium">DROPPED</span>
+                                            ) : student.midterm_grade && student.final_grade ? (
+                                                (() => {
+                                                    const avg = (+student.midterm_grade + +student.final_grade) / 2;
+                                                    const finalRating = avg >= 3.05 ? 5.0 : +avg;
+                                                    return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
+                                                })()
+                                            ) : (
+                                                '-'
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
+                                                <span className="text-red-500 font-medium">DROPPED</span>
+                                            ) : student.midterm_grade && student.final_grade ? (
+                                                ((+student.midterm_grade + +student.final_grade) / 2).toFixed(1) > 3 ? (
+                                                    <span className="text-red-500 font-medium">FAILED</span>
+                                                ) : (
+                                                    <span className="text-green-600 font-medium">PASSED</span>
+                                                )
+                                            ) : (
+                                                '-'
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
                 </CardContent>
             </Card>
 

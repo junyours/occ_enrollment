@@ -33,7 +33,6 @@ export default function SubmittedGrades({ departmentId }) {
         queryKey: ['faculty-subjects', selectedSchoolYearEntry?.id],
         queryFn: getFacultiesSubmittedGrades,
         enabled: !!selectedSchoolYearEntry?.id,
-        staleTime: 1000 * 60 * 5,
     });
 
     // Filter faculty list based on search
@@ -69,7 +68,7 @@ export default function SubmittedGrades({ departmentId }) {
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                                 <Loader2 className="w-8 h-8 animate-spin mb-3" />
-                                <p className="text-sm">Loading subjects...</p>
+                                <p className="text-sm">Loading faculties...</p>
                             </div>
                         ) : isError ? (
                             <div className="flex flex-col items-center justify-center py-12 text-destructive">
@@ -80,7 +79,7 @@ export default function SubmittedGrades({ departmentId }) {
                         ) : filteredFacultyList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                                 <BookOpen className="w-12 h-12 mb-3 opacity-30" />
-                                <p className="text-sm font-medium">No subjects found</p>
+                                <p className="text-sm font-medium">No faculties found</p>
                             </div>
                         ) : (
                             <div className="rounded-md border">
@@ -99,14 +98,14 @@ export default function SubmittedGrades({ departmentId }) {
                                             </TableHeader>
                                         </Table>
                                     </div>
-                                    <div className=" max-h-[calc(100vh-14rem)] min-h-[calc(100vh-14rem)] overflow-y-auto">
+                                    <div className="max-h-[calc(100vh-14rem)] min-h-[calc(100vh-14rem)] overflow-y-auto">
                                         <Table>
                                             <TableBody>
                                                 {filteredFacultyList.map((faculty, index) => (
                                                     <TableRow key={faculty.user_id_no}>
                                                         <TableCell className="w-[40px] text-center">{index + 1}.</TableCell>
                                                         <TableCell className='w-[140px]'>{faculty.user_id_no}</TableCell>
-                                                        <TableCell className=''>{faculty.name}</TableCell>
+                                                        <TableCell>{faculty.name}</TableCell>
                                                         <TableCell className='w-32 text-center'>{faculty.subjects_count}</TableCell>
                                                         <TableCell className='w-32 py-0'>
                                                             <div className='flex flex-col'>

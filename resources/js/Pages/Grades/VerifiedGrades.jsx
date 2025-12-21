@@ -1,167 +1,136 @@
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import { useQuery } from '@tanstack/react-query';
+import { AlertCircle, BookOpen, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 
-function VerifiedGrades({ schoolYears }) {
-    const [facultyList, setFacultyList] = useState([])
-    const uniqueSchoolYears = Array.from(
-        new Set(schoolYears.map((sy) => `${sy.start_year}-${sy.end_year}`))
-    );
+function VerifiedGrades() {
+    const { selectedSchoolYearEntry } = useSchoolYearStore();
+    console.log(selectedSchoolYearEntry);
 
-    const [selectedSchoolYear, setSelectedSchoolYear] = useState(uniqueSchoolYears[0] || '');
+    const [search, setSearch] = useState('');
 
-    const getSemestersForYear = (year) =>
-        schoolYears
-            .filter((sy) => `${sy.start_year}-${sy.end_year}` === year)
-            .map((sy) => sy.semester_name);
-
-    const [selectedSemester, setSelectedSemester] = useState(() => {
-        const semesters = getSemestersForYear(selectedSchoolYear);
-        return semesters.includes('First') ? 'First' : semesters[0] || '';
-    });
-
-    const handleSchoolYearChange = (value) => {
-        setSelectedSchoolYear(value);
-        const available = getSemestersForYear(value);
-        setSelectedSemester(available.includes('First') ? 'First' : available[0] || '');
-    };
-
-    const handleSemesterChange = (value) => {
-        setSelectedSemester(value);
-    };
-
-    const allSemesters = ['First', 'Second', 'Summer'];
-    const availableSemesters = getSemestersForYear(selectedSchoolYear);
-
-    // 🔥 FINAL: Find the exact object matching both selected school year AND semester
-    const selectedSchoolYearEntry = schoolYears.find(
-        (sy) =>
-            `${sy.start_year}-${sy.end_year}` === selectedSchoolYear &&
-            sy.semester_name === selectedSemester
-    );
-
-    const getFacultiesSubmittedGrades = async () => {
-        await axios.post(route('faculty-list.verified-grades'), {
+    const getFacultiesVerifiedGrades = async () => {
+        const response = await axios.post(route('faculty-list.verified-grades'), {
             schoolYearId: selectedSchoolYearEntry.id,
         })
-            .then(response => {
-                setFacultyList(response.data);
-            });
-    }
+        return response.data;
+    };
 
-    useEffect(() => {
-        if (selectedSchoolYearEntry?.id) {
-            getFacultiesSubmittedGrades();
-        }
-    }, [selectedSchoolYearEntry?.id]);
+    const { data: facultyList = [], isLoading, isError } = useQuery({
+        queryKey: ['faculty-subjects', selectedSchoolYearEntry?.id],
+        queryFn: getFacultiesVerifiedGrades,
+        enabled: !!selectedSchoolYearEntry?.id,
+    });
+
+    // Filter faculty list based on search
+    const filteredFacultyList = facultyList.filter(faculty => {
+        const term = search.toLowerCase();
+        return (
+            faculty.user_id_no.toLowerCase().includes(term) ||
+            faculty.name?.toLowerCase().includes(term)
+        );
+    });
 
     return (
         <div className="space-y-4">
             <Head title='Verified Grades' />
             <div className='flex gap-4'>
-                <Card className='w-min h-min'>
-                    <CardHeader>
-                        <CardTitle>School Year and Semester</CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-2'>
-                        <div>
-                            {/* School Year Select */}
-                            <div className="w-52 mt-2">
-                                <label className="block mb-1 text-sm font-medium text-gray-700">School Year</label>
-                                <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select School Year" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {uniqueSchoolYears.map((year) => (
-                                            <SelectItem key={year} value={year}>
-                                                {year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Semester Select */}
-                            <div className="w-52">
-                                <label className="block mb-1 text-sm font-medium text-gray-700">Semester</label>
-                                <Select value={selectedSemester} onValueChange={handleSemesterChange}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select Semester" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {allSemesters.map((sem) => (
-                                            <SelectItem key={sem} value={sem} disabled={!availableSemesters.includes(sem)}>
-                                                {sem}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        {/* <div className='text-sm mt-2'>
-                            <p>School Year: {selectedSchoolYear}</p>
-                            <p>Semester: {selectedSemester}</p>
-                        </div>
-                        <Button onClick={getFacultiesSubmittedGrades}>Look for</Button> */}
-                    </CardContent>
-                </Card>
-
+                <SchoolYearPicker layout='vertical' />
                 <Card className="w-full">
                     <CardHeader>
-                        <CardTitle>Faculty List</CardTitle>
+                        {/* <CardTitle>Faculty List</CardTitle> */}
                     </CardHeader>
                     <CardContent className="space-y-2 mt-2">
-                        <div className="border rounded-md">
-                            <div className="overflow-x-auto">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-[40px] text-center">#</TableHead>
-                                            <TableHead className="w-[140px]">FACULTY ID</TableHead>
-                                            <TableHead>NAME</TableHead>
-                                            <TableHead className="text-right">ACTION</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                </Table>
-                            </div>
-                            <div className=" max-h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)] overflow-y-auto">
-                                <Table>
-                                    <TableBody>
-                                        {facultyList.map((faculty, index) => (
-                                            <TableRow key={faculty.user_id_no}>
-                                                <TableCell className="text-center">{index + 1}.</TableCell>
-                                                <TableCell>{faculty.user_id_no}</TableCell>
-                                                <TableCell>{faculty.name}</TableCell>
-                                                <TableCell className="flex justify-end">
-                                                    <div className="relative">
-                                                        <a
-                                                            href={route('verified.faculty.subjects', {
-                                                                schoolYear: `${selectedSchoolYearEntry.start_year}-${selectedSchoolYearEntry.end_year}`,
-                                                                semester: selectedSchoolYearEntry.semester_name,
-                                                                facultyId: faculty.user_id_no
-                                                            })}
-                                                            className="relative inline-block"
-                                                        >
-                                                            <Button size="sm" className="h-7">Subjects</Button>
-                                                            {faculty.verified_count > 0 && (
-                                                                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                                                                    {faculty.verified_count}
-                                                                </div>
-                                                            )}
-                                                        </a>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                        <div className="mb-2">
+                            <Input
+                                type="text"
+                                placeholder="Search faculty..."
+                                className=""
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
                         </div>
+                        {isLoading ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                <Loader2 className="w-8 h-8 animate-spin mb-3" />
+                                <p className="text-sm">Loading faculties...</p>
+                            </div>
+                        ) : isError ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-destructive">
+                                <AlertCircle className="w-8 h-8 mb-3" />
+                                <p className="text-sm font-medium">Failed to load faculties</p>
+                                <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+                            </div>
+                        ) : filteredFacultyList.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                <BookOpen className="w-12 h-12 mb-3 opacity-30" />
+                                <p className="text-sm font-medium">No faculties found</p>
+                            </div>
+                        ) : (
+                            <div className="border rounded-md">
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-[40px] text-center">#</TableHead>
+                                                <TableHead className="w-[140px]">FACULTY ID</TableHead>
+                                                <TableHead className=''>NAME</TableHead>
+                                                <TableHead className='w-32 text-center'>SUBJECTS</TableHead>
+                                                <TableHead className='w-32'>DEPLOYED</TableHead>
+                                                <TableHead className="w-32 text-right">ACTION</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                    </Table>
+                                </div>
+                                <div className="max-h-[calc(100vh-14rem)] min-h-[calc(100vh-14rem)] overflow-y-auto">
+                                    <Table>
+                                        <TableBody>
+                                            {filteredFacultyList.map((faculty, index) => (
+                                                <TableRow key={faculty.user_id_no}>
+                                                    <TableCell className="w-[40px] text-center">{index + 1}.</TableCell>
+                                                    <TableCell className='w-[140px]'>{faculty.user_id_no}</TableCell>
+                                                    <TableCell>{faculty.name}</TableCell>
+                                                    <TableCell className='w-32 text-center'>{faculty.subjects_count}</TableCell>
+                                                    <TableCell className='w-32 py-0'>
+                                                        <div className='flex flex-col'>
+                                                            <div>Midterm: {faculty.midterm_deployed_count}</div>
+                                                            <div>Final: {faculty.final_deployed_count}</div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="w-32 text-right">
+                                                        <div className="relative">
+                                                            <Link
+                                                                href={route('verified.faculty.subjects', {
+                                                                    schoolYear: `${selectedSchoolYearEntry.start_year}-${selectedSchoolYearEntry.end_year}`,
+                                                                    semester: selectedSchoolYearEntry.semester.semester_name,
+                                                                    facultyId: faculty.user_id_no
+                                                                })}
+                                                                className="relative inline-block"
+                                                            >
+                                                                <Button size="sm" className="h-7">Subjects</Button>
+                                                                {faculty.verified_count > 0 && (
+                                                                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                                                        {faculty.verified_count}
+                                                                    </div>
+                                                                )}
+                                                            </Link>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

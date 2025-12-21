@@ -34,21 +34,23 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
 Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::get('/verified-grades', [GradeController::class, 'viewVerifiedGrades'])->name('verified-grades');
     Route::post('/faculty-list/verified-grades', [GradeController::class, 'getFacultyListVerifiedGrades'])->name(name: 'faculty-list.verified-grades');
+
     Route::get('/verified-grades/{schoolYear}/{semester}/{facultyId}', [GradeController::class, 'viewFacultyVerifiedSubjects'])->name('verified.faculty.subjects');
+    Route::post('/verified-grades/{schoolYear}/{semester}/{facultyId}', [GradeController::class, 'getFacultyVerifiedSubjects'])->name('verified.faculty.subjects');
+
     Route::get('/verified-grades/{schoolYear}/{semester}/{facultyId}/{yearSectionSubjectsId}', [GradeController::class, 'viewVerifiedSubjectStudents'])->name('verified.faculty.subject.students');
     Route::post('/verified-grades/subject-students', [GradeController::class, 'viewFacultyVerifiedSubjectStudents'])->name('faculty.verified.subjects.students');
-
 
     Route::get('/change-requests', [GradeController::class, 'changeRequestView'])->name('change-requests');
     Route::post('/change-requests-list', [GradeController::class, 'changeRequestList'])->name('change-requests-list');
 
     // Deploying grades
     Route::post('/verified-grades/deploy/{yearSectionSubjectsId}', [GradeController::class, 'deployGrades'])->name('deploy.grades');
-    Route::post('/verified-grades/deploy/midterm-grades/{yearSectionSubjectsId}', [GradeController::class, 'deployMidtermGrades'])->name('deploy.midterm-grades');
-    Route::post('/verified-grades/deploy/final-grades/{yearSectionSubjectsId}', [GradeController::class, 'deployFinalGrades'])->name('deploy.final-grades');
+    Route::post('/deploy/midterm-grades/{yearSectionSubjectsId}', [GradeController::class, 'deployMidtermGrades'])->name('deploy.midterm-grades');
+    Route::post('/deploy/final-grades/{yearSectionSubjectsId}', [GradeController::class, 'deployFinalGrades'])->name('deploy.final-grades');
 
-    Route::post('/verified-grades/undeploy/midterm-grades/{yearSectionSubjectsId}', [GradeController::class, 'undeployMidtermGrades'])->name('undeploy.midterm-grades');
-    Route::post('/verified-grades/undeploy/final-grades/{yearSectionSubjectsId}', [GradeController::class, 'undeployFinalGrades'])->name('undeploy.final-grades');
+    Route::post('/undeploy/midterm-grades/{yearSectionSubjectsId}', [GradeController::class, 'undeployMidtermGrades'])->name('undeploy.midterm-grades');
+    Route::post('/undeploy/final-grades/{yearSectionSubjectsId}', [GradeController::class, 'undeployFinalGrades'])->name('undeploy.final-grades');
 });
 
 Route::middleware(['auth', 'maintenance'])->group(function () {

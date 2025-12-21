@@ -320,33 +320,18 @@ class GradeController extends Controller
 
     public function instructorListSubmittion()
     {
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
-            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->orderBy('school_years.start_date', 'DESC')
-            ->orderBy('school_years.end_date', 'DESC')
-            ->orderBy('school_years.semester_id', 'DESC')
-            ->get();
-
         return Inertia::render('Grades/SubmittedGrades');
     }
 
     public function viewVerifiedGrades()
     {
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
-            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->orderBy('school_years.start_date', 'DESC')
-            ->orderBy('school_years.end_date', 'DESC')
-            ->orderBy('school_years.semester_id', 'DESC')
-            ->get();
-
-        return Inertia::render('Grades/VerifiedGrades', [
-            'schoolYears' => $schoolYears,
-        ]);
+        return Inertia::render('Grades/VerifiedGrades');
     }
 
     public function getFacultyListVerifiedGrades(Request $request)
     {
         $instructors = Faculty::select(
+            'faculty.faculty_id',
             'users.user_id_no',
             DB::raw("CONCAT(user_information.last_name, ', ', user_information.first_name, ' ',
          IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
@@ -367,12 +352,33 @@ class GradeController extends Controller
             ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
             ->where('year_section.school_year_id', '=', $request->schoolYearId)
             ->groupBy(
+                'faculty.faculty_id',
                 'users.user_id_no',
                 'user_information.last_name',
                 'user_information.first_name',
                 'user_information.middle_name'
             )
             ->orderBy('last_name', 'ASC')
+            ->withCount([
+                'yearSectionSubjects as subjects_count' => function ($q) use ($request) {
+                    $q->whereHas('yearSection', function ($qs) use ($request) {
+                        $qs->where('school_year_id', $request->schoolYearId);
+                    });
+                }
+            ])
+            ->withCount([
+                'gradeSubmissions as midterm_deployed_count' => function ($q) use ($request) {
+                    $q->whereHas('yearSectionSubject.yearSection', function ($qs) use ($request) {
+                        $qs->where('school_year_id', $request->schoolYearId);
+                    })->whereIn('midterm_status', ['deployed']);
+                },
+
+                'gradeSubmissions as final_deployed_count' => function ($q) use ($request) {
+                    $q->whereHas('yearSectionSubject.yearSection', function ($qs) use ($request) {
+                        $qs->where('school_year_id', $request->schoolYearId);
+                    })->whereIn('final_status', ['deployed']);
+                },
+            ])
             ->get();
 
         return response()->json($instructors, 200);
@@ -406,6 +412,14 @@ class GradeController extends Controller
             )
             ->first();
 
+        return Inertia::render('Grades/VerifiedFacultySubjects', [
+            'schoolYear' => $schoolYear,
+            'faculty' => $faculty,
+        ]);
+    }
+
+    public function getFacultyVerifiedSubjects(Request $request)
+    {
         $subjects = YearSectionSubjects::select(
             'year_section_subjects.id',
             'descriptive_title',
@@ -423,17 +437,13 @@ class GradeController extends Controller
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
             )
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
-            ->where('faculty_id', '=', $faculty->id)
+            ->where('faculty_id', '=', $request->facultyId)
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
             ->join('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
-            ->where('school_year_id', '=', $schoolYear->id)
+            ->where('school_year_id', '=', $request->schoolYearId)
             ->get();
 
-        return Inertia::render('Grades/VerifiedFacultySubjects', [
-            'schoolYear' => $schoolYear,
-            'faculty' => $faculty,
-            'subjects' => $subjects,
-        ]);
+        return response()->json($subjects, 200);
     }
 
     public function viewVerifiedSubjectStudents($schoolYear, $semester, $facultyId, $yearSectionSubjectsId)

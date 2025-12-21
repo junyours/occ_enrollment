@@ -3,19 +3,44 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head } from '@inertiajs/react'
 import React from 'react'
 import FacultyVerifiedSubjectListCard from './FacultyVerifiedSubjectListCard'
+import { useQuery } from '@tanstack/react-query'
+import { ArrowLeft } from 'lucide-react'
 
-function VerifiedFacultySubjects({ faculty, schoolYear, subjects }) {
+function VerifiedFacultySubjects({ faculty, schoolYear }) {
+    const fetchFacultySubjects = async () => {
+        const response = await axios.post(route('verified.faculty.subjects', { schoolYear: `${schoolYear.start_year}-${schoolYear.end_year}`, semester: schoolYear.semester_name, facultyId: faculty.user_id_no }), {
+            facultyId: faculty.id,
+            schoolYearId: schoolYear.id,
+        });
+        return response.data;
+    };
+
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ['verified.faculty.subjects', schoolYear?.id, faculty?.id],
+        queryFn: fetchFacultySubjects,
+        enabled: !!faculty?.id && !!schoolYear?.id,
+    });
+
     return (
         <div className='space-y-4'>
             <Head title='Instructor Subjects' />
             <div className='flex gap-2'>
+                <Card
+                    className='cursor-pointer hover:bg-gray-100'
+                    onClick={() => window.history.back()}
+                >
+                    <CardContent className='flex items-center gap-2 px-4 py-2'>
+                        <ArrowLeft className='w-5 h-5' />
+                        <span>Back</span>
+                    </CardContent>
+                </Card>
                 <Card className='w-max'>
                     <CardContent className='px-4 py-2'>
                         <h1>{faculty.name.toUpperCase()}</h1>
                     </CardContent>
                 </Card>
             </div>
-            <FacultyVerifiedSubjectListCard subjects={subjects} schoolYear={schoolYear} facultyId={faculty.user_id_no} />
+            <FacultyVerifiedSubjectListCard subjects={data} schoolYear={schoolYear} facultyId={faculty.user_id_no} isLoading={isLoading} isError={isError} />
         </div>
     )
 }
