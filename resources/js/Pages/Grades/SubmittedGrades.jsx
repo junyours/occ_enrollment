@@ -10,7 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import axios from 'axios';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import SchoolYearPicker from '@/Components/SchoolYearPicker';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
@@ -38,13 +38,13 @@ export default function SubmittedGrades({ departmentId }) {
     return (
         <div className="space-y-4">
             <Head title='Submitted Grades' />
-            <div className='flex gap-4'>
+            <div className='flex flex-col gap-4'>
 
                 <SchoolYearPicker />
 
-                <Card className="w-full">
+                <Card className="w-full border-1">
                     <CardHeader>
-                        <CardTitle>Faculty List</CardTitle>
+                        <CardTitle className='text-xl'>Faculty List</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2 mt-2">
                         {isLoading ? (
@@ -66,31 +66,40 @@ export default function SubmittedGrades({ departmentId }) {
                             </div>
                         ) : (
                             <div className="rounded-md border">
-                                <div className="border rounded-md">
+                                <div className="border-1 rounded-md">
                                     <div className="overflow-x-auto">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
                                                     <TableHead className="w-[40px] text-center">#</TableHead>
                                                     <TableHead className="w-[140px]">FACULTY ID</TableHead>
-                                                    <TableHead>NAME</TableHead>
-                                                    <TableHead className="text-right">ACTION</TableHead>
+                                                    <TableHead className=''>NAME</TableHead>
+                                                    <TableHead className='w-32 text-center'>SUBJECTS</TableHead>
+                                                    <TableHead className='w-32'>VERIFIED</TableHead>
+                                                    <TableHead className="w-32 text-right">ACTION</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                         </Table>
                                     </div>
-                                    <div className=" max-h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)] overflow-y-auto">
+                                    <div className=" max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)] overflow-y-auto">
                                         <Table>
                                             <TableBody>
                                                 {facultyList.map((faculty, index) => (
                                                     <TableRow key={faculty.user_id_no}>
-                                                        <TableCell className="text-center">{index + 1}.</TableCell>
-                                                        <TableCell>{faculty.user_id_no}</TableCell>
-                                                        <TableCell>{faculty.name}</TableCell>
-                                                        <TableCell className="flex justify-end">
+                                                        <TableCell className="w-[40px] text-center">{index + 1}.</TableCell>
+                                                        <TableCell className='w-[140px]'>{faculty.user_id_no}</TableCell>
+                                                        <TableCell className=''>{faculty.name}</TableCell>
+                                                        <TableCell className='w-32 text-center'>{faculty.subjects_count}</TableCell>
+                                                        <TableCell className='w-32 py-0'>
+                                                            <div className='flex flex-col'>
+                                                                <div>Midterm: {faculty.midterm_valid_count}</div>
+                                                                <div>Final: {faculty.final_valid_count}</div>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell className="w-32 text-right">
                                                             {selectedSchoolYearEntry?.id && (
                                                                 <div className="relative">
-                                                                    <a
+                                                                    <Link
                                                                         href={route('grades.faculty.subjects', {
                                                                             schoolYear: `${selectedSchoolYearEntry.start_year}-${selectedSchoolYearEntry.end_year}`,
                                                                             semester: selectedSchoolYearEntry.semester.semester_name,
@@ -104,7 +113,7 @@ export default function SubmittedGrades({ departmentId }) {
                                                                                 {faculty.submitted_count}
                                                                             </div>
                                                                         )}
-                                                                    </a>
+                                                                    </Link>
                                                                 </div>
                                                             )}
                                                         </TableCell>

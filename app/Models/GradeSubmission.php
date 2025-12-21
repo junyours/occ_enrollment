@@ -39,4 +39,13 @@ class GradeSubmission extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function yearSectionSubject()
+    {
+        return $this->belongsTo(
+            YearSectionSubjects::class,
+            'year_section_subjects_id',
+            'id'
+        );
+    }
 }

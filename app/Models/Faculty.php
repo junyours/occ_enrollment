@@ -35,5 +35,25 @@ class Faculty extends Model
     {
         return $this->hasMany(YearSectionSubjects::class, 'room_id');
     }
-    
+
+    public function yearSectionSubjects()
+    {
+        return $this->hasMany(
+            YearSectionSubjects::class,
+            'faculty_id',
+            'faculty_id'
+        );
+    }
+
+    public function gradeSubmissions()
+    {
+        return $this->hasManyThrough(
+            GradeSubmission::class,
+            YearSectionSubjects::class,
+            'faculty_id',                  // FK on year_section_subjects
+            'year_section_subjects_id',     // FK on grade_submissions
+            'faculty_id',                  // local key on faculty
+            'id'                            // local key on year_section_subjects
+        );
+    }
 }
