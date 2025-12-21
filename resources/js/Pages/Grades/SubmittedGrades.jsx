@@ -19,6 +19,7 @@ import { AlertCircle, BookOpen, Loader2 } from 'lucide-react';
 
 export default function SubmittedGrades({ departmentId }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
+    const [search, setSearch] = useState('');
 
     const getFacultiesSubmittedGrades = async () => {
         const response = await axios.post(route('faculty-list.submitted-grades'), {
@@ -35,18 +36,36 @@ export default function SubmittedGrades({ departmentId }) {
         staleTime: 1000 * 60 * 5,
     });
 
+    // Filter faculty list based on search
+    const filteredFacultyList = facultyList.filter(faculty => {
+        const term = search.toLowerCase();
+        return (
+            faculty.user_id_no.toLowerCase().includes(term) ||
+            faculty.name?.toLowerCase().includes(term)
+        );
+    });
+
     return (
         <div className="space-y-4">
             <Head title='Submitted Grades' />
-            <div className='flex flex-col gap-4'>
-
-                <SchoolYearPicker />
-
-                <Card className="w-full border-1">
+            <div className='flex flex-row gap-4'>
+                <SchoolYearPicker layout='vertical'/>
+                <Card className="w-full">
                     <CardHeader>
-                        <CardTitle className='text-xl'>Faculty List</CardTitle>
+                        {/* <CardTitle className='text-xl'>Faculty List</CardTitle> */}
                     </CardHeader>
                     <CardContent className="space-y-2 mt-2">
+                        {/* Search input */}
+                        <div className="mb-2">
+                            <input
+                                type="text"
+                                placeholder="Search faculty..."
+                                className="w-full border rounded px-2 py-1"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                                 <Loader2 className="w-8 h-8 animate-spin mb-3" />
@@ -58,11 +77,10 @@ export default function SubmittedGrades({ departmentId }) {
                                 <p className="text-sm font-medium">Failed to load faculties</p>
                                 <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
                             </div>
-                        ) : facultyList.length === 0 ? (
+                        ) : filteredFacultyList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                                 <BookOpen className="w-12 h-12 mb-3 opacity-30" />
-                                <p className="text-sm font-medium">No subjects assigned</p>
-                                <p className="text-xs mt-1">Check back later or contact administration</p>
+                                <p className="text-sm font-medium">No subjects found</p>
                             </div>
                         ) : (
                             <div className="rounded-md border">
@@ -81,10 +99,10 @@ export default function SubmittedGrades({ departmentId }) {
                                             </TableHeader>
                                         </Table>
                                     </div>
-                                    <div className=" max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)] overflow-y-auto">
+                                    <div className=" max-h-[calc(100vh-14rem)] min-h-[calc(100vh-14rem)] overflow-y-auto">
                                         <Table>
                                             <TableBody>
-                                                {facultyList.map((faculty, index) => (
+                                                {filteredFacultyList.map((faculty, index) => (
                                                     <TableRow key={faculty.user_id_no}>
                                                         <TableCell className="w-[40px] text-center">{index + 1}.</TableCell>
                                                         <TableCell className='w-[140px]'>{faculty.user_id_no}</TableCell>

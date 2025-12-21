@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AlertCircle, BookOpen, Check, CheckCircle, Clock, FileText, Loader2, Rocket, Send, SendHorizonal, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, BookOpen, Check, CheckCircle, Clock, FileText, Loader2, Rocket, Send, SendHorizonal, XCircle } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { router } from '@inertiajs/react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
@@ -146,6 +146,15 @@ function SubjectStudentLIst({ faculty, subject }) {
         <div className='space-y-4'>
             <div className='flex justify-between'>
                 <div className='flex gap-2 h-min self-end'>
+                    <Card
+                        className='cursor-pointer hover:bg-gray-100'
+                        onClick={() => window.history.back()}
+                    >
+                        <CardContent className='flex items-center gap-2 px-4 py-2'>
+                            <ArrowLeft className='w-5 h-5' />
+                            <span>Back</span>
+                        </CardContent>
+                    </Card>
                     <Card className='w-max'>
                         <CardContent className='px-4 py-2'>
                             <h1>{faculty.name.toUpperCase()}</h1>

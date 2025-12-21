@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import FacultySubjectListCard from './FacultySubjectListCard';
 import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft } from 'lucide-react';
 
 function FacultySubjects({ faculty, schoolYear }) {
     const fetchFacultySubjects = async () => {
@@ -23,6 +24,15 @@ function FacultySubjects({ faculty, schoolYear }) {
         <div className='space-y-4'>
             <Head title='Instructor Subjects' />
             <div className='flex gap-2'>
+                <Card
+                    className='cursor-pointer hover:bg-gray-100'
+                    onClick={() => window.history.back()}
+                >
+                    <CardContent className='flex items-center gap-2 px-4 py-2'>
+                        <ArrowLeft className='w-5 h-5' />
+                        <span>Back</span>
+                    </CardContent>
+                </Card>
                 <Card className='w-max'>
                     <CardContent className='px-4 py-2'>
                         <h1>{faculty.name.toUpperCase()}</h1>
