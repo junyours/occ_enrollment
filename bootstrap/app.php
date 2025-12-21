@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'president' => \App\Http\Middleware\President::class,
             'Guidance' => \App\Http\Middleware\Guidance::class,
             'mis' => \App\Http\Middleware\Mis::class,
+            'vpaa' => \App\Http\Middleware\VPAAMiddleware::class,
         ]);
         //
     })
