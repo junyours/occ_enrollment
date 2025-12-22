@@ -7,6 +7,7 @@ use App\Models\EnrolledStudent;
 use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
 use App\Models\SchoolYear;
+use App\Models\StudentAnswer;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\User;
@@ -399,8 +400,15 @@ class ClassController extends Controller
     {
         $studentId = Auth::id();
 
-        $data = EnrolledStudent::select(
-            'evaluated',
+        $answers = StudentAnswer::where('student_id', '=', $studentId)
+            ->select('student_id', 'student_subject_id')
+            ->groupBy('student_id', 'student_subject_id')
+            ->get();
+
+        // Extract student_subject_ids into an array for easier checking
+        $answeredSubjectIds = $answers->pluck('student_subject_id')->toArray();
+
+        $record = EnrolledStudent::select(
             'enrolled_students.id',
             'year_level_name',
             'section',
@@ -414,7 +422,11 @@ class ClassController extends Controller
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->where('student_id', '=', $studentId)
             ->with([
-                'Subjects' => function ($query) {
+                'Subjects' => function ($query) use ($answeredSubjectIds) {
+                    // Handle empty array case
+                    $hasAnswers = !empty($answeredSubjectIds);
+                    $idsString = $hasAnswers ? implode(',', array_map('intval', $answeredSubjectIds)) : '0';
+
                     $query->select([
                         'student_subjects.id',
                         'enrolled_students_id',
@@ -423,12 +435,31 @@ class ClassController extends Controller
                         'middle_name',
                         'subject_code',
                         'descriptive_title',
-                        DB::raw("IF(grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed', midterm_grade, NULL) as midterm_grade"),
-                        DB::raw("IF(grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed', final_grade, NULL) as final_grade"),
+                        DB::raw("IF(
+                (student_subjects.id IN (" . $idsString . ") 
+                AND (grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed'))
+                OR (year_section.school_year_id < 3), 
+                midterm_grade, 
+                NULL
+            ) as midterm_grade"),
+                        DB::raw("IF(
+                (student_subjects.id IN (" . $idsString . ") 
+                AND (grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed'))
+                OR (year_section.school_year_id < 3), 
+                final_grade, 
+                NULL
+            ) as final_grade"),
+                        DB::raw("IF(
+                student_subjects.id IN (" . $idsString . ")
+                OR year_section.school_year_id < 3, 
+                1, 
+                0
+            ) as evaluated"),
                         'remarks',
                         'student_subjects.year_section_subjects_id',
                     ])
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+                        ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
                         ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                         ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
@@ -439,13 +470,13 @@ class ClassController extends Controller
             ->orderBy('id', 'DESC')
             ->get();
 
-        if (!$data) {
+        if (!$record) {
             return response()->json([
                 'error' => 'You have no enrollment record.',
             ], 403);
         }
 
-        return response()->json($data, 200);
+        return response()->json(['record' => $record], 200);
     }
 
     public function requestEditMidtermSubmission($yearSectionSubjectsId)
