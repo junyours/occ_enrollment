@@ -14,13 +14,19 @@ import TimeTable from '../ScheduleFormats/TimeTable';
 import MobileViewClasses from './MobileViewClasses';
 import html2canvas from 'html2canvas';
 import { Button } from '@/Components/ui/button';
-import { ImageDown } from 'lucide-react';
+import { AlertCircle, BookOpen, ImageDown, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 const ViewClasses = ({ currentSchoolYear }) => {
-    const [loading, setLoading] = useState(true);
     const [scheduleType, setScheduleType] = useState('tabular');
 
+    if (!currentSchoolYear) {
+        return (
+            <div className="flex items-center justify-center rounded-md shadow-sm">
+                Current School Year not set yet
+            </div>
+        );
+    }
     const fetchStudentClasses = async ({ queryKey }) => {
         const [, schoolYearId] = queryKey;
         const response = await axios.post(route('student.classes'), {
@@ -36,16 +42,6 @@ const ViewClasses = ({ currentSchoolYear }) => {
         staleTime: 1000 * 60 * 60 * 24 * 30, // cache for 30 days
         retry: 1,
     });
-
-    if (isLoading) return <PreLoader title="Classes" />
-
-    if (!currentSchoolYear) {
-        return (
-            <div className="flex items-center justify-center rounded-md shadow-sm">
-                Current School Year not set yet
-            </div>
-        );
-    }
 
     const downloadImage = async () => {
         try {
@@ -114,7 +110,27 @@ const ViewClasses = ({ currentSchoolYear }) => {
                             <CardTitle className="text-2xl">Class List</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div>
+
+
+                            {isLoading ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                    <Loader2 className="w-8 h-8 animate-spin mb-3" />
+                                    <p className="text-sm">Loading classes...</p>
+                                </div>
+                            ) : isError ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-destructive">
+                                    <AlertCircle className="w-8 h-8 mb-3" />
+                                    <p className="text-sm font-medium">Failed to load classes</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{error.response?.data?.error ?? 'Please try again later'}</p>
+
+                                </div>
+                            ) : classes?.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                    <BookOpen className="w-12 h-12 mb-3 opacity-30" />
+                                    <p className="text-sm font-medium">No classes</p>
+                                    <p className="text-xs mt-1">Check back later or contact administration</p>
+                                </div>
+                            ) : (
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -126,9 +142,11 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {error ? (
+                                        {isError ? (
                                             <TableRow>
-                                                <TableCell colSpan={5} className='text-center'>{error}</TableCell>
+                                                <TableCell colSpan={5} className="text-center text-red-600">
+                                                    {error.response?.data?.error ?? 'Unable to load classes.'}
+                                                </TableCell>
                                             </TableRow>
                                         ) : (
                                             <>
@@ -159,13 +177,13 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                         )}
                                     </TableBody>
                                 </Table>
-                            </div>
+                            )}
                         </CardContent>
                     </Card>
 
                     {/* Mobile Card View */}
                     <div className='sm:hidden'>
-                        <MobileViewClasses classes={classes} />
+                        <MobileViewClasses classes={classes} isLoading={isLoading} isError={isError} error={error}/>
                     </div>
                 </>
             ) : (
