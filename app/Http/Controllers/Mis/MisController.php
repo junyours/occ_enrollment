@@ -8,6 +8,7 @@ use App\Models\UserInformation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class MisController extends Controller
@@ -106,7 +107,7 @@ class MisController extends Controller
     {
         $validated = $request->validate([
             'user_id_no' => ['required', 'unique:users,user_id_no'],
-            'user_role' => ['required', 'in:faculty,student,program_head,evaluator,registrar,mis,super_admin,president,announcement_admin,guidance'],
+            'user_role' => ['required', 'in:faculty,student,program_head,evaluator,registrar,mis,president,announcement_admin,guidance,vpaa'],
             'password' => ['required', 'confirmed'],
         ], [
             'user_id_no.required' => 'User ID number is required.',
@@ -128,47 +129,62 @@ class MisController extends Controller
 
     public function update(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with('information')->findOrFail($id);
+
+        // Does user_information already exist?
+        $hasInfo = $user->information !== null;
 
         $validated = $request->validate([
             'user_id_no' => ['required', 'unique:users,user_id_no,' . $id],
-            'user_role' => ['required', 'in:faculty,student,program_head,evaluator,registrar,mis,super_admin,president,announcement_admin,guidance'],
-            'first_name' => ['nullable', 'string', 'max:255'],
-            'last_name' => ['nullable', 'string', 'max:255'],
+            'user_role' => [
+                'required',
+                'in:faculty,student,program_head,evaluator,registrar,mis,president,announcement_admin,guidance,vpaa'
+            ],
+
+            // Conditionally required ONLY if info already exists
+            'first_name' => [Rule::requiredIf($hasInfo), 'nullable', 'string', 'max:255'],
+            'last_name'  => [Rule::requiredIf($hasInfo), 'nullable', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
-            'gender' => ['nullable', 'in:Male,Female'],
-            'birthday' => ['nullable', 'date'],
+            'gender'     => [Rule::requiredIf($hasInfo), 'nullable', 'in:Male,Female'],
+            'birthday'   => [Rule::requiredIf($hasInfo), 'nullable', 'date'],
             'civil_status' => ['nullable', 'string', 'max:50'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
+            'contact_number' => [Rule::requiredIf($hasInfo), 'nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
-            'present_address' => ['nullable', 'string', 'max:500'],
+            'present_address' => [Rule::requiredIf($hasInfo), 'nullable', 'string', 'max:500'],
             'zip_code' => ['nullable', 'string', 'max:10'],
         ]);
 
-        // Update user basic info
+        // Update users table
         $user->update([
             'user_id_no' => $validated['user_id_no'],
-            'user_role' => $validated['user_role'],
-            'email' => $validated['email'] ?? null,
+            'user_role'  => $validated['user_role'],
+            'email'      => $validated['email'] ?? null,
         ]);
 
-        // Update or create user information
-        UserInformation::updateOrCreate(
-            ['user_id' => $user->id], // search key
-            [
-                'first_name' => $validated['first_name'] ?? null,
-                'last_name' => $validated['last_name'] ?? null,
-                'middle_name' => $validated['middle_name'] ?? null,
-                'gender' => $validated['gender'] ?? null,
-                'birthday' => $validated['birthday'] ?? null,
-                'civil_status' => $validated['civil_status'] ?? null,
-                'contact_number' => $validated['contact_number'] ?? null,
-                'email_address' => $validated['email'] ?? null,
-                'present_address' => $validated['present_address'] ?? null,
-                'zip_code' => $validated['zip_code'] ?? null,
-            ]
-        );
+        // Prepare user_information payload
+        $infoPayload = collect([
+            'first_name' => $validated['first_name'] ?? null,
+            'last_name' => $validated['last_name'] ?? null,
+            'middle_name' => $validated['middle_name'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'birthday' => $validated['birthday'] ?? null,
+            'civil_status' => $validated['civil_status'] ?? null,
+            'contact_number' => $validated['contact_number'] ?? null,
+            'email_address' => $validated['email'] ?? null,
+            'present_address' => $validated['present_address'] ?? null,
+            'zip_code' => $validated['zip_code'] ?? null,
+        ])->filter(fn($value) => !is_null($value));
 
-        return redirect()->route('mis-users')->with('success', 'User updated successfully.');
+        // Only touch user_information if something meaningful was submitted
+        if ($infoPayload->isNotEmpty()) {
+            UserInformation::updateOrCreate(
+                ['user_id' => $user->id],
+                $infoPayload->toArray()
+            );
+        }
+
+        return redirect()
+            ->route('mis-users')
+            ->with('success', 'User updated successfully.');
     }
 }

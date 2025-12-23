@@ -21,3 +21,18 @@ export const formatRole = (role) => {
         .join(' ');
 };
 
+export const userRoles = () => {
+    return [
+        { value: 'announcement_admin', label: 'Announcement Admin' },
+        { value: 'evaluator', label: 'Evaluator' },
+        { value: 'faculty', label: 'Faculty' },
+        { value: 'guidance', label: 'Guidance' },
+        { value: 'mis', label: 'MIS' },
+        { value: 'president', label: 'President' },
+        { value: 'program_head', label: 'Program Head' },
+        { value: 'registrar', label: 'Registrar' },
+        { value: 'super_admin', label: 'Super Admin' },
+        { value: 'student', label: 'Student' },
+        { value: 'vpaa', label: 'Vpaa' },
+    ]
+}

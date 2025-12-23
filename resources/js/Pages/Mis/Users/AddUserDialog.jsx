@@ -19,6 +19,7 @@ import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { userRoles } from './Utility';
 
 export default function AddUserDialog({ open, onOpenChange }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -28,18 +29,6 @@ export default function AddUserDialog({ open, onOpenChange }) {
         user_role: '',
     });
 
-    const userRoles = [
-        { value: 'super_admin', label: 'Super Admin' },
-        { value: 'president', label: 'President' },
-        { value: 'program_head', label: 'Program Head' },
-        { value: 'registrar', label: 'Registrar' },
-        { value: 'evaluator', label: 'Evaluator' },
-        { value: 'mis', label: 'MIS' },
-        { value: 'guidance', label: 'Guidance' },
-        { value: 'announcement_admin', label: 'Announcement Admin' },
-        { value: 'faculty', label: 'Faculty' },
-        { value: 'student', label: 'Student' },
-    ];
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -94,7 +83,7 @@ export default function AddUserDialog({ open, onOpenChange }) {
                                 <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                             <SelectContent>
-                                {userRoles.map((role) => (
+                                {userRoles().map((role) => (
                                     <SelectItem key={role.value} value={role.value}>
                                         {role.label}
                                     </SelectItem>
