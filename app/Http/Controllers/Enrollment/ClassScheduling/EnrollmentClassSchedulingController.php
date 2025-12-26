@@ -272,7 +272,22 @@ class EnrollmentClassSchedulingController extends Controller
         return User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
             ->with([
                 'Schedules' => function ($query) use ($schoolYearId) {
-                    $query->select('room_name', 'day', 'descriptive_title', 'end_time', 'faculty_id', 'year_section_subjects.id', 'room_id', 'start_time', 'subject_id', 'year_section_id', 'class_code', 'school_year_id')
+                    $query->select(
+                        'room_name',
+                        'day',
+                        'descriptive_title',
+                        'end_time',
+                        'faculty_id',
+                        'year_section_subjects.id',
+                        'room_id',
+                        'start_time',
+                        'subject_id',
+                        'year_section_id',
+                        'class_code',
+                        'school_year_id',
+                        'lecture_hours',
+                        'laboratory_hours',
+                    )
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                         ->leftjoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
                         ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')

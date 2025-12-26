@@ -66,7 +66,7 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
             ws['!cols'] = [
                 { wch: 25 },
                 { wch: 12 },
-                { wch: 50 }, 
+                { wch: 50 },
                 { wch: 12 },
                 { wch: 10 },
                 { wch: 10 },
@@ -173,6 +173,7 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
 
                 // Update state
                 setFaculties(sortedFaculties);
+                console.log(sortedFaculties);
             })
             .finally(() => {
                 setLoading(false);
@@ -270,7 +271,7 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
                                             placeholder=""
                                             readOnly
                                             value={selectedFacultyObj
-                                                ? `${formatFullName(selectedFacultyObj)} (${selectedFacultyObj.schedLength})`
+                                                ? `${formatFullName(selectedFacultyObj)} | ${selectedFacultyObj.schedules.reduce((acc, sched) => { return acc + sched.lecture_hours + sched.laboratory_hours; }, 0)} hr`
                                                 : "All"}
                                             className="cursor-pointer text-start border w-60 truncate overflow-hidden"
                                         />
@@ -302,7 +303,7 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
                                                         setOpenFacultyPopover(false);
                                                     }}
                                                 >
-                                                    {formatFullName(faculty)} ({faculty.schedLength})
+                                                    {formatFullName(faculty)} | {faculty.schedules.reduce((acc, sched) => { return acc + sched.lecture_hours + sched.laboratory_hours; }, 0)} hr
                                                 </CommandItem>
                                             ))}
                                         </CommandGroup>
