@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import {
     Dialog,
     DialogContent,
@@ -21,6 +21,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { AlertCircle, Edit2, Save, X } from 'lucide-react';
 import { formatRole, getRoleBadgeColor, userRoles } from './Utility';
+import { toast } from 'sonner';
 
 export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -35,16 +36,17 @@ export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
         last_name: '',
         middle_name: '',
         gender: '',
-        birthday: '',
-        civil_status: '',
+        birthday: null,
+        civil_status: null,
         // Contact Information
         contact_number: '',
         email: '',
-        present_address: '',
-        zip_code: '',
+        present_address: null,
+        zip_code: null,
     });
 
-    useEffect(() => { 0 
+    useEffect(() => {
+        0
         if (selectedUser) {
             setData({
                 user_id_no: selectedUser.user_id_no || '',
@@ -53,12 +55,12 @@ export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
                 last_name: selectedUser.last_name || '',
                 middle_name: selectedUser.middle_name || '',
                 gender: selectedUser.gender || '',
-                birthday: selectedUser.birthday || '',
-                civil_status: selectedUser.civil_status || '',
+                birthday: selectedUser.birthday || null,
+                civil_status: selectedUser.civil_status || null,
                 contact_number: selectedUser.contact_number || '',
                 email: selectedUser.email || '',
-                present_address: selectedUser.present_address || '',
-                zip_code: selectedUser.zip_code || '',
+                present_address: selectedUser.present_address || null,
+                zip_code: selectedUser.zip_code || null,
             });
             setIsEditing(false);
         }
@@ -78,12 +80,19 @@ export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
     ];
 
     const handleSubmit = () => {
-        put(route('mis-users.update', selectedUser.id), {
-            preserveScroll: true,
-            onFinish: () => {
-                setIsEditing(false);
+        console.log(data);
+
+        router.put(
+            route('mis-users.update', selectedUser.id),
+            data,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success("User details updated successfully.");
+                },
+                onFinish: () => setIsEditing(false),
             }
-        });
+        );
     };
 
     const handleCancel = () => {
@@ -95,12 +104,12 @@ export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
                 last_name: selectedUser.last_name || '',
                 middle_name: selectedUser.middle_name || '',
                 gender: selectedUser.gender || '',
-                birthday: selectedUser.birthday || '',
-                civil_status: selectedUser.civil_status || '',
+                birthday: selectedUser.birthday || null,
+                civil_status: selectedUser.civil_status || null,
                 contact_number: selectedUser.contact_number || '',
                 email: selectedUser.email || '',
-                present_address: selectedUser.present_address || '',
-                zip_code: selectedUser.zip_code || '',
+                present_address: selectedUser.present_address || null,
+                zip_code: selectedUser.zip_code || null,
             });
         }
         setIsEditing(false);

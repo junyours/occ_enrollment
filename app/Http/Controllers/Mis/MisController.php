@@ -129,6 +129,7 @@ class MisController extends Controller
 
     public function update(Request $request, $id)
     {
+
         $user = User::with('information')->findOrFail($id);
 
         // Does user_information already exist?
@@ -146,11 +147,11 @@ class MisController extends Controller
             'last_name'  => [Rule::requiredIf($hasInfo), 'nullable', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'gender'     => [Rule::requiredIf($hasInfo), 'nullable', 'in:Male,Female'],
-            'birthday'   => [Rule::requiredIf($hasInfo), 'nullable', 'date'],
+            'birthday'   => ['nullable', 'date'],
             'civil_status' => ['nullable', 'string', 'max:50'],
             'contact_number' => [Rule::requiredIf($hasInfo), 'nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
-            'present_address' => [Rule::requiredIf($hasInfo), 'nullable', 'string', 'max:500'],
+            'present_address' => ['nullable', 'string', 'max:500'],
             'zip_code' => ['nullable', 'string', 'max:10'],
         ]);
 

@@ -173,7 +173,6 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
 
                 // Update state
                 setFaculties(sortedFaculties);
-                console.log(sortedFaculties);
             })
             .finally(() => {
                 setLoading(false);
