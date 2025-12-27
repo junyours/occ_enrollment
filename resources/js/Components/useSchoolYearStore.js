@@ -1,92 +1,106 @@
 import { create } from 'zustand';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+
+// Query function to fetch school years
+const fetchSchoolYears = async () => {
+    const response = await axios.post('/school-years-data');
+    return response.data;
+};
+
+// Custom hook for school years query
+export const useSchoolYearsQuery = () => {
+    return useQuery({
+        queryKey: ['schoolYears'],
+        queryFn: fetchSchoolYears,
+        staleTime: 60 * 60 * 1000,
+        gcTime: 65 * 60 * 1000,
+    });
+};
 
 export const useSchoolYearStore = create((set, get) => ({
     // State
     schoolYears: [],
     selectedSchoolYear: '',
     selectedSemester: '',
-    selectedSchoolYearEntry: null, // Store the full entry object
+    selectedSchoolYearEntry: null,
+    isCollapsed: false,
+    isInitialized: false,
     isLoaded: false,
-    isCollapsed: false, // Store collapse state
 
-    // Initialize from localStorage or fetch new data
+    // Initialize school years (fetches and sets up defaults)
     initializeSchoolYears: async () => {
+        // Don't fetch if already loaded
+        if (get().schoolYears.length > 0) {
+            return;
+        }
+
         try {
-            // Try to load from localStorage first
-            const cachedData = localStorage.getItem('schoolYears');
-            const cachedEntry = localStorage.getItem('selectedSchoolYearEntry');
-            const cachedCollapsed = localStorage.getItem('schoolYearPickerCollapsed');
-
-            if (cachedData) {
-                const parsedData = JSON.parse(cachedData);
-                set({
-                    schoolYears: parsedData,
-                    isLoaded: true,
-                    isCollapsed: cachedCollapsed === 'true' // Load collapse state
-                });
-
-                // Load cached selection if exists
-                if (cachedEntry) {
-                    const entry = JSON.parse(cachedEntry);
-                    const schoolYear = `${entry.start_year}–${entry.end_year}`;
-                    const semester = entry.semester.semester_name;
-
-                    set({
-                        selectedSchoolYear: schoolYear,
-                        selectedSemester: semester,
-                        selectedSchoolYearEntry: entry
-                    });
-                    return;
-                }
-            }
-
-            // If no cache or no selection, fetch from API
             const response = await axios.post('/school-years-data');
             const data = response.data;
 
-            // Save to localStorage
-            localStorage.setItem('schoolYears', JSON.stringify(data));
-            set({ schoolYears: data, isLoaded: true });
-
-            // Find default (current or latest)
-            let defaultYear = data.find(sy => sy.is_current === 1);
-
-            if (!defaultYear && data.length > 0) {
-                // Sort by start_year desc, then by end_year desc
-                const sorted = [...data].sort((a, b) => {
-                    if (b.start_year !== a.start_year) {
-                        return b.start_year - a.start_year;
-                    }
-                    return b.end_year - a.end_year;
-                });
-                defaultYear = sorted[0];
-            }
-
-            if (defaultYear) {
-                const schoolYearString = `${defaultYear.start_year}–${defaultYear.end_year}`;
-                const semesterName = defaultYear.semester.semester_name;
-
-                set({
-                    selectedSchoolYear: schoolYearString,
-                    selectedSemester: semesterName,
-                    selectedSchoolYearEntry: defaultYear
-                });
-
-                // Save full entry to localStorage
-                localStorage.setItem('selectedSchoolYearEntry', JSON.stringify(defaultYear));
-            }
+            get().initializeWithData(data);
+            set({ isLoaded: true });
         } catch (error) {
             console.error('Error initializing school years:', error);
             set({ isLoaded: true });
         }
     },
 
-    // Set selected school year and save full entry to localStorage
+    // Initialize with data from query
+    initializeWithData: (data) => {
+        set({ schoolYears: data, isLoaded: true });
+
+        const currentState = get();
+
+        // If already initialized and has a selection, validate it against new data
+        if (currentState.isInitialized && currentState.selectedSchoolYearEntry) {
+            const { selectedSchoolYear, selectedSemester } = currentState;
+            const [startYear, endYear] = selectedSchoolYear.split('–').map(Number);
+            const entry = data.find(
+                sy => sy.start_year === startYear &&
+                    sy.end_year === endYear &&
+                    sy.semester.semester_name === selectedSemester
+            );
+
+            if (entry) {
+                set({ selectedSchoolYearEntry: entry });
+                return; // Keep existing selection if still valid
+            }
+        }
+
+        // Find default (current or latest)
+        let defaultYear = data.find(sy => sy.is_current === 1);
+
+        if (!defaultYear && data.length > 0) {
+            const sorted = [...data].sort((a, b) => {
+                if (b.start_year !== a.start_year) {
+                    return b.start_year - a.start_year;
+                }
+                return b.end_year - a.end_year;
+            });
+            defaultYear = sorted[0];
+        }
+
+        if (defaultYear) {
+            const schoolYearString = `${defaultYear.start_year}–${defaultYear.end_year}`;
+            const semesterName = defaultYear.semester.semester_name;
+
+            set({
+                selectedSchoolYear: schoolYearString,
+                selectedSemester: semesterName,
+                selectedSchoolYearEntry: defaultYear,
+                isInitialized: true
+            });
+        }
+    },
+
+    // Set selected school year
     setSelectedSchoolYear: (schoolYear) => {
         const { schoolYears, selectedSemester } = get();
 
-        // Find the matching entry
+        if (schoolYears.length === 0) return;
+
         const [startYear, endYear] = schoolYear.split('–').map(Number);
         const entry = schoolYears.find(
             sy => sy.start_year === startYear &&
@@ -98,18 +112,14 @@ export const useSchoolYearStore = create((set, get) => ({
             selectedSchoolYear: schoolYear,
             selectedSchoolYearEntry: entry || null
         });
-
-        // Save full entry to localStorage
-        if (entry) {
-            localStorage.setItem('selectedSchoolYearEntry', JSON.stringify(entry));
-        }
     },
 
-    // Set selected semester and save full entry to localStorage
+    // Set selected semester
     setSelectedSemester: (semester) => {
         const { schoolYears, selectedSchoolYear } = get();
 
-        // Find the matching entry
+        if (schoolYears.length === 0) return;
+
         if (selectedSchoolYear) {
             const [startYear, endYear] = selectedSchoolYear.split('–').map(Number);
             const entry = schoolYears.find(
@@ -122,17 +132,12 @@ export const useSchoolYearStore = create((set, get) => ({
                 selectedSemester: semester,
                 selectedSchoolYearEntry: entry || null
             });
-
-            // Save full entry to localStorage
-            if (entry) {
-                localStorage.setItem('selectedSchoolYearEntry', JSON.stringify(entry));
-            }
         } else {
             set({ selectedSemester: semester });
         }
     },
 
-    // Get the full selected school year entry (now from state)
+    // Get the full selected school year entry
     getSelectedSchoolYearEntry: () => {
         return get().selectedSchoolYearEntry;
     },
@@ -140,7 +145,7 @@ export const useSchoolYearStore = create((set, get) => ({
     // Get available semesters for a school year
     getAvailableSemesters: (schoolYear) => {
         const { schoolYears } = get();
-        if (!schoolYear) return [];
+        if (!schoolYear || schoolYears.length === 0) return [];
 
         const [startYear, endYear] = schoolYear.split('–').map(Number);
         return schoolYears
@@ -148,54 +153,37 @@ export const useSchoolYearStore = create((set, get) => ({
             .map(sy => sy.semester.semester_name);
     },
 
-    // Refresh school years from API
-    refreshSchoolYears: async () => {
-        try {
-            const response = await axios.post('/school-years-data');
-            const data = response.data;
-
-            localStorage.setItem('schoolYears', JSON.stringify(data));
-            set({ schoolYears: data });
-
-            // Update the selected entry if it exists in new data
-            const { selectedSchoolYear, selectedSemester } = get();
-            if (selectedSchoolYear && selectedSemester) {
-                const [startYear, endYear] = selectedSchoolYear.split('–').map(Number);
-                const entry = data.find(
-                    sy => sy.start_year === startYear &&
-                        sy.end_year === endYear &&
-                        sy.semester.semester_name === selectedSemester
-                );
-
-                if (entry) {
-                    set({ selectedSchoolYearEntry: entry });
-                    localStorage.setItem('selectedSchoolYearEntry', JSON.stringify(entry));
-                }
-            }
-        } catch (error) {
-            console.error('Error refreshing school years:', error);
-        }
+    // Get all school years
+    getSchoolYears: () => {
+        return get().schoolYears;
     },
 
-    // Clear all data (useful for logout)
-    clearSchoolYears: () => {
-        localStorage.removeItem('schoolYears');
-        localStorage.removeItem('selectedSchoolYearEntry');
-        localStorage.removeItem('schoolYearPickerCollapsed');
+    // Get the current school year (marked as is_current)
+    getCurrentSchoolYear: () => {
+        const { schoolYears } = get();
+        return schoolYears.find(sy => sy.is_current === 1) || null;
+    },
+
+    // Refresh data using query client
+    refreshSchoolYears: async (queryClient) => {
+        await queryClient.invalidateQueries({ queryKey: ['schoolYears'] });
+    },
+
+    // Clear selection
+    clearSelection: () => {
         set({
             schoolYears: [],
             selectedSchoolYear: '',
             selectedSemester: '',
             selectedSchoolYearEntry: null,
-            isLoaded: false,
-            isCollapsed: false
+            isCollapsed: false,
+            isInitialized: false,
+            isLoaded: false
         });
     },
 
-    // Toggle collapse state and save to localStorage
+    // Toggle collapse state
     toggleCollapse: () => {
-        const newCollapsedState = !get().isCollapsed;
-        set({ isCollapsed: newCollapsedState });
-        localStorage.setItem('schoolYearPickerCollapsed', String(newCollapsedState));
+        set({ isCollapsed: !get().isCollapsed });
     }
 }));
