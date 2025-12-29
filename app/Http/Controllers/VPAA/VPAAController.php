@@ -26,7 +26,7 @@ class VPAAController extends Controller
 {
     public function vpaadashboard()
     {
-          // 1️⃣ Check for an ACTIVE evaluation
+        // 1️⃣ Check for an ACTIVE evaluation
         $activeEval = DB::table('evaluation as e')
             ->join('school_years as sy', 'e.school_year_id', '=', 'sy.id')
             ->join('semesters as s', 'sy.semester_id', '=', 's.id')
@@ -215,7 +215,7 @@ class VPAAController extends Controller
         ];
 
 
-         // STUDENTS PER DEPARTMENT INSIGHTS
+        // STUDENTS PER DEPARTMENT INSIGHTS
         $departmentStats = DB::table('enrolled_students as es')
             ->join('year_section as ys', 'es.year_section_id', '=', 'ys.id')
             ->join('course as c', 'ys.course_id', '=', 'c.id')
@@ -226,13 +226,17 @@ class VPAAController extends Controller
                     ->on('sa.student_id', '=', 'es.student_id');
             })
             ->where('ys.school_year_id', $schoolYearId)
-            ->groupBy('es.id', 'd.department_name')
+            ->groupBy('es.id', 'd.department_name_abbreviation')
             ->select(
-            'd.department_name_abbreviation as department',
+                'd.department_name_abbreviation as department',
                 'es.id as student_id',
                 DB::raw('COUNT(ss.id) as total_subjects'),
                 DB::raw('COUNT(sa.id) as evaluated_subjects'),
-                DB::raw('CASE WHEN COUNT(ss.id) > 0 AND COUNT(sa.id) = COUNT(ss.id) THEN "Completed" ELSE "Pending" END as status')
+                DB::raw('CASE 
+        WHEN COUNT(ss.id) > 0 AND COUNT(sa.id) = COUNT(ss.id) 
+        THEN "Completed" 
+        ELSE "Pending" 
+    END as status')
             )
             ->get()
             ->groupBy('department') // group by department in Laravel Collection
@@ -1085,7 +1089,7 @@ class VPAAController extends Controller
         ]);
     }
 
-        public function evalfacultyList($schoolYearId, Request $request)
+    public function evalfacultyList($schoolYearId, Request $request)
     {
         // Get the school year and its semester from the passed schoolYearId
         $schoolYear = DB::table('school_years as sy')
@@ -1510,7 +1514,7 @@ class VPAAController extends Controller
         ]);
     }
 
-     public function archivestudentSubjects($studentId, $schoolYearId = null)
+    public function archivestudentSubjects($studentId, $schoolYearId = null)
     {
         // Use selected SY if provided, otherwise fallback to active
         $schoolYear = $schoolYearId
@@ -1729,9 +1733,4 @@ class VPAAController extends Controller
             'semester' => $selectedEval->semester_name,
         ]);
     }
-
-
-
-
-
 }
