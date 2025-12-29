@@ -74,7 +74,7 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                                 <TableCell className='print:p-0'>{student.id_number}</TableCell>
                                 <TableCell className='print:p-0'>{student.name}</TableCell>
                                 <TableCell className="text-center print:p-0">
-                                    {(status.midterm_status == 'submitted' || status.midterm_status == 'deployed') ? (
+                                    {(status.midterm_status == 'submitted' || status.midterm_status == 'deployed' || status.midterm_status == 'verified') ? (
                                         <div>
                                             {student.midterm_grade}
                                         </div>
@@ -117,7 +117,7 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                                     )}
                                 </TableCell>
                                 <TableCell className="text-center print:p-0">
-                                    {(status.final_status == 'submitted' || status.final_status == 'deployed') ? (
+                                    {(status.final_status == 'submitted' || status.final_status == 'deployed' || status.final_status == 'verified') ? (
                                         <>
                                             {student.final_grade}
                                         </>
