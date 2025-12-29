@@ -70,6 +70,8 @@ export function NavMain() {
                 {
                     label: "Grades",
                     items: [
+                        { name: "Subjects", route: "subjects-list", icon: BookOpenText },
+                        { name: "Requests", route: "requests", icon: Inbox },
                         { name: "Submitted Grades", route: "submitted-grades", icon: FileText },
                     ],
                 },

@@ -1,6 +1,7 @@
 import { Button } from '@/Components/ui/button';
 import React from 'react';
 import { Edit3, X, CheckCircle2, Clock } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 
 export default function GradeRequestEditAction({
     gradeSubmissionStatus,
@@ -53,7 +54,11 @@ export default function GradeRequestEditAction({
         return (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-md text-green-700 text-sm font-medium">
                 <CheckCircle2 className="w-4 h-4" />
-                Edit Request Approved
+                <Link href={route('requests')}>
+                    <Button variant="link" className="p-0 h-min">
+                        Edit Request Approved
+                    </Button>
+                </Link>
             </div>
         );
     }
