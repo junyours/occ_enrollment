@@ -358,7 +358,7 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
                         .map((faculty) => (
                             <Card id={faculty.id} className="w-full" key={faculty.id}>
                                 <CardHeader>
-                                    <CardTitle className="text-4xl">{formatFullName(faculty)} <span className="italic font-thin">({faculty.schedLength})</span></CardTitle>
+                                    <CardTitle className="text-4xl">{formatFullName(faculty)} | {faculty.schedules.reduce((acc, sched) => { return acc + sched.lecture_hours + sched.laboratory_hours; }, 0)} hr</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {scheduleType == "timetable" ? (
