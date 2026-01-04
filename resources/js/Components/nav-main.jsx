@@ -27,6 +27,10 @@ import {
     Inbox,
     Trash2,
     FileChartColumn,
+    BookCheck,
+    FileBadge,
+    Handshake,
+    FlaskConical,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -218,38 +222,67 @@ export function NavMain() {
             break;
 
         case "guidance":
+            menuSections.push(
+                {
+                    label: "Dashboard",
+                    items: [
+                        { name: "Dashboard", route: "guidance.dashboard", icon: Presentation },
+                    ],
+                },
+                {
+                    label: "Evaluation Manager",
+                    items: [
+                        { name: "Criteria", route: "guidance.criteria", icon: ListChecks },
+                        { name: "Questionnaires", route: "guidance.questionnaire", icon: FileQuestion },
+                        { name: "Evaluation", route: "guidance.evaluation", icon: FolderPlus },
+                    ],
+                },
+                {
+                    label: "People",
+                    items: [
+                        { name: "Faculty", route: "guidance.faculty.index", icon: User2Icon },
+                        { name: "Faculty Ranking", route: "guidance.faculty.ranking", icon: FileChartColumn },
+                        { name: "Student", route: "guidance.student.index", icon: ClipboardList },
+                    ],
+                },
+                {
+                    label: "Archives",
+                    items: [
+                        { name: "Archives", route: "guidance.archive", icon: Archive },
+                    ],
+                },
+                {
+                    label: "Trash",
+                    items: [
+                        { name: "Trash", route: "guidance.trash", icon: Trash2 }
+                    ],
+                });
+            break;
+
+        case "librarian":
             menuSections.push({
-                label: "Dashboard",
+                label: "Clearance",
                 items: [
-                    { name: "Dashboard", route: "guidance.dashboard", icon: Presentation },
+                    { name: "Approval Sheet", route: "approval-sheets", icon: BookCheck },
                 ],
-            },
-            {
-                label: "Evaluation Manager",
+            });
+            break;
+
+        case "ojt_coordinator":
+            menuSections.push({
+                label: "Clearance",
                 items: [
-                    { name: "Criteria", route: "guidance.criteria", icon: ListChecks },
-                    { name: "Questionnaires", route: "guidance.questionnaire", icon: FileQuestion },
-                    { name: "Evaluation", route: "guidance.evaluation", icon: FolderPlus },
+                    { name: "MOA", route: "classes", icon: Handshake },
+                    { name: "OJT Cert", route: "classes", icon: FileBadge },
                 ],
-            },
-            {
-                label: "People",
+            });
+            break;
+
+        case "research_coordinator":
+            menuSections.push({
+                label: "Clearance",
                 items: [
-                    { name: "Faculty", route: "guidance.faculty.index", icon: User2Icon },
-                    { name: "Faculty Ranking", route: "guidance.faculty.ranking", icon: FileChartColumn },
-                    { name: "Student", route: "guidance.student.index", icon: ClipboardList },
-                ],
-            },
-            {
-                label: "Archives",
-                items: [
-                    { name: "Archives", route: "guidance.archive", icon: Archive },
-                ],
-            },
-            {
-                label: "Trash",
-                items: [
-                    { name: "Trash", route: "guidance.trash", icon: Trash2 }
+                    { name: "Approval Sheet", route: "classes", icon: FlaskConical },
                 ],
             });
             break;
@@ -266,20 +299,20 @@ export function NavMain() {
                         },
                     ],
                 },
-            {
-                label: "People",
-                items: [
-                    { name: "Faculty", route: "vpaa.faculty.index", icon: User2Icon },
-                    { name: "Faculty Ranking", route: "vpaa.faculty.ranking", icon: FileChartColumn },
-                    { name: "Student", route: "vpaa.student.index", icon: ClipboardList },
-                ],
-            },
-            {
-                label: "Archives",
-                items: [
-                    { name: "Archives", route: "vpaa.archive", icon: Archive },
-                ],
-            },
+                {
+                    label: "People",
+                    items: [
+                        { name: "Faculty", route: "vpaa.faculty.index", icon: User2Icon },
+                        { name: "Faculty Ranking", route: "vpaa.faculty.ranking", icon: FileChartColumn },
+                        { name: "Student", route: "vpaa.student.index", icon: ClipboardList },
+                    ],
+                },
+                {
+                    label: "Archives",
+                    items: [
+                        { name: "Archives", route: "vpaa.archive", icon: Archive },
+                    ],
+                },
             );
             break;
 

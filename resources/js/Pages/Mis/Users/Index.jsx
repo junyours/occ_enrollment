@@ -34,6 +34,9 @@ export default function Index({ users, filters }) {
         { value: 'announcement_admin', label: 'Announcement Admin' },
         { value: 'faculty', label: 'Faculty' },
         { value: 'student', label: 'Student' },
+        { value: 'librarian', label: 'Librarian' },
+        { value: 'ojt_coordinator', label: 'Ojt Coordinator' },
+        { value: 'research_coordinator', label: 'Research Coordinator' },
     ];
 
     const searchableFields = [

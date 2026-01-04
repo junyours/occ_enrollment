@@ -107,7 +107,7 @@ class MisController extends Controller
     {
         $validated = $request->validate([
             'user_id_no' => ['required', 'unique:users,user_id_no'],
-            'user_role' => ['required', 'in:faculty,student,program_head,evaluator,registrar,mis,president,announcement_admin,guidance,vpaa'],
+            'user_role' => ['required', 'in:faculty,student,program_head,evaluator,registrar,mis,president,announcement_admin,guidance,vpaa,librarian,ojt_coordinator,research_coordinator'],
             'password' => ['required', 'confirmed'],
         ], [
             'user_id_no.required' => 'User ID number is required.',

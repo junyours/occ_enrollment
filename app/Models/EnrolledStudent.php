@@ -65,4 +65,9 @@ class EnrolledStudent extends Model
     {
         return $this->enrolledStudents()->count();
     }
+
+    public function GraduationRequirements()
+    {
+        return $this->hasOne(GraduationRequirement::class, 'enrolled_student_id');
+    }
 }

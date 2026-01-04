@@ -36,6 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'Guidance' => \App\Http\Middleware\Guidance::class,
             'mis' => \App\Http\Middleware\Mis::class,
             'vpaa' => \App\Http\Middleware\VPAAMiddleware::class,
+            'Librarian' => \App\Http\Middleware\Librarian::class,
+            'OjtCoordinator' => \App\Http\Middleware\OjtCoordinator::class,
+            'ResearchCoordinator' => \App\Http\Middleware\ResearchCoordinator::class,
         ]);
         //
     })

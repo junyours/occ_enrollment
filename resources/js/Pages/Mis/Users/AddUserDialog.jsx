@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import {
     Dialog,
@@ -20,6 +19,7 @@ import { Label } from '@/Components/ui/label';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { userRoles } from './Utility';
+import { toast } from 'sonner';
 
 export default function AddUserDialog({ open, onOpenChange }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -29,12 +29,12 @@ export default function AddUserDialog({ open, onOpenChange }) {
         user_role: '',
     });
 
-
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route('mis-users.store'), {
             preserveScroll: true,
             onSuccess: () => {
+                toast.success("User added successfully");
                 reset();
                 onOpenChange(false);
             },

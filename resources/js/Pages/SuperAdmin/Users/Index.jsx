@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Search,  } from 'lucide-react';
+import { Search, } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -31,6 +31,9 @@ function Index({ users, filters }) {
         { value: 'announcement_admin', label: 'Announcement Admin' },
         { value: 'faculty', label: 'Faculty' },
         { value: 'student', label: 'Student' },
+        { value: 'librarian', label: 'Librarian' },
+        { value: 'ojt_coordinator', label: 'Ojt Coordinator' },
+        { value: 'vpaa', label: 'VPAA' },
     ];
 
     const searchableFields = [
