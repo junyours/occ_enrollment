@@ -40,28 +40,58 @@ class PasswordResetLinkController extends Controller
         ]);
 
         // Find user by user_id_no
-        $user = User::where('user_id_no', '=', $request->user_id_no)->first();
+        $user = User::where('user_id_no', $request->user_id_no)->first();
 
-        // Check if user exists
         if (!$user) {
             return back()->withErrors(['user_id_no' => 'User ID not found.']);
         }
 
-        // Check if user has an email
         if (empty($user->email)) {
             return back()->withErrors(['email' => 'No email address found for this user.']);
         }
 
         // Get additional user information
         $userWithInfo = User::where('users.id', $user->id)
-            ->select('users.user_id_no', 'users.email', 'first_name', 'middle_name', 'last_name')
+            ->select(
+                'users.user_id_no',
+                'users.email',
+                'first_name',
+                'middle_name',
+                'last_name'
+            )
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->first();
 
         $userData = $userWithInfo ?: $user;
 
-        // Mask names - show only first letter
-        $maskName = fn($name) => empty($name) || strlen($name) <= 1 ? $name : $name[0] . str_repeat('*', strlen($name) - 1);
+        /*
+    |--------------------------------------------------------------------------
+    | UTF-8 NORMALIZATION (OPTIONAL 3 – ENABLED)
+    |--------------------------------------------------------------------------
+    */
+        foreach (['first_name', 'middle_name', 'last_name'] as $field) {
+            if (isset($userData->$field)) {
+                $userData->$field = mb_convert_encoding(
+                    $userData->$field,
+                    'UTF-8',
+                    'UTF-8'
+                );
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Mask name (UTF-8 safe)
+    |--------------------------------------------------------------------------
+    */
+        $maskName = function ($name) {
+            if (empty($name) || mb_strlen($name, 'UTF-8') <= 1) {
+                return $name;
+            }
+
+            return mb_substr($name, 0, 1, 'UTF-8')
+                . str_repeat('*', mb_strlen($name, 'UTF-8') - 1);
+        };
 
         $maskedFullName = trim(implode(' ', array_filter([
             $maskName($userData->first_name ?? ''),
@@ -69,18 +99,35 @@ class PasswordResetLinkController extends Controller
             $maskName($userData->last_name ?? '')
         ]))) ?: 'User';
 
-        // Mask email - show first 3 and last 1 character
+        /*
+    |--------------------------------------------------------------------------
+    | Mask email (UTF-8 safe)
+    |--------------------------------------------------------------------------
+    */
         $emailParts = explode('@', $userData->email);
         $local = $emailParts[0];
-        $localLength = strlen($local);
+        $domain = $emailParts[1] ?? '';
+
+        $localLength = mb_strlen($local, 'UTF-8');
 
         if ($localLength > 4) {
-            $maskedEmail = substr($local, 0, 3) . str_repeat('*', $localLength - 4) . substr($local, -1) . '@' . $emailParts[1];
+            $maskedEmail =
+                mb_substr($local, 0, 3, 'UTF-8')
+                . str_repeat('*', $localLength - 4)
+                . mb_substr($local, -1, 1, 'UTF-8')
+                . '@' . $domain;
         } else {
-            $maskedEmail = substr($local, 0, min(2, $localLength)) . str_repeat('*', max(0, $localLength - 2)) . '@' . $emailParts[1];
+            $maskedEmail =
+                mb_substr($local, 0, min(2, $localLength), 'UTF-8')
+                . str_repeat('*', max(0, $localLength - 2))
+                . '@' . $domain;
         }
 
-        // Return Inertia response instead of back()->with()
+        /*
+    |--------------------------------------------------------------------------
+    | Inertia Response
+    |--------------------------------------------------------------------------
+    */
         return Inertia::render('Auth/ForgotPassword', [
             'user_found' => true,
             'user_data' => [
@@ -88,7 +135,7 @@ class PasswordResetLinkController extends Controller
                 'email' => $userData->email,
                 'masked_email' => $maskedEmail,
                 'name' => $maskedFullName,
-            ]
+            ],
         ]);
     }
 
