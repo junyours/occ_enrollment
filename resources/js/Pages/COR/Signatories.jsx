@@ -71,13 +71,13 @@ function Signatories({ showSeal = false}) {
                     <div className="relative border-b-2 border-black mx-4">
                         {(billingAssessmentSignature && !showSeal) && (
                             <div className="absolute -top-9 left-1/2 transform -translate-x-1/2 h-20">
-                                <img
+                                {/* <img
                                     src={billingAssessmentSignature}
                                     alt="Billing Signature"
                                     className="h-full object-contain"
                                     draggable={false}
                                     onContextMenu={(e) => e.preventDefault()}
-                                />
+                                /> */}
                             </div>
                         )}
                         <h3 className="font-semibold text-md">JECHRIS O. VILLANOSA, MGM</h3>
@@ -96,13 +96,13 @@ function Signatories({ showSeal = false}) {
                     <div className="relative border-b-2 border-black mx-4 pb-1">
                         {(registrarSignature && !showSeal) && (
                             <div className="absolute -top-9 left-1/2 transform -translate-x-1/2 h-20">
-                                <img
+                                {/* <img
                                     src={registrarSignature}
                                     alt="Registrar Signature"
                                     className="h-full object-contain"
                                     draggable={false}
                                     onContextMenu={(e) => e.preventDefault()}
-                                />
+                                /> */}
                             </div>
                         )}
                         <h3 className="font-semibold text-md">BERNADETH T. NACUA</h3>
