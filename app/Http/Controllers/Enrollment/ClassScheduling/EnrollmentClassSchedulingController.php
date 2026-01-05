@@ -448,4 +448,28 @@ class EnrollmentClassSchedulingController extends Controller
             'school_year' => $schoolYear
         ];
     }
+
+    public function viewStudentGrades()
+    {
+        return Inertia::render('Enrollment/StudentGrades',);
+    }
+
+    public function searchStudentGrades(Request $request)
+    {
+
+        $student = User::where('user_id_no', $request->id_no)
+            ->where('user_role', '=', 'student')->first();
+
+        if (!$student) {
+            return response()->json([]);
+        }
+
+        return  User::where('user_id_no', $request->id_no)
+            ->where('user_role', '=', 'student')
+            ->with([
+                'information',
+                'Enrollments.Subjects.YearSectionSubjects.Subject',
+                'Enrollments.YearSection.SchoolYear.Semester',
+            ])->first();
+    }
 }

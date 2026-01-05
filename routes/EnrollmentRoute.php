@@ -49,6 +49,9 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
 
     Route::post('/enrollment-get-student-type/{id}', [EnrollmentClassSchedulingController::class, 'getStudentType'])->name('enrollment.student-type');
     Route::post('/enrollment-set-student-type/{id}', [EnrollmentClassSchedulingController::class, 'setStudentType'])->name('enrollment.set-student-type');
+
+    Route::get('/student-grades', [EnrollmentClassSchedulingController::class, 'viewStudentGrades'])->name('enrollment.student-grades');
+    Route::post('/student-grades/search', [EnrollmentClassSchedulingController::class, 'searchStudentGrades'])->name('enrollment.student-grades.search');
 });
 
 Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {

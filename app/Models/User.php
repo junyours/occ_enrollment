@@ -88,4 +88,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(YearSectionSubjects::class, 'faculty_id');
     }
+
+    public function Enrollments()
+    {
+        return $this->hasMany(EnrolledStudent::class, 'student_id');
+    }
 }

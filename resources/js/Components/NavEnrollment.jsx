@@ -1,5 +1,5 @@
 import { usePage } from "@inertiajs/react";
-import { LayoutDashboard, BookOpen } from "lucide-react";
+import { LayoutDashboard, BookOpen, GraduationCap } from "lucide-react";
 import { cn, formatDateShort } from "@/Lib/Utils"; // Ensure you have a utility for class merging
 import { Link } from "@inertiajs/react";
 import {
@@ -118,11 +118,25 @@ export function NavEnrollment() {
                                         </SidebarMenuItem>
                                     </>
                                 )}
+                                <SidebarMenuItem>
+                                    <SidebarMenuButton
+                                        tooltip="Student Grades"
+                                        className={cn("h-10 text-md", currentUrl.startsWith("/student-grades") && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                                        asChild
+                                    >
+                                        <Link
+                                            onClick={() => setOpenMobile(false)}
+                                            href={route("enrollment.student-grades")}
+                                            className="w-full flex items-center">
+                                            <GraduationCap />
+                                            <span>Student Grades</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
                             </SidebarMenu>
                         </SidebarGroup>
                     }
                 </>
-                
             )}
         </>
     );
