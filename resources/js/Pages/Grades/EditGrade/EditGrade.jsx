@@ -227,7 +227,7 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                                                                         <span
                                                                             className={`font-mono text-sm ${change?.originalGrade == 0 ? 'text-red-500' : ''}`}
                                                                         >
-                                                                            {change ? change.originalGrade.toFixed(1) : ''}
+                                                                            {change ? change.originalGrade != null ? change.originalGrade.toFixed(1) : '-' : ''}
                                                                         </span>
                                                                     );
                                                                 } else {
@@ -235,14 +235,14 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                                                                         <span
                                                                             className={`font-mono text-sm ${change?.originalGrade == 0 ? 'text-red-500' : ''}`}
                                                                         >
-                                                                            {student.grade.toFixed(1)}
+                                                                            {student.grade != null ? student.grade.toFixed(1) : '-'}
                                                                         </span>
                                                                     );
                                                                 }
                                                             })()}
                                                         </>
                                                     ) : (
-                                                        <span className={`font-mono text-sm ${student.grade == 0 ? 'text-red-500' : ''}`}>{student.grade.toFixed(1)}</span>
+                                                        <span className={`font-mono text-sm ${student.grade == 0 ? 'text-red-500' : ''}`}>{student.grade != null ? student.grade.toFixed(1) : '-'}</span>
                                                     )}
                                                 </TableCell>
 
@@ -350,7 +350,7 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className='flex'>
-                                                            <p className='w-4 text-right'>{change.originalGrade.toFixed(1)}</p>
+                                                            <p className='w-4 text-right'>{change.originalGrade != null ? change.originalGrade.toFixed(1) : '-'}</p>
                                                             <p className='w-5 text-center ml-1'>{' -> '}</p>
                                                             <p className='w-4 text-left'>{change.newGrade}</p>
                                                         </div>
