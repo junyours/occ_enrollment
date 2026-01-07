@@ -363,6 +363,9 @@ function Scheduling({
                                             <SelectItem value="5">
                                                 5hrs
                                             </SelectItem>
+                                            <SelectItem value="6">
+                                                6hrs
+                                            </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
