@@ -12,29 +12,13 @@ import {
     SelectValue,
 } from '@/Components/ui/select';
 import UsersTable from './UsersTable';
+import { userRoles } from '@/Lib/Utils';
 
 function Index({ users, filters }) {
     const [search, setSearch] = useState(filters.search || '');
 
     const [searchField, setSearchField] = useState(filters.searchField || 'all');
     const [roleFilter, setRoleFilter] = useState(filters.role || 'all');
-
-    const userRoles = [
-        { value: 'all', label: 'All Roles' },
-        { value: 'super_admin', label: 'Super Admin' },
-        { value: 'president', label: 'President' },
-        { value: 'program_head', label: 'Program Head' },
-        { value: 'registrar', label: 'Registrar' },
-        { value: 'evaluator', label: 'Evaluator' },
-        { value: 'mis', label: 'MIS' },
-        { value: 'guidance', label: 'Guidance' },
-        { value: 'announcement_admin', label: 'Announcement Admin' },
-        { value: 'faculty', label: 'Faculty' },
-        { value: 'student', label: 'Student' },
-        { value: 'librarian', label: 'Librarian' },
-        { value: 'ojt_coordinator', label: 'Ojt Coordinator' },
-        { value: 'vpaa', label: 'VPAA' },
-    ];
 
     const searchableFields = [
         { value: 'all', label: 'All Fields' },
@@ -88,7 +72,8 @@ function Index({ users, filters }) {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {userRoles.map((role) => (
+                                    <SelectItem value='all'>All Roles</SelectItem>
+                                    {userRoles().map((role) => (
                                         <SelectItem key={role.value} value={role.value}>
                                             {role.label}
                                         </SelectItem>

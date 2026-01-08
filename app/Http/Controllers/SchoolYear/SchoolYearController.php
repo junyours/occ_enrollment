@@ -446,6 +446,19 @@ class SchoolYearController extends Controller
         ]);
     }
 
+    public function viewEnrollmentDashboard()
+    {
+        $ongoingEnrollmentSy = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+
+        $schoolYear = SchoolYear::where('id', '=', $ongoingEnrollmentSy->id)
+            ->with('Semester')
+            ->first();
+
+        return Inertia::render('Guest/EnrollmentData/OngoingEnrollment', [
+            'schoolYear' => $schoolYear
+        ]);
+    }
+
     public function enrollmentData(Request $request)
     {
         $schoolYearId = $request->schoolYearId;
@@ -1199,7 +1212,7 @@ class SchoolYearController extends Controller
     {
         $schoolYears = SchoolYear::with('Semester')
             ->get();
-        
+
         return response()->json($schoolYears);
     }
 }

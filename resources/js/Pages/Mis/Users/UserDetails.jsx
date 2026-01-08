@@ -20,7 +20,8 @@ import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { AlertCircle, Edit2, Save, X } from 'lucide-react';
-import { formatRole, getRoleBadgeColor, userRoles } from './Utility';
+import { formatRole, getRoleBadgeColor } from './Utility';
+import { userRoles } from '@/Lib/Utils';
 import { toast } from 'sonner';
 
 export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {

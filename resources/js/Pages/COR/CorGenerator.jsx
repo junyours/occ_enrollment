@@ -6,7 +6,6 @@ import CorStudentInfo from './CorStudentInfo';
 import CorFees from './CorFees';
 import Signatories from './Signatories';
 function CorGenerator({ data, showSeal }) {
-    console.log(data);
     if (!data) return <>No Data</>
 
     return (

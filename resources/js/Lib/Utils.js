@@ -300,3 +300,23 @@ export function toTwoDecimals(number) {
         maximumFractionDigits: 2
     });
 }
+
+export const userRoles = () => {
+    return [
+        { value: 'announcement_admin', label: 'Announcement Admin' },
+        { value: 'evaluator', label: 'Evaluator' },
+        { value: 'faculty', label: 'Faculty' },
+        { value: 'librarian', label: 'Librarian' },
+        { value: 'guidance', label: 'Guidance' },
+        { value: 'gened_coordinator', label: 'Gened Coordinator' },
+        { value: 'mis', label: 'MIS' },
+        { value: 'ojt_coordinator', label: 'Ojt Coordinator' },
+        { value: 'president', label: 'President' },
+        { value: 'program_head', label: 'Program Head' },
+        { value: 'registrar', label: 'Registrar' },
+        { value: 'research_coordinator', label: 'Research Coordinator' },
+        { value: 'super_admin', label: 'Super Admin' },
+        { value: 'student', label: 'Student' },
+        { value: 'vpaa', label: 'Vpaa' },
+    ]
+}

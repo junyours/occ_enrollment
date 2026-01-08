@@ -13,7 +13,6 @@ import React, { useEffect, useState } from 'react'
 
 function VerifiedGrades() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
-    console.log(selectedSchoolYearEntry);
 
     const [search, setSearch] = useState('');
 

@@ -31,9 +31,6 @@ export default function AuthenticatedLayout({ children }) {
                     <div className="flex items-center gap-2">
                         <SidebarTrigger className="-ml-1" />
                     </div>
-                    <div>
-
-                    </div>
                     {impersonating && (
                         <Button
                             disabled={loading}
