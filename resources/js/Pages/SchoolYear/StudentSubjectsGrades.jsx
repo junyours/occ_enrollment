@@ -1,5 +1,7 @@
+import { Badge } from '@/Components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import React, { useEffect, useState } from 'react'
+import { computeFinalGrade } from '../Grades/GradeUtility';
 
 function StudentSubjectsGrades({ schoolYearId, studentId }) {
     const [subjects, setSubjects] = useState([])
@@ -28,43 +30,42 @@ function StudentSubjectsGrades({ schoolYearId, studentId }) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {subjects.map((classInfo) => (
-                        <React.Fragment key={classInfo.id}>
-                            <TableRow>
-                                <TableCell>{classInfo.descriptive_title}</TableCell>
-                                <TableCell>{classInfo.midterm_grade}</TableCell>
-                                <TableCell>{classInfo.final_grade}</TableCell>
-                                <TableCell>{
-                                    classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
-                                        <span className="text-red-500 font-medium">DROPPED</span>
-                                    ) : classInfo.midterm_grade && classInfo.final_grade ? (
-                                        (() => {
-                                            const avg = (+classInfo.midterm_grade + +classInfo.final_grade) / 2;
-                                            const finalRating = avg >= 3.05 ? 5.0 : +avg;
-                                            return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
-                                        })()
-                                    ) : (
-                                        '-'
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    {
-                                        classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
-                                            <span className="text-red-500 font-medium">DROPPED</span>
-                                        ) : classInfo.midterm_grade && classInfo.final_grade ? (
-                                            ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1) > 3 ? (
-                                                <span className="text-red-500 font-medium">FAILED</span>
-                                            ) : (
-                                                <span className="text-green-600 font-medium">PASSED</span>
-                                            )
+                    {subjects.map((classInfo) => {
+                        const finalGrade = computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+                        const isDropped = classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0;
+                        const isPassed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade <= 3;
+                        const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
+
+                        return (
+                            <React.Fragment key={classInfo.id}>
+                                <TableRow>
+                                    <TableCell>{classInfo.descriptive_title}</TableCell>
+                                    <TableCell>{classInfo.midterm_grade}</TableCell>
+                                    <TableCell>{classInfo.final_grade}</TableCell>
+                                    <TableCell>
+                                        {finalGrade || '-'}
+                                    </TableCell>
+                                    <TableCell>
+                                        {isDropped ? (
+                                            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200 font-semibold">
+                                                DROPPED
+                                            </Badge>
+                                        ) : isPassed ? (
+                                            <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 font-semibold">
+                                                PASSED
+                                            </Badge>
+                                        ) : isFailed ? (
+                                            <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200 font-semibold">
+                                                FAILED
+                                            </Badge>
                                         ) : (
-                                            '-'
-                                        )
-                                    }
-                                </TableCell>
-                            </TableRow>
-                        </React.Fragment>
-                    ))}
+                                            <span className="text-slate-400">-</span>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            </React.Fragment>
+                        )
+                    })}
                 </TableBody>
             </Table>
         </div>

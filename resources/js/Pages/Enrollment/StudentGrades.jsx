@@ -65,7 +65,7 @@ export default function StudentGrades() {
         enrollments?.forEach(enrollment => {
             enrollment.subjects?.forEach(item => {
                 totalSubjects++;
-                if (item.midterm_grade === 0.0 || item.final_grade === 0.0) {
+                if (item.midterm_grade == 0.0 || item.final_grade == 0.0) {
                     droppedSubjects++;
                 } else if (item.midterm_grade && item.final_grade) {
                     if (computeFinalGrade(item.midterm_grade, item.final_grade) > 3) {
@@ -272,7 +272,7 @@ export default function StudentGrades() {
                                                     <TableBody>
                                                         {enrollment.subjects?.map((item) => {
                                                             const finalGrade = computeFinalGrade(item.midterm_grade, item.final_grade);
-                                                            const isDropped = item.midterm_grade === 0.0 || item.final_grade === 0.0;
+                                                            const isDropped = item.midterm_grade == 0.0 || item.final_grade == 0.0;
                                                             const isPassed = !isDropped && item.midterm_grade && item.final_grade && finalGrade <= 3;
                                                             const isFailed = !isDropped && item.midterm_grade && item.final_grade && finalGrade > 3;
 

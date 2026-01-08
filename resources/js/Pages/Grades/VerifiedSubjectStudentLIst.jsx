@@ -10,6 +10,8 @@ import RegistrarHeadGradeDeploymentButton from './RegistrarHeadGradeDeploymentBu
 
 import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
+import { Badge } from '@/Components/ui/badge';
+import { computeFinalGrade } from './GradeUtility';
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -178,42 +180,42 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {studentList.map((student, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="text-center">{index + 1}.</TableCell>
-                                        <TableCell>{student.user_id_no}</TableCell>
-                                        <TableCell>{formatFullName(student)}</TableCell>
-                                        <TableCell className="text-center">{student.midterm_grade?.toFixed(1)}</TableCell>
-                                        <TableCell className="text-center">{student.final_grade?.toFixed(1)}
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
-                                                <span className="text-red-500 font-medium">DROPPED</span>
-                                            ) : student.midterm_grade && student.final_grade ? (
-                                                (() => {
-                                                    const avg = (+student.midterm_grade + +student.final_grade) / 2;
-                                                    const finalRating = avg >= 3.05 ? 5.0 : +avg;
-                                                    return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
-                                                })()
-                                            ) : (
-                                                '-'
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            {student.midterm_grade === 0.0 || student.final_grade === 0.0 ? (
-                                                <span className="text-red-500 font-medium">DROPPED</span>
-                                            ) : student.midterm_grade && student.final_grade ? (
-                                                ((+student.midterm_grade + +student.final_grade) / 2).toFixed(1) > 3 ? (
-                                                    <span className="text-red-500 font-medium">FAILED</span>
+                                {studentList.map((student, index) => {
+                                    const finalGrade = computeFinalGrade(student.midterm_grade, student.final_grade);
+                                    const isDropped = student.midterm_grade == 0.0 || student.final_grade == 0.0;
+                                    const isPassed = !isDropped && student.midterm_grade && student.final_grade && finalGrade <= 3;
+                                    const isFailed = !isDropped && student.midterm_grade && student.final_grade && finalGrade > 3;
+                                    return (
+                                        <TableRow key={index}>
+                                            <TableCell className="text-center">{index + 1}.</TableCell>
+                                            <TableCell>{student.user_id_no}</TableCell>
+                                            <TableCell>{formatFullName(student)}</TableCell>
+                                            <TableCell className="text-center">{student.midterm_grade?.toFixed(1)}</TableCell>
+                                            <TableCell className="text-center">{student.final_grade?.toFixed(1)}
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                {finalGrade || '-'}
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                {isDropped ? (
+                                                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200 font-semibold">
+                                                        DROPPED
+                                                    </Badge>
+                                                ) : isPassed ? (
+                                                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 font-semibold">
+                                                        PASSED
+                                                    </Badge>
+                                                ) : isFailed ? (
+                                                    <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200 font-semibold">
+                                                        FAILED
+                                                    </Badge>
                                                 ) : (
-                                                    <span className="text-green-600 font-medium">PASSED</span>
-                                                )
-                                            ) : (
-                                                '-'
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                                    <span className="text-slate-400">-</span>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     )}

@@ -161,7 +161,7 @@ function EnrollmentRecord({ need_fill_up }) {
                                                             <>
                                                                 {record.subjects.map(classInfo => {
                                                                     const finalGrade = computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
-                                                                    const isDropped = classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0;
+                                                                    const isDropped = classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0;
                                                                     const isPassed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade <= 3;
                                                                     const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
                                                                     return (
@@ -181,7 +181,7 @@ function EnrollmentRecord({ need_fill_up }) {
                                                                                     )}
                                                                                 </TableCell>
                                                                                 <TableCell>
-                                                                                    {classInfo.final_grade === 0.0 ? (
+                                                                                    {classInfo.final_grade == 0.0 ? (
                                                                                         <span className="text-red-500 font-medium">DROPPED</span>
                                                                                     ) : classInfo.final_grade ? (
                                                                                         classInfo.final_grade?.toFixed(1)
