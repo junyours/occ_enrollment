@@ -11,6 +11,8 @@ import { AlertCircle, ArrowRight, Download, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import FillUpPrompt from './CollectStudentData/FillUpPrompt';
 import { useQuery } from '@tanstack/react-query';
+import { computeFinalGrade } from '../Grades/GradeUtility';
+import { Badge } from '@/Components/ui/badge';
 
 function EnrollmentRecord({ need_fill_up }) {
     const [error] = useState(null);
@@ -157,14 +159,19 @@ function EnrollmentRecord({ need_fill_up }) {
                                                             </TableRow>
                                                         ) : (
                                                             <>
-                                                                {record.subjects.map(classInfo => (
-                                                                    <TableRow key={classInfo.id}>
-                                                                        <TableCell>{classInfo.first_name ? formatFullName(classInfo) : '-'}</TableCell>
-                                                                        <TableCell>{classInfo.subject_code}</TableCell>
-                                                                        <TableCell>{classInfo.descriptive_title}</TableCell>
-                                                                        {classInfo.evaluated ? (
-                                                                            <>
-                                                                                {/* <TableCell>
+                                                                {record.subjects.map(classInfo => {
+                                                                    const finalGrade = computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+                                                                    const isDropped = classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0;
+                                                                    const isPassed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade <= 3;
+                                                                    const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
+                                                                    return (
+                                                                        <TableRow key={classInfo.id}>
+                                                                            <TableCell>{classInfo.first_name ? formatFullName(classInfo) : '-'}</TableCell>
+                                                                            <TableCell>{classInfo.subject_code}</TableCell>
+                                                                            <TableCell>{classInfo.descriptive_title}</TableCell>
+                                                                            {classInfo.evaluated ? (
+                                                                                <>
+                                                                                    {/* <TableCell>
                                                                                     {classInfo.midterm_grade === 0.0 ? (
                                                                                         <span className="text-red-500 font-medium">DROPPED</span>
                                                                                     ) : classInfo.midterm_grade ? (
@@ -182,48 +189,42 @@ function EnrollmentRecord({ need_fill_up }) {
                                                                                         '-'
                                                                                     )}
                                                                                 </TableCell> */}
-                                                                                <TableCell>
-                                                                                    {classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
-                                                                                        <span className="text-red-500 font-medium">DROPPED</span>
-                                                                                    ) : classInfo.midterm_grade && classInfo.final_grade ? (
-                                                                                        (() => {
-                                                                                            const avg = (+classInfo.midterm_grade + +classInfo.final_grade) / 2;
-                                                                                            const finalRating = avg >= 3.05 ? 5.0 : +avg;
-                                                                                            return <>{(Math.round(finalRating * 10) / 10).toFixed(1)}</>;
-                                                                                        })()
-                                                                                    ) : (
-                                                                                        '-'
-                                                                                    )}
-                                                                                </TableCell>
-                                                                                <TableCell>
-                                                                                    {
-                                                                                        classInfo.midterm_grade === 0.0 || classInfo.final_grade === 0.0 ? (
-                                                                                            <span className="text-red-500 font-medium">DROPPED</span>
-                                                                                        ) : classInfo.midterm_grade && classInfo.final_grade ? (
-                                                                                            ((+classInfo.midterm_grade + +classInfo.final_grade) / 2).toFixed(1) > 3 ? (
-                                                                                                <span className="text-red-500 font-medium">FAILED</span>
-                                                                                            ) : (
-                                                                                                <span className="text-green-600 font-medium">PASSED</span>
-                                                                                            )
+                                                                                    { }
+                                                                                    <TableCell>
+                                                                                        {finalGrade || '-'}
+                                                                                    </TableCell>
+                                                                                    <TableCell>
+                                                                                        {isDropped ? (
+                                                                                            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200 font-semibold">
+                                                                                                DROPPED
+                                                                                            </Badge>
+                                                                                        ) : isPassed ? (
+                                                                                            <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 font-semibold">
+                                                                                                PASSED
+                                                                                            </Badge>
+                                                                                        ) : isFailed ? (
+                                                                                            <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200 font-semibold">
+                                                                                                FAILED
+                                                                                            </Badge>
                                                                                         ) : (
-                                                                                            '-'
-                                                                                        )
-                                                                                    }
-                                                                                </TableCell></>
-                                                                        ) : (
-                                                                            <TableCell colSpan='4' className='text-center'>
-                                                                                <div className='flex flex-row items-center gap-3'>
-                                                                                    <Link href={route('student.evaluation')}>
-                                                                                        <Button variant='link' className='p-0 h-min'>
-                                                                                            <span className='font-medium'>Evaluation Required</span>
-                                                                                            <ArrowRight />
-                                                                                        </Button>
-                                                                                    </Link>
-                                                                                </div>
-                                                                            </TableCell>
-                                                                        )}
-                                                                    </TableRow>
-                                                                ))}
+                                                                                            <span className="text-slate-400">-</span>
+                                                                                        )}
+                                                                                    </TableCell></>
+                                                                            ) : (
+                                                                                <TableCell colSpan='4' className='text-center'>
+                                                                                    <div className='flex flex-row items-center gap-3'>
+                                                                                        <Link href={route('student.evaluation')}>
+                                                                                            <Button variant='link' className='p-0 h-min'>
+                                                                                                <span className='font-medium'>Evaluation Required</span>
+                                                                                                <ArrowRight />
+                                                                                            </Button>
+                                                                                        </Link>
+                                                                                    </div>
+                                                                                </TableCell>
+                                                                            )}
+                                                                        </TableRow>
+                                                                    )
+                                                                })}
                                                             </>
                                                         )}
                                                     </TableBody>
