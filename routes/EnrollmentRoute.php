@@ -53,6 +53,8 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
 
     Route::get('/student-grades', [EnrollmentClassSchedulingController::class, 'viewStudentGrades'])->name('enrollment.student-grades');
     Route::post('/student-grades/search', [EnrollmentClassSchedulingController::class, 'searchStudentGrades'])->name('enrollment.student-grades.search');
+
+    Route::post('/enrollment/all-subjects', [EnrollmentClassSchedulingController::class, 'searchSubjects'])->name('enrollment.all-available-subjects');
 });
 
 Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {

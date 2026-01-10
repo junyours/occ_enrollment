@@ -7,6 +7,11 @@ import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "@/Components/theme-provider";
 import { Toaster } from "@/Components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { router } from "@inertiajs/react";
+
+router.on("invalid", () => {
+    window.location.reload();
+});
 
 const appName = import.meta.env.VITE_APP_NAME || "Opol Community College";
 

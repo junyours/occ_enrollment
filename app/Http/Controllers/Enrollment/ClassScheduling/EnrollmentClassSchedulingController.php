@@ -472,4 +472,28 @@ class EnrollmentClassSchedulingController extends Controller
                 'Enrollments.YearSection.SchoolYear.Semester',
             ])->first();
     }
+
+    public function searchSubjects(Request $request)
+    {
+        $subjects = YearSectionSubjects::where('school_year_id', $request->school_year_id)
+            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->select(
+                'subject_code',
+                'descriptive_title',
+                'credit_units',
+                'lecture_hours',
+                'laboratory_hours',
+            )
+            ->groupBy(
+                'subject_code',
+                'descriptive_title',
+                'credit_units',
+                'lecture_hours',
+                'laboratory_hours',
+            )
+            ->get();
+
+        return response()->json($subjects);
+    }
 }

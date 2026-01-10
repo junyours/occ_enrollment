@@ -7,17 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from '@/Components/ui/select';
 import { Label } from '@/Components/ui/label';
 import { Input } from '@/Components/ui/input';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
+import { cn, convertToAMPM, formatFullName } from '@/Lib/Utils';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import TimeTable from '../ScheduleFormats/TimeTable';
-import { CircleMinus, CirclePlus, ListRestart, Loader2, Search, TriangleAlert, Users } from 'lucide-react';
+import { Check, ChevronsUpDown, CircleMinus, CirclePlus, ListRestart, Loader2, Search, TriangleAlert, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/Components/ui/button';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import Checkbox from '@/Components/Checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import SearchSubject from './SearchSubject';
 
 export default function EnrollStudent({ yearSectionId, courseName, yearlevel, section, schoolYear, departmentId }) {
 
@@ -172,8 +173,6 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
     }
 
     const searchSubjectClasses = async (value) => {
-        if (!subjectCode) return
-
         setGettingCLasses(true)
 
         axios.post(route('subject.classes', { schoolYearId: schoolYear.id, subjectCode: value }))
@@ -305,6 +304,30 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
             });
     }
 
+    const searchSubjects = async (value) => {
+        if (!value) return
+
+        setGettingCLasses(true)
+
+        axios.post(route('subject.classes'), {
+            search: value,
+            schoolYearId: schoolYear.id,
+        })
+            .then(response => {
+                setSearchedClasses(response.data);
+            })
+            .catch(error => {
+                if (error.response?.data?.message === 'no classes found') {
+                    setSearchedClasses([]);
+                }
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    setGettingCLasses(false);
+                }, 500);
+            });
+    }
+
     if (loading) return <PreLoader title="Enroll" />
 
     return (
@@ -370,7 +393,8 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle className='text-3xl flex justify-between'>Student classes
+                    <CardTitle className='text-3xl flex justify-between'>
+                        <p>Student classes <span className="text-sm italic font-normal">(Classes officially enrolled for the current term)</span></p>
                         <div className='flex gap-2'>
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -393,75 +417,79 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
 
                 </CardHeader>
                 <CardContent>
-                    {scheduleType == "tabular" ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    {/* <TableHead>Class Code</TableHead> */}
-                                    <TableHead className="w-28">Subject Code</TableHead>
-                                    <TableHead>Descriptive Title</TableHead>
-                                    <TableHead className="w-36">Day</TableHead>
-                                    <TableHead className="w-40">Time</TableHead>
-                                    {/* <TableHead className="w-14">Room</TableHead> */}
-                                    {/* <TableHead className="w-32">Instructor</TableHead> */}
-                                    <TableHead className="w-12 text-center">Units</TableHead>
-                                    <TableHead className="w-12"></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {classes.map((classInfo) => {
-                                    return (
-                                        <React.Fragment key={classInfo.id}>
-                                            <TableRow>
-                                                <TableCell>{classInfo.subject_code}</TableCell>
-                                                <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.descriptive_title}</TableCell>
-                                                <TableCell>{classInfo.day == 'TBA' ? '-' : classInfo.day}</TableCell>
-                                                <TableCell>
-                                                    <div className='flex flex-col'>
-                                                        <span>
-                                                            {classInfo.start_time !== "TBA"
-                                                                ? convertToAMPM(classInfo.start_time) + ' - ' + convertToAMPM(classInfo.end_time)
-                                                                : "-"}
-                                                        </span>
-                                                        <span>
-                                                            {classInfo.secondary_schedule ? (classInfo.secondary_schedule.start_time !== "TBA"
-                                                                ? convertToAMPM(classInfo.secondary_schedule.start_time) + ' - ' + convertToAMPM(classInfo.secondary_schedule.end_time)
-                                                                : '-')
-                                                                : null}
-                                                        </span>
-                                                    </div>
-                                                </TableCell>
-                                                {/* <TableCell>
+                    <Card>
+                        <CardContent className='p-0'>
+                            {scheduleType == "tabular" ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            {/* <TableHead>Class Code</TableHead> */}
+                                            <TableHead className="w-28">Subject Code</TableHead>
+                                            <TableHead>Descriptive Title</TableHead>
+                                            <TableHead className="w-36">Day</TableHead>
+                                            <TableHead className="w-40">Time</TableHead>
+                                            {/* <TableHead className="w-14">Room</TableHead> */}
+                                            {/* <TableHead className="w-32">Instructor</TableHead> */}
+                                            <TableHead className="w-12 text-center">Units</TableHead>
+                                            <TableHead className="w-12"></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {classes.map((classInfo) => {
+                                            return (
+                                                <React.Fragment key={classInfo.id}>
+                                                    <TableRow>
+                                                        <TableCell>{classInfo.subject_code}</TableCell>
+                                                        <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.descriptive_title}</TableCell>
+                                                        <TableCell>{classInfo.day == 'TBA' ? '-' : classInfo.day}</TableCell>
+                                                        <TableCell>
+                                                            <div className='flex flex-col'>
+                                                                <span>
+                                                                    {classInfo.start_time !== "TBA"
+                                                                        ? convertToAMPM(classInfo.start_time) + ' - ' + convertToAMPM(classInfo.end_time)
+                                                                        : "-"}
+                                                                </span>
+                                                                <span>
+                                                                    {classInfo.secondary_schedule ? (classInfo.secondary_schedule.start_time !== "TBA"
+                                                                        ? convertToAMPM(classInfo.secondary_schedule.start_time) + ' - ' + convertToAMPM(classInfo.secondary_schedule.end_time)
+                                                                        : '-')
+                                                                        : null}
+                                                                </span>
+                                                            </div>
+                                                        </TableCell>
+                                                        {/* <TableCell>
                                                     {classInfo.room ? classInfo.room_name : "-"}
                                                 </TableCell> */}
-                                                {/* <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
+                                                        {/* <TableCell className="truncate max-w-32 overflow-hidden whitespace-nowrap">
                                                     {classInfo.first_name ? formatFullName(classInfo) : "-"}
                                                 </TableCell> */}
-                                                <TableCell className='text-center'>
-                                                    {classInfo.credit_units}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <button
-                                                        onClick={() => removeSubject(classInfo.id)}
-                                                        className="disabled:cursor-not-allowed p-0 h-max text-red-500">
-                                                        <CircleMinus
-                                                            size={15}
-                                                        />
-                                                    </button>
-                                                </TableCell>
-                                            </TableRow>
-                                        </React.Fragment>
-                                    );
-                                })}
-                                <TableRow>
-                                    <TableCell colSpan={4} className='text-end'>total units:</TableCell>
-                                    <TableCell colSpan={1} className='text-center'>{totalUnits}</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        <TimeTable data={classes} />
-                    )}
+                                                        <TableCell className='text-center'>
+                                                            {classInfo.credit_units}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <button
+                                                                onClick={() => removeSubject(classInfo.id)}
+                                                                className="disabled:cursor-not-allowed p-0 h-max text-red-500">
+                                                                <CircleMinus
+                                                                    size={15}
+                                                                />
+                                                            </button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                </React.Fragment>
+                                            );
+                                        })}
+                                        <TableRow>
+                                            <TableCell colSpan={4} className='text-end'>total units:</TableCell>
+                                            <TableCell colSpan={1} className='text-center'>{totalUnits}</TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <TimeTable data={classes} />
+                            )}
+                        </CardContent>
+                    </Card>
                     <Button
                         disabled={classes.length < 1 || submitting}
                         className="disabled:cursor-not-allowed mt-2"
@@ -473,145 +501,144 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle className='text-3xl'>Search classes <span className='text-sm italic'>(A red background indicates a conflict of day and time with the added classes.)</span></CardTitle>
+                    <CardTitle className='text-3xl'>Search classes <span className='text-sm italic font-thin'>(A red background indicates a conflict of day and time with the added classes.)</span></CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <Label>Subject code</Label>
-                    <div className='flex gap-2'>
-                        <Input
-                            value={subjectCode}
-                            className='w-40'
-                            onChange={handleSubjectCodehange}
+                <CardContent className='space-y-4'>
+                    <div className="flex flex-col mt-2">
+                        <div className="flex items-start gap-2 rounded-md border border-muted bg-muted/40 text-sm text-muted-foreground">
+                            <span className="font-medium">Note:</span>
+                            <p>Only subjects available for this school year are shown.</p>
+                        </div>
+                        <SearchSubject
+                            searchSubjectClasses={searchSubjectClasses}
+                            schoolYearId={schoolYear.id}
                         />
-                        <Button
-                            type="Subject code"
-                            onClick={() => searchSubjectClasses(searchInput)}
-                            disabled={gettingCLasses}
-                        >
-                            <Search />
-                        </Button>
                     </div>
-                    <Table className='mt-2'>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Course & Section</TableHead>
-                                <TableHead>Subject code</TableHead>
-                                <TableHead>Descriptive title</TableHead>
-                                <TableHead>Students</TableHead>
-                                <TableHead>Day</TableHead>
-                                <TableHead>Time</TableHead>
-                                <TableHead>Units</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {gettingCLasses ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={8}
-                                        className="text-center border-y py-6 animate-pulse text-muted-foreground"
-                                    >
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            <span className="font-medium">Searching for classes...</span>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                <>
-                                    {searchedClasses.length > 0 ? (
-                                        searchedClasses.map(classInfo => {
-                                            let conflict = false;
+                    <Card className='shadow-lg'>
+                        <CardContent className='p-0'>
+                            <Table className=''>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Course & Section</TableHead>
+                                        <TableHead>Subject code</TableHead>
+                                        <TableHead>Descriptive title</TableHead>
+                                        <TableHead>Students</TableHead>
+                                        <TableHead>Day</TableHead>
+                                        <TableHead>Time</TableHead>
+                                        <TableHead>Units</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {gettingCLasses ? (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={8}
+                                                className="text-center border-y py-6 animate-pulse text-muted-foreground"
+                                            >
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    <span className="font-medium">Searching for classes...</span>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        <>
+                                            {searchedClasses.length > 0 ? (
+                                                searchedClasses.map(classInfo => {
+                                                    let conflict = false;
 
-                                            if (detectOwnConflict(classInfo)) {
-                                                conflict = true;
-                                            } else if (classInfo.secondary_schedule) {
-                                                conflict = detectOwnConflict(classInfo.secondary_schedule)
-                                            }
+                                                    if (detectOwnConflict(classInfo)) {
+                                                        conflict = true;
+                                                    } else if (classInfo.secondary_schedule) {
+                                                        conflict = detectOwnConflict(classInfo.secondary_schedule)
+                                                    }
 
-                                            const exist = classes.find(classItem => classItem.subject_code === classInfo.subject_code);
+                                                    const exist = classes.find(classItem => classItem.subject_code === classInfo.subject_code);
 
-                                            return (
-                                                <TableRow key={classInfo.id} className={`${conflict && !exist ? 'bg-red-500 hover:bg-red-500' : ''}`}> {/* always good to add a unique key */}
-                                                    <TableCell className='w-36'>{classInfo.class_code}</TableCell>
-                                                    <TableCell className='w-28'>{classInfo.subject_code}</TableCell>
-                                                    <TableCell className='truncate max-w-48 overflow-hidden whitespace-nowrap'>
-                                                        {classInfo.descriptive_title}
-                                                    </TableCell>
-                                                    <TableCell className='flex gap-1 items-center'>
-                                                        <Users size={14} /> {classInfo.student_count}
-                                                    </TableCell>
-                                                    <TableCell className="w-36">
-                                                        <div className='flex flex-col'>
-                                                            <span>{classInfo.day === 'TBA' ? '-' : classInfo.day}</span>
-                                                            <span>{classInfo.secondary_schedule ? (classInfo.secondary_schedule.day === 'TBA' ? '-' : classInfo.secondary_schedule.day) : null}</span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="w-40">
-                                                        <div className='flex flex-col'>
-                                                            <span>
-                                                                {classInfo.start_time !== "TBA"
-                                                                    ? convertToAMPM(classInfo.start_time) + ' - ' + convertToAMPM(classInfo.end_time)
-                                                                    : "-"}
-                                                            </span>
-                                                            <span>
-                                                                {classInfo.secondary_schedule ? (classInfo.secondary_schedule.start_time !== "TBA"
-                                                                    ? convertToAMPM(classInfo.secondary_schedule.start_time) + ' - ' + convertToAMPM(classInfo.secondary_schedule.end_time)
-                                                                    : '-')
-                                                                    : null}
-                                                            </span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className='w-8 text-center'>{classInfo.credit_units}</TableCell>
-                                                    <TableCell className="w-8">
-                                                        <div className='flex justify-center'>
-                                                            {conflict ? (
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
+                                                    return (
+                                                        <TableRow key={classInfo.id} className={`${conflict && !exist ? 'bg-red-500 hover:bg-red-500' : ''}`}> {/* always good to add a unique key */}
+                                                            <TableCell className='w-36'>{classInfo.class_code}</TableCell>
+                                                            <TableCell className='w-28'>{classInfo.subject_code}</TableCell>
+                                                            <TableCell className='truncate max-w-48 overflow-hidden whitespace-nowrap'>
+                                                                {classInfo.descriptive_title}
+                                                            </TableCell>
+                                                            <TableCell className='flex gap-1 items-center'>
+                                                                <Users size={14} /> {classInfo.student_count}
+                                                            </TableCell>
+                                                            <TableCell className="w-36">
+                                                                <div className='flex flex-col'>
+                                                                    <span>{classInfo.day === 'TBA' ? '-' : classInfo.day}</span>
+                                                                    <span>{classInfo.secondary_schedule ? (classInfo.secondary_schedule.day === 'TBA' ? '-' : classInfo.secondary_schedule.day) : null}</span>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className="w-40">
+                                                                <div className='flex flex-col'>
+                                                                    <span>
+                                                                        {classInfo.start_time !== "TBA"
+                                                                            ? convertToAMPM(classInfo.start_time) + ' - ' + convertToAMPM(classInfo.end_time)
+                                                                            : "-"}
+                                                                    </span>
+                                                                    <span>
+                                                                        {classInfo.secondary_schedule ? (classInfo.secondary_schedule.start_time !== "TBA"
+                                                                            ? convertToAMPM(classInfo.secondary_schedule.start_time) + ' - ' + convertToAMPM(classInfo.secondary_schedule.end_time)
+                                                                            : '-')
+                                                                            : null}
+                                                                    </span>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className='w-8 text-center'>{classInfo.credit_units}</TableCell>
+                                                            <TableCell className="w-8">
+                                                                <div className='flex justify-center'>
+                                                                    {conflict ? (
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Button
+                                                                                    disabled={exist || addingSubject}
+                                                                                    variant="icon"
+                                                                                    className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
+                                                                                    onClick={() => {
+                                                                                        if (conflict) return
+                                                                                        setClasses(prev => [...prev, classInfo]);
+                                                                                    }}
+                                                                                >
+                                                                                    <CirclePlus
+                                                                                        size={15}
+                                                                                    />
+                                                                                </Button>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent className='flex items-center gap-2 text-orange-500'> <TriangleAlert /> Conflict</TooltipContent>
+                                                                        </Tooltip>
+                                                                    ) : (
+
                                                                         <Button
-                                                                            disabled={exist || addingSubject}
+                                                                            disabled={conflict || exist || addingSubject}
                                                                             variant="icon"
                                                                             className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
-                                                                            onClick={() => {
-                                                                                if (conflict) return
-                                                                                setClasses(prev => [...prev, classInfo]);
-                                                                            }}
+                                                                            onClick={() => { setClasses(prev => [...prev, classInfo]); }}
                                                                         >
                                                                             <CirclePlus
                                                                                 size={15}
                                                                             />
                                                                         </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent className='flex items-center gap-2 text-orange-500'> <TriangleAlert /> Conflict</TooltipContent>
-                                                                </Tooltip>
-                                                            ) : (
-
-                                                                <Button
-                                                                    disabled={conflict || exist || addingSubject}
-                                                                    variant="icon"
-                                                                    className={`p-0 h-min ${exist || conflict ? 'text-gray-500 cursor-not-allowed' : 'text-green-500 cursor-pointer'}`}
-                                                                    onClick={() => { setClasses(prev => [...prev, classInfo]); }}
-                                                                >
-                                                                    <CirclePlus
-                                                                        size={15}
-                                                                    />
-                                                                </Button>
-                                                            )}
-                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )
+                                                })
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={7} className="text-center border-y">
+                                                        No classes.
                                                     </TableCell>
                                                 </TableRow>
-                                            )
-                                        })
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={7} className="text-center border-y">
-                                                No classes.
-                                            </TableCell>
-                                        </TableRow>
+                                            )}
+                                        </>
                                     )}
-                                </>
-                            )}
-                        </TableBody>
-                    </Table>
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
                 </CardContent>
             </Card>
         </div>
