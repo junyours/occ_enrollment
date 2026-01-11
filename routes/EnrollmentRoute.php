@@ -19,6 +19,8 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
     Route::get('/enrollment/{id}/students/{yearlevel}/subjects', [EnrollmentCourseSectionController::class, 'viewStudentSubjects'])->name('enrollment.view.student.subjects');
     Route::get('/enrollment/{id}/students/{yearlevel}/cor', [EnrollmentCourseSectionController::class, 'viewStudentCor'])->name('enrollment.view.student.cor');
     Route::post('/enrollment/student-info/cor/{courseId}/{section}/{yearlevel}/{studentIdNo}/{schoolYearId}', [EnrollmentCourseSectionController::class, 'getStudentEnrollmentInfo'])->name('enrollment.student.info.cor');
+    Route::post('/enrollment/corinfo/mark-printed', [EnrollmentCourseSectionController::class, 'corMarkPrinted'])->name('enrollment.corinfo.mark-printed');
+    Route::post('/enrollment/corinfo', [EnrollmentCourseSectionController::class, 'corInfo'])->name('enrollment.corinfo');
 
     Route::get('/enrollment/{id}/enroll-student/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewEnrollStudent'])->name('enrollment.view.enroll-student');
     Route::get('/enrollment/{id}/cor/{yearlevel}', [EnrollmentCourseSectionController::class, 'viewCORList'])->name('enrollment.view.cor');

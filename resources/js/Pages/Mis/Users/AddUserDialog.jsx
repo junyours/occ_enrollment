@@ -18,7 +18,7 @@ import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { userRoles } from './Utility';
+import { userRoles } from '@/Lib/Utils';
 import { toast } from 'sonner';
 
 export default function AddUserDialog({ open, onOpenChange }) {

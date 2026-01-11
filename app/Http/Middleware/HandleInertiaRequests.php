@@ -49,17 +49,6 @@ class HandleInertiaRequests extends Middleware
             return $baseSharedData;
         }
 
-        // Only returns role - information not needed
-        if (in_array($user->user_role, ['super_admin', 'mis', 'president', 'announcement_admin', 'guidance', 'vpaa'])) {
-            return [
-                ...$baseSharedData,
-                'auth' => [
-                    'user' => $user,
-                    'impersonating' => Session::has('impersonator_id'),
-                ],
-            ];
-        }
-
         // User data
         $user = User::with('information')->find($user->id);
         $userPayload = $this->mapUser($user);
@@ -74,8 +63,20 @@ class HandleInertiaRequests extends Middleware
         ];
 
         // Student and faculty only need basedata
-        if (in_array($userPayload, ['student', 'faculty'])) {
+        if (in_array($userPayload['user_role'], ['student', 'faculty'])) {
             return $baseData;
+        }
+
+        // Student and faculty only need basedata
+        if (in_array($user->user_role, ['gened_coordinator'])) {
+            return [
+                ...$baseSharedData,
+                'auth' => [
+                    'user' => $userPayload,
+                    'courses' => $this->allCourses(),
+                    'impersonating' => Session::has('impersonator_id'),
+                ],
+            ];
         }
 
         // Important data for ongoing enrollment
@@ -152,12 +153,18 @@ class HandleInertiaRequests extends Middleware
                 ->join('users', 'faculty.faculty_id', '=', 'users.id')
                 ->where('users.id', '=', $user->id)
                 ->get();
-        } elseif ($user->user_role == 'registrar') {
+        } elseif ($user->user_role == 'registrar' || $user->user_role == 'gened_coordinator') {
             $courses = Course::select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
                 ->get();
         }
 
         return $courses;
+    }
+
+    private function allCourses()
+    {
+        return Course::select(DB::raw("MD5(course.id) as hashed_course_id, course_name, course_name_abbreviation"))
+            ->get();
     }
 
     protected function mapUser(User $user): array

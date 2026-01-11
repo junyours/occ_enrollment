@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Enrollment;
 
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnrollmentStatus;
+use App\Models\CorInfo;
 use App\Models\Course;
 use App\Models\CurriculumTerm;
 use App\Models\CurriculumTermSubject;
@@ -153,7 +154,7 @@ class EnrollmentCourseSectionController extends Controller
         if (!$course) {
             return Inertia::render('Enrollment/EnrollmentCourseSection', ['error' => true]);
         }
-
+    
         return YearLevel::select('year_level.id', 'year_level_name')
             ->with([
                 'YearSection' => function ($query) use ($schoolYearId, $course) {
@@ -492,6 +493,30 @@ class EnrollmentCourseSectionController extends Controller
             ]
         );
     }
+
+    public function corMarkPrinted(Request $request)
+    {
+        CorInfo::updateOrCreate(
+            ['enrolled_student_id' => $request->enrolledStudentId],
+            [
+                'printed' => 1,
+                'printed_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'message' => 'COR marked as printed'
+        ]);
+    }
+    
+    public function corInfo(Request $request )
+    {
+        $corInfo = CorInfo::where('enrolled_student_id', $request->enrolledStudentId)->first();
+        
+        return response()->json($corInfo, 200);
+    }
+
+
 
     public function getStudentEnrollmentInfo($courseId, $section, $yearlevel, $studentIdNo, $schoolYearId)
     {

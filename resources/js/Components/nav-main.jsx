@@ -45,9 +45,10 @@ import {
 } from "@/Components/ui/sidebar";
 import { PiStudent } from "react-icons/pi";
 import { MdOutlineMeetingRoom } from "react-icons/md";
+import SchoolYearPicker from "./SchoolYearPicker";
 
 export function NavMain() {
-    const { user } = usePage().props.auth;
+    const { user, courses } = usePage().props.auth;
     const userRole = user.user_role;
     const currentUrl = usePage().url;
     const { setOpenMobile } = useSidebar();
@@ -316,12 +317,32 @@ export function NavMain() {
             );
             break;
 
+        case "gened_coordinator":
+            menuSections.push({
+                label: "Courses",
+                items: courses.map(course => ({
+                    name: course.course_name_abbreviation,
+                    route: 'gened-coordinator.sections',
+                    params: { hashedCourseID: course.hashed_course_id },
+                    icon: BookOpen,
+                })),
+            });
+            break;
+
         default:
             break;
     }
 
     return (
         <SidebarGroup>
+            {userRole === "gened_coordinator" && (
+                <SidebarMenu className="space-y-0.5 mb-4">
+                    <SidebarGroupLabel className="p-0 text-xs uppercase text-muted-foreground h-min flex flex-col">
+                        <SchoolYearPicker layout="horizontal-select-only" />
+                    </SidebarGroupLabel>
+                </SidebarMenu>
+            )}
+
             {menuSections.map((section) => (
                 <SidebarMenu key={section.label} className="space-y-0.5 mb-4">
                     <SidebarGroupLabel className="px-3 text-xs uppercase text-muted-foreground h-min">

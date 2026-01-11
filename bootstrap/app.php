@@ -39,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'Librarian' => \App\Http\Middleware\Librarian::class,
             'OjtCoordinator' => \App\Http\Middleware\OjtCoordinator::class,
             'ResearchCoordinator' => \App\Http\Middleware\ResearchCoordinator::class,
+            'GenedCoordinator' => \App\Http\Middleware\GenedCoordinator::class,
         ]);
         //
     })

@@ -42,6 +42,7 @@ require __DIR__ . '/ClassSchedulingRoute.php';
 require __DIR__ . '/CorRoute.php';
 require __DIR__ . '/DepartmentRoute.php';
 require __DIR__ . '/EnrollmentRoute.php';
+require __DIR__ . '/GenedCoordinatorRoute.php';
 require __DIR__ . '/GradeRoute.php';
 require __DIR__ . '/GuestRoute.php';
 require __DIR__ . '/GuidanceRoute.php';

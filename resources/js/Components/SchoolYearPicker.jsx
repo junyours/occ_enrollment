@@ -49,9 +49,9 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
     const selectedSchoolYearEntry = getSelectedSchoolYearEntry();
 
     if (!isLoaded) {
-        return <div className="p-4">Loading...</div>;
+        return <div className="p-4"></div>;
     }
-
+    
     if (layout === 'vertical') {
         return (
             <div className="relative flex flex-row w-max">
