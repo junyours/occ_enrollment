@@ -327,27 +327,35 @@ export function NavMain() {
                     <SidebarGroupLabel className="px-3 text-xs uppercase text-muted-foreground h-min">
                         {section.label}
                     </SidebarGroupLabel>
-                    {section.items.map((item) => (
-                        <SidebarMenuItem onClick={() => setOpenMobile(false)} key={item.name}>
-                            <SidebarMenuButton
-                                tooltip={item.name}
-                                className={cn(
-                                    "h-10 text-md",
-                                    currentUrl.startsWith(`/${item.route}`) &&
-                                    "bg-sidebar-accent text-sidebar-accent-foreground"
-                                )}
-                                asChild
+                    {section.items.map((item) => {
+                        const itemUrl = route(item.route, item.params)
+                        const itemPath = new URL(itemUrl).pathname
+                        const isActive = currentUrl == itemPath || currentUrl.startsWith(`${itemPath}/`)
+
+                        return (
+                            <SidebarMenuItem
+                                key={item.name}
+                                onClick={() => setOpenMobile(false)}
                             >
-                                <Link
-                                    href={route(item.route)}
-                                    className="flex items-center w-full gap-2"
+                                <SidebarMenuButton
+                                    tooltip={item.name}
+                                    className={cn(
+                                        "h-10 text-md",
+                                        isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    )}
+                                    asChild
                                 >
-                                    <item.icon size={18} />
-                                    <span>{item.name}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
+                                    <Link
+                                        href={itemUrl}
+                                        className="flex items-center w-full gap-2"
+                                    >
+                                        <item.icon size={18} />
+                                        <span>{item.name}</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        )
+                    })}
                 </SidebarMenu>
             ))}
         </SidebarGroup>
