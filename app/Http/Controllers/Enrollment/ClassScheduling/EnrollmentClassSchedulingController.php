@@ -456,21 +456,22 @@ class EnrollmentClassSchedulingController extends Controller
 
     public function searchStudentGrades(Request $request)
     {
+        $search = trim($request->id_no);
 
-        $student = User::where('user_id_no', $request->id_no)
-            ->where('user_role', '=', 'student')->first();
+        $student = User::where('user_role', 'student')
+            ->where('user_id_no', 'LIKE', "%{$search}%") // match anywhere
+            ->with([
+                'information',
+                'Enrollments.Subjects.YearSectionSubjects.Subject',
+                'Enrollments.YearSection.SchoolYear.Semester',
+            ])
+            ->first();
 
         if (!$student) {
             return response()->json([]);
         }
 
-        return  User::where('user_id_no', $request->id_no)
-            ->where('user_role', '=', 'student')
-            ->with([
-                'information',
-                'Enrollments.Subjects.YearSectionSubjects.Subject',
-                'Enrollments.YearSection.SchoolYear.Semester',
-            ])->first();
+        return $student;
     }
 
     public function searchSubjects(Request $request)
