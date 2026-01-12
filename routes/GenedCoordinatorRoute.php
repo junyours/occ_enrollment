@@ -17,4 +17,9 @@ Route::middleware(['auth', 'maintenance', 'GenedCoordinator'])->group(function (
     Route::post('/gened-coordinator/instructor-schedules', [CourseController::class, 'getInstructorSchedules'])->name('gened-coordinator.instructorSchedules');
    
     Route::post('/gened-coordinator/update-class', [CourseController::class, 'updateClass'])->name('gened-coordinator.update.class');
+
+    Route::get('/gened-coordinator/rooms-schedules', [CourseController::class, 'viewRoomsSchedules'])->name('gened-coordinator.rooms-schedules');
+    Route::post('/gened-coordinator/rooms-schedules', [CourseController::class, 'getRoomsSchedules'])->name('gened-coordinator.rooms-schedules');
+    Route::get('/gened-coordinator/faculties-schedules', [CourseController::class, 'viewFacultiesSchedules'])->name('gened-coordinator.faculties-schedules');
+    Route::post('/gened-coordinator/faculties-schedules', [CourseController::class, 'getFacultiesSchedules'])->name('gened-coordinator.faculties-schedules');
 });

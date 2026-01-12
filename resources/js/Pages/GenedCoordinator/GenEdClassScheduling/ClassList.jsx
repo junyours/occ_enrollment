@@ -115,11 +115,15 @@ function ClassList({ classes, scheduleType, editing }) {
                                                 {selectedSubject.id ? (
                                                     <></>
                                                 ) : (
-                                                    <Pencil
-                                                        onClick={() => { if (!editing) editSchedule(classInfo) }}
-                                                        size={15}
-                                                        className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                                    />
+                                                    <>
+                                                        {classInfo.subject.type == 'gened' && (
+                                                            <Pencil
+                                                                onClick={() => { if (!editing) editSchedule(classInfo) }}
+                                                                size={15}
+                                                                className={` ${editing ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                            />
+                                                        )}
+                                                    </>
                                                 )}
                                             </TableCell>
                                         </TableRow>

@@ -223,10 +223,11 @@ export default function Scheduling({
         if (Object.keys(errors).length > 0) {
             return;
         }
-        setSubmitting(true);
 
         if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please recolve!");
 
+        setSubmitting(true);
+        
         await router.post(route("gened-coordinator.update.class"), selectedSubject, {
             onSuccess: () => {
                 toast.success("Class updated successfully.");

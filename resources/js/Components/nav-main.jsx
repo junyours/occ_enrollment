@@ -318,15 +318,26 @@ export function NavMain() {
             break;
 
         case "gened_coordinator":
-            menuSections.push({
-                label: "Courses",
-                items: courses.map(course => ({
-                    name: course.course_name_abbreviation,
-                    route: 'gened-coordinator.sections',
-                    params: { hashedCourseID: course.hashed_course_id },
-                    icon: BookOpen,
-                })),
-            });
+            menuSections.push(
+                {
+                    label: "Courses",
+                    items: courses.map(course => ({
+                        name: course.course_name_abbreviation,
+                        route: 'gened-coordinator.sections',
+                        params: { hashedCourseID: course.hashed_course_id },
+                        icon: BookOpen,
+                    })),
+
+                },
+                {
+                    label: "Schedules",
+                    items: [
+                        { name: "Room", route: "gened-coordinator.rooms-schedules", icon: MdOutlineMeetingRoom },
+                        { name: "Faculty", route: "gened-coordinator.faculties-schedules", icon: UsersIcon },
+                    ],
+
+                },
+            );
             break;
 
         default:

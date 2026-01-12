@@ -164,7 +164,6 @@ class CourseController extends Controller
 
     public function getRoomSchedules(Request $request)
     {
-
         // Primary Schedules (Main Schedule)
         $mainSched = YearSectionSubjects::select(
             'year_section_subjects.id',
@@ -270,5 +269,129 @@ class CourseController extends Controller
             'room_id' => $request->room_id,
             'faculty_id' => $request->faculty_id,
         ]);
+    }
+
+    public function viewRoomsSchedules()
+    {
+        return Inertia::render('GenedCoordinator/Schedules/Room/Index');
+    }
+
+    public function getRoomsSchedules(Request $request)
+    {
+        $rooms = Room::select('rooms.id', 'room_name')
+            ->with([
+                'Schedules' => function ($query) use ($request) {
+                    // Primary schedules query
+                    $query->select(
+                        'day',
+                        'descriptive_title',
+                        'end_time',
+                        'year_section_subjects.faculty_id',
+                        'year_section_subjects.id',
+                        'room_id',
+                        'start_time',
+                        'subject_id',
+                        'year_section_id',
+                        'first_name',
+                        'middle_name',
+                        'last_name',
+                        'class_code',
+                        'school_year_id'
+                    )
+                        ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+                        ->leftjoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+                        ->leftjoin('user_information', 'users.id', '=', 'user_information.user_id')
+                        ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+                        ->where('school_year_id', '=', $request->schoolYearID);
+
+                    // Secondary schedules query
+                    $secondarySchedules = DB::table('subject_secondary_schedule')
+                        ->select(
+                            'subject_secondary_schedule.day',
+                            'descriptive_title',
+                            'subject_secondary_schedule.end_time',
+                            'year_section_subjects.faculty_id',
+                            'year_section_subjects.id',
+                            'subject_secondary_schedule.room_id', // Correct room_id for secondary schedules
+                            'subject_secondary_schedule.start_time',
+                            'subject_id',
+                            'year_section_id',
+                            'first_name',
+                            'middle_name',
+                            'last_name',
+                            'class_code',
+                            'school_year_id'
+                        )
+                        ->join('year_section_subjects', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id') // Corrected join condition
+                        ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+                        ->leftjoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+                        ->leftjoin('user_information', 'users.id', '=', 'user_information.user_id')
+                        ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+                        ->where('school_year_id', '=', $request->schoolYearID);
+
+                    // Combine primary and secondary schedules using union
+                    $query->union($secondarySchedules);
+                }
+            ])
+            ->orderBy('room_name', 'asc')
+            ->get();
+
+        return response()->json($rooms);
+    }
+
+    public function viewFacultiesSchedules()
+    {
+        return Inertia::render('GenedCoordinator/Schedules/Faculty/Index');
+    }
+
+    public function getFacultiesSchedules(Request $request)
+    {
+        return User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+            ->with([
+                'Schedules' => function ($query) use ($request) {
+                    $query->select(
+                        'room_name',
+                        'day',
+                        'descriptive_title',
+                        'end_time',
+                        'faculty_id',
+                        'year_section_subjects.id',
+                        'room_id',
+                        'start_time',
+                        'subject_id',
+                        'year_section_id',
+                        'class_code',
+                        'school_year_id',
+                        'lecture_hours',
+                        'laboratory_hours',
+                    )
+                        ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+                        ->leftjoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
+                        ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+                        ->with([
+                            'SecondarySchedule' => function ($query) {
+                                $query->select(
+                                    'rooms.room_name',
+                                    'subject_secondary_schedule.id',
+                                    'year_section_subjects_id',
+                                    'faculty_id',
+                                    'room_id',
+                                    'day',
+                                    'start_time',
+                                    'end_time',
+                                    'room_name'
+                                )
+                                    ->leftjoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
+                            }
+                        ])
+                        ->withCount('SubjectEnrolledStudents as student_count')
+                        ->where('school_year_id', '=', $request->schoolYearId);
+                }
+            ])
+            ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->where('active', '=', 1)
+            ->orderBy('last_name', 'asc')
+            ->get();
     }
 }
