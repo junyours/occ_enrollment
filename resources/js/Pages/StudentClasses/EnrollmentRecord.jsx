@@ -7,7 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Head, Link, usePage } from '@inertiajs/react';
 import html2canvas from 'html2canvas';
-import { AlertCircle, ArrowRight, Download, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowRight, BookOpen, Download, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import FillUpPrompt from './CollectStudentData/FillUpPrompt';
 import { useQuery } from '@tanstack/react-query';
