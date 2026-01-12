@@ -78,29 +78,31 @@ const ViewClasses = ({ currentSchoolYear }) => {
             <PageTitle align="center" className='text-lg md:text-xl lg:text-2xl px-4'>
                 {currentSchoolYear.start_year}-{currentSchoolYear.end_year} {currentSchoolYear.semester_name} Semester
             </PageTitle>
-            <div className='flex flex-col sm:flex-row gap-4 items-center'>
-                <Card className='w-min'>
-                    <CardContent className="p-2">
-                        <div className="flex gap-2 w-min">
-                            <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
-                                <TabsList className="grid max-w-max grid-cols-2">
-                                    <TabsTrigger className="w-28" value="tabular">List</TabsTrigger>
-                                    <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
-                                </TabsList>
-                            </Tabs>
-                        </div>
-                    </CardContent>
-                </Card>
+            {classes?.length > 0 && (
+                <div className='flex flex-col sm:flex-row gap-4 items-center'>
+                    <Card className='w-min'>
+                        <CardContent className="p-2">
+                            <div className="flex gap-2 w-min">
+                                <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
+                                    <TabsList className="grid max-w-max grid-cols-2">
+                                        <TabsTrigger className="w-28" value="tabular">List</TabsTrigger>
+                                        <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                <Button
-                    size='lg'
-                    className={`bg-blue-700 hover:bg-blue-600 ${scheduleType == 'timetable' ? '' : 'hidden'}`}
-                    onClick={downloadImage}
-                >
-                    Download
-                    <ImageDown />
-                </Button>
-            </div>
+                    <Button
+                        size='lg'
+                        className={`bg-blue-700 hover:bg-blue-600 ${scheduleType == 'timetable' ? '' : 'hidden'}`}
+                        onClick={downloadImage}
+                    >
+                        Download
+                        <ImageDown />
+                    </Button>
+                </div>
+            )}
 
             {scheduleType == 'tabular' ? (
                 <>
@@ -183,7 +185,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
 
                     {/* Mobile Card View */}
                     <div className='sm:hidden'>
-                        <MobileViewClasses classes={classes} isLoading={isLoading} isError={isError} error={error}/>
+                        <MobileViewClasses classes={classes} isLoading={isLoading} isError={isError} error={error} />
                     </div>
                 </>
             ) : (
