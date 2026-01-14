@@ -1,19 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, {  useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
+import { formatFullName } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AlertCircle, ArrowLeft, BookOpen, Check, CheckCircle, Clock, FileText, Loader2, Rocket, Send, SendHorizonal, XCircle } from 'lucide-react';
-import { Button } from '@/Components/ui/button';
+import { AlertCircle, ArrowLeft, BookOpen,  CheckCircle, FileText, Loader2, Rocket, Send, XCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
-import GradeSubmissionStatus from '../InstructorClasses/ClassComponents/GradePartials/GradeSubmissionStatus';
 import ProgramHeadGradeVerificationButton from './ProgramHeadGradeVerificationButton';
 import { useGradeSubmission } from '../InstructorClasses/ClassComponents/GradePartials/useGradeSubmission';
 import { useQuery } from '@tanstack/react-query';
 import { computeFinalGrade } from './GradeUtility';
+import { Badge } from '@/Components/ui/badge';
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -40,17 +36,6 @@ function SubjectStudentLIst({ faculty, subject }) {
     const [submitting, setSubimitting] = useState(false);
 
     const { data, isLoading, refetch } = useGradeSubmission(subject.id);
-
-    // const selectSubject = async () => {
-    //     await axios.post(route('faculty.subjects.students'), { yearSectionSubjectsId: subject.id })
-    //         .then(response => {
-    //             setStudentList(response.data);
-    //         })
-    // }
-
-    // useEffect(() => {
-    //     selectSubject();
-    // }, [subject.id])
 
     const selectSubject = async () => {
         const response = await axios.post(route('faculty.subjects.students'), { yearSectionSubjectsId: subject.id });
@@ -244,7 +229,6 @@ function SubjectStudentLIst({ faculty, subject }) {
                             </TableBody>
                         </Table>
                     )}
-
                 </CardContent>
             </Card>
 
