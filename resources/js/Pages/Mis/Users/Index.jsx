@@ -14,6 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UserDetails from './UserDetails';
 import UsersTable from './UsersTable';
 import AddUserDialog from './AddUserDialog';
+import { userRoles } from '@/Lib/Utils';
 
 export default function Index({ users, filters }) {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -21,23 +22,6 @@ export default function Index({ users, filters }) {
     const [search, setSearch] = useState(filters.search || '');
     const [searchField, setSearchField] = useState(filters.searchField || 'all');
     const [roleFilter, setRoleFilter] = useState(filters.role || 'all');
-
-    const userRoles = [
-        { value: 'all', label: 'All Roles' },
-        { value: 'super_admin', label: 'Super Admin' },
-        { value: 'president', label: 'President' },
-        { value: 'program_head', label: 'Program Head' },
-        { value: 'registrar', label: 'Registrar' },
-        { value: 'evaluator', label: 'Evaluator' },
-        { value: 'mis', label: 'MIS' },
-        { value: 'guidance', label: 'Guidance' },
-        { value: 'announcement_admin', label: 'Announcement Admin' },
-        { value: 'faculty', label: 'Faculty' },
-        { value: 'student', label: 'Student' },
-        { value: 'librarian', label: 'Librarian' },
-        { value: 'ojt_coordinator', label: 'Ojt Coordinator' },
-        { value: 'research_coordinator', label: 'Research Coordinator' },
-    ];
 
     const searchableFields = [
         { value: 'all', label: 'All Fields' },
@@ -101,7 +85,10 @@ export default function Index({ users, filters }) {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                {userRoles.map((role) => (
+                                <SelectItem value="all">
+                                    All roles
+                                </SelectItem>
+                                {userRoles().map((role) => (
                                     <SelectItem key={role.value} value={role.value}>
                                         {role.label}
                                     </SelectItem>

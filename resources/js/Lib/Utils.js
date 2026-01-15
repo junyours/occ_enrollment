@@ -310,6 +310,7 @@ export const userRoles = () => {
         { value: 'guidance', label: 'Guidance' },
         { value: 'gened_coordinator', label: 'Gened Coordinator' },
         { value: 'mis', label: 'MIS' },
+        { value: 'nstp_director', label: 'NSTP Director' },
         { value: 'ojt_coordinator', label: 'Ojt Coordinator' },
         { value: 'president', label: 'President' },
         { value: 'program_head', label: 'Program Head' },
