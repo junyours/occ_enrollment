@@ -5,17 +5,21 @@ import { convertToAMPM } from '@/Lib/Utils';
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 
-function Room({ data, roomId, yearSectionId, roomName, setRoomConflict, day, start_time, end_time }) {
+function Room({ data, roomId, yearSectionId, roomName, setRoomConflict, day, start_time, end_time, setLoadingRooms }) {
     const [mainRooms, setMainRooms] = useState([]);
     const [secondRooms, setSecondRooms] = useState([]);
 
     const getRoomsSchedules = async () => {
+        setLoadingRooms(true)
         await axios.post(route('room.schedules', { roomId, yearSectionId }))
             .then(response => {
                 setMainRooms(response.data.main);
                 setSecondRooms(response.data.second);
 
                 detectConflict(response.data.main, response.data.second)
+            })
+            .finally(() => {
+                setLoadingRooms(false)
             })
     }
 

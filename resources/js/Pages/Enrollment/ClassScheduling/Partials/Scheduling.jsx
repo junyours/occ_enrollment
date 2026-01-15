@@ -79,6 +79,8 @@ function Scheduling({
     collectConflictSchedules,
     roomConflict,
     instructorConflict,
+    loadingRooms,
+    loadingInstructors,
 }) {
     const [open, setOpen] = useState(false)
 
@@ -541,11 +543,12 @@ function Scheduling({
                     variant="secondary">
                     Cancel
                 </Button>
+                
                 <Button
                     onClick={handleSubmit}
                     className="ml-2"
                     type="submit"
-                    disabled={processing}>
+                    disabled={processing || loadingRooms || loadingInstructors}>
                     {processing ? "Submitting..." : "Submit"}
                 </Button>
             </CardContent>

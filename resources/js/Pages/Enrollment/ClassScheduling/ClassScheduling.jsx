@@ -4,7 +4,6 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import React, { useEffect, useState, useRef } from 'react'
 import { formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
-import { useToast } from '@/hooks/use-toast';
 import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
 import ClassList from './Partials/ClassList';
 import Scheduling from './Partials/Scheduling';
@@ -14,10 +13,9 @@ import Room from './Assigned/Room';
 import Instructor from './Assigned/Instructor';
 import { Button } from '@/Components/ui/button';
 import AddSubjectDialog from './Partials/AddSubjectDialog';
+import { toast } from 'sonner';
 
 export default function ClassScheduling({ yearSectionId }) {
-    const { toast } = useToast()
-
     const [fetching, setFetching] = useState(true);
 
     const bottomRef = useRef(null);
@@ -334,21 +332,32 @@ export default function ClassScheduling({ yearSectionId }) {
         collectConflictSchedules(editingSchedule)
     };
 
+    const [loadingRooms, setLoadingRooms] = useState(false);
+    const [loadingInstructors, setLoadingInstructors] = useState(false);
+
     const getDepartmentRooms = async () => {
-        if (rooms.length > 0) return
-        await axios.post('/api/get-own-department-rooms')
-            .then(response => {
-                setRooms(response.data)
-            })
-    }
+        if (rooms.length > 0) return;
+
+        setLoadingRooms(true);
+        try {
+            const response = await axios.post('/api/get-own-department-rooms');
+            setRooms(response.data);
+        } finally {
+            setLoadingRooms(false);
+        }
+    };
 
     const getInstructors = async () => {
-        if (instructors.length > 0) return
-        await axios.post('/api/get-instructors')
-            .then(response => {
-                setInstructors(response.data)
-            })
-    }
+        if (instructors.length > 0) return;
+
+        setLoadingInstructors(true);
+        try {
+            const response = await axios.post('/api/get-instructors');
+            setInstructors(response.data);
+        } finally {
+            setLoadingInstructors(false);
+        }
+    };
 
     const handleSubmit = async () => {
         clearErrors();
@@ -371,15 +380,14 @@ export default function ClassScheduling({ yearSectionId }) {
             url = "enrollment.update.second.class"
         }
 
+        if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please recolve!");
+
         await post(route(url, data), {
             onSuccess: () => {
                 reset()
                 setEditing(false)
                 setEditingSecondSchedule(false)
-                toast({
-                    description: "Class updated successfully.",
-                    variant: "success",
-                })
+                toast.success("Class updated successfully.")
                 getCLasses()
                 setMainScheduleConflictList([])
                 setSecondScheduleConflictList([])
@@ -387,7 +395,6 @@ export default function ClassScheduling({ yearSectionId }) {
             preserveScroll: true,
         });
     };
-
 
     if (fetching) return <PreLoader title="Class" />
 
@@ -442,6 +449,8 @@ export default function ClassScheduling({ yearSectionId }) {
                     collectConflictSchedules={collectConflictSchedules}
                     roomConflict={roomConflict}
                     instructorConflict={instructorConflict}
+                    loadingRooms={loadingRooms}
+                    loadingInstructors={loadingInstructors}
                 />
             }
 
@@ -470,6 +479,7 @@ export default function ClassScheduling({ yearSectionId }) {
                         day={data.day}
                         start_time={data.start_time}
                         end_time={data.end_time}
+                        setLoadingRooms={setLoadingRooms}
                     />
                 ) : (
                     <></>
@@ -490,6 +500,7 @@ export default function ClassScheduling({ yearSectionId }) {
                                     day={data.day}
                                     start_time={data.start_time}
                                     end_time={data.end_time}
+                                    setLoadingInstructors={setLoadingInstructors}
                                 />
                             )
                         })()}

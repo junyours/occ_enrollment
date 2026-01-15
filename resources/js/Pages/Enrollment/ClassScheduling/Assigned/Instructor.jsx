@@ -4,15 +4,19 @@ import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities'
 import { convertToAMPM } from '@/Lib/Utils'
 import React, { useEffect, useState } from 'react'
 
-function Instructor({ data, instructorId, yearSectionId, instructorName, setInstructorConflict, day, start_time, end_time }) {
+function Instructor({ data, instructorId, yearSectionId, instructorName, setInstructorConflict, day, start_time, end_time, setLoadingInstructors }) {
 
     const [facultySchedules, setFacultySchedules] = useState([])
 
     const getInstructorSchedules = async () => {
+        setLoadingInstructors(true)
         await axios.post(route('faculty.schedules', { instructorId, yearSectionId }))
             .then(response => {
                 setFacultySchedules(response.data);
                 detectConflict(response.data)
+            })
+            .finally(() => {
+                setLoadingInstructors(false)
             })
     }
 
