@@ -344,14 +344,23 @@ export function NavMain() {
             break;
 
         case "nstp_director":
-            menuSections.push({
-                label: "NSTP Components",
-                items: [
-                    { name: "ROTC", route: "nstp-director.component.sections", params: 'rotc', icon: Shield },
-                    { name: "CWTS", route: "nstp-director.component.sections", params: 'cwts', icon: Users },
-                    { name: "LTS", route: "nstp-director.component.sections", params: 'lts', icon: GraduationCap },
-                ],
-            });
+            menuSections.push(
+                {
+                    label: "NSTP Components",
+                    items: [
+                        { name: "ROTC", route: "nstp-director.component.sections", params: 'rotc', icon: Shield },
+                        { name: "CWTS", route: "nstp-director.component.sections", params: 'cwts', icon: Users },
+                        { name: "LTS", route: "nstp-director.component.sections", params: 'lts', icon: GraduationCap },
+                    ],
+                },
+                {
+                    label: "Schedules",
+                    items: [
+                        { name: "Room", route: "nstp-director.rooms-schedules", icon: MdOutlineMeetingRoom },
+                        { name: "Faculty", route: "nstp-director.faculties-schedules", icon: UsersIcon },
+                    ],
+                },
+            );
             break;
 
         default:

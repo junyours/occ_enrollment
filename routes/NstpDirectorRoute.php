@@ -15,4 +15,9 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
 
     Route::post('/nstp-director/room-schedules', [ComponentController::class, 'getRoomSchedules'])->name('nstp-director.roomSchedules');
     Route::post('/nstp-director/instructor-schedules', [ComponentController::class, 'getInstructorSchedules'])->name('nstp-director.instructorSchedules');
+
+    Route::get('/nstp-director/rooms-schedules', [ComponentController::class, 'viewRoomsSchedules'])->name('nstp-director.rooms-schedules');
+    Route::post('/nstp-director/rooms-schedules', [ComponentController::class, 'getRoomsSchedules'])->name('nstp-director.rooms-schedules');
+    Route::get('/nstp-director/faculties-schedules', [ComponentController::class, 'viewFacultiesSchedules'])->name('nstp-director.faculties-schedules');
+    Route::post('/nstp-director/faculties-schedules', [ComponentController::class, 'getFacultiesSchedules'])->name('nstp-director.faculties-schedules');
 });
