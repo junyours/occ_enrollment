@@ -13,14 +13,38 @@ const initialSelectedSubject = {
     end_time: "10:30",
 };
 
-const useScheduleStore = create((set) => ({
+const initialState = {
     classes: [],
-    setClasses: (classes) =>
-        set({ classes }),
-
     selectedSubject: { ...initialSelectedSubject },
 
-    setSelectedSubject: (subject) => set({ selectedSubject: subject }),
+    dayType: 'single',
+    meridiem: 'AM',
+    classHour: '3',
+
+    mainScheduleConflictList: [],
+    secondScheduleConflictList: [],
+
+    errors: {
+        faculty_id: false,
+        room_id: false,
+        start_time: false,
+        end_time: false,
+    },
+
+    rooms: [],
+    instructors: [],
+
+    roomConflict: false,
+    instructorConflict: false,
+};
+
+const useScheduleStore = create((set) => ({
+    ...initialState,
+
+    setClasses: (classes) => set({ classes }),
+
+    setSelectedSubject: (subject) =>
+        set({ selectedSubject: subject }),
 
     setSelectedSubjectField: (key, value) =>
         set((state) => ({
@@ -29,68 +53,42 @@ const useScheduleStore = create((set) => ({
                 [key]: value,
             },
         })),
+
     clearSelectedSubject: () =>
         set({ selectedSubject: { ...initialSelectedSubject } }),
 
-    dayType: 'single',
-    setDayType: (dayType) =>
-        set({ dayType }),
+    setDayType: (dayType) => set({ dayType }),
+    setMeridiem: (meridiem) => set({ meridiem }),
+    setClassHour: (classHour) => set({ classHour }),
 
-    meridiem: 'AM',
-    setMeridiem: (meridiem) =>
-        set({ meridiem }),
-
-    classHour: '3',
-    setClassHour: (classHour) =>
-        set({ classHour }),
-
-    mainScheduleConflictList: [],
     setMainScheduleConflictList: (conflicts) =>
         set({ mainScheduleConflictList: conflicts }),
 
-    secondScheduleConflictList: [],
     setSecondScheduleConflictList: (conflicts) =>
-        set({ SecondScheduleConflictList: conflicts }),
+        set({ secondScheduleConflictList: conflicts }),
 
-    errors: {
-        faculty_id: false,
-        room_id: false,
-        start_time: false,
-        end_time: false,
-    },
     setError: (key, value) =>
         set((state) => ({
             errors: {
                 ...state.errors,
-                [key]: value
-            }
+                [key]: value,
+            },
         })),
+
     clearErrors: () =>
+        set({ errors: { ...initialState.errors } }),
+
+    setRooms: (rooms) => set({ rooms }),
+    setInstructors: (instructors) => set({ instructors }),
+
+    setRoomConflict: (roomConflict) => set({ roomConflict }),
+    setInstructorConflict: (instructorConflict) => set({ instructorConflict }),
+
+    reset: () =>
         set({
-            errors: {
-                faculty_id: false,
-                room_id: false,
-                start_time: false,
-                end_time: false,
-            }
+            ...initialState,
+            selectedSubject: { ...initialSelectedSubject },
         }),
+}));
 
-    rooms: [],
-    setRooms: (rooms) =>
-        set({ rooms }),
-
-    instructors: [],
-    setInstructors: (instructors) =>
-        set({ instructors }),
-
-    roomConflict: false,
-    setRoomConflict: (roomConflict) =>
-        set({ roomConflict }),
-
-    instructorConflict: false,
-    setInstructorConflict: (instructorConflict) =>
-        set({ instructorConflict }),
-
-}))
-
-export default useScheduleStore
+export default useScheduleStore;

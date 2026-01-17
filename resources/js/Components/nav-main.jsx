@@ -31,6 +31,9 @@ import {
     FileBadge,
     Handshake,
     FlaskConical,
+    Shield,
+    Users,
+    GraduationCap,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -340,13 +343,24 @@ export function NavMain() {
             );
             break;
 
+        case "nstp_director":
+            menuSections.push({
+                label: "NSTP Components",
+                items: [
+                    { name: "ROTC", route: "nstp-director.component.sections", params: 'rotc', icon: Shield },
+                    { name: "CWTS", route: "nstp-director.component.sections", params: 'cwts', icon: Users },
+                    { name: "LTS", route: "nstp-director.component.sections", params: 'lts', icon: GraduationCap },
+                ],
+            });
+            break;
+
         default:
             break;
     }
 
     return (
         <SidebarGroup>
-            {userRole === "gened_coordinator" && (
+            {(userRole === "gened_coordinator" || userRole === "nstp_director") && (
                 <SidebarMenu className="space-y-0.5 mb-4">
                     <SidebarGroupLabel className="p-0 text-xs uppercase text-muted-foreground h-min flex flex-col">
                         <SchoolYearPicker layout="horizontal-select-only" />

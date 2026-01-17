@@ -2,7 +2,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { useQuery } from '@tanstack/react-query';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ClassList from './ClassList';
 import ScheduleToolbar from './ScheduleToolbar';
 import { AlertCircle, BookOpen } from 'lucide-react';
@@ -14,6 +14,10 @@ import { formatFullName } from '@/Lib/Utils';
 
 export default function Index({ course, yearlevel, section }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
+    
+    useEffect(() => {
+        useScheduleStore.getState().reset();
+    }, [course, yearlevel, section]);
 
     if (!course) return <CourseSectionsSkeleton />
 

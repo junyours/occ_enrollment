@@ -49,6 +49,7 @@ require __DIR__ . '/GuidanceRoute.php';
 require __DIR__ . '/LibrarianRoute.php';
 require __DIR__ . '/MisRoute.php';
 require __DIR__ . '/MaintenanceRoute.php';
+require __DIR__ . '/NstpDirectorRoute.php';
 require __DIR__ . '/OjtCoordinatorRoute.php';
 require __DIR__ . '/PresidentRoute.php';
 require __DIR__ . '/ProfileRoute.php';

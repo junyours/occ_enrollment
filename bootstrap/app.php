@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'OjtCoordinator' => \App\Http\Middleware\OjtCoordinator::class,
             'ResearchCoordinator' => \App\Http\Middleware\ResearchCoordinator::class,
             'GenedCoordinator' => \App\Http\Middleware\GenedCoordinator::class,
+            'NstpDirector' => \App\Http\Middleware\NstpDirector::class,
         ]);
         //
     })
