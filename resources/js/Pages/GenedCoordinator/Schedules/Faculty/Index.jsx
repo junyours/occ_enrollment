@@ -74,7 +74,7 @@ export default function Index() {
 
 
     const { data, error, isLoading, refetch } = useQuery({
-        queryKey: ['gened-coordinator.faculties-schedules'],
+        queryKey: ['gened-coordinator.faculties-schedules', selectedSchoolYearEntry?.id],
         queryFn: getFacultiesSchedules,
         staleTime: 60 * 60 * 1000,
     });

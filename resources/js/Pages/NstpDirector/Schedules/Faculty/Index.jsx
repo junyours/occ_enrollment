@@ -104,7 +104,7 @@ export default function Index() {
 
 
     const { data, error, isLoading, refetch } = useQuery({
-        queryKey: ['nstp-director.faculties-schedules'],
+        queryKey: ['nstp-director.faculties-schedules', selectedSchoolYearEntry?.id],
         queryFn: getFacultiesSchedules,
         staleTime: 60 * 60 * 1000,
     });

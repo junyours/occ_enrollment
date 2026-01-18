@@ -68,7 +68,7 @@ export default function Index() {
     };
 
     const { data, error, isLoading, refetch } = useQuery({
-        queryKey: ['gened-coordinator.rooms-schedules'],
+        queryKey: ['gened-coordinator.rooms-schedules', selectedSchoolYearEntry?.id],
         queryFn: getEnrollmentRoomSchedules,
         staleTime: 60 * 60 * 1000,
     });
