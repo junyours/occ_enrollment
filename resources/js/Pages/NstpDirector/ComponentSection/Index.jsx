@@ -2,7 +2,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, BookOpen, Pencil } from 'lucide-react';
+import { AlertCircle, BookOpen, CircleCheck, CircleX, Pencil } from 'lucide-react';
 import SectionSkeleton from './SectionSkeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -14,6 +14,9 @@ import { formatFullName } from '@/Lib/Utils';
 import Scheduling from './Scheduling';
 import RoomSchedules from './RoomSchedules';
 import InstructorSchedules from './InstructorSchedules';
+import { Input } from '@/Components/ui/input';
+import { toast } from 'sonner';
+import axios from 'axios';
 
 const TableHeadTemplate = ({ children }) => {
     return (
@@ -21,6 +24,7 @@ const TableHeadTemplate = ({ children }) => {
             <TableHeader>
                 <TableRow>
                     <TableHead>Section</TableHead>
+                    <TableHead className='border-r pr-4'>Students</TableHead>
                     <TableHead>Day</TableHead>
                     <TableHead>Time</TableHead>
                     <TableHead>Room</TableHead>
@@ -39,7 +43,6 @@ export default function Index({ component }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
     const setSections = useSection(state => state.setSections);
     const setEditingSection = useSection(state => state.setEditingSection);
-    const editingSection = useSection(state => state.editingSection);
     const selectedSection = useSection(state => state.selectedSection);
     const setSelectedSectionField = useSection(state => state.setSelectedSectionField);
     const rooms = useSection(state => state.rooms);
@@ -47,6 +50,18 @@ export default function Index({ component }) {
     const instructors = useSection(state => state.instructors);
     const setInstructors = useSection(state => state.setInstructors);
     const mainScheduleConflictList = useSection(state => state.mainScheduleConflictList);
+
+
+    const [editingSectionMaxStudnet, setEditingSectionMaxStudnet] = useState([]);
+
+    const submitMaxStudents = async () => {
+        if (editingSectionMaxStudnet.max_students <= 15) return toast.error('The maximum number of students must exceed 15.');
+        await axios.post(route('nstp-director.change-max-students'), { nstpSectionId: editingSectionMaxStudnet.id, maxStudent: editingSectionMaxStudnet.max_students })
+            .finally(() => {
+                refetch();
+                setEditingSectionMaxStudnet([]);
+            });
+    }
 
     useEffect(() => {
         useSection.getState().reset();
@@ -139,8 +154,8 @@ export default function Index({ component }) {
 
         const response = await axios.post(route('nstp-director.all-instructors'));
         setInstructors(response.data);
-
     };
+
 
     return (
         <div className='space-y-4'>
@@ -189,9 +204,41 @@ export default function Index({ component }) {
 
                                 const isEditing = selectedSection.id === section.id;
 
+                                const maxStudents = section.max_students || 0;
+                                const students = section.students_count || 0;
+
                                 return (
                                     <TableRow key={section.id} className={`${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(section.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
                                         <TableCell>{sectionName}</TableCell>
+                                        <TableCell className='border-r '>
+                                            {(editingSectionMaxStudnet.id > 0 && editingSectionMaxStudnet.id == section.id) ? (
+                                                <div className='flex justify-between px-4'>
+                                                    <Input
+                                                        value={editingSectionMaxStudnet.max_students}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value
+                                                            if (isNaN(value)) return
+                                                            console.log(value)
+                                                            setEditingSectionMaxStudnet(prev => ({ ...prev, max_students: value }))
+                                                        }}
+                                                        className='h-min w-10 p-1 text-center'
+                                                    />
+                                                    <div className='flex items-center gap-1'>
+                                                        <CircleX onClick={() => setEditingSectionMaxStudnet([])} className='text-red-500 cursor-pointer' />
+                                                        <CircleCheck onClick={submitMaxStudents} className='text-green-500 cursor-pointer' />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className='flex justify-between px-4'>
+                                                    <p>{students}/{maxStudents}</p>
+                                                    <Pencil
+                                                        onClick={() => setEditingSectionMaxStudnet(section)}
+                                                        size={15}
+                                                        className={` ${!!selectedSection.id ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                    />
+                                                </div>
+                                            )}
+                                        </TableCell>
                                         <TableCell>{day}</TableCell>
                                         <TableCell>{time}</TableCell>
                                         <TableCell>{room}</TableCell>

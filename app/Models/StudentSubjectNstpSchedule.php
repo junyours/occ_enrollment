@@ -16,4 +16,9 @@ class StudentSubjectNstpSchedule extends Model
         'start_time',
         'end_time',
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

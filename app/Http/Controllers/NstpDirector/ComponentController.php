@@ -28,7 +28,11 @@ class ComponentController extends Controller
 
         $sections = NstpSection::where('nstp_component_id', $componentId)
             ->where('school_year_id', $request->schoolYearId)
-            ->with(['schedule.instructor.InstructorInfo', 'schedule.room'])
+            ->with([
+                'schedule.instructor.InstructorInfo',
+                'schedule.room',
+            ])
+            ->withCount('students')
             ->get();
 
         return response()->json($sections);
@@ -60,6 +64,14 @@ class ComponentController extends Controller
             'start_time' => 'TBA',
             'end_time' => 'TBA',
         ]);
+    }
+
+    public function changeMaxStudents(Request $request)
+    {
+        NstpSection::findOrFail($request->nstpSectionId)
+            ->update([
+                'max_students' => $request->maxStudent
+            ]);
     }
 
     public function getAllRooms()

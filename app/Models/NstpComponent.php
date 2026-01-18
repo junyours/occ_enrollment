@@ -11,4 +11,9 @@ class NstpComponent extends Model
     protected $fillable = [
         'component_name',
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

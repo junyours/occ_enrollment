@@ -17,6 +17,11 @@ class NstpSectionSchedule extends Model
         'end_time',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function Instructor()
     {
         return $this->belongsTo(User::class, 'faculty_id');

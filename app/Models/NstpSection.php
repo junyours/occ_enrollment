@@ -15,8 +15,25 @@ class NstpSection extends Model
         'max_students',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function schedule()
     {
         return $this->hasOne(NstpSectionSchedule::class, 'nstp_section_id');
+    }
+
+    public function students()
+    {
+        return $this->hasManyThrough(
+            StudentSubjectNstpSchedule::class,
+            NstpSectionSchedule::class,
+            'nstp_section_id',                // FK on schedules table
+            'nstp_section_schedule_id',      // FK on student_subject table
+            'id',                             // PK on sections
+            'id'                        // PK on schedules
+        );
     }
 }
