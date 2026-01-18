@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class StudentSubjectNstpSchedule extends Model
 {
-    protected $table = 'nstp_section_schedule';
+    protected $table = 'student_subject_nstp_schedule';
 
     protected $fillable = [
         'nstp_section_id',

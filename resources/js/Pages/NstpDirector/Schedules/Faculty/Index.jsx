@@ -27,7 +27,37 @@ export default function Index() {
     const getFacultiesSchedules = async () => {
         const response = await axios.post(route("nstp-director.faculties-schedules"), { schoolYearId: selectedSchoolYearEntry.id });
 
-        const sortedFaculties = response.data.map(faculty => {
+        const yearSectionSubjectsScheds = response.data.yearSectionSubjectsSched;
+        const nstpSched = response.data.nstpSched;
+
+        // group NSTP schedules by faculty_id
+        const nstpByFaculty = nstpSched.reduce((acc, sched) => {
+            if (!sched.faculty_id) return acc;
+
+            acc[sched.faculty_id] ??= [];
+            acc[sched.faculty_id].push({
+                ...sched,
+                class_code: `SECTION ${sched.section ?? ''}`,
+                descriptive_title: `NSTP-${sched.component_name.toUpperCase()}`,
+                is_nstp: true,
+            });
+
+            return acc;
+        }, {});
+
+        // merge into faculty schedules
+        const merged = yearSectionSubjectsScheds.map(faculty => ({
+            ...faculty,
+            schedules: [
+                ...(faculty.schedules ?? []),
+                ...(nstpByFaculty[faculty.faculty_id] ?? []),
+            ],
+        }));
+
+        console.log(merged);
+        
+
+        const sortedFaculties = merged.map(faculty => {
             let schedLength = 0;
             const sortedSchedules = faculty.schedules.sort((a, b) => {
                 const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];

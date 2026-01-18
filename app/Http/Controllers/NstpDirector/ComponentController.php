@@ -291,7 +291,7 @@ class ComponentController extends Controller
 
     public function getFacultiesSchedules(Request $request)
     {
-        return User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+        $yearSectionSched = User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
             ->with([
                 'Schedules' => function ($query) use ($request) {
                     $query->select(
@@ -338,5 +338,32 @@ class ComponentController extends Controller
             ->where('active', '=', 1)
             ->orderBy('last_name', 'asc')
             ->get();
+
+        $nstpSched = NstpSectionSchedule::select(
+            'nstp_sections.id as nstp_section_id',
+            'nstp_section_schedules.id',
+            'day',
+            'end_time',
+            'faculty_id',
+            'start_time',
+            'room_id',
+            'school_year_id',
+            'section',
+            'room_name',
+            'component_name',
+            DB::raw('3 as lecture_hours'),
+            DB::raw('0 as laboratory_hours'),
+            DB::raw('null as secondary_schedule'),
+        )
+            ->join('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'nstp_section_schedules.room_id')
+            ->where('school_year_id', $request->schoolYearId)
+            ->withCount([
+                'studentSubjects as student_count'
+            ])
+            ->get();
+
+        return response()->json(['yearSectionSubjectsSched' => $yearSectionSched, 'nstpSched' => $nstpSched]);
     }
 }

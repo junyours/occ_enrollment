@@ -26,5 +26,12 @@ class NstpSectionSchedule extends Model
     {
         return $this->belongsTo(Room::class, 'room_id');
     }
-}
 
+    public function studentSubjects()
+    {
+        return $this->hasMany(
+            StudentSubjectNstpSchedule::class,
+            'nstp_section_schedule_id'
+        );
+    }
+}
