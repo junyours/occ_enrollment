@@ -24,11 +24,26 @@ const ViewClasses = ({ schoolYears }) => {
         const response = await axios.post(route('get.faculty.classes', {
             schoolYearId: selectedSchoolYearEntry.id
         }));
-        return response.data;
+
+        const yearSectionsSched = response.data.yearSectionsSched;
+        const nstpSched = response.data.nstpSched;
+
+        const normalizedNstp = nstpSched.map(sched => ({
+            ...sched,
+            descriptive_title: `NSTP-${sched.component_name.toUpperCase()}`,
+            class_code: `SECTION ${sched.section}`,
+        }));
+
+        const mergedSchedules = [
+            ...yearSectionsSched,
+            ...normalizedNstp,
+        ];
+
+        return mergedSchedules;
     };
 
     const { data: classes = [], isLoading, isError } = useQuery({
-        queryKey: ['faculty-classes', selectedSchoolYearEntry?.id],
+        queryKey: ['get.faculty-classes', selectedSchoolYearEntry?.id],
         queryFn: fetchFacultyClasses,
         enabled: !!selectedSchoolYearEntry?.id,
         staleTime: 1000 * 60 * 5, // 5 minutes cache
@@ -157,7 +172,7 @@ const ViewClasses = ({ schoolYears }) => {
                                                     </TableCell>
                                                 </TableRow>
                                             ) : (
-                                                classes.map((classInfo, index) => (
+                                                classes.map((classInfo) => (
                                                     <React.Fragment key={classInfo.id}>
                                                         <TableRow
                                                             className={`group hover:bg-muted/50 transition-colors ${classInfo.secondary_schedule ? "border-b-0" : ""}`}
@@ -198,11 +213,12 @@ const ViewClasses = ({ schoolYears }) => {
                                                                 </div>
                                                             </TableCell>
                                                             <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} className="align-middle text-center">
-                                                                <Link href={`/classes/classroom/${classInfo.hashed_year_section_subject_id}`}>
+                                                                <Link href={classInfo.class_type == 'nstp' ? '' : `/classes/classroom/${classInfo.class_type == "yearSectionSubject" ? classInfo.hashed_year_section_subject_id : classInfo.hashed_nstp_sections_id}`}>
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="sm"
                                                                         className="group/btn hover:bg-primary hover:text-primary-foreground transition-all"
+                                                                        disabled={classInfo.class_type == 'nstp'}
                                                                     >
                                                                         Open
                                                                         <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />

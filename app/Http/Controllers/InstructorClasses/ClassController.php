@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EnrolledStudent;
 use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
+use App\Models\NstpSectionSchedule;
 use App\Models\SchoolYear;
 use App\Models\StudentAnswer;
 use App\Models\StudentSubject;
@@ -308,6 +309,7 @@ class ClassController extends Controller
             'section',
             'year_level_id',
             'course_name_abbreviation',
+            DB::raw('"yearSectionSubject" as class_type'),
         )
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
@@ -337,7 +339,32 @@ class ClassController extends Controller
             ])
             ->get();
 
-        return response()->json($classes);
+        $nstpSched = NstpSectionSchedule::select(
+            'nstp_sections.id as nstp_section_id',
+            'nstp_section_schedules.id',
+            'day',
+            'end_time',
+            'faculty_id',
+            'start_time',
+            'room_id',
+            'school_year_id',
+            'section',
+            'room_name',
+            'component_name',
+            DB::raw('null as secondary_schedule'),
+            DB::raw('"nstp" as class_type'),
+        )
+            ->selectRaw(
+                "SHA2(nstp_sections.id, 256) as hashed_nstp_sections_id"
+            )
+            ->join('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'nstp_section_schedules.room_id')
+            ->where('faculty_id', '=', $facultyId)
+            ->where('school_year_id', $schoolYearId)
+            ->get();
+
+        return response()->json(['yearSectionsSched' => $classes, 'nstpSched' => $nstpSched]);
     }
 
     public function getStudentClasses(Request $request)
