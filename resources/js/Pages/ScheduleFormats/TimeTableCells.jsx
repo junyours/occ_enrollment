@@ -136,9 +136,11 @@ export default function TimeTableCells({ data, colorful }) {
 
                 <span>{schedData.room_name || ""}</span>
                 <span>{schedData.first_name ? formatFullName(schedData) : ""}</span>
-                {schedData.student_count &&
+                {(!!schedData.student_count || schedData.student_count > -1) ? (
                     <span className="flex items-center justify-center"><PiStudent /> {schedData.student_count}</span>
-                }
+                ) : (
+                    <></>
+                )}
             </div>
         );
     }
