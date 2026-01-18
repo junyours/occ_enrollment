@@ -281,7 +281,34 @@ class ComponentController extends Controller
             ->orderBy('room_name', 'asc')
             ->get();
 
-        return response()->json($rooms);
+        $nstpSched = NstpSectionSchedule::select(
+            'nstp_sections.id as nstp_section_id',
+            'nstp_section_schedules.id',
+            'component_name',
+            'day',
+            'end_time',
+            'faculty_id',
+            'room_id',
+            'start_time',
+            'room_name',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'school_year_id',
+            'section',
+            DB::raw('3 as lecture_hours'),
+            DB::raw('0 as laboratory_hours'),
+            DB::raw('null as secondary_schedule'),
+        )
+            ->join('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'nstp_section_schedules.room_id')
+            ->leftJoin('users', 'users.id', '=', 'nstp_section_schedules.faculty_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->where('school_year_id', $request->schoolYearID)
+            ->get();
+
+        return response()->json(['yearSectionSubjectsSched' => $rooms, 'nstpSched' => $nstpSched]);
     }
 
     public function viewFacultiesSchedules()

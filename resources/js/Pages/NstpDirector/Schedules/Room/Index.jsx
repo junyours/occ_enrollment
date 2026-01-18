@@ -28,7 +28,32 @@ export default function Index() {
             { schoolYearID: selectedSchoolYearEntry.id }
         );
 
-        const sortedRooms = response.data.map(room => {
+        const yearSectionSubjectsScheds = response.data.yearSectionSubjectsSched;
+        const nstpSched = response.data.nstpSched;
+
+        const nstpByRoom = nstpSched.reduce((acc, sched) => {
+            if (!sched.room_id) return acc; // TBA rooms stay homeless
+
+            acc[sched.room_id] ??= [];
+            acc[sched.room_id].push({
+                ...sched,
+                class_code: `SECTION ${sched.section ?? ''}`,
+                descriptive_title: `NSTP-${sched.component_name.toUpperCase()}`,
+                is_nstp: true,
+            });
+
+            return acc;
+        }, {});
+
+        const mergedRooms = yearSectionSubjectsScheds.map(room => ({
+            ...room,
+            schedules: [
+                ...(room.schedules ?? []),
+                ...(nstpByRoom[room.id] ?? []),
+            ],
+        }));
+
+        const sortedRooms = mergedRooms.map(room => {
             let schedLength = 0;
 
             const sortedSchedules = [...room.schedules].sort((a, b) => {
