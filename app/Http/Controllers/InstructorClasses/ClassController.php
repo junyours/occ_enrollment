@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\EnrolledStudent;
 use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
+use App\Models\NstpComponent;
+use App\Models\NstpSection;
 use App\Models\NstpSectionSchedule;
 use App\Models\SchoolYear;
 use App\Models\StudentAnswer;
 use App\Models\StudentSubject;
+use App\Models\StudentSubjectNstpSchedule;
 use App\Models\Subject;
 use App\Models\User;
 use App\Models\YearSection;
@@ -386,15 +389,26 @@ class ClassController extends Controller
         $classes = YearSectionSubjects::where('enrolled_students_id', '=', $enrolledStudent->id)
             ->select(
                 'enrolled_students_id',
+                'student_subjects.id as student_subject_id',
                 'year_section_subjects.id',
-                'first_name',
-                'last_name',
-                'middle_name',
-                'room_name',
+                'user_information.first_name',
+                'user_information.last_name',
+                'user_information.middle_name',
+                'rooms.room_name',
+                'type',
                 'descriptive_title',
                 'year_section_subjects.start_time',
                 'year_section_subjects.end_time',
                 'year_section_subjects.day',
+                'subjects.type',
+                'nstp_section_schedules.start_time as nstp_start_time',
+                'nstp_section_schedules.end_time as nstp_end_time',
+                'nstp_section_schedules.day as nstp_day',
+                'nstp_rooms.room_name as nstp_room_name',
+                'nstp_schedule.id as nstp_student_schedule_id',
+                'nstp_faculty_information.first_name as nstp_faculty_first_name',
+                'nstp_faculty_information.last_name as nstp_faculty_last_name',
+                'nstp_faculty_information.middle_name as nstp_faculty_middle_name',
             )
             ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
             ->leftJoin('subject_secondary_schedule', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id')
@@ -402,6 +416,15 @@ class ClassController extends Controller
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+
+            ->leftJoin('student_subject_nstp_schedule as nstp_schedule', 'nstp_schedule.student_subject_id', '=', 'student_subjects.id')
+            ->leftJoin('nstp_section_schedules', 'nstp_section_schedules.id', '=', 'nstp_schedule.nstp_section_schedule_id')
+            ->leftJoin('rooms as nstp_rooms', 'nstp_rooms.id', '=', 'nstp_section_schedules.room_id')
+
+            ->leftJoin('users as nstp_faculty', 'nstp_faculty.id', '=', 'nstp_section_schedules.faculty_id')
+            ->leftJoin('user_information as nstp_faculty_information', 'nstp_faculty.id', '=', 'nstp_faculty_information.user_id')
+
+
             ->with([
                 'SecondarySchedule' => function ($query) {
                     $query->select(
@@ -618,5 +641,100 @@ class ClassController extends Controller
         $writer->save($tempPath);
 
         return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    public function viewNstpEnrollment($component, $id, Request $request)
+    {
+        $studentId = Auth::id();
+
+        $studentSubject = StudentSubject::where('student_subjects.id', '=', $id)
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->first();
+
+        // Not found
+        if (!$studentSubject) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'message' => "The enrollment record you're looking for does not exist. Please check the URL or your records."
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        // Unauthorized access
+        if ($studentId != $studentSubject->student_id) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 403,
+                'message' => "Access denied. You don't have permission to view this enrollment."
+            ])->toResponse($request)->setStatusCode(403);
+        }
+
+        $hasSchedule = StudentSubjectNstpSchedule::where('student_subject_id', '=', $id)->first();
+        // Already enrolled
+        // if ($hasSchedule) {
+        //     return Inertia::render('Errors/ErrorPage', [
+        //         'status' => 403,
+        //         'message' => "Looks like you’re already part of this NSTP component . Enrollment complete !"
+        //     ])->toResponse($request)->setStatusCode(404);
+        // }
+
+        $schoolYear = SchoolYear::where('id', '=', $studentSubject->school_year_id)
+            ->with('semester')
+            ->first();
+
+        return Inertia::render('StudentClasses/NstpEnrollment', [
+            'component' => $component,
+            'studentSubjectId' => $id,
+            'schoolYear' => $schoolYear,
+            'enrolled' => $hasSchedule ? true : false,
+        ]);
+    }
+
+    public function getComponentSections($component, $id, Request $request)
+    {
+        $componentId = NstpComponent::where('component_name', $component)->first()->id;
+
+        $sections = NstpSection::where('nstp_component_id', $componentId)
+            ->where('school_year_id', $request->schoolYearId)
+            ->with([
+                'schedule.instructor.InstructorInfo',
+                'schedule.room',
+            ])
+            ->withCount('students')
+            ->get();
+
+        return response()->json($sections);
+    }
+
+    public function enroll(Request $request)
+    {
+        $nstpSectionSchedule = NstpSectionSchedule::where('nstp_section_schedules.id', '=', $request->nstpSectionScheduleId)
+            ->join('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->first();
+
+        $sections = NstpSection::where('id', '=', $nstpSectionSchedule->nstp_section_id)
+            ->with([
+                'schedule.instructor.InstructorInfo',
+                'schedule.room',
+            ])
+            ->withCount('students')
+            ->first();
+
+        if ($nstpSectionSchedule->max_students == $sections->students_count || $sections->students_count > $nstpSectionSchedule->max_students) {
+            return response()->json(
+                ['message' => 'The section is full'],
+                409
+            );
+        }
+
+        StudentSubjectNstpSchedule::create([
+            'nstp_section_schedule_id' =>  $request->nstpSectionScheduleId,
+            'student_subject_id' =>  $request->studentSubjectId,
+        ]);
+
+        return response()->json(
+            ['message' => 'success'],
+            202
+        );
     }
 }

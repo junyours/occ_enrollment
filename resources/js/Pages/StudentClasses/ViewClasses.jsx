@@ -1,15 +1,12 @@
-import PreLoader from '@/Components/preloader/PreLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { PageTitle } from '@/Components/ui/PageTitle';
-import { Separator } from '@/Components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
-import { Head, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react'
-import { FaExclamationTriangle } from 'react-icons/fa';
+import React, {  useState } from 'react'
 import TimeTable from '../ScheduleFormats/TimeTable';
 import MobileViewClasses from './MobileViewClasses';
 import html2canvas from 'html2canvas';
@@ -27,6 +24,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
             </div>
         );
     }
+
     const fetchStudentClasses = async ({ queryKey }) => {
         const [, schoolYearId] = queryKey;
         const response = await axios.post(route('student.classes'), {
@@ -39,7 +37,6 @@ const ViewClasses = ({ currentSchoolYear }) => {
         queryKey: ['studentClasses', currentSchoolYear.id],
         queryFn: fetchStudentClasses,
         enabled: !!currentSchoolYear?.id,
-        staleTime: 1000 * 60 * 60 * 24 * 30, // cache for 30 days
         retry: 1,
     });
 

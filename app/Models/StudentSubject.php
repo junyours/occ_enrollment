@@ -24,6 +24,14 @@ class StudentSubject extends Model
         'updated_at'
     ];
 
+    public function nstpSchedule()
+    {
+        return $this->hasOne(
+            StudentSubjectNstpSchedule::class,
+            'student_subject_id' 
+        );
+    }
+
     public function YearSectionSubjects()
     {
         return $this->belongsTo(YearSectionSubjects::class, 'year_section_subjects_id');

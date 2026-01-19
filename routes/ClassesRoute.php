@@ -36,6 +36,10 @@ Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function 
     Route::post('/submit-student-grades/cancel/{yearSectionSubjectsId}', [ClassController::class, 'cancelGrade'])->name('grade-submission.cancel');
 
     Route::get('/classes/classroom/{id}/students/download', [ClassController::class, 'downloadStudentsExcel'])->name('class.students.download');
+
+    Route::get('/classes/nstp-enrollment/{component}/{id}/', [ClassController::class, 'viewNstpEnrollment'])->name('nstp-enrollment');
+    Route::post('/classes/nstp-enrollment/{component}/{id}/', [ClassController::class, 'getComponentSections'])->name('nstp-enrollment');
+    Route::post('/classes/nstp-enrollment/enroll', [ClassController::class, 'enroll'])->name('nstp-enrollment.enroll');
 });
 
 Route::middleware(['auth', 'maintenance', 'student'])->group(function () {
