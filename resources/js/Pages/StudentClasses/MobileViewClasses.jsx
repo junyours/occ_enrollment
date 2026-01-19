@@ -94,7 +94,7 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                     </Button>
                                                 </Link>
 
-                                                <Link href="/nstp/cwts" className="group">
+                                                <Link href={route('nstp-enrollment', { component: 'cwts', id: classInfo.student_subject_id })} className="group">
                                                     <Button
                                                         variant="outline"
                                                         className="flex w-full items-center justify-between py-6 text-base transition-all group-hover:bg-muted"
@@ -104,7 +104,7 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                     </Button>
                                                 </Link>
 
-                                                <Link href="/nstp/lts" className="group">
+                                                <Link href={route('nstp-enrollment', { component: 'lts', id: classInfo.student_subject_id })} className="group">
                                                     <Button
                                                         variant="outline"
                                                         className="flex w-full items-center justify-between py-6 text-base transition-all group-hover:bg-muted"
