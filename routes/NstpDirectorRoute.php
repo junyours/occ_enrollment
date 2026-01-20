@@ -30,4 +30,5 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/faculties-schedules', [ComponentController::class, 'getFacultiesSchedules'])->name('nstp-director.faculties-schedules');
 
     Route::post('/nstp-director/school-year-components-sections', [ComponentController::class, 'getAllComponentSections'])->name('nstp-director.school-year-components-sections');
+    Route::post('/nstp-director/remove-section', [ComponentController::class, 'removeSection'])->name('nstp-director.remove-section');
 });

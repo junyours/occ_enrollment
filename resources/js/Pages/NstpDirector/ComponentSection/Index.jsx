@@ -2,7 +2,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CircleX, Pencil } from 'lucide-react';
+import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CircleX, Pencil, Trash } from 'lucide-react';
 import SectionSkeleton from './SectionSkeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -166,6 +166,21 @@ export default function Index({ component }) {
         setInstructors(response.data);
     };
 
+    const deleteSection = async (id) => {
+        router.post(
+            route('nstp-director.remove-section'),
+            { id },
+            {
+                preserveScroll: true,
+                onFinish: async () => {
+                    await refetch();
+                },
+                onError: (errors) => {
+                    console.log(errors);
+                },
+            }
+        );
+    }
 
     return (
         <div className='space-y-4'>
@@ -281,6 +296,16 @@ export default function Index({ component }) {
                                                     <Pencil
                                                         size={18}
                                                     />
+                                                </ContextMenuShortcut>
+                                            </ContextMenuItem>
+                                            <ContextMenuItem
+                                                disabled={students > 0}
+                                                onClick={() => deleteSection(section.id)}
+                                                className={students > 0 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                                            >
+                                                Delete
+                                                <ContextMenuShortcut>
+                                                    <Trash size={18} />
                                                 </ContextMenuShortcut>
                                             </ContextMenuItem>
                                             <Link href={route('nstp-director.component.sections.student-list', { component: component, section: section.section })} >

@@ -96,6 +96,24 @@ class ComponentController extends Controller
         return response()->json($students);
     }
 
+    public function removeSection(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer',
+        ]);
+
+        // Correct way: find() automatically looks at the 'id' column
+        $section = NstpSection::find($request->id);
+
+        if ($section) {
+            // Delete related schedules first
+            NstpSectionSchedule::where('nstp_section_id', $section->id)->delete();
+
+            // Delete the section
+            $section->delete();
+        }
+    }
+
     public function removeStudent(Request $request)
     {
         $request->validate([
