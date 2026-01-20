@@ -13,7 +13,7 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/all-rooms/list', [ComponentController::class, 'getAllRooms'])->name('nstp-director.all-rooms');
     Route::post('/nstp-director/all-isntructors/list', [ComponentController::class, 'getAllInstructors'])->name('nstp-director.all-instructors');
 
-    Route::post('/nstp-director/update-section', [ComponentController::class, 'updateSection'])->name('gened-coordinator.update.class');
+    Route::post('/nstp-director/update-section', [ComponentController::class, 'updateSection'])->name('nstp-director.update.class');
 
     Route::post('/nstp-director/room-schedules', [ComponentController::class, 'getRoomSchedules'])->name('nstp-director.roomSchedules');
     Route::post('/nstp-director/instructor-schedules', [ComponentController::class, 'getInstructorSchedules'])->name('nstp-director.instructorSchedules');

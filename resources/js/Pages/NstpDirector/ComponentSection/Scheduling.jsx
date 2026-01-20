@@ -206,7 +206,7 @@ function Scheduling({ refetch }) {
 
         setSubmitting(true);
 
-        await router.post(route("gened-coordinator.update.class"), selectedSection, {
+        await router.post(route("nstp-director.update.class"), selectedSection, {
             onSuccess: () => {
                 toast.success("Class updated successfully.");
                 refetch();
