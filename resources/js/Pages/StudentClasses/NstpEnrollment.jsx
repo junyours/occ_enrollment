@@ -176,9 +176,6 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
         }
     }, [classes])
 
-    console.log(classes);
-    console.log(data);
-
     return (
         <div className='space-y-4'>
             <PageTitle align='center'><div className='flex justify-center'><div className='font-extrabold'>{component.toUpperCase()}</div>  <div className='flex ml-2 font-thin'><span>|  {schoolYear.start_year}–{schoolYear.end_year}</span>  <span className='ml-2'>{semesterDisplayMap[schoolYear.semester.semester_name]}</span> </div></div></PageTitle>
