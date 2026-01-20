@@ -12,6 +12,7 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/section/{component}/{section}', [ComponentController::class, 'getSectionSudents'])->name('nstp-director.component.sections.student-list');
 
     Route::post('/nstp-director/section/component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
+    Route::post('/nstp-director/section/component}/{section}/move-student', [ComponentController::class, 'moveStudent'])->name('nstp-director.component.sections.student-list.move-student');
 
     Route::post('/nstp-director/change-max-students', [ComponentController::class, 'changeMaxStudents'])->name('nstp-director.change-max-students');
 
@@ -27,4 +28,6 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/rooms-schedules', [ComponentController::class, 'getRoomsSchedules'])->name('nstp-director.rooms-schedules');
     Route::get('/nstp-director/faculties-schedules', [ComponentController::class, 'viewFacultiesSchedules'])->name('nstp-director.faculties-schedules');
     Route::post('/nstp-director/faculties-schedules', [ComponentController::class, 'getFacultiesSchedules'])->name('nstp-director.faculties-schedules');
+
+    Route::post('/nstp-director/school-year-components-sections', [ComponentController::class, 'getAllComponentSections'])->name('nstp-director.school-year-components-sections');
 });

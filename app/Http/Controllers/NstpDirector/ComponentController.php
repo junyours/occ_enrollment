@@ -105,6 +105,17 @@ class ComponentController extends Controller
         StudentSubjectNstpSchedule::where('id', $request->id)->delete();
     }
 
+    public function moveStudent(Request $request)
+    {
+        $request->validate([
+            'studentSubejctNstpSchedId' => 'required|integer',
+            'nstpSectionSchedId' => 'required|integer',
+        ]);
+
+        StudentSubjectNstpSchedule::where('id', $request->studentSubejctNstpSchedId)->update([
+            'nstp_section_schedule_id' => $request->nstpSectionSchedId
+        ]);
+    }
 
     public function changeMaxStudents(Request $request)
     {
@@ -444,5 +455,24 @@ class ComponentController extends Controller
             ->get();
 
         return response()->json(['yearSectionSubjectsSched' => $yearSectionSched, 'nstpSched' => $nstpSched]);
+    }
+
+    public function getAllComponentSections(Request $request)
+    {
+        return NstpSection::select(
+            'nstp_sections.id',
+            'nstp_component_id',
+            'school_year_id',
+            'section',
+            'max_students',
+            'component_name'
+        )
+            ->join('nstp_components', 'nstp_sections.nstp_component_id', '=', 'nstp_components.id')
+            ->where('school_year_id', $request->schoolYearId)
+            ->with('schedule')
+            ->withCount('students')
+            ->orderBy('nstp_component_id', 'asc')
+            ->orderBy('section', 'asc')
+            ->get();
     }
 }

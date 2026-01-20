@@ -7,12 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { formatFullName } from '@/Lib/Utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios, { Axios } from 'axios';
 import { AlertCircle, AlertTriangle, BookOpen, MoveRightIcon, Trash, UserMinus } from 'lucide-react';
 import React, { useState } from 'react'
+import { toast } from 'sonner';
 
 const TableHeadTemplate = ({ children }) => {
     return (
@@ -92,6 +93,7 @@ export default function Index({ component, section }) {
             await refetch();
             setOpenRemoveStudent(false);
             setStudentToReMove(null);
+            toast.success('Student removed successfully');
         } catch (error) {
             console.error(error);
         } finally {
@@ -99,9 +101,73 @@ export default function Index({ component, section }) {
         }
     };
 
+    const [nstpComponentSections, setNstpComponentSections] = useState({
+        rotc: [],
+        cwts: [],
+        lts: [],
+    });
+
+    const getAllNstpSections = async () => {
+        const response = await axios.post(
+            route('nstp-director.school-year-components-sections'),
+            { schoolYearId: selectedSchoolYearEntry.id }
+        );
+
+        const grouped = {
+            rotc: [],
+            cwts: [],
+            lts: [],
+        };
+
+        response.data.forEach(section => {
+            const key = section.component_name?.toLowerCase();
+            if (grouped[key]) {
+                grouped[key].push(section);
+            }
+        });
+
+        setNstpComponentSections(grouped);
+    };
+
 
 
     const [studentTomove, setStudentToMove] = useState({});
+    const [openMoveStudent, setOpenMoveStudent] = useState(false);
+    const [moving, setMoving] = useState(false);
+
+    const moveStudent = async (id) => {
+        if (!studentTomove?.id) return;
+
+        setMoving(true);
+
+        try {
+            await router.post(
+                route('nstp-director.component.sections.student-list.move-student',
+                    {
+                        component: component,
+                        section: section
+                    }),
+                {
+                    studentSubejctNstpSchedId: studentTomove.id,
+                    nstpSectionSchedId: id
+                }
+            );
+
+            await refetch();
+            setOpenMoveStudent(false);
+            setStudentToMove(null);
+            toast.success('Student moved successfully');
+        } catch (error) {
+            const message =
+                error.response?.data?.message ||
+                "Moving failed. Please try again.";
+
+            toast.error(message);
+            console.error(error);
+        } finally {
+            setMoving(false);
+        }
+    };
 
     return (
         <div className='space-y-4'>
@@ -154,7 +220,11 @@ export default function Index({ component, section }) {
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <Button
-                                                        onClick={() => setStudentToMove(section)}
+                                                        onClick={() => {
+                                                            setStudentToMove(section);
+                                                            setOpenMoveStudent(true);
+                                                            getAllNstpSections();
+                                                        }}
                                                         variant="icon"
                                                         className="text-yellow-500 py-0 h-min"
                                                     >
@@ -208,7 +278,7 @@ export default function Index({ component, section }) {
                     </AlertDialogHeader>
 
                     <AlertDialogFooter className="mt-4">
-                        <AlertDialogCancel className="rounded-xl">
+                        <AlertDialogCancel>
                             Cancel
                         </AlertDialogCancel>
 
@@ -220,6 +290,81 @@ export default function Index({ component, section }) {
                         >
                             Yes, remove student
                         </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={openMoveStudent} onOpenChange={setOpenMoveStudent}>
+                <AlertDialogContent className="w-11/12 max-w-2xl rounded-2xl">
+                    <AlertDialogHeader className="space-y-2">
+                        <AlertDialogTitle className="text-lg font-semibold">
+                            Move Student to Another Section
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground">
+                            Select a section below. Scroll if needed.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    {/* Scroll container */}
+                    <div className="overflow-y-auto rounded-xl border
+                                    max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)]">
+                        <Table className="w-full text-sm">
+                            <TableHeader className="sticky top-0 bg-background z-10">
+                                <TableRow className="border-b">
+                                    <TableHead className="text-left font-medium">Component</TableHead>
+                                    <TableHead className="text-left font-medium">Schedule</TableHead>
+                                    <TableHead className="text-center font-medium">Students</TableHead>
+                                </TableRow>
+                            </TableHeader>
+
+                            <TableBody>
+                                {Object.entries(nstpComponentSections).map(([component, sections]) =>
+                                    sections.map(section => {
+                                        const start_time = section.schedule.start_time == 'TBA' ? '' : section.schedule.start_time;
+                                        const end_time = section.schedule.end_time == 'TBA' ? '' : section.schedule.end_time;
+                                        const time = start_time ? `${convertToAMPM(start_time)} – ${convertToAMPM(end_time)}` : '-';
+
+                                        const maxStudents = section.max_students || 0;
+                                        const students = section.students_count || 0;
+
+                                        const sectionName = section.section || '-';
+
+                                        return (
+                                            <TableRow
+                                                className='border-b group'
+                                                key={section.id}
+                                            >
+                                                <TableCell className="capitalize">
+                                                    {component} - {sectionName}
+                                                </TableCell>
+                                                <TableCell className="text-xs">
+                                                    {section.schedule?.day} ·{" "}
+                                                    {time}
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {students}/{maxStudents}
+                                                </TableCell>
+                                                <TableCell className="text-right w-24">
+                                                    <Button
+                                                        disabled={moving || students == maxStudents || students > maxStudents}
+                                                        onClick={() => moveStudent(section.schedule.id)}
+                                                        className="py-1 h-min disabled:cursor-not-allowed hidden group-hover:table-cell"
+                                                    >
+                                                        Move
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <AlertDialogFooter className="mt-4">
+                        <AlertDialogCancel>
+                            Cancel
+                        </AlertDialogCancel>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
