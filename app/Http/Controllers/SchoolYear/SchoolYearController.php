@@ -1163,13 +1163,19 @@ class SchoolYearController extends Controller
                 } else {
                     $average = ($midterm + $final) / 2;
 
+                    if ($average >= 3.0 && $average <= 3.09) {
+                        $averageFormat = 3.0;
+                    } elseif ($average >= 4.0) {
+                        $averageFormat = 5.0;
+                    } else {
+                        $averageFormat = $average;
+                    }
+
                     // Column O: numeric grade with 1 decimal place, clamp >= 3.05 to 5.0
-                    $sheet->setCellValue("O{$row}", number_format($average >= 3.05 ? 5.0 : $average, 1));
+                    $sheet->setCellValue("O{$row}", number_format($averageFormat, 1));
 
                     // Column P: PASSED / FAILED
-                    $sheet->setCellValue("P{$row}", $average >= 3.05 ? 'FAILED' : 'PASSED');
-                    $sheet->setCellValue("Q{$row}", $midterm);
-                    $sheet->setCellValue("R{$row}", $final);
+                    $sheet->setCellValue("P{$row}", $averageFormat >= 3.09 ? 'FAILED' : 'PASSED');
                 }
 
                 $row++;
