@@ -380,7 +380,7 @@ export default function ClassScheduling({ yearSectionId }) {
             url = "enrollment.update.second.class"
         }
 
-        if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please recolve!");
+        if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please resolve!");
 
         await post(route(url, data), {
             onSuccess: () => {

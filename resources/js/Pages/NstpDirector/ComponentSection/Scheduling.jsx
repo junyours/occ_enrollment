@@ -202,7 +202,7 @@ function Scheduling({ refetch }) {
 
         collectConflictSchedules(selectedSection)
 
-        if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please recolve!");
+        if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please resolve!");
 
         setSubmitting(true);
 
