@@ -1,14 +1,14 @@
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, BookOpen, CircleCheck, CircleX, Pencil } from 'lucide-react';
+import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CircleX, Pencil } from 'lucide-react';
 import SectionSkeleton from './SectionSkeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Button } from '@/Components/ui/button';
 import { useSection } from './useSection';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { formatFullName } from '@/Lib/Utils';
 import Scheduling from './Scheduling';
@@ -17,6 +17,14 @@ import InstructorSchedules from './InstructorSchedules';
 import { Input } from '@/Components/ui/input';
 import { toast } from 'sonner';
 import axios from 'axios';
+
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuShortcut,
+    ContextMenuTrigger,
+} from "@/Components/ui/context-menu";
 
 const TableHeadTemplate = ({ children }) => {
     return (
@@ -29,7 +37,6 @@ const TableHeadTemplate = ({ children }) => {
                     <TableHead>Time</TableHead>
                     <TableHead>Room</TableHead>
                     <TableHead>Instructor</TableHead>
-                    <TableHead />
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -50,7 +57,10 @@ export default function Index({ component }) {
     const instructors = useSection(state => state.instructors);
     const setInstructors = useSection(state => state.setInstructors);
     const mainScheduleConflictList = useSection(state => state.mainScheduleConflictList);
-
+    const clearSelectedSection = useSection(state => state.clearSelectedSection);
+    const clearErrors = useSection(state => state.clearErrors);
+    const setSecondScheduleConflictList = useSection(state => state.setSecondScheduleConflictList);
+    const setMainScheduleConflictList = useSection(state => state.setMainScheduleConflictList);
 
     const [editingSectionMaxStudnet, setEditingSectionMaxStudnet] = useState([]);
 
@@ -159,6 +169,7 @@ export default function Index({ component }) {
 
     return (
         <div className='space-y-4'>
+
             <PageTitle align='center'>{component.toUpperCase()}</PageTitle>
             <Card>
                 <CardHeader className="mb-2">
@@ -208,49 +219,82 @@ export default function Index({ component }) {
                                 const students = section.students_count || 0;
 
                                 return (
-                                    <TableRow key={section.id} className={`${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(section.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
-                                        <TableCell>{sectionName}</TableCell>
-                                        <TableCell className='border-r '>
-                                            {(editingSectionMaxStudnet.id > 0 && editingSectionMaxStudnet.id == section.id) ? (
-                                                <div className='flex justify-between px-4'>
-                                                    <Input
-                                                        value={editingSectionMaxStudnet.max_students}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value
-                                                            if (isNaN(value)) return
-                                                            console.log(value)
-                                                            setEditingSectionMaxStudnet(prev => ({ ...prev, max_students: value }))
-                                                        }}
-                                                        className='h-min w-10 p-1 text-center'
-                                                    />
-                                                    <div className='flex items-center gap-1'>
-                                                        <CircleX onClick={() => setEditingSectionMaxStudnet([])} className='text-red-500 cursor-pointer' />
-                                                        <CircleCheck onClick={submitMaxStudents} className='text-green-500 cursor-pointer' />
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className='flex justify-between px-4'>
-                                                    <p>{students}/{maxStudents}</p>
+                                    <ContextMenu key={section.id}>
+                                        <ContextMenuTrigger asChild>
+                                            <TableRow className={`${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(section.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
+                                                <TableCell>{sectionName}</TableCell>
+                                                <TableCell className='border-r '>
+                                                    {(editingSectionMaxStudnet.id > 0 && editingSectionMaxStudnet.id == section.id) ? (
+                                                        <div className='flex justify-between px-4'>
+                                                            <Input
+                                                                value={editingSectionMaxStudnet.max_students}
+                                                                onChange={(e) => {
+                                                                    const value = e.target.value
+                                                                    if (isNaN(value)) return
+                                                                    console.log(value)
+                                                                    setEditingSectionMaxStudnet(prev => ({ ...prev, max_students: value }))
+                                                                }}
+                                                                className='h-min w-10 p-1 text-center'
+                                                            />
+                                                            <div className='flex items-center gap-1'>
+                                                                <CircleX onClick={() => setEditingSectionMaxStudnet([])} className='text-red-500 cursor-pointer' />
+                                                                <CircleCheck onClick={submitMaxStudents} className='text-green-500 cursor-pointer' />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className='flex justify-between px-4'>
+                                                            <p>{students}/{maxStudents}</p>
+                                                            <Pencil
+                                                                onClick={() => setEditingSectionMaxStudnet(section)}
+                                                                size={15}
+                                                                className={` ${!!selectedSection.id ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>{day}</TableCell>
+                                                <TableCell>{time}</TableCell>
+                                                <TableCell>{room}</TableCell>
+                                                <TableCell>{instructor}</TableCell>
+                                            </TableRow>
+                                        </ContextMenuTrigger>
+                                        <ContextMenuContent className="w-36">
+                                            <ContextMenuItem
+                                                onClick={() => {
+                                                    if (isEditing) {
+                                                        clearSelectedSection()
+                                                        clearErrors()
+                                                        setMainScheduleConflictList([])
+                                                        setSecondScheduleConflictList([])
+                                                    } else {
+                                                        editSchedule(section)
+                                                    }
+                                                }}
+                                                className={`cursor-pointer`}
+                                            >
+                                                {isEditing && section.id == selectedSection.id ? (
+                                                    <>Cancel</>
+                                                ) : (
+                                                    <>Edit</>
+                                                )}
+                                                <ContextMenuShortcut>
                                                     <Pencil
-                                                        onClick={() => setEditingSectionMaxStudnet(section)}
-                                                        size={15}
-                                                        className={` ${!!selectedSection.id ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                        size={18}
                                                     />
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>{day}</TableCell>
-                                        <TableCell>{time}</TableCell>
-                                        <TableCell>{room}</TableCell>
-                                        <TableCell>{instructor}</TableCell>
-                                        <TableCell>
-                                            <Pencil
-                                                onClick={() => { if (!!!selectedSection.id) editSchedule(section) }}
-                                                size={15}
-                                                className={` ${!!selectedSection.id ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
+                                                </ContextMenuShortcut>
+                                            </ContextMenuItem>
+                                            <Link href={route('nstp-director.component.sections.student-list', { component: component, section: section.section })} >
+                                                <ContextMenuItem className='cursor-pointer'>
+                                                    Students
+                                                    <ContextMenuShortcut><ArrowRightToLineIcon size={18} /></ContextMenuShortcut>
+                                                </ContextMenuItem>
+                                            </Link>
+                                            <ContextMenuItem className='cursor-pointer'>
+                                                Enroll
+                                                <ContextMenuShortcut><ArrowRightToLineIcon size={18} /></ContextMenuShortcut>
+                                            </ContextMenuItem>
+                                        </ContextMenuContent>
+                                    </ContextMenu>
                                 )
                             })}
                         </TableHeadTemplate>
@@ -261,9 +305,11 @@ export default function Index({ component }) {
                 </CardFooter>
             </Card>
 
-            {!!selectedSection.id && (
-                <Scheduling refetch={refetch} />
-            )}
+            {
+                !!selectedSection.id && (
+                    <Scheduling refetch={refetch} />
+                )
+            }
 
             <div className='flex gap-4'>
                 {(selectedSection.room_id && rooms.length > 0) ? (
@@ -292,7 +338,7 @@ export default function Index({ component }) {
                     <></>
                 )}
             </div>
-        </div>
+        </div >
     )
 }
 

@@ -8,6 +8,11 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/section/{component}', [ComponentController::class, 'getSections'])->name('nstp-director.component.sections');
     Route::post('/nstp-director/add-section/{schoolYearId}', [ComponentController::class, 'addSection'])->name('nstp-director.add-section');
 
+    Route::get('/nstp-director/section/{component}/{section}', [ComponentController::class, 'viewSectionStudents'])->name('nstp-director.component.sections.student-list');
+    Route::post('/nstp-director/section/{component}/{section}', [ComponentController::class, 'getSectionSudents'])->name('nstp-director.component.sections.student-list');
+
+    Route::post('/nstp-director/section/component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
+
     Route::post('/nstp-director/change-max-students', [ComponentController::class, 'changeMaxStudents'])->name('nstp-director.change-max-students');
 
     Route::post('/nstp-director/all-rooms/list', [ComponentController::class, 'getAllRooms'])->name('nstp-director.all-rooms');

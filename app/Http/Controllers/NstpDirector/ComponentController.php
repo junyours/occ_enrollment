@@ -7,6 +7,7 @@ use App\Models\NstpComponent;
 use App\Models\NstpSection;
 use App\Models\NstpSectionSchedule;
 use App\Models\Room;
+use App\Models\StudentSubjectNstpSchedule;
 use App\Models\SubjectSecondarySchedule;
 use App\Models\User;
 use App\Models\YearSectionSubjects;
@@ -65,6 +66,45 @@ class ComponentController extends Controller
             'end_time' => 'TBA',
         ]);
     }
+
+    public function viewSectionStudents($component, $section)
+    {
+        return Inertia::render('NstpDirector/ComponentSection/StudentList/Index', [
+            'component' => $component,
+            'section' => $section
+        ]);
+    }
+
+    public function getSectionSudents($component, $section, Request $request)
+    {
+        $componentId = NstpComponent::where('component_name', $request->component)->value('id');
+
+        $students = NstpSection::select('student_subject_nstp_schedule.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'course_name_abbreviation', 'year_section.section', 'year_level_id')
+            ->where('nstp_sections.section', $section)
+            ->where('nstp_component_id', $componentId)
+            ->where('nstp_sections.school_year_id', $request->schoolYearId)
+            ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
+            ->join('student_subject_nstp_schedule', 'nstp_section_schedules.id', '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
+            ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'user_information.user_id', '=', 'users.id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->get();
+
+        return response()->json($students);
+    }
+
+    public function removeStudent(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|integer',
+        ]);
+
+        StudentSubjectNstpSchedule::where('id', $request->id)->delete();
+    }
+
 
     public function changeMaxStudents(Request $request)
     {
