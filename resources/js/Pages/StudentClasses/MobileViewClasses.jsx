@@ -56,23 +56,11 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                 {classInfo.descriptive_title}
                                             </CardTitle>
                                             <CardDescription>
-                                                {classInfo.type == 'nstp' ? (
-                                                    <>
-                                                        {
-                                                            classInfo.nstp_day === 'TBA'
-                                                                ? '-'
-                                                                : classInfo.nstp_day
-                                                        }
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        {
-                                                            classInfo.day === 'TBA'
-                                                                ? '-'
-                                                                : classInfo.day
-                                                        }
-                                                    </>
-                                                )}
+                                                {
+                                                    classInfo.day === 'TBA'
+                                                        ? '-'
+                                                        : classInfo.day
+                                                }
                                             </CardDescription>
                                         </div>
                                     </div>
@@ -126,77 +114,31 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                             <div className="space-y-2">
                                                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                                     <Clock className="w-4 h-4" />
-                                                    {classInfo.type == 'nstp' ? (
-                                                        <>
-                                                            <span>
-                                                                {classInfo.nstp_start_time === 'TBA'
-                                                                    ? '-'
-                                                                    : `${convertToAMPM(
-                                                                        classInfo.nstp_start_time
-                                                                    )} - ${convertToAMPM(
-                                                                        classInfo.nstp_end_time
-                                                                    )}`}
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <span>
-                                                                {classInfo.start_time === 'TBA'
-                                                                    ? '-'
-                                                                    : `${convertToAMPM(
-                                                                        classInfo.start_time
-                                                                    )} - ${convertToAMPM(
-                                                                        classInfo.end_time
-                                                                    )}`}
-                                                            </span>
-                                                        </>
-                                                    )}
+                                                    <span>
+                                                        {classInfo.start_time === 'TBA'
+                                                            ? '-'
+                                                            : `${convertToAMPM(
+                                                                classInfo.start_time
+                                                            )} – ${convertToAMPM(
+                                                                classInfo.end_time
+                                                            )}`}
+                                                    </span>
                                                 </div>
 
                                                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                                     <MapPin className="w-4 h-4" />
-                                                    {classInfo.type == 'nstp' ? (
-                                                        <>
-                                                            <span>
-                                                                {classInfo.nstp_room_name || '-'}
-                                                            </span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <span>
-                                                                {classInfo.room_name || '-'}
-                                                            </span>
-                                                        </>
-                                                    )}
+                                                    <span>
+                                                        {classInfo.room_name || '-'}
+                                                    </span>
                                                 </div>
 
                                                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                                                     <User className="w-4 h-4" />
-                                                    {classInfo.type == 'nstp' ? (
-                                                        <>
-                                                            {classInfo.type === 'nstp' ? (
-                                                                <span>
-                                                                    {classInfo.nstp_faculty_first_name
-                                                                        ? formatFullName({
-                                                                            first_name: classInfo.nstp_faculty_first_name,
-                                                                            middle_name: classInfo.nstp_faculty_middle_name,
-                                                                            last_name: classInfo.nstp_faculty_last_name,
-                                                                        })
-                                                                        : '-'}
-                                                                </span>
-                                                            ) : (
-                                                                <span>-</span> // or whatever you want for non-NSTP
-                                                            )}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <span>
-                                                                {classInfo.first_name
-                                                                    ? formatFullName(classInfo)
-                                                                    : '-'}
-                                                            </span>
-                                                        </>
-                                                    )}
+                                                    <span>
+                                                        {classInfo.first_name
+                                                            ? formatFullName(classInfo)
+                                                            : '-'}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </>

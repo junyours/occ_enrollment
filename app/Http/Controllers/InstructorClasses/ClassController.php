@@ -386,61 +386,75 @@ class ClassController extends Controller
             ], 403);
         }
 
-        $classes = YearSectionSubjects::where('enrolled_students_id', '=', $enrolledStudent->id)
-            ->select(
-                'enrolled_students_id',
-                'student_subjects.id as student_subject_id',
-                'year_section_subjects.id',
-                'user_information.first_name',
-                'user_information.last_name',
-                'user_information.middle_name',
-                'rooms.room_name',
-                'type',
-                'descriptive_title',
-                'year_section_subjects.start_time',
-                'year_section_subjects.end_time',
-                'year_section_subjects.day',
-                'subjects.type',
-                'nstp_section_schedules.start_time as nstp_start_time',
-                'nstp_section_schedules.end_time as nstp_end_time',
-                'nstp_section_schedules.day as nstp_day',
-                'nstp_rooms.room_name as nstp_room_name',
-                'nstp_schedule.id as nstp_student_schedule_id',
-                'nstp_faculty_information.first_name as nstp_faculty_first_name',
-                'nstp_faculty_information.last_name as nstp_faculty_last_name',
-                'nstp_faculty_information.middle_name as nstp_faculty_middle_name',
-            )
+        $classes = YearSectionSubjects::where('enrolled_students_id', $enrolledStudent->id)
             ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
-            ->leftJoin('subject_secondary_schedule', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id')
-            ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
             ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
 
+            // NSTP joins
             ->leftJoin('student_subject_nstp_schedule as nstp_schedule', 'nstp_schedule.student_subject_id', '=', 'student_subjects.id')
             ->leftJoin('nstp_section_schedules', 'nstp_section_schedules.id', '=', 'nstp_schedule.nstp_section_schedule_id')
             ->leftJoin('rooms as nstp_rooms', 'nstp_rooms.id', '=', 'nstp_section_schedules.room_id')
-
             ->leftJoin('users as nstp_faculty', 'nstp_faculty.id', '=', 'nstp_section_schedules.faculty_id')
             ->leftJoin('user_information as nstp_faculty_information', 'nstp_faculty.id', '=', 'nstp_faculty_information.user_id')
 
+            ->selectRaw('
+                nstp_schedule.id as nstp_student_schedule_id,
+                enrolled_students_id,
+                student_subjects.id as student_subject_id,
+                year_section_subjects.id,
+                descriptive_title,
+                subjects.type,
 
-            ->with([
-                'SecondarySchedule' => function ($query) {
-                    $query->select(
-                        'rooms.room_name',
-                        'subject_secondary_schedule.id',
-                        'year_section_subjects_id',
-                        'faculty_id',
-                        'room_id',
-                        'day',
-                        'start_time',
-                        'end_time',
-                        'room_name'
-                    )
-                        ->leftjoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
-                }
-            ])
+                CASE 
+                    WHEN subjects.type = "nstp" THEN nstp_faculty_information.first_name
+                    ELSE user_information.first_name
+                END as first_name,
+
+                CASE 
+                    WHEN subjects.type = "nstp" THEN nstp_faculty_information.last_name
+                    ELSE user_information.last_name
+                END as last_name,
+
+                CASE 
+                    WHEN subjects.type = "nstp" THEN nstp_faculty_information.middle_name
+                    ELSE user_information.middle_name
+                END as middle_name,
+
+                CASE 
+                    WHEN subjects.type = "nstp" THEN nstp_rooms.room_name
+                    ELSE rooms.room_name
+                END as room_name,
+
+                CASE 
+                    WHEN subjects.type = "nstp" THEN nstp_section_schedules.start_time
+                    ELSE year_section_subjects.start_time
+                END as start_time,
+
+                CASE 
+                    WHEN subjects.type = "nstp" THEN nstp_section_schedules.end_time
+                    ELSE year_section_subjects.end_time
+                END as end_time,
+
+                CASE 
+                    WHEN subjects.type = "nstp" THEN nstp_section_schedules.day
+                    ELSE year_section_subjects.day
+                END as day
+                ')
+            ->with(['SecondarySchedule' => function ($query) {
+                $query->select(
+                    'subject_secondary_schedule.id',
+                    'year_section_subjects_id',
+                    'faculty_id',
+                    'room_id',
+                    'day',
+                    'start_time',
+                    'end_time',
+                    'rooms.room_name'
+                )->leftJoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
+            }])
             ->get();
 
         return response()->json($classes);
