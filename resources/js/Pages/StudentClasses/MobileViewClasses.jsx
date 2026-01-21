@@ -57,7 +57,13 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                             </CardTitle>
                                             <CardDescription>
                                                 {classInfo.type == 'nstp' ? (
-                                                    <>nstp</>
+                                                    <>
+                                                        {
+                                                            classInfo.nstp_day === 'TBA'
+                                                                ? '-'
+                                                                : classInfo.nstp_day
+                                                        }
+                                                    </>
                                                 ) : (
                                                     <>
                                                         {
