@@ -401,48 +401,56 @@ class ClassController extends Controller
             ->leftJoin('user_information as nstp_faculty_information', 'nstp_faculty.id', '=', 'nstp_faculty_information.user_id')
 
             ->selectRaw('
-                nstp_schedule.id as nstp_student_schedule_id,
-                enrolled_students_id,
-                student_subjects.id as student_subject_id,
-                year_section_subjects.id,
-                descriptive_title,
-                subjects.type,
+                        nstp_schedule.id as nstp_student_schedule_id,
+                        enrolled_students_id,
+                        student_subjects.id as student_subject_id,
+                        year_section_subjects.id,
+                        descriptive_title,
+                        subjects.type,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN nstp_faculty_information.first_name
+                            ELSE user_information.first_name
+                        END as first_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN nstp_faculty_information.last_name
+                            ELSE user_information.last_name
+                        END as last_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN nstp_faculty_information.middle_name
+                            ELSE user_information.middle_name
+                        END as middle_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_rooms.room_name, rooms.room_name)
+                            ELSE rooms.room_name
+                        END as room_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_section_schedules.start_time, year_section_subjects.start_time)
+                            ELSE year_section_subjects.start_time
+                        END as start_time,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_section_schedules.end_time, year_section_subjects.end_time)
+                            ELSE year_section_subjects.end_time
+                        END as end_time,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_section_schedules.day, year_section_subjects.day)
+                            ELSE year_section_subjects.day
+                        END as day
+                    ')
 
-                CASE 
-                    WHEN subjects.type = "nstp" THEN nstp_faculty_information.first_name
-                    ELSE user_information.first_name
-                END as first_name,
-
-                CASE 
-                    WHEN subjects.type = "nstp" THEN nstp_faculty_information.last_name
-                    ELSE user_information.last_name
-                END as last_name,
-
-                CASE 
-                    WHEN subjects.type = "nstp" THEN nstp_faculty_information.middle_name
-                    ELSE user_information.middle_name
-                END as middle_name,
-
-                CASE 
-                    WHEN subjects.type = "nstp" THEN nstp_rooms.room_name
-                    ELSE rooms.room_name
-                END as room_name,
-
-                CASE 
-                    WHEN subjects.type = "nstp" THEN nstp_section_schedules.start_time
-                    ELSE year_section_subjects.start_time
-                END as start_time,
-
-                CASE 
-                    WHEN subjects.type = "nstp" THEN nstp_section_schedules.end_time
-                    ELSE year_section_subjects.end_time
-                END as end_time,
-
-                CASE 
-                    WHEN subjects.type = "nstp" THEN nstp_section_schedules.day
-                    ELSE year_section_subjects.day
-                END as day
-                ')
             ->with(['SecondarySchedule' => function ($query) {
                 $query->select(
                     'subject_secondary_schedule.id',

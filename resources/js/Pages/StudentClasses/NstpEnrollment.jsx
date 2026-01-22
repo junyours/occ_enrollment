@@ -10,7 +10,7 @@ import { convertToAMPM, formatFullName } from '@/Lib/Utils'
 import { Button } from '@/Components/ui/button'
 import { router } from '@inertiajs/react'
 import { toast } from 'sonner'
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog'
 import { Progress } from '@/Components/ui/progress'
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities'
 import { Card, CardContent } from '@/Components/ui/card'
@@ -73,6 +73,8 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
         retry: 1,
     });
 
+    const [confirmOpen, setConfirmOpen] = useState(false)
+    const [selectedScheduleId, setSelectedScheduleId] = useState(null)
     const [open, setOpen] = useState(false)
     const [cancelButtonDisabled, setCancelButtonDisabled] = useState(false)
     const [enrolling, setEnrolling] = useState(false)
@@ -181,7 +183,7 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
             <PageTitle align='center'><div className='flex justify-center'><div className='font-extrabold'>{component.toUpperCase()}</div>  <div className='flex ml-2 font-thin'><span>|  {schoolYear.start_year}–{schoolYear.end_year}</span>  <span className='ml-2'>{semesterDisplayMap[schoolYear.semester.semester_name]}</span> </div></div></PageTitle>
             {alreadyEnrolled && (
                 <Card className="bg-blue-50 border-blue-600 border-l-4">
-                    <CardContent className="flex items-center gap-2">
+                    <CardContent className="flex items-center gap-2 pt-6">
                         <Info className="w-5 h-5 text-blue-600" />
                         <span className="text-blue-800 font-medium text-sm">
                             You are already registered for this NSTP schedule.
@@ -235,8 +237,11 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
                                 <TableCell>
                                     <Button
                                         className={`${conflicts.includes(section.id) ? 'hidden' : ''}`}
-                                        disabled={enrolling || alreadyEnrolled || conflicts.includes(section.id) || (students == maxStudents || students > maxStudents)}
-                                        onClick={() => startEnroll(section.schedule.id)}
+                                        disabled={enrolling || alreadyEnrolled || conflicts.includes(section.id) || students >= maxStudents}
+                                        onClick={() => {
+                                            setSelectedScheduleId(section.schedule.id)
+                                            setConfirmOpen(true)
+                                        }}
                                     >
                                         Enroll
                                     </Button>
@@ -288,6 +293,33 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <AlertDialogContent className="w-11/12">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            Confirm Enrollment
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You’re about to enroll in this NSTP section. This action may affect your schedule and cannot be undone easily.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={enrolling}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setConfirmOpen(false)
+                                startEnroll(selectedScheduleId)
+                            }}
+                        >
+                            Yes, Enroll
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
         </div>
     )
 }

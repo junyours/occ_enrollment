@@ -14,7 +14,7 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/section/component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
     Route::post('/nstp-director/section/component}/{section}/move-student', [ComponentController::class, 'moveStudent'])->name('nstp-director.component.sections.student-list.move-student');
 
-    Route::post('/nstp-director/change-max-students', [ComponentController::class, 'changeMaxStudents'])->name('nstp-director.change-max-students');
+    Route::post('/nstp-director/change-section-info', [ComponentController::class, 'changeSectionInfo'])->name('nstp-director.change-section-info');
 
     Route::post('/nstp-director/all-rooms/list', [ComponentController::class, 'getAllRooms'])->name('nstp-director.all-rooms');
     Route::post('/nstp-director/all-isntructors/list', [ComponentController::class, 'getAllInstructors'])->name('nstp-director.all-instructors');

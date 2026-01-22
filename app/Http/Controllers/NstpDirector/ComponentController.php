@@ -91,6 +91,7 @@ class ComponentController extends Controller
             ->join('user_information', 'user_information.user_id', '=', 'users.id')
             ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
             ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->orderBy('last_name', 'asc')
             ->get();
 
         return response()->json($students);
@@ -135,11 +136,12 @@ class ComponentController extends Controller
         ]);
     }
 
-    public function changeMaxStudents(Request $request)
+    public function changeSectionInfo(Request $request)
     {
         NstpSection::findOrFail($request->nstpSectionId)
             ->update([
-                'max_students' => $request->maxStudent
+                'max_students' => $request->maxStudent,
+                'section' => $request->section
             ]);
     }
 

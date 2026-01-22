@@ -62,15 +62,33 @@ export default function Index({ component }) {
     const setSecondScheduleConflictList = useSection(state => state.setSecondScheduleConflictList);
     const setMainScheduleConflictList = useSection(state => state.setMainScheduleConflictList);
 
+    const [submittingSectionInfo, setSubmittingSectionInfo] = useState(false);
     const [editingSectionMaxStudnet, setEditingSectionMaxStudnet] = useState([]);
+    const [editingSectionErrors, setEditingSectionErrors] = useState({
+        section: false,
+        max_students: false,
+    });
 
-    const submitMaxStudents = async () => {
+    const submitSectionInfo = async () => {
+        if (!editingSectionMaxStudnet.section) return toast.error('Fill in the section name.');
         if (editingSectionMaxStudnet.max_students <= 15) return toast.error('The maximum number of students must exceed 15.');
-        await axios.post(route('nstp-director.change-max-students'), { nstpSectionId: editingSectionMaxStudnet.id, maxStudent: editingSectionMaxStudnet.max_students })
-            .finally(() => {
-                refetch();
-                setEditingSectionMaxStudnet([]);
-            });
+        setSubmittingSectionInfo(true)
+        await router.post(route('nstp-director.change-section-info'),
+            {
+                nstpSectionId: editingSectionMaxStudnet.id,
+                maxStudent: editingSectionMaxStudnet.max_students,
+                section: editingSectionMaxStudnet.section
+            },
+            {
+                preserveScroll: true,
+                onFinish: async () => {
+                    await refetch();
+                    setEditingSectionMaxStudnet([]);
+                    setSubmittingSectionInfo(false)
+                }
+
+            }
+        )
     }
 
     useEffect(() => {
@@ -111,10 +129,7 @@ export default function Index({ component }) {
                 },
                 onError: (errors) => {
                     console.log(errors);
-                    toast({
-                        description: Object.values(errors)[0] ?? 'Something went wrong',
-                        variant: 'destructive',
-                    });
+                    toast.error(Object.values(errors)[0] ?? 'Something went wrong')
                 },
             }
         );
@@ -237,36 +252,66 @@ export default function Index({ component }) {
                                     <ContextMenu key={section.id}>
                                         <ContextMenuTrigger asChild>
                                             <TableRow className={`${isEditing ? 'bg-green-500 hover:bg-green-500' : ''} ${mainScheduleConflictList.includes(section.id) ? 'bg-red-700 hover:bg-red-700 text-white' : ''}`}>
-                                                <TableCell>{sectionName}</TableCell>
-                                                <TableCell className='border-r '>
-                                                    {(editingSectionMaxStudnet.id > 0 && editingSectionMaxStudnet.id == section.id) ? (
-                                                        <div className='flex justify-between px-4'>
-                                                            <Input
-                                                                value={editingSectionMaxStudnet.max_students}
-                                                                onChange={(e) => {
-                                                                    const value = e.target.value
-                                                                    if (isNaN(value)) return
-                                                                    console.log(value)
-                                                                    setEditingSectionMaxStudnet(prev => ({ ...prev, max_students: value }))
-                                                                }}
-                                                                className='h-min w-10 p-1 text-center'
-                                                            />
-                                                            <div className='flex items-center gap-1'>
-                                                                <CircleX onClick={() => setEditingSectionMaxStudnet([])} className='text-red-500 cursor-pointer' />
-                                                                <CircleCheck onClick={submitMaxStudents} className='text-green-500 cursor-pointer' />
+
+                                                {(editingSectionMaxStudnet.id > 0 && editingSectionMaxStudnet.id == section.id) ? (
+                                                    <>
+                                                        <TableCell>
+                                                            <div className='flex justify-between'>
+                                                                <Input
+                                                                    value={editingSectionMaxStudnet.section}
+                                                                    onChange={(e) => {
+                                                                        const value = e.target.value
+                                                                        if (value.includes(' ')) return
+                                                                        if (!value) {
+                                                                            setEditingSectionErrors(prev => ({ ...prev, section: true }))
+                                                                        } else {
+                                                                            setEditingSectionErrors(prev => ({ ...prev, section: false }))
+                                                                        }
+                                                                        setEditingSectionMaxStudnet(prev => ({ ...prev, section: value }))
+                                                                    }}
+                                                                    className={`h-min w-24 py-0 pl-2 rounded-none ring-0 ${editingSectionErrors.section ? 'border-red-500' : ''}`}
+                                                                />
                                                             </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className='flex justify-between px-4'>
-                                                            <p>{students}/{maxStudents}</p>
-                                                            <Pencil
-                                                                onClick={() => setEditingSectionMaxStudnet(section)}
-                                                                size={15}
-                                                                className={` ${!!selectedSection.id ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </TableCell>
+                                                        </TableCell>
+                                                        <TableCell className='border-r '>
+                                                            <div className='flex justify-between px-4'>
+                                                                <Input
+                                                                    value={editingSectionMaxStudnet.max_students}
+                                                                    onChange={(e) => {
+                                                                        const value = e.target.value
+                                                                        if (isNaN(value) || value.includes(' ')) return
+                                                                        if (!value || value <= 15) {
+                                                                            setEditingSectionErrors(prev => ({ ...prev, max_students: true }))
+                                                                        } else {
+                                                                            setEditingSectionErrors(prev => ({ ...prev, max_students: false }))
+                                                                        }
+                                                                        setEditingSectionMaxStudnet(prev => ({ ...prev, max_students: value }))
+                                                                    }}
+                                                                    className={`h-min w-14 py-0 pl-2 rounded-none ring-0 ${editingSectionErrors.max_students ? 'border-red-500' : ''}`}
+                                                                />
+                                                                <div className='flex items-center gap-1'>
+                                                                    <CircleX onClick={() => setEditingSectionMaxStudnet([])} className='text-red-500 cursor-pointer' />
+                                                                    <CircleCheck onClick={submitSectionInfo} className='text-green-500 cursor-pointer' />
+                                                                </div>
+                                                            </div>
+                                                        </TableCell>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <TableCell>{sectionName}</TableCell>
+                                                        <TableCell className='border-r '>
+                                                            <div className='flex justify-between px-4'>
+                                                                <p>{students}/{maxStudents}</p>
+                                                                <Pencil
+                                                                    onClick={() => setEditingSectionMaxStudnet(section)}
+                                                                    size={15}
+                                                                    className={` ${!!selectedSection.id ? 'text-transparent' : 'cursor-pointer text-green-500'}`}
+                                                                />
+                                                            </div>
+                                                        </TableCell>
+                                                    </>
+                                                )}
+
                                                 <TableCell>{day}</TableCell>
                                                 <TableCell>{time}</TableCell>
                                                 <TableCell>{room}</TableCell>

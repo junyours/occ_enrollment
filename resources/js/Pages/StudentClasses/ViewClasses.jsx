@@ -4,14 +4,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
-import React, {  useState } from 'react'
+import React, { useState } from 'react'
 import TimeTable from '../ScheduleFormats/TimeTable';
 import MobileViewClasses from './MobileViewClasses';
 import html2canvas from 'html2canvas';
 import { Button } from '@/Components/ui/button';
-import { AlertCircle, BookOpen, ImageDown, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowRight, BookOpen, ImageDown, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 const ViewClasses = ({ currentSchoolYear }) => {
@@ -151,24 +151,80 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                             <>
                                                 {classes.map((classInfo) => (
                                                     <React.Fragment key={classInfo.id}>
+                                                        {/* Primary schedule row */}
                                                         <TableRow>
-                                                            <TableCell>{classInfo.descriptive_title}</TableCell>
-                                                            <TableCell>{classInfo.day == "TBA" ? '-' : classInfo.day}</TableCell>
-                                                            <TableCell>{classInfo.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} - ${convertToAMPM(classInfo.end_time)}`}</TableCell>
-                                                            <TableCell>{classInfo.room_name || '-'}</TableCell>
-                                                            <TableCell>{classInfo.first_name ? formatFullName(classInfo) : '-'}</TableCell>
+                                                            <TableCell className="font-medium">
+                                                                {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id
+                                                                    ? 'NSTP - Select the NSTP component you took last semester.'
+                                                                    : classInfo.descriptive_title}
+                                                            </TableCell>
+
+                                                            {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
+                                                                <>
+                                                                    <TableCell colSpan={4}>
+                                                                        <div className="grid grid-cols-3 gap-3">
+                                                                            {['rotc', 'cwts', 'lts'].map((component) => (
+                                                                                <Link
+                                                                                    key={component}
+                                                                                    href={route('nstp-enrollment', {
+                                                                                        component,
+                                                                                        id: classInfo.student_subject_id,
+                                                                                    })}
+                                                                                    className="group"
+                                                                                >
+                                                                                    <Button
+                                                                                        variant="outline"
+                                                                                        className="w-full justify-between"
+                                                                                    >
+                                                                                        {component.toUpperCase()}
+                                                                                        <ArrowRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-1" />
+                                                                                    </Button>
+                                                                                </Link>
+                                                                            ))}
+                                                                        </div>
+                                                                    </TableCell>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <TableCell>
+                                                                        {classInfo.day === 'TBA' ? '-' : classInfo.day}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        {classInfo.start_time === 'TBA'
+                                                                            ? '-'
+                                                                            : `${convertToAMPM(classInfo.start_time)} – ${convertToAMPM(classInfo.end_time)}`}
+                                                                    </TableCell>
+                                                                    <TableCell>{classInfo.room_name || '-'}</TableCell>
+                                                                    <TableCell>
+                                                                        {classInfo.first_name ? formatFullName(classInfo) : '-'}
+                                                                    </TableCell>
+                                                                </>
+                                                            )}
                                                         </TableRow>
 
-                                                        {classInfo.secondary_schedule ? (
-                                                            <TableRow>
-                                                                <TableCell>{classInfo.descriptive_title} <span className='italic'>(2nd Schedule)</span></TableCell>
-                                                                <TableCell>{classInfo.secondary_schedule.day == "TBA" ? '-' : classInfo.secondary_schedule.day}</TableCell>
-                                                                <TableCell>{classInfo.secondary_schedule.start_time == 'TBA' ? '-' : `${convertToAMPM(classInfo.secondary_schedule.start_time)} - ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}</TableCell>
-                                                                <TableCell>{classInfo.secondary_schedule.room_name || '-'}</TableCell>
-                                                                <TableCell>{classInfo.first_name ? formatFullName(classInfo) : '-'}</TableCell>
+                                                        {/* Secondary schedule */}
+                                                        {classInfo.secondary_schedule && (
+                                                            <TableRow className="italic text-muted-foreground">
+                                                                <TableCell>
+                                                                    {classInfo.descriptive_title} (2nd Schedule)
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {classInfo.secondary_schedule.day === 'TBA'
+                                                                        ? '-'
+                                                                        : classInfo.secondary_schedule.day}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {classInfo.secondary_schedule.start_time === 'TBA'
+                                                                        ? '-'
+                                                                        : `${convertToAMPM(classInfo.secondary_schedule.start_time)} – ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {classInfo.secondary_schedule.room_name || '-'}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {classInfo.first_name ? formatFullName(classInfo) : '-'}
+                                                                </TableCell>
                                                             </TableRow>
-                                                        ) : (
-                                                            <></>
                                                         )}
                                                     </React.Fragment>
                                                 ))}

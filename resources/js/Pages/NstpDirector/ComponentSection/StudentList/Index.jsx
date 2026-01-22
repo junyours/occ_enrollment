@@ -20,6 +20,7 @@ const TableHeadTemplate = ({ children }) => {
         <Table>
             <TableHeader>
                 <TableRow>
+                    <TableHead className='w-10'>#</TableHead>
                     <TableHead>ID</TableHead>
                     <TableHead>NAME</TableHead>
                     <TableHead>SECTION</TableHead>
@@ -37,22 +38,22 @@ const SkeletonLoading = () => {
     return (
         <TableHeadTemplate>
             <TableRow>
-                <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
+                <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
             </TableRow>
             <TableRow>
-                <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
+                <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
             </TableRow>
             <TableRow>
-                <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
+                <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
             </TableRow>
             <TableRow>
-                <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
+                <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
             </TableRow>
             <TableRow>
-                <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
+                <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
             </TableRow>
             <TableRow>
-                <TableCell colSpan={4}><Skeleton className="h-8 w-full" /></TableCell>
+                <TableCell colSpan={5}><Skeleton className="h-8 w-full" /></TableCell>
             </TableRow>
         </TableHeadTemplate>
     );
@@ -206,12 +207,13 @@ export default function Index({ component, section }) {
                         </TableHeadTemplate>
                     ) : (
                         <TableHeadTemplate>
-                            {data.map((section) => {
+                            {data.map((section, index) => {
                                 const idNo = section.user_id_no;
                                 const name = formatFullName(section);
                                 const sectionName = `${section.course_name_abbreviation}-${section.year_level_id}${section.section}`;
                                 return (
                                     <TableRow key={idNo}>
+                                        <TableCell>{index + 1}.</TableCell>
                                         <TableCell>{idNo}</TableCell>
                                         <TableCell>{name}</TableCell>
                                         <TableCell>{sectionName}</TableCell>
@@ -306,8 +308,7 @@ export default function Index({ component, section }) {
                     </AlertDialogHeader>
 
                     {/* Scroll container */}
-                    <div className="overflow-y-auto rounded-xl border
-                                    max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)]">
+                    <div className="overflow-y-auto rounded-xl border max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)]">
                         <Table className="w-full text-sm">
                             <TableHeader className="sticky top-0 bg-background z-10">
                                 <TableRow className="border-b">
