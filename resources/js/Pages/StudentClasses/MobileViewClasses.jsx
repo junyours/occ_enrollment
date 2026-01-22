@@ -8,9 +8,11 @@ import {
     CardTitle,
 } from '@/Components/ui/card'
 import { convertToAMPM, formatFullName } from '@/Lib/Utils'
-import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, ArrowRight } from 'lucide-react'
+import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, ArrowRight, Calendar, ChevronRight } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
 import { Link } from '@inertiajs/react'
+
+const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 
 function MobileViewClasses({ classes, isLoading, isError, error }) {
 
@@ -36,197 +38,153 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                 </div>
             ) : (
                 <>
-                    {classes.map((classInfo) => (
-                        <React.Fragment key={classInfo.id}>
-                            {/* Primary Schedule */}
-                            <Card className="mb-3">
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-center space-x-3">
-                                        <div
-                                            className={`w-3 h-3 rounded-full ${classInfo.day ===
-                                                new Date().toLocaleString('en-US', {
-                                                    weekday: 'long',
-                                                })
-                                                ? 'bg-green-500'
-                                                : 'bg-blue-700'
-                                                }`}
-                                        />
-                                        <div>
-                                            <CardTitle className="text-base">
-                                                {classInfo.descriptive_title}
-                                            </CardTitle>
-                                            <CardDescription>
-                                                {
-                                                    classInfo.day === 'TBA'
-                                                        ? '-'
-                                                        : classInfo.day
-                                                }
-                                            </CardDescription>
-                                        </div>
-                                    </div>
-                                </CardHeader>
+                    {classes.map((classInfo) => {
+                        // Check if today matches
+                        const isPrimaryToday = classInfo.day === today;
+                        const isSecondaryToday = classInfo.secondary_schedule?.day === today;
 
-                                <CardContent className="pt-0">
-                                    {(classInfo.type == 'nstp' && !classInfo.nstp_student_schedule_id) ? (
-                                        <div className="mx-auto max-w-md rounded-2xl border bg-background p-6 shadow-sm">
-                                            <h2 className="text-xl font-semibold tracking-tight">
-                                                Enroll now
-                                            </h2>
+                        // Aesthetic highlight: Glowing left border and subtle tinted background
+                        const activeCardClass = "border-l-4 border-l-primary bg-primary/[0.03] dark:bg-primary/[0.07] shadow-md ring-1 ring-primary/10";
 
-                                            <p className="mt-2 text-sm text-muted-foreground">
-                                                Select the NSTP component you took last semester.
-                                            </p>
-
-                                            <div className="mt-6 grid gap-3">
-                                                <Link href={route('nstp-enrollment', { component: 'rotc', id: classInfo.student_subject_id })} className="group">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="flex w-full items-center justify-between py-6 text-base transition-all group-hover:bg-muted"
-                                                    >
-                                                        ROTC
-                                                        <ArrowRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-1" />
-                                                    </Button>
-                                                </Link>
-
-                                                <Link href={route('nstp-enrollment', { component: 'cwts', id: classInfo.student_subject_id })} className="group">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="flex w-full items-center justify-between py-6 text-base transition-all group-hover:bg-muted"
-                                                    >
-                                                        CWTS
-                                                        <ArrowRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-1" />
-                                                    </Button>
-                                                </Link>
-
-                                                <Link href={route('nstp-enrollment', { component: 'lts', id: classInfo.student_subject_id })} className="group">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="flex w-full items-center justify-between py-6 text-base transition-all group-hover:bg-muted"
-                                                    >
-                                                        LTS
-                                                        <ArrowRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-1" />
-                                                    </Button>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="space-y-2">
-                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                    <Clock className="w-4 h-4" />
-                                                    <span>
-                                                        {classInfo.start_time === 'TBA'
-                                                            ? '-'
-                                                            : `${convertToAMPM(
-                                                                classInfo.start_time
-                                                            )} – ${convertToAMPM(
-                                                                classInfo.end_time
-                                                            )}`}
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                    <MapPin className="w-4 h-4" />
-                                                    <span>
-                                                        {classInfo.room_name || '-'}
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                    <User className="w-4 h-4" />
-                                                    <span>
-                                                        {classInfo.first_name
-                                                            ? formatFullName(classInfo)
-                                                            : '-'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            {/* Secondary Schedule */}
-                            {classInfo.secondary_schedule && (
-                                <Card className="mb-3">
+                        return (
+                            <React.Fragment key={classInfo.id}>
+                                {/* Primary Schedule */}
+                                <Card className={`mb-4 transition-all duration-300 ${isPrimaryToday ? activeCardClass : ""}`}>
                                     <CardHeader className="pb-3">
-                                        <div className="flex items-center space-x-3">
-                                            <div
-                                                className={`w-3 h-3 rounded-full ${classInfo.secondary_schedule.day ===
-                                                    new Date().toLocaleString('en-US', {
-                                                        weekday: 'long',
-                                                    })
-                                                    ? 'bg-green-500'
-                                                    : 'bg-blue-500'
-                                                    }`}
-                                            />
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <CardTitle className="text-base">
-                                                        {
-                                                            classInfo.descriptive_title
-                                                        }
-                                                    </CardTitle>
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="text-xs"
-                                                    >
-                                                        2nd Schedule
-                                                    </Badge>
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center space-x-3">
+                                                {/* Visual Indicator Dot */}
+                                                <div className="relative flex h-3 w-3">
+                                                    {isPrimaryToday && (
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                    )}
+                                                    <span className={`relative inline-flex rounded-full h-3 w-3 ${isPrimaryToday ? 'bg-primary' : 'bg-muted-foreground/30'}`}></span>
                                                 </div>
-                                                <CardDescription>
-                                                    {classInfo.secondary_schedule
-                                                        .day === 'TBA'
-                                                        ? '-'
-                                                        : classInfo.secondary_schedule
-                                                            .day}
-                                                </CardDescription>
+
+                                                <div>
+                                                    <CardTitle className={`text-base leading-tight ${isPrimaryToday ? 'text-primary font-bold' : ''}`}>
+                                                        {classInfo.descriptive_title}
+                                                    </CardTitle>
+                                                    <CardDescription className="flex items-center gap-1 mt-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {classInfo.day === 'TBA' ? '-' : classInfo.day}
+                                                    </CardDescription>
+                                                </div>
                                             </div>
                                         </div>
                                     </CardHeader>
 
                                     <CardContent className="pt-0">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                <Clock className="w-4 h-4" />
-                                                <span>
-                                                    {classInfo.secondary_schedule
-                                                        .start_time === 'TBA'
-                                                        ? '-'
-                                                        : `${convertToAMPM(
-                                                            classInfo
-                                                                .secondary_schedule
-                                                                .start_time
-                                                        )} - ${convertToAMPM(
-                                                            classInfo
-                                                                .secondary_schedule
-                                                                .end_time
-                                                        )}`}
-                                                </span>
-                                            </div>
+                                        {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
+                                            <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.05] to-transparent p-5 text-center">
+                                                {/* Decorative background element */}
+                                                <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-primary/10 blur-2xl" />
 
-                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                <MapPin className="w-4 h-4" />
-                                                <span>
-                                                    {classInfo.secondary_schedule
-                                                        .room_name || '-'}
-                                                </span>
-                                            </div>
+                                                <div className="relative flex flex-col items-center">
+                                                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                                                        <AlertCircle className="h-5 w-5 text-primary" />
+                                                    </div>
 
-                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                <User className="w-4 h-4" />
-                                                <span>
-                                                    {classInfo.first_name
-                                                        ? formatFullName(classInfo)
-                                                        : '-'}
-                                                </span>
+                                                    <h2 className="text-sm font-bold text-primary uppercase tracking-widest">
+                                                        Action Required
+                                                    </h2>
+                                                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground/80 max-w-[200px]">
+                                                        Please select the NSTP component you attended last semester to continue.
+                                                    </p>
+                                                </div>
+
+                                                <div className="mt-5 grid gap-2.5">
+                                                    {['rotc', 'cwts', 'lts'].map((comp) => (
+                                                        <Link
+                                                            key={comp}
+                                                            href={route('nstp-enrollment', { component: comp, id: classInfo.student_subject_id })}
+                                                            className="block"
+                                                        >
+                                                            <Button
+                                                                variant="secondary"
+                                                                size="lg"
+                                                                className="w-full justify-between h-12 px-5 text-xs font-bold tracking-wider bg-background border-primary/10 shadow-sm active:scale-[0.98] active:bg-muted transition-transform"
+                                                            >
+                                                                {comp.toUpperCase()}
+                                                                <div className="flex items-center gap-2 text-primary">
+                                                                    <ChevronRight className="h-4 w-4" />
+                                                                </div>
+                                                            </Button>
+                                                        </Link>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <div className="grid grid-cols-2 gap-y-3">
+                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                    <Clock className={`w-4 h-4 ${isPrimaryToday ? 'text-primary' : ''}`} />
+                                                    <span className="tabular-nums">
+                                                        {classInfo.start_time === 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} – ${convertToAMPM(classInfo.end_time)}`}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                    <MapPin className={`w-4 h-4 ${isPrimaryToday ? 'text-primary' : ''}`} />
+                                                    <span className={isPrimaryToday ? "font-medium text-foreground" : ""}>
+                                                        {classInfo.room_name || 'TBA'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground col-span-2 border-t pt-2 mt-1">
+                                                    <User className="w-4 h-4 opacity-70" />
+                                                    <span className="text-xs italic truncate">
+                                                        {classInfo.first_name ? formatFullName(classInfo) : 'No instructor assigned'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
-                            )}
-                        </React.Fragment>
-                    ))}
+
+                                {/* Secondary Schedule */}
+                                {classInfo.secondary_schedule && (
+                                    <Card className={`mb-4 transition-all duration-300 ${isSecondaryToday ? activeCardClass : ""}`}>
+                                        <CardHeader className="pb-3">
+                                            <div className="flex items-start space-x-3">
+                                                <div className="relative flex h-3 w-3 mt-1">
+                                                    {isSecondaryToday && (
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                    )}
+                                                    <span className={`relative inline-flex rounded-full h-3 w-3 ${isSecondaryToday ? 'bg-primary' : 'bg-muted-foreground/30'}`}></span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <CardTitle className={`text-base ${isSecondaryToday ? 'text-primary font-bold' : ''}`}>
+                                                            {classInfo.descriptive_title}
+                                                        </CardTitle>
+                                                        <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-tighter h-4 px-1">2nd</Badge>
+                                                    </div>
+                                                    <CardDescription className="flex items-center gap-1 mt-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {classInfo.secondary_schedule.day}
+                                                    </CardDescription>
+                                                </div>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="pt-0">
+                                            <div className="grid grid-cols-2 gap-y-3">
+                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                    <Clock className={`w-4 h-4 ${isSecondaryToday ? 'text-primary' : ''}`} />
+                                                    <span className="tabular-nums">
+                                                        {convertToAMPM(classInfo.secondary_schedule.start_time)} - {convertToAMPM(classInfo.secondary_schedule.end_time)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                                    <MapPin className={`w-4 h-4 ${isSecondaryToday ? 'text-primary' : ''}`} />
+                                                    <span className={isSecondaryToday ? "font-medium text-foreground" : ""}>
+                                                        {classInfo.secondary_schedule.room_name || 'TBA'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                 </>
             )}
         </div>

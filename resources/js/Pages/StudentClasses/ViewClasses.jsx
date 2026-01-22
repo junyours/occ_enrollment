@@ -14,6 +14,18 @@ import { Button } from '@/Components/ui/button';
 import { AlertCircle, ArrowRight, BookOpen, ImageDown, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
+const DAY_ORDER = {
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+    Sunday: 7,
+    TBA: 99,
+};
+
+
 const ViewClasses = ({ currentSchoolYear }) => {
     const [scheduleType, setScheduleType] = useState('tabular');
 
@@ -25,12 +37,31 @@ const ViewClasses = ({ currentSchoolYear }) => {
         );
     }
 
+    const toMinutes = (time) => {
+        if (!time || time === 'TBA') return Number.MAX_SAFE_INTEGER;
+        const [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+    };
+
+    const sortClasses = (classes) => {
+        return [...classes].sort((a, b) => {
+            const dayDiff =
+                (DAY_ORDER[a.day] ?? 99) - (DAY_ORDER[b.day] ?? 99);
+
+            if (dayDiff !== 0) return dayDiff;
+
+            return toMinutes(a.start_time) - toMinutes(b.start_time);
+        });
+    };
+
     const fetchStudentClasses = async ({ queryKey }) => {
         const [, schoolYearId] = queryKey;
+
         const response = await axios.post(route('student.classes'), {
             schoolYearId,
         });
-        return response.data;
+
+        return sortClasses(response.data);
     };
 
     const { data: classes, error, isLoading, isError } = useQuery({
@@ -68,6 +99,9 @@ const ViewClasses = ({ currentSchoolYear }) => {
             console.error('Error downloading image:', error);
         }
     };
+
+    const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+
 
     return (
         <div className='space-y-4'>
@@ -149,33 +183,40 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                             </TableRow>
                                         ) : (
                                             <>
-                                                {classes.map((classInfo) => (
-                                                    <React.Fragment key={classInfo.id}>
-                                                        {/* Primary schedule row */}
-                                                        <TableRow>
-                                                            <TableCell className="font-medium">
-                                                                {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id
-                                                                    ? 'NSTP - Select the NSTP component you took last semester.'
-                                                                    : classInfo.descriptive_title}
-                                                            </TableCell>
+                                                {classes.map((classInfo) => {
+                                                    const isPrimaryToday = classInfo.day === today;
+                                                    const isSecondaryToday = classInfo.secondary_schedule?.day === today;
 
-                                                            {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
-                                                                <>
+                                                    // A purely visual highlight: subtle glow, tinted background, and a left accent bar
+                                                    const highlightClass = "bg-primary/[0.04] dark:bg-primary/[0.08] relative after:absolute after:left-0 after:top-1 after:bottom-1 after:w-1 after:bg-primary after:rounded-r-full after:shadow-[2px_0_10px_rgba(var(--primary),0.4)]";
+
+                                                    return (
+                                                        <React.Fragment key={classInfo.id}>
+                                                            {/* Primary schedule row */}
+                                                            <TableRow className={`${isPrimaryToday ? highlightClass : "hover:bg-muted/40"}`}>
+                                                                <TableCell className="font-medium">
+                                                                    <div className="flex items-center gap-3">
+                                                                        {/* A pulsing indicator dot */}
+                                                                        {isPrimaryToday && (
+                                                                            <span className="relative flex h-2 w-2">
+                                                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                                                            </span>
+                                                                        )}
+                                                                        <span className={isPrimaryToday ? "text-primary font-bold" : "text-foreground"}>
+                                                                            {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id
+                                                                                ? 'NSTP - Select Component'
+                                                                                : classInfo.descriptive_title}
+                                                                        </span>
+                                                                    </div>
+                                                                </TableCell>
+
+                                                                {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
                                                                     <TableCell colSpan={4}>
-                                                                        <div className="grid grid-cols-3 gap-3">
+                                                                        <div className="flex gap-2">
                                                                             {['rotc', 'cwts', 'lts'].map((component) => (
-                                                                                <Link
-                                                                                    key={component}
-                                                                                    href={route('nstp-enrollment', {
-                                                                                        component,
-                                                                                        id: classInfo.student_subject_id,
-                                                                                    })}
-                                                                                    className="group"
-                                                                                >
-                                                                                    <Button
-                                                                                        variant="outline"
-                                                                                        className="w-full justify-between"
-                                                                                    >
+                                                                                <Link key={component} href={route('nstp-enrollment', { component, id: classInfo.student_subject_id })} className="flex-1 group">
+                                                                                    <Button variant="outline" size="sm" className="w-full h-8 text-[10px] font-bold tracking-widest hover:bg-primary hover:text-primary-foreground transition-all">
                                                                                         {component.toUpperCase()}
                                                                                         <ArrowRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-1" />
                                                                                     </Button>
@@ -183,51 +224,61 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                                             ))}
                                                                         </div>
                                                                     </TableCell>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <TableCell>
-                                                                        {classInfo.day === 'TBA' ? '-' : classInfo.day}
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        {classInfo.start_time === 'TBA'
-                                                                            ? '-'
-                                                                            : `${convertToAMPM(classInfo.start_time)} – ${convertToAMPM(classInfo.end_time)}`}
-                                                                    </TableCell>
-                                                                    <TableCell>{classInfo.room_name || '-'}</TableCell>
-                                                                    <TableCell>
-                                                                        {classInfo.first_name ? formatFullName(classInfo) : '-'}
-                                                                    </TableCell>
-                                                                </>
-                                                            )}
-                                                        </TableRow>
-
-                                                        {/* Secondary schedule */}
-                                                        {classInfo.secondary_schedule && (
-                                                            <TableRow className="italic text-muted-foreground">
-                                                                <TableCell>
-                                                                    {classInfo.descriptive_title} (2nd Schedule)
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {classInfo.secondary_schedule.day === 'TBA'
-                                                                        ? '-'
-                                                                        : classInfo.secondary_schedule.day}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {classInfo.secondary_schedule.start_time === 'TBA'
-                                                                        ? '-'
-                                                                        : `${convertToAMPM(classInfo.secondary_schedule.start_time)} – ${convertToAMPM(classInfo.secondary_schedule.end_time)}`}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {classInfo.secondary_schedule.room_name || '-'}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {classInfo.first_name ? formatFullName(classInfo) : '-'}
-                                                                </TableCell>
+                                                                ) : (
+                                                                    <>
+                                                                        <TableCell className={isPrimaryToday ? "text-primary font-bold" : ""}>
+                                                                            {classInfo.day === 'TBA' ? '-' : classInfo.day}
+                                                                        </TableCell>
+                                                                        <TableCell className={`tabular-nums ${isPrimaryToday ? "text-primary font-medium" : ""}`}>
+                                                                            {classInfo.start_time === 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} – ${convertToAMPM(classInfo.end_time)}`}
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            <span className={`px-2 py-0.5 rounded text-xs font-medium tracking-wide`}>
+                                                                                {classInfo.room_name || 'TBA'}
+                                                                            </span>
+                                                                        </TableCell>
+                                                                        <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} className="border-l border-border/50">
+                                                                            {classInfo.first_name ? formatFullName(classInfo) : '-'}
+                                                                        </TableCell>
+                                                                    </>
+                                                                )}
                                                             </TableRow>
-                                                        )}
-                                                    </React.Fragment>
-                                                ))}
+
+                                                            {/* Secondary schedule */}
+                                                            {classInfo.secondary_schedule && (
+                                                                <TableRow className={`${isSecondaryToday ? highlightClass : ""}`}>
+                                                                    <TableCell className="font-medium">
+                                                                        <div className="flex items-center gap-3">
+                                                                            {isSecondaryToday && (
+                                                                                <span className="relative flex h-2 w-2">
+                                                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                                                                </span>
+                                                                            )}
+                                                                            <div className="flex flex-col">
+                                                                                <span className={isSecondaryToday ? "text-primary font-bold" : ""}>
+                                                                                    {classInfo.descriptive_title} <span className="text-[10px] font-extralight italic uppercase opacity-60">2nd Schedule</span>
+                                                                                </span>
+
+                                                                            </div>
+                                                                        </div>
+                                                                    </TableCell>
+                                                                    <TableCell className={isSecondaryToday ? "text-primary font-bold" : ""}>
+                                                                        {classInfo.secondary_schedule.day}
+                                                                    </TableCell>
+                                                                    <TableCell className={`tabular-nums ${isSecondaryToday ? "text-primary font-medium" : ""}`}>
+                                                                        {convertToAMPM(classInfo.secondary_schedule.start_time)} – {convertToAMPM(classInfo.secondary_schedule.end_time)}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium tracking-wide`}>
+                                                                            {classInfo.secondary_schedule.room_name || 'TBA'}
+                                                                        </span>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            )}
+                                                        </React.Fragment>
+                                                    );
+                                                })}
                                             </>
                                         )}
                                     </TableBody>
