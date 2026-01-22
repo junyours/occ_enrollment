@@ -55,7 +55,7 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
     }
 
     const { data, isError, isLoading, refetch } = useQuery({
-        queryKey: ['nstp-enrollment', component, studentSubjectId, schoolYear?.id],
+        queryKey: ['nstp-enrollment', component, studentSubjectId, schoolYear?.id, component],
         queryFn: getComponentSections,
     });
 
@@ -67,7 +67,7 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
     };
 
     const { data: classes, error, isLoading: classesLoading, isError: classesIsError } = useQuery({
-        queryKey: ['studentClasses-nstp-enrollment', schoolYear?.id],
+        queryKey: ['studentClasses-nstp-enrollment', schoolYear?.id, component],
         queryFn: fetchStudentClasses,
         enabled: !!schoolYear?.id,
         retry: 1,
