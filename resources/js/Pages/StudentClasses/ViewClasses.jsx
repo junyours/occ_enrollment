@@ -206,7 +206,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                                         <span className={isPrimaryToday ? "text-primary font-bold" : "text-foreground"}>
                                                                             {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id
                                                                                 ? 'NSTP - Select Component'
-                                                                                : classInfo.descriptive_title}
+                                                                                : classInfo.descriptive_title} {classInfo.component_name ? `| ${classInfo.component_name.toUpperCase()}` : ''}
                                                                         </span>
                                                                     </div>
                                                                 </TableCell>

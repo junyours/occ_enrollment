@@ -396,10 +396,11 @@ class ClassController extends Controller
             // NSTP joins
             ->leftJoin('student_subject_nstp_schedule as nstp_schedule', 'nstp_schedule.student_subject_id', '=', 'student_subjects.id')
             ->leftJoin('nstp_section_schedules', 'nstp_section_schedules.id', '=', 'nstp_schedule.nstp_section_schedule_id')
+            ->leftJoin('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->leftJoin('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
             ->leftJoin('rooms as nstp_rooms', 'nstp_rooms.id', '=', 'nstp_section_schedules.room_id')
             ->leftJoin('users as nstp_faculty', 'nstp_faculty.id', '=', 'nstp_section_schedules.faculty_id')
             ->leftJoin('user_information as nstp_faculty_information', 'nstp_faculty.id', '=', 'nstp_faculty_information.user_id')
-
             ->selectRaw('
                         nstp_schedule.id as nstp_student_schedule_id,
                         enrolled_students_id,
@@ -407,6 +408,7 @@ class ClassController extends Controller
                         year_section_subjects.id,
                         descriptive_title,
                         subjects.type,
+                        component_name,
                     
                         CASE 
                             WHEN subjects.type = "nstp" 
