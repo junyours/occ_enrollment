@@ -80,7 +80,7 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                 {/* Decorative background element */}
                                                 <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-primary/10 blur-2xl" />
 
-                                                <div className="relative flex flex-col items-center">
+                                                {/* <div className="relative flex flex-col items-center">
                                                     <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                                                         <AlertCircle className="h-5 w-5 text-primary" />
                                                     </div>
@@ -91,9 +91,10 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                     <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground/80 max-w-[200px]">
                                                         Please select the NSTP component you attended last semester to continue.
                                                     </p>
-                                                </div>
+                                                </div> */}
+                                                <p className='font-semibold'>Visit nstp office for scheduling</p>
 
-                                                <div className="mt-5 grid gap-2.5">
+                                                {/* <div className="mt-5 grid gap-2.5">
                                                     {['rotc', 'cwts', 'lts'].map((comp) => (
                                                         <Link
                                                             key={comp}
@@ -112,7 +113,7 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                             </Button>
                                                         </Link>
                                                     ))}
-                                                </div>
+                                                </div> */}
                                             </div>
                                         ) : (
                                             <div className="grid grid-cols-2 gap-y-3">

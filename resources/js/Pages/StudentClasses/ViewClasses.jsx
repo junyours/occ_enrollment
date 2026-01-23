@@ -213,7 +213,8 @@ const ViewClasses = ({ currentSchoolYear }) => {
 
                                                                 {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
                                                                     <TableCell colSpan={4}>
-                                                                        <div className="flex gap-2">
+                                                                        <p className='font-semibold'>Visit nstp office for scheduling</p>
+                                                                        {/* <div className="flex gap-2">
                                                                             {['rotc', 'cwts', 'lts'].map((component) => (
                                                                                 <Link key={component} href={route('nstp-enrollment', { component, id: classInfo.student_subject_id })} className="flex-1 group">
                                                                                     <Button variant="outline" size="sm" className="w-full h-8 text-[10px] font-bold tracking-widest hover:bg-primary hover:text-primary-foreground transition-all">
@@ -222,7 +223,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                                                     </Button>
                                                                                 </Link>
                                                                             ))}
-                                                                        </div>
+                                                                        </div> */}
                                                                     </TableCell>
                                                                 ) : (
                                                                     <>
