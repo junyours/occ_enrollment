@@ -2,7 +2,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CircleX, Pencil, Trash } from 'lucide-react';
+import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CirclePlus, CircleX, Pencil, Trash, UserPlus } from 'lucide-react';
 import SectionSkeleton from './SectionSkeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -10,7 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { useSection } from './useSection';
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { formatFullName } from '@/Lib/Utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import Scheduling from './Scheduling';
 import RoomSchedules from './RoomSchedules';
 import InstructorSchedules from './InstructorSchedules';
@@ -25,6 +25,8 @@ import {
     ContextMenuShortcut,
     ContextMenuTrigger,
 } from "@/Components/ui/context-menu";
+import { Separator } from '@/Components/ui/separator';
+import NstpEnrollment from './NstpEnrollment';
 
 const TableHeadTemplate = ({ children }) => {
     return (
@@ -61,6 +63,7 @@ export default function Index({ component }) {
     const clearErrors = useSection(state => state.clearErrors);
     const setSecondScheduleConflictList = useSection(state => state.setSecondScheduleConflictList);
     const setMainScheduleConflictList = useSection(state => state.setMainScheduleConflictList);
+    const [enrollingStudent, setErollingStudent] = useState(false);
 
     const [submittingSectionInfo, setSubmittingSectionInfo] = useState(false);
     const [editingSectionMaxStudnet, setEditingSectionMaxStudnet] = useState([]);
@@ -197,13 +200,13 @@ export default function Index({ component }) {
         );
     }
 
+    if (enrollingStudent) return <NstpEnrollment data={data} setErollingStudent={setErollingStudent} component={component} />
+
     return (
         <div className='space-y-4'>
-
-            <PageTitle align='center'>{component.toUpperCase()}</PageTitle>
             <Card>
                 <CardHeader className="mb-2">
-                    <CardTitle className="text-2xl">Sections</CardTitle>
+                    <CardTitle className="text-2xl">{component.toUpperCase()} Sections</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {!selectedSchoolYearEntry?.id ? (
@@ -239,7 +242,7 @@ export default function Index({ component }) {
                                 const day = section.schedule.day == 'TBA' ? '-' : section.schedule.day;
                                 const start_time = section.schedule.start_time == 'TBA' ? '' : section.schedule.start_time;
                                 const end_time = section.schedule.end_time == 'TBA' ? '' : section.schedule.end_time;
-                                const time = start_time ? `${start_time} – ${end_time}` : '-';
+                                const time = start_time ? `${convertToAMPM(start_time)} – ${convertToAMPM(end_time)}` : '-';
                                 const room = section.schedule.room?.room_name || '-';
                                 const instructor = section.schedule.instructor?.instructor_info ? formatFullName(section.schedule.instructor?.instructor_info) : '-';
 
@@ -247,6 +250,14 @@ export default function Index({ component }) {
 
                                 const maxStudents = section.max_students || 0;
                                 const students = section.students_count || 0;
+
+                                const studentCountTextColor = students > maxStudents
+                                    ? "text-red-600 font-bold" // Overload
+                                    : students == maxStudents
+                                        ? "text-green-600 font-bold" // Complete
+                                        : students + 5 >= maxStudents
+                                        && "text-orange-400 font-bold"
+
 
                                 return (
                                     <ContextMenu key={section.id}>
@@ -299,7 +310,7 @@ export default function Index({ component }) {
                                                 ) : (
                                                     <>
                                                         <TableCell>{sectionName}</TableCell>
-                                                        <TableCell className='border-r '>
+                                                        <TableCell className={`border-r ${studentCountTextColor}`}>
                                                             <div className='flex justify-between px-4'>
                                                                 <p>{students}/{maxStudents}</p>
                                                                 <Pencil
@@ -359,10 +370,6 @@ export default function Index({ component }) {
                                                     <ContextMenuShortcut><ArrowRightToLineIcon size={18} /></ContextMenuShortcut>
                                                 </ContextMenuItem>
                                             </Link>
-                                            <ContextMenuItem className='cursor-pointer'>
-                                                Enroll
-                                                <ContextMenuShortcut><ArrowRightToLineIcon size={18} /></ContextMenuShortcut>
-                                            </ContextMenuItem>
                                         </ContextMenuContent>
                                     </ContextMenu>
                                 )
@@ -371,7 +378,7 @@ export default function Index({ component }) {
                     )}
                 </CardContent>
                 <CardFooter>
-                    <Button disabled={isLoading || addingSection || isError} onClick={addSection}>Add section</Button>
+                    <Button disabled={isLoading || addingSection || isError} onClick={addSection}><CirclePlus /> Add section</Button>
                 </CardFooter>
             </Card>
 
@@ -381,33 +388,48 @@ export default function Index({ component }) {
                 )
             }
 
-            <div className='flex gap-4'>
-                {(selectedSection.room_id && rooms.length > 0) ? (
-                    <RoomSchedules
-                        roomId={selectedSection.room_id}
-                        roomName={rooms.find(room => room.id == selectedSection.room_id)?.room_name}
-                    />
-                ) : (
-                    <></>
-                )}
+            {!selectedSection.id ? (
+                <></>
+            ) : (
+                <div className='flex gap-4'>
+                    {(selectedSection.room_id && rooms.length > 0) ? (
+                        <RoomSchedules
+                            roomId={selectedSection.room_id}
+                            roomName={rooms.find(room => room.id == selectedSection.room_id)?.room_name}
+                        />
+                    ) : (
+                        <></>
+                    )}
 
-                {(selectedSection.faculty_id && instructors.length > 0) ? (
-                    <>
-                        {(() => {
-                            const instructor = instructors.find(instructor => instructor.id == selectedSection.faculty_id)
+                    {(selectedSection.faculty_id && instructors.length > 0) ? (
+                        <>
+                            {(() => {
+                                const instructor = instructors.find(instructor => instructor.id == selectedSection.faculty_id)
 
-                            return (
-                                <InstructorSchedules
-                                    instructorId={selectedSection.faculty_id}
-                                    instructorName={formatFullName(instructor)}
-                                />
-                            )
-                        })()}
-                    </>
-                ) : (
-                    <></>
-                )}
-            </div>
+                                return (
+                                    <InstructorSchedules
+                                        instructorId={selectedSection.faculty_id}
+                                        instructorName={formatFullName(instructor)}
+                                    />
+                                )
+                            })()}
+                        </>
+                    ) : (
+                        <></>
+                    )}
+                </div>
+            )}
+
+            {((selectedSection.room_id && rooms.length > 0) || (selectedSection.faculty_id && instructors.length > 0)) ? (
+                <></>
+            ) : (
+                <Button
+                    disabled={isLoading || addingSection || isError || !data || data.length == 0} className='w-full'
+                    onClick={() => setErollingStudent(true)}>
+                    <UserPlus />
+                    Enroll Student
+                </Button>
+            )}
         </div >
     )
 }

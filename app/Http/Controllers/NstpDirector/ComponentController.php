@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\NstpDirector;
 
 use App\Http\Controllers\Controller;
+use App\Models\EnrolledStudent;
 use App\Models\NstpComponent;
 use App\Models\NstpSection;
 use App\Models\NstpSectionSchedule;
@@ -494,5 +495,146 @@ class ComponentController extends Controller
             ->orderBy('nstp_component_id', 'asc')
             ->orderBy('section', 'asc')
             ->get();
+    }
+
+    public function getStudentsWithNstp(Request $request)
+    {
+        $schoolYearId = $request->schoolYearId;
+
+        $student = User::select('id')
+            ->orWhere('user_id_no', 'like', '%' . $request->studentId)
+            ->first();
+
+        // if student id not exist
+        if (!$student) {
+            return response()->json(['message' => 'No student found'], 400);
+        }
+
+        $studentInfo = User::where('users.id', $student->id)
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->select('users.id', 'user_id_no', 'user_information.first_name', 'user_information.middle_name', 'user_information.last_name')
+            ->first();
+
+        $enrolled = EnrolledStudent::where('school_year_id', $schoolYearId)
+            ->where('student_id', $student->id)
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->first();
+
+        if (!$enrolled) {
+            return response()->json(['message' => $studentInfo->first_name . ' ' . $studentInfo->middle_name . ' ' . $studentInfo->last_name . ' is not enrolled.'], 400);
+        }
+
+        $enrolledStudent = EnrolledStudent::select('enrolled_students.id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->where('school_year_id', '=', $request->schoolYearId)
+            ->where('student_id', '=', $student->id)
+            ->first();
+
+        if (!$enrolledStudent) {
+            return response()->json([
+                'error' => 'You are not currently enrolled in this school year.',
+            ], 403);
+        }
+
+        $classes = YearSectionSubjects::where('enrolled_students_id', $enrolledStudent->id)
+            ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
+            ->leftJoin('rooms', 'rooms.id', '=', 'year_section_subjects.room_id')
+            ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+
+            // NSTP joins
+            ->leftJoin('student_subject_nstp_schedule as nstp_schedule', 'nstp_schedule.student_subject_id', '=', 'student_subjects.id')
+            ->leftJoin('nstp_section_schedules', 'nstp_section_schedules.id', '=', 'nstp_schedule.nstp_section_schedule_id')
+            ->leftJoin('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->leftJoin('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->leftJoin('rooms as nstp_rooms', 'nstp_rooms.id', '=', 'nstp_section_schedules.room_id')
+            ->leftJoin('users as nstp_faculty', 'nstp_faculty.id', '=', 'nstp_section_schedules.faculty_id')
+            ->leftJoin('user_information as nstp_faculty_information', 'nstp_faculty.id', '=', 'nstp_faculty_information.user_id')
+            ->selectRaw('
+                        nstp_schedule.id as nstp_student_schedule_id,
+                        enrolled_students_id,
+                        student_subjects.id as student_subject_id,
+                        year_section_subjects.id,
+                        descriptive_title,
+                        subjects.type,
+                        component_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN nstp_faculty_information.first_name
+                            ELSE user_information.first_name
+                        END as first_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN nstp_faculty_information.last_name
+                            ELSE user_information.last_name
+                        END as last_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN nstp_faculty_information.middle_name
+                            ELSE user_information.middle_name
+                        END as middle_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_rooms.room_name, rooms.room_name)
+                            ELSE rooms.room_name
+                        END as room_name,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_section_schedules.start_time, year_section_subjects.start_time)
+                            ELSE year_section_subjects.start_time
+                        END as start_time,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_section_schedules.end_time, year_section_subjects.end_time)
+                            ELSE year_section_subjects.end_time
+                        END as end_time,
+                    
+                        CASE 
+                            WHEN subjects.type = "nstp" 
+                                THEN COALESCE(nstp_section_schedules.day, year_section_subjects.day)
+                            ELSE year_section_subjects.day
+                        END as day
+                    ')
+
+            ->with(['SecondarySchedule' => function ($query) {
+                $query->select(
+                    'subject_secondary_schedule.id',
+                    'year_section_subjects_id',
+                    'faculty_id',
+                    'room_id',
+                    'day',
+                    'start_time',
+                    'end_time',
+                    'rooms.room_name'
+                )->leftJoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
+            }])
+            ->get();
+
+        $hasNstp = collect($classes)->contains('type', 'nstp');
+
+        if (!$hasNstp) {
+            return response()->json(['message' => $studentInfo->first_name . ' ' . $studentInfo->middle_name . ' ' . $studentInfo->last_name . ' has no NSTP subject.'], 400);
+        }
+
+        return response()->json([
+            'message' => 'success',
+            'studentInfo' => $studentInfo,
+            'classes' => $classes
+        ]);
+    }
+
+    public function enrollStudent(Request $request)
+    {
+        StudentSubjectNstpSchedule::create([
+            'nstp_section_schedule_id' => $request->nstpSectionScheduleId,
+            'student_subject_id' => $request->studentNstpSubjectId,
+        ]);
     }
 }

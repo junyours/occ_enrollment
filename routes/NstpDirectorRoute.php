@@ -8,6 +8,10 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/section/{component}', [ComponentController::class, 'getSections'])->name('nstp-director.component.sections');
     Route::post('/nstp-director/add-section/{schoolYearId}', [ComponentController::class, 'addSection'])->name('nstp-director.add-section');
 
+    Route::post('/nstp-director/section/{component}/student-with-nstp', [ComponentController::class, 'getStudentsWithNstp'])->name('nstp-director.component.student-with-nstp');
+
+    Route::post('/nstp-director/section/{component}/enroll-student', [ComponentController::class, 'enrollStudent'])->name('nstp-director.component.enroll-student');
+
     Route::get('/nstp-director/section/{component}/{section}', [ComponentController::class, 'viewSectionStudents'])->name('nstp-director.component.sections.student-list');
     Route::post('/nstp-director/section/{component}/{section}', [ComponentController::class, 'getSectionSudents'])->name('nstp-director.component.sections.student-list');
 

@@ -160,7 +160,7 @@ export default function NstpEnrollment({ component, studentSubjectId, schoolYear
             }
         });
 
-        setConflicts(conflicts)
+        setConflicts(prev => [...prev, ...conflicts]);
     };
 
     const [detectingConflict, setDetectingConflict] = useState(true);
