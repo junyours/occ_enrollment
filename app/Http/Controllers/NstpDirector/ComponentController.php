@@ -18,6 +18,85 @@ use Inertia\Inertia;
 
 class ComponentController extends Controller
 {
+
+    public function viewDashboard()
+    {
+        return Inertia::render('NstpDirector/Dashboard/Index');
+    }
+
+    public function getDashboardData(Request $request)
+    {
+        $schoolYearId = $request->schoolYearId;
+
+        // 1. Component Stats (Optimized)
+        $componentStats = DB::table('nstp_components as c')
+            ->leftJoin('nstp_sections as s', function ($join) use ($schoolYearId) {
+                $join->on('s.nstp_component_id', '=', 'c.id')
+                    ->where('s.school_year_id', '=', $schoolYearId);
+            })
+            ->leftJoin('nstp_section_schedules as ss', 'ss.nstp_section_id', '=', 's.id')
+            ->leftJoin('student_subject_nstp_schedule as sns', 'sns.nstp_section_schedule_id', '=', 'ss.id')
+            ->groupBy('c.id', 'c.component_name')
+            ->select(
+                'c.component_name',
+                DB::raw('COUNT(sns.id) as total_students'),
+                DB::raw('COUNT(DISTINCT s.id) as total_sections')
+            )
+            ->get();
+
+        // 2. Summary Stats (Combined into one query where possible)
+        $facultyQuery = DB::table('nstp_section_schedules as ss')
+            ->join('nstp_sections as s', 'ss.nstp_section_id', '=', 's.id')
+            ->where('s.school_year_id', $schoolYearId)
+            ->selectRaw("
+            COUNT(CASE WHEN ss.faculty_id IS NOT NULL THEN 1 END) as assigned,
+            COUNT(CASE WHEN ss.faculty_id IS NULL THEN 1 END) as unassigned
+        ")
+            ->first();
+
+        $totalStudents = $componentStats->sum('total_students');
+        $totalSections = $componentStats->sum('total_sections');
+
+        // 3. Section Utilization
+        $sectionUtilization = DB::table('nstp_sections as s')
+            ->leftJoin('nstp_section_schedules as ss', 'ss.nstp_section_id', '=', 's.id')
+            ->leftJoin('student_subject_nstp_schedule as sns', 'sns.nstp_section_schedule_id', '=', 'ss.id')
+            ->join('nstp_components as c', 's.nstp_component_id', '=', 'c.id') // Join components here
+            ->where('s.school_year_id', $schoolYearId)
+            ->groupBy('s.id', 's.section', 's.max_students', 'c.component_name')
+            ->select(
+                's.section',
+                's.max_students',
+                'c.component_name', // Select this for filtering
+                DB::raw('COUNT(sns.id) as enrolled')
+            )
+            ->get();
+
+        // 4. Gender (Filtered by School Year)
+        $genderStats = DB::table('student_subject_nstp_schedule as sns')
+            ->join('nstp_section_schedules as ss', 'sns.nstp_section_schedule_id', '=', 'ss.id')
+            ->join('nstp_sections as s', 'ss.nstp_section_id', '=', 's.id')
+            ->join('nstp_components as c', 's.nstp_component_id', '=', 'c.id') // JOIN COMPONENTS
+            ->join('student_subjects as subj', 'subj.id', '=', 'sns.student_subject_id')
+            ->join('enrolled_students as es', 'es.id', '=', 'subj.enrolled_students_id')
+            ->join('user_information as ui', 'ui.user_id', '=', 'es.student_id')
+            ->where('s.school_year_id', $schoolYearId)
+            ->groupBy('c.component_name', 'ui.gender') // GROUP BY BOTH
+            ->select('c.component_name', 'ui.gender', DB::raw('COUNT(*) as total'))
+            ->get();
+
+        return response()->json([
+            'summary' => [
+                'totalStudents' => $totalStudents,
+                'totalSections' => $totalSections,
+                'assignedFaculty' => $facultyQuery->assigned ?? 0,
+                'unassignedFaculty' => $facultyQuery->unassigned ?? 0,
+            ],
+            'components' => $componentStats,
+            'sections' => $sectionUtilization,
+            'gender' => $genderStats,
+        ]);
+    }
     public function viewSections($component)
     {
         return Inertia::render('NstpDirector/ComponentSection/Index', [

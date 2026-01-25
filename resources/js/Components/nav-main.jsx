@@ -346,6 +346,11 @@ export function NavMain() {
         case "nstp_director":
             menuSections.push(
                 {
+                    items: [
+                        { name: "Dashboard", route: "nstp-director.dashboard", params: 'rotc', icon: Presentation },
+                    ],
+                },
+                {
                     label: "NSTP Components",
                     items: [
                         { name: "ROTC", route: "nstp-director.component.sections", params: 'rotc', icon: Shield },

@@ -118,6 +118,8 @@ class SuperAdminController extends Controller
             return redirect()->intended(route('ongoing-enrollment', absolute: false));
         } else if ($user->user_role == 'guidance') {
             return redirect()->intended(route('guidance.dashboard', absolute: false));
+        } else if ($user->user_role == 'nstp_director') {
+            return redirect()->intended(route('nstp-director.dashboard', absolute: false));
         } else {
             return redirect()->intended(route('classes', absolute: false));
         }
