@@ -1,6 +1,7 @@
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
 import { PageTitle } from '@/Components/ui/PageTitle'
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -11,9 +12,10 @@ import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios, { Axios } from 'axios';
-import { AlertCircle, AlertTriangle, BookOpen, MoveRightIcon, Trash, UserMinus } from 'lucide-react';
-import React, { useState } from 'react'
+import { AlertCircle, AlertTriangle, BookOpen, FileDown, MoveRightIcon, Trash, UserMinus } from 'lucide-react';
+import React, { useMemo, useState } from 'react'
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 const TableHeadTemplate = ({ children }) => {
     return (
@@ -71,7 +73,7 @@ export default function Index({ component, section }) {
     }
 
     const { data, isLoading, isError, refetch } = useQuery({
-        queryKey: ['nstp-director.component.sections.student-list', component, selectedSchoolYearEntry?.idm, section],
+        queryKey: ['nstp-director.component.sections.student-list', component, selectedSchoolYearEntry?.id, section],
         queryFn: getStudents,
         enabled: !!selectedSchoolYearEntry?.id && !!component && !!section,
     });
@@ -130,8 +132,6 @@ export default function Index({ component, section }) {
         setNstpComponentSections(grouped);
     };
 
-
-
     const [studentTomove, setStudentToMove] = useState({});
     const [openMoveStudent, setOpenMoveStudent] = useState(false);
     const [moving, setMoving] = useState(false);
@@ -170,13 +170,93 @@ export default function Index({ component, section }) {
         }
     };
 
+    const [search, setSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
+
+    // Filtered data based on search
+    const filteredData = useMemo(() => {
+        if (!data) return [];
+        return data.filter(student => {
+            const fullName = `${student.first_name} ${student.last_name}`.toLowerCase();
+            const idNo = student.user_id_no.toLowerCase();
+            const sectionName = `${student.course_name_abbreviation}-${student.year_level_id}${student.section}`.toLowerCase();
+            const term = search.toLowerCase();
+            return fullName.includes(term) || idNo.includes(term) || sectionName.includes(term);
+        });
+    }, [data, search]);
+
+    // Pagination
+    const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
+    const paginatedData = filteredData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+    const handlePrevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
+    const handleNextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
+
+    const handleDownloadExcel = () => {
+        if (!filteredData || filteredData.length === 0) return;
+
+        const exportData = filteredData.map((student, index) => ({
+            No: index + 1,
+            ID: student.user_id_no,
+            Name: formatFullName(student),
+            Section: `${student.course_name_abbreviation}-${student.year_level_id}${student.section}`,
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+
+        // Approximate widths in Excel (characters, not pixels)
+        ws['!cols'] = [
+            { wch: 6 },
+            { wch: 14 },
+            { wch: 30 },
+            { wch: 15 },
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Students');
+
+        const name = `${component.toUpperCase()}_Section_${section}.xlsx`;
+        XLSX.writeFile(wb, name);
+    };
+
     return (
         <div className='space-y-4'>
-            <PageTitle align='center'>{component.toUpperCase()} | Section {section}</PageTitle>
-
             <Card>
-                <CardHeader className="mb-2">
-                    <CardTitle className="text-2xl">Students</CardTitle>
+                <CardHeader className="mb-2 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                    <CardTitle className="text-4xl">{component.toUpperCase()} | Section {section}</CardTitle>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                        <div className="relative w-64">
+                            <Input
+                                type="text"
+                                placeholder="Search students..."
+                                className="w-full pr-8" // padding right for X button
+                                value={search}
+                                onChange={e => {
+                                    setSearch(e.target.value);
+                                    setCurrentPage(1); // reset page on search
+                                }}
+                            />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    ✕
+                                </button>
+                            )}
+                        </div>
+
+                        <Button
+                            onClick={handleDownloadExcel}
+                            className="bg-green-600 hover:bg-green-500"
+                            variant=""
+                        >
+                            <FileDown />
+                            Excel
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {!selectedSchoolYearEntry?.id ? (
@@ -191,7 +271,7 @@ export default function Index({ component, section }) {
                             <p className="text-sm font-medium">Failed to load students</p>
                             <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
                         </div>
-                    ) : (!data || data.length == 0) ? (
+                    ) : (!paginatedData || paginatedData.length === 0) ? (
                         <TableHeadTemplate>
                             <TableRow>
                                 <TableCell colSpan={6}>
@@ -206,55 +286,64 @@ export default function Index({ component, section }) {
                             </TableRow>
                         </TableHeadTemplate>
                     ) : (
-                        <TableHeadTemplate>
-                            {data.map((section, index) => {
-                                const idNo = section.user_id_no;
-                                const name = formatFullName(section);
-                                const sectionName = `${section.course_name_abbreviation}-${section.year_level_id}${section.section}`;
-                                return (
-                                    <TableRow key={idNo}>
-                                        <TableCell>{index + 1}.</TableCell>
-                                        <TableCell>{idNo}</TableCell>
-                                        <TableCell>{name}</TableCell>
-                                        <TableCell>{sectionName}</TableCell>
-
-                                        <TableCell className='flex justify-end'>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        onClick={() => {
-                                                            setStudentToMove(section);
-                                                            setOpenMoveStudent(true);
-                                                            getAllNstpSections();
-                                                        }}
-                                                        variant="icon"
-                                                        className="text-yellow-500 py-0 h-min"
-                                                    >
-                                                        <MoveRightIcon className="h-4 w-4" />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Move student</TooltipContent>
-                                            </Tooltip>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        onClick={() => {
-                                                            setOpenRemoveStudent(true)
-                                                            setStudentToReMove(section)
-                                                        }}
-                                                        variant="icon"
-                                                        className="text-red-500 py-0 h-min"
-                                                    >
-                                                        <UserMinus className="h-4 w-4" />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Remove student</TooltipContent>
-                                            </Tooltip>
-                                        </TableCell>
-                                    </TableRow>
-                                )
-                            })}
-                        </TableHeadTemplate>
+                        <>
+                            <Card>
+                                <TableHeadTemplate>
+                                    {paginatedData.map((student, index) => {
+                                        const idNo = student.user_id_no;
+                                        const name = formatFullName(student)
+                                        const sectionName = `${student.course_name_abbreviation}-${student.year_level_id}${student.section}`;
+                                        return (
+                                            <TableRow key={idNo}>
+                                                <TableCell>{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}.</TableCell>
+                                                <TableCell>{idNo}</TableCell>
+                                                <TableCell>{name}</TableCell>
+                                                <TableCell>{sectionName}</TableCell>
+                                                <TableCell className="flex justify-end gap-2">
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                onClick={() => {
+                                                                    setStudentToMove(student);
+                                                                    setOpenMoveStudent(true);
+                                                                    getAllNstpSections();
+                                                                }}
+                                                                variant="icon"
+                                                                className="text-yellow-500 py-0 h-min"
+                                                            >
+                                                                <MoveRightIcon className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Move student</TooltipContent>
+                                                    </Tooltip>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                onClick={() => {
+                                                                    setOpenRemoveStudent(true);
+                                                                    setStudentToReMove(student);
+                                                                }}
+                                                                variant="icon"
+                                                                className="text-red-500 py-0 h-min"
+                                                            >
+                                                                <UserMinus className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>Remove student</TooltipContent>
+                                                    </Tooltip>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableHeadTemplate>
+                            </Card>
+                            {/* Pagination Controls */}
+                            <div className="flex justify-end items-center gap-2 mt-4">
+                                <Button variant='outline' onClick={handlePrevPage} disabled={currentPage === 1}>Prev</Button>
+                                <span>{currentPage} / {totalPages}</span>
+                                <Button variant='outline' onClick={handleNextPage} disabled={currentPage === totalPages}>Next</Button>
+                            </div>
+                        </>
                     )}
                 </CardContent>
             </Card>
