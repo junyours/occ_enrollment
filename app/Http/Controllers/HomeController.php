@@ -15,6 +15,10 @@ class HomeController extends Controller
 
         $user = Auth::user();
 
+        if(!$user){
+            return redirect()->route('login');
+        }
+
         if ($ongoingEnrollment && ($user->user_role == 'registrar' || $user->user_role == 'program_head' || $user->user_role == 'evaluator')) {
             return redirect()->intended(route('dashboard', absolute: false));
         } else if ($user->user_role == 'super_admin') {
