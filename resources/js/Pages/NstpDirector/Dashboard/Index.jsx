@@ -5,11 +5,11 @@ import { useSchoolYearStore } from '@/Components/useSchoolYearStore'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import axios from 'axios'
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
+import { Progress } from '@/Components/ui/progress'
+import { Skeleton } from '@/Components/ui/skeleton'
+import { Button } from '@/Components/ui/button'
 import {
     Users,
     LayoutGrid,
@@ -18,7 +18,7 @@ import {
     FilterX,
     Search
 } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Input } from '@/Components/ui/input'
 
 // Animation Variants
 const containerVariants = {
