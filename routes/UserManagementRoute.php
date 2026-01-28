@@ -5,7 +5,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'maintenance', 'UserManagementPermission'])->group(function () {
     Route::get('/faculty-list', [UserController::class, 'viewFaculty'])->name('faculty-list');
+
     Route::get('/student-list', [UserController::class, 'viewStudent'])->name('student-list');
+    Route::post('/student-list', [UserController::class, 'getStudents'])->name('student-list');
+    
     Route::post('/api/get/faculty-list-department', [UserController::class, 'getFacultyListDepartment'])->name('get.faculty.list.department');
     Route::post('/api/get/faculty-list', [UserController::class, 'getFacultyList'])->name('get.faculty.list');
 
@@ -34,3 +37,4 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::patch('/set-faculty-active-status', [UserController::class, 'updateActiveStatus']);
     Route::patch('/set-faculty-role', [UserController::class, 'updateRole']);
 });
+

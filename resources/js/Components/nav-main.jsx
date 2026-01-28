@@ -73,6 +73,7 @@ export function NavMain() {
                     label: "People",
                     items: [
                         { name: "Faculty List", route: "faculty-list", icon: User },
+                        { name: "Student List", route: "student-list", icon: PiStudent },
                     ],
                 },
                 {

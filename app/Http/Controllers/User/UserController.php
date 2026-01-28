@@ -116,7 +116,6 @@ class UserController extends Controller
         return back();
     }
 
-
     public function viewStudent(Request $request)
     {
         $students = User::select(
@@ -141,10 +140,19 @@ class UserController extends Controller
             ->paginate(10) // paginate with 10 students per page
             ->withQueryString(); // preserve query params like ?page=
 
-        return Inertia::render('UserManagement/StudentList', [
-            'students' => $students,
-            'filters' => $request->only(['search'])
-        ]);
+        $user = auth::user();
+
+        return match ($user->user_role) {
+            'registrar' =>  Inertia::render('UserManagement/StudentList', [
+                'students' => $students,
+                'filters' => $request->only(['search'])
+            ]),
+            'program_head' => Inertia::render('ProgramHead/StudentList/Index', [
+                'students' => $students,
+                'filters' => $request->only(['search'])
+            ]),
+            default => abort(403),
+        };
     }
 
     public function studentInfo($id)
