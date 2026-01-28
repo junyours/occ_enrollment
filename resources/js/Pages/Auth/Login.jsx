@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { Alert, AlertTitle } from "@/Components/ui/alert";
-import { CheckCircle2, GraduationCap, AlertCircle, BookOpen, BarChart3, Globe } from "lucide-react";
+import { CheckCircle2, GraduationCap, BookOpen, BarChart3, Globe } from "lucide-react";
 import AppLogo from "@/Components/AppLogo";
 import { TwoModeToggle } from "@/Components/two-modes-toggle";
 import { Checkbox } from "@/Components/ui/checkbox";
@@ -78,8 +78,9 @@ export default function Login({ status }) {
                 </div>
             )}
 
-            <div className="w-full max-w-5xl animate-in fade-in zoom-in-95 duration-700">
-                <Card className="relative overflow-hidden shadow-2xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+            <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out will-change-transform">
+                <Card className="relative overflow-hidden shadow-2xl border-0 bg-white dark:bg-slate-900">
+                    
                     {/* Theme Toggle */}
                     <div className="absolute top-4 right-4 z-20">
                         <TwoModeToggle />
@@ -87,20 +88,22 @@ export default function Login({ status }) {
 
                     <div className="grid lg:grid-cols-2">
                         {/* Left Side - Branding & Features */}
-                        <div className="hidden lg:flex flex-col justify-between p-12 bg-primary text-primary-foreground relative overflow-hidden">
-                            {/* Decorative Background Elements with subtle pulse */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl animate-pulse"></div>
+                        <div className="hidden lg:flex flex-col justify-between p-12 bg-primary text-primary-foreground relative">
+                            {/* Replaced blur-3xl with lower-cost opacity circles */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -translate-y-32 translate-x-32" />
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400 opacity-20 rounded-full translate-y-32 -translate-x-32" />
                             <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full translate-y-32 -translate-x-32 blur-3xl animate-pulse duration-1000"></div>
                             <GraduationCap className="absolute -bottom-10 -right-10 h-64 w-64 text-white/5 -rotate-12" />
 
                             <div className="relative z-10 space-y-12">
-                                <div className="space-y-6 animate-in slide-in-from-left-8 duration-700 delay-150 fill-mode-both">
+                                {/* Staggered entry using transform-gpu */}
+                                <div className="space-y-6 animate-in slide-in-from-left-4 duration-500 delay-150 fill-mode-both transform-gpu">
                                     <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl transition-transform hover:scale-110">
                                         <GraduationCap className="h-8 w-8" />
                                     </div>
                                     <div className="space-y-2">
-                                        <h2 className="text-3xl font-bold tracking-tight">Opol Community College</h2>
-                                        <p className="text-lg font-medium text-blue-100 opacity-80">Student Information System</p>
+                                        <h2 className="text-3xl font-bold">Opol Community College</h2>
+                                        <p className="text-lg opacity-80">Student Information System</p>
                                     </div>
                                 </div>
 
