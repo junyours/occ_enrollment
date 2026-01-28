@@ -41,6 +41,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ResearchCoordinator' => \App\Http\Middleware\ResearchCoordinator::class,
             'GenedCoordinator' => \App\Http\Middleware\GenedCoordinator::class,
             'NstpDirector' => \App\Http\Middleware\NstpDirector::class,
+            'StudentManagementPermission' => \App\Http\Middleware\StudentManagementPermission::class,
         ]);
         //
     })
