@@ -7,9 +7,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { formatFullName } from '@/Lib/Utils';
 import { Input } from '@/Components/ui/input';
-import axios from 'axios';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import StudentGrades from './StudentGrades';
+import StudentGrades from '../../components/StudentGrades';
 
 export default function Index({ students, filters }) {
 

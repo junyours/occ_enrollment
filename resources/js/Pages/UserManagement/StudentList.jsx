@@ -3,7 +3,7 @@ import {
 } from '@/Components/ui/table';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { ChevronLeft, ChevronRight, Edit3Icon, Plus, Search, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit3Icon, Ellipsis, Eye, Plus, Search, X } from 'lucide-react';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -13,6 +13,8 @@ import AddStudent from './AddStudent';
 import { Input } from '@/Components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import axios from 'axios';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import StudentGrades from '../components/StudentGrades';
 
 export default function StudentList({ students, filters }) {
 
@@ -49,6 +51,10 @@ export default function StudentList({ students, filters }) {
                 setEditMode(true)
                 setOpen(true);
             });
+    };
+
+    const viewGrades = (student) => {
+        setSelectedStudent(student);
     };
 
     return (
@@ -162,23 +168,29 @@ export default function StudentList({ students, filters }) {
                                             <TableCell>{student.email_address}</TableCell>
                                             <TableCell className='w-32'>{student.contact_number}</TableCell>
                                             <TableCell className='w-20'>
-                                                <div className='flex justify-center items-center'>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                className="h-max w-max text-green-500"
-                                                                size="icon"
-                                                                onClick={() => editStudent(student.user_id_no)}
-                                                            >
-                                                                <Edit3Icon className="w-4 h-4" />
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant='ghost' className=''>
+                                                            <Ellipsis />
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent align='start' className="w-36 space-y-1 flex flex-col p-1">
+                                                        <Button
+                                                            onClick={() => viewGrades(student)}
+                                                            variant='ghost'
+                                                            className='flex justify-between w-full px-2 py-1.5  h-max'>
+                                                            <span>Grades</span> <Eye size={18} />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="flex justify-between w-full px-2 py-1.5  h-max"
+                                                            onClick={() => editStudent(student.user_id_no)}
+                                                        >
                                                             Edit
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </div>
+                                                            <Edit3Icon className="w-4 h-4" />
+                                                        </Button>
+                                                    </PopoverContent>
+                                                </Popover>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -259,6 +271,9 @@ export default function StudentList({ students, filters }) {
             </Card>
             {(editMode || open) && (
                 <AddStudent open={open} setOpen={setOpen} student={studentEdit} editing={editMode} setEditing={setEditMode} setStudent={setStudentEdit} />
+            )}
+            {selectedStudent?.id && (
+                <StudentGrades studentId={selectedStudent.id} open={!!selectedStudent.id} setOpen={setSelectedStudent} />
             )}
         </div>
     );
