@@ -157,187 +157,243 @@
     }
 
     .maroon {
-        /* Backgrounds & Foregrounds */
-        --background: 0 0% 100%;
-        /* Pure white background */
-        --foreground: 350 80% 15%;
-        /* Dark maroon for contrast */
+        /* Backgrounds: Shifted to a very subtle, warm "dusty" white */
+        --background: 347 10% 97%;
+        --foreground: 347 50% 5%;
 
-        --card: 350 80% 95%;
-        --card-foreground: 350 80% 15%;
+        --card: 0 0% 100%;
+        --card-foreground: 347 50% 5%;
 
-        --popover: 350 80% 95%;
-        --popover-foreground: 350 80% 15%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 347 50% 5%;
 
-        /* Primary Colors */
-        --primary: 350 75% 40%;
-        /* Deep maroon */
-        --primary-foreground: 0 0% 98%;
-        /* Light text for contrast */
+        /* The Core Darkish Maroon - Dropped Lightness from 35% to 22% */
+        --primary: 347 70% 22%;
+        --primary-hover: 347 70% 16%;
+        --primary-foreground: 0 0% 100%;
 
-        /* Secondary */
-        --secondary: 350 60% 90%;
-        --secondary-foreground: 350 50% 20%;
+        --secondary: 347 15% 92%;
+        --secondary-foreground: 347 60% 10%;
 
-        /* Muted Colors */
-        --muted: 350 40% 85%;
-        --muted-foreground: 350 30% 35%;
+        --muted: 347 10% 92%;
+        --muted-foreground: 347 10% 40%;
 
-        /* Accent Colors */
-        --accent: 350 50% 80%;
-        --accent-foreground: 350 50% 20%;
+        --accent: 347 20% 90%;
+        --accent-hover: 347 25% 85%;
+        --accent-foreground: 347 70% 20%;
 
-        /* Alerts & Feedback */
-        --destructive: 0 84% 50%;
+        --destructive: 0 70% 45%;
+        --destructive-hover: 0 70% 35%;
         --destructive-foreground: 0 0% 100%;
-        --success: 142.1 75% 35%;
-        --success-foreground: 350 40% 98%;
 
-        /* Border, Input, and Ring */
-        --border: 350 40% 70%;
-        --input: 350 40% 70%;
-        --ring: 350 75% 40%;
+        --warning: 30 80% 45%;
+        --warning-hover: 30 80% 35%;
+        --warning-foreground: 0 0% 100%;
 
-        /* Chart Colors */
-        --chart-1: 350 80% 50%;
-        --chart-2: 10 60% 40%;
-        --chart-3: 20 50% 30%;
-        --chart-4: 30 75% 55%;
-        --chart-5: 40 100% 60%;
+        /* Borders: Slightly deeper to hold the dark maroon well */
+        --border: 347 15% 85%;
+        --input: 347 15% 85%;
 
-        /* Sidebar */
-        --sidebar-background: 350 80% 25%;
-        --sidebar-foreground: 0 0% 100%;
-        --sidebar-primary: 350 85% 35%;
-        --sidebar-primary-foreground: 0 0% 98%;
-        --sidebar-accent: 350 70% 45%;
+        --ring: 347 70% 22%;
+        --focus-ring: 347 70% 30%;
+        --radius: 0.7rem;
+
+        /* Interactive States */
+        --hover: 347 60% 18%;
+        --active: 347 70% 12%;
+
+        /* Charts - Moody Jewel Tones */
+        --chart-1: 347 70% 22%;
+        /* Deep Maroon */
+        --chart-2: 347 40% 45%;
+        /* Dusty Rose */
+        --chart-3: 15 40% 35%;
+        /* Rust */
+        --chart-4: 300 30% 20%;
+        /* Midnight Plum */
+        --chart-5: 347 20% 60%;
+        /* Muted Velvet */
+
+        /* Sidebar - Changed to Solid Dark Maroon for a premium look */
+        --sidebar-background: 347 65% 12%;
+        /* Very Dark Cherry */
+        --sidebar-foreground: 347 20% 95%;
+        /* Pale pink text */
+        --sidebar-primary: 347 70% 22%;
+        --sidebar-primary-hover: 347 70% 28%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 347 60% 18%;
+        --sidebar-accent-hover: 347 60% 22%;
         --sidebar-accent-foreground: 0 0% 100%;
-        --sidebar-border: 350 50% 60%;
-        /* --sidebar-ring: 350 75% 40%; */
+        --sidebar-border: 347 60% 15%;
+
+        --toggle-active-bg: 347 70% 22%;
+        --toggle-active-text: 0 0% 100%;
+
+        /* Timetable */
+        --timetable-outside-border: 347 50% 5%;
+        --timetable-inside-cells-border: 347 15% 82%;
+        --timetable-header-bg: 347 15% 90%;
+        --timetable-timeslots-bg: 30 30% 94%;
+        --timetable-schedules-bg: 0 0% 100%;
+
+        --male-label-color: 347, 50%, 5%;
+        --female-label-color: 347, 50%, 5%;
     }
 
     .blue {
         /* Backgrounds & Foregrounds */
-        --background: 0 0% 100%;
-        /* Pure white background */
+        --background: 220 33% 98%;
+        /* Softened white with a cool touch */
         --foreground: 222.2 84% 12%;
-        /* Dark blue for contrast */
 
-        --card: 220 80% 95%;
+        /* Cards: Lightened the blue tint for better content focus */
+        --card: 220 40% 97%;
         --card-foreground: 222.2 84% 12%;
 
-        --popover: 220 80% 95%;
+        --popover: 220 40% 97%;
         --popover-foreground: 222.2 84% 12%;
 
-        /* Primary Colors */
-        --primary: 221.2 83.2% 55%;
-        /* Vibrant blue */
-        --primary-foreground: 0 0% 98%;
-        /* Light text for contrast */
+        /* Primary: Deep Sapphire (Lightness dropped from 55% to 45%) */
+        --primary: 221.2 75% 45%;
+        --primary-foreground: 0 0% 100%;
 
-        /* Secondary */
-        --secondary: 220 60% 90%;
+        /* Secondary: Soft Slate Blue */
+        --secondary: 220 35% 91%;
         --secondary-foreground: 222.2 50% 20%;
 
         /* Muted Colors */
-        --muted: 220 40% 85%;
-        --muted-foreground: 222.2 30% 35%;
+        --muted: 220 20% 90%;
+        --muted-foreground: 222.2 20% 40%;
 
         /* Accent Colors */
-        --accent: 220 50% 80%;
-        --accent-foreground: 222.2 50% 20%;
+        --accent: 220 40% 88%;
+        --accent-hover: 220 45% 82%;
+        --accent-foreground: 221.2 75% 35%;
 
         /* Alerts & Feedback */
-        --destructive: 0 84% 50%;
+        --destructive: 0 75% 50%;
         --destructive-foreground: 0 0% 100%;
-        --success: 142.1 75% 35%;
-        --success-foreground: 210 40% 98%;
+        --success: 142.1 70% 35%;
+        --success-foreground: 0 0% 100%;
 
         /* Border, Input, and Ring */
-        --border: 220 40% 70%;
-        --input: 220 40% 70%;
-        --ring: 221.2 85% 55%;
+        --border: 220 30% 82%;
+        --input: 220 30% 82%;
+        --ring: 221.2 75% 45%;
 
-        /* Chart Colors */
-        --chart-1: 197 80% 50%;
-        --chart-2: 173 60% 40%;
-        --chart-3: 200 50% 30%;
-        --chart-4: 205 75% 55%;
-        --chart-5: 210 100% 60%;
+        /* Chart Colors - Refined Oceanic Palette */
+        --chart-1: 221.2 75% 45%;
+        /* Deep Blue */
+        --chart-2: 197 70% 45%;
+        /* Seafoam */
+        --chart-3: 215 40% 35%;
+        /* Slate */
+        --chart-4: 200 60% 55%;
+        /* Sky */
+        --chart-5: 225 30% 60%;
+        /* Periwinkle */
 
-        /* Sidebar */
-        --sidebar-background: 220 80% 25%;
-        --sidebar-foreground: 0 0% 100%;
-        --sidebar-primary: 221.2 85% 50%;
-        --sidebar-primary-foreground: 0 0% 98%;
-        --sidebar-accent: 220 70% 45%;
+        /* Sidebar: Professional Deep Navy */
+        --sidebar-background: 222 60% 12%;
+        /* Darker & smoother */
+        --sidebar-foreground: 210 40% 98%;
+        --sidebar-primary: 221.2 75% 45%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 222 50% 20%;
+        /* Subtle hover */
+        --sidebar-accent-hover: 222 50% 25%;
         --sidebar-accent-foreground: 0 0% 100%;
-        --sidebar-border: 220 50% 60%;
-        /* --sidebar-ring: 221.2 85% 55%; */
+        --sidebar-border: 222 50% 18%;
     }
 
     .yellow {
-        --background: 0 0% 100%;
-        --foreground: 35 40% 15%;
-        --card: 48 82% 88%;
-        --card-foreground: 35 40% 15%;
-        --popover: 48 82% 88%;
-        --popover-foreground: 35 40% 15%;
-        --primary: 42 98% 58%;
-        --primary-hover: 42 98% 50%;
-        --primary-foreground: 35 40% 15%;
-        --secondary: 46 85% 78%;
-        --secondary-foreground: 35 45% 20%;
-        --muted: 48 65% 85%;
-        --muted-foreground: 35 25% 40%;
-        --accent: 46 85% 78%;
-        --accent-hover: 46 85% 70%;
-        --accent-foreground: 35 45% 20%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-hover: 0 84.2% 50%;
-        --destructive-foreground: 210 40% 98%;
-        --warning: 30 100% 50%;
-        --warning-hover: 30 100% 45%;
-        --warning-foreground: 45 30% 15%;
-        --border: 46 55% 75%;
-        --input: 46 55% 75%;
-        --ring: 42 98% 52%;
-        --focus-ring: 42 100% 48%;
+        /* Backgrounds: Creamy, soft neutral to reduce eye strain */
+        --background: 45 30% 98%;
+        --foreground: 45 60% 8%;
+
+        --card: 0 0% 100%;
+        --card-foreground: 45 60% 8%;
+
+        --popover: 0 0% 100%;
+        --popover-foreground: 45 60% 8%;
+
+        /* Primary Yellow: High-visibility but "calm" saturation */
+        --primary: 46 82% 48%;
+        /* Solid Sunflower Yellow */
+        --primary-hover: 46 82% 40%;
+        --primary-foreground: 45 80% 10%;
+        /* Keeping text dark for legibility */
+
+        --secondary: 46 60% 93%;
+        /* Soft butter tint */
+        --secondary-foreground: 46 80% 15%;
+
+        --muted: 46 20% 94%;
+        --muted-foreground: 46 15% 45%;
+
+        --accent: 46 50% 90%;
+        --accent-hover: 46 60% 85%;
+        --accent-foreground: 46 85% 25%;
+
+        --destructive: 0 75% 55%;
+        --destructive-hover: 0 75% 45%;
+        --destructive-foreground: 0 0% 100%;
+
+        --warning: 38 90% 50%;
+        --warning-hover: 38 90% 40%;
+        --warning-foreground: 0 0% 100%;
+
+        /* Warm, subtle borders */
+        --border: 46 25% 88%;
+        --input: 46 25% 88%;
+
+        --ring: 46 82% 48%;
+        --focus-ring: 46 90% 40%;
+        --radius: 0.7rem;
 
         /* Interactive States */
-        --hover: 42 98% 50%;
-        --active: 42 100% 45%;
+        --hover: 46 82% 44%;
+        --active: 46 82% 38%;
 
-        /* Charts */
-        --chart-1: 42 98% 58%;
-        --chart-2: 40 90% 62%;
-        --chart-3: 38 88% 65%;
-        --chart-4: 44 95% 56%;
-        --chart-5: 36 92% 60%;
+        /* Charts: Warm Sunny Palette */
+        --chart-1: 46 82% 48%;
+        --chart-2: 35 85% 55%;
+        --chart-3: 55 50% 45%;
+        --chart-4: 25 70% 50%;
+        --chart-5: 46 30% 70%;
 
-        /* Sidebar - Enhanced with more vibrant yellow */
-        --sidebar-background: 45 100% 75%;
-        --sidebar-foreground: 35 50% 18%;
-        --sidebar-primary: 42 100% 55%;
-        --sidebar-primary-hover: 42 100% 48%;
-        --sidebar-primary-foreground: 0 0% 100%;
-        --sidebar-accent: 48 95% 62%;
-        --sidebar-accent-hover: 48 95% 55%;
-        --sidebar-accent-foreground: 35 50% 18%;
-        --sidebar-border: 42 100% 60%;
-        /* --sidebar-ring: 42 100% 45%; */
+        /* Sidebar: Solid "Darkish" Yellow (Mustard/Ochre) */
+        /* This provides contrast without being black/brown */
+        --sidebar-background: 46 65% 15%;
+        /* Deep Mustard-Black */
+        --sidebar-foreground: 46 40% 95%;
+        /* Cream text */
 
-        --toggle-active-bg: 42 98% 58%;
-        --toggle-active-text: 35 40% 15%;
+        --sidebar-primary: 46 82% 48%;
+        /* Bright active state */
+        --sidebar-primary-hover: 46 82% 55%;
+        --sidebar-primary-foreground: 45 80% 10%;
 
-        --timetable-outside-border: 35 45% 25%;
-        --timetable-inside-cells-border: 40 30% 55%;
-        --timetable-header-bg: 46 85% 78%;
-        --timetable-timeslots-bg: 48 90% 75%;
-        --timetable-schedules-bg: 45 88% 90%;
+        --sidebar-accent: 46 50% 22%;
+        /* Hover highlight */
+        --sidebar-accent-hover: 46 50% 26%;
+        --sidebar-accent-foreground: 46 100% 98%;
 
-        --male-label-color: 45, 30%, 20%;
-        --female-label-color: 45, 30%, 20%;
+        --sidebar-border: 46 50% 20%;
+
+        --toggle-active-bg: 46 82% 48%;
+        --toggle-active-text: 45 80% 10%;
+
+        /* Timetable */
+        --timetable-outside-border: 46 70% 12%;
+        --timetable-inside-cells-border: 46 25% 85%;
+        --timetable-header-bg: 46 30% 92%;
+        --timetable-timeslots-bg: 46 50% 96%;
+        --timetable-schedules-bg: 0 0% 100%;
+
+        --male-label-color: 46, 60%, 10%;
+        --female-label-color: 46, 60%, 10%;
     }
 
     /* 🌍 Root Theme (Default) */
