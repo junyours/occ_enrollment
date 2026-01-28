@@ -348,7 +348,7 @@ export function NavMain() {
             menuSections.push(
                 {
                     items: [
-                        { name: "Dashboard", route: "nstp-director.dashboard", params: 'rotc', icon: Presentation },
+                        { name: "Dashboard", route: "nstp-director.dashboard", icon: Presentation },
                     ],
                 },
                 {
