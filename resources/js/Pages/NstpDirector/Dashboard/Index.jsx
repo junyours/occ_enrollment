@@ -85,7 +85,7 @@ export default function Index() {
     const currentTotalStudents = gender.reduce((acc, curr) => acc + curr.total, 0) || 1;
 
     return (
-        <div className="p-6 space-y-8 bg-background text-foreground min-h-screen">
+        <div className="space-y-8 bg-background text-foreground min-h-screen">
             {/* KPI STATS - Same as your code */}
             <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard title="Total Enrollment" value={`${summary.totalStudents}/${summary.nstpEnrolledStudents}`} icon={<Users className="h-4 w-4" />} description="Grand total students" />

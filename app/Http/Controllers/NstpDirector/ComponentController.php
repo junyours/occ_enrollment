@@ -106,12 +106,115 @@ class ComponentController extends Controller
             'gender' => $genderStats,
         ]);
     }
+
+    public function viewStudents(Request $request)
+    {
+        $tab = $request->tab;
+        $search = $request->search;
+
+        return Inertia::render('NstpDirector/Students/Index', [
+            'tab' => $tab,
+            'search' => $search,
+        ]);
+    }
+
+    public function getStudentsData(Request $request)
+    {
+        $tab = $request->tab;
+        $search = $request->search;
+        $schoolYearId = $request->schoolYearId;
+
+        if ($tab == 'enrolled') {
+            return $this->getEnrolledStudents($schoolYearId, $search);
+        } elseif ($tab == 'not-enrolled') {
+            return $this->getNotEnrolledStudents($schoolYearId, $search);
+        }
+
+        return $this->getEnrolledStudents($schoolYearId, $search);
+    }
+
+    private function getEnrolledStudents($schoolYearId, $search)
+    {
+        return StudentSubjectNstpSchedule::join('nstp_section_schedules', 'student_subject_nstp_schedule.nstp_section_schedule_id', '=', 'nstp_section_schedules.id')
+            ->join('nstp_sections', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->where('nstp_sections.school_year_id', $schoolYearId)
+            ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'user_information.user_id', '=', 'users.id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->where(function ($query) use ($search) {
+                if ($search) {
+                    $query->where('users.user_id_no', 'like', "%{$search}%")
+                        ->orWhere('user_information.first_name', 'like', "%{$search}%")
+                        ->orWhere('user_information.last_name', 'like', "%{$search}%");
+                }
+            })
+            ->select(
+                'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
+                'enrolled_students.id as enrolled_student_id',
+                'nstp_sections.section as nstp_section',
+                'component_name',
+                'student_subject_nstp_schedule.created_at as enrolled_date',
+                'course_name_abbreviation as course',
+                'year_section.section as course_section',
+                'year_level_id',
+            )
+            ->orderBy('enrolled_date', 'DESC')
+            ->distinct()
+            ->paginate(10)
+            ->withQueryString();
+    }
+
+    private function getNotEnrolledStudents($schoolYearId, $search)
+    {
+        return StudentSubject::join('year_section_subjects', 'student_subjects.year_section_subjects_id', '=', 'year_section_subjects.id')
+            ->join('year_section', 'year_section_subjects.year_section_id', '=', 'year_section.id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->join('subjects', 'year_section_subjects.subject_id', '=', 'subjects.id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'user_information.user_id', '=', 'users.id')
+            ->leftJoin('student_subject_nstp_schedule', 'student_subject_nstp_schedule.student_subject_id', '=', 'student_subjects.id')
+            ->where('year_section.school_year_id', $schoolYearId)
+            ->where('subjects.type', 'nstp')
+            ->where(function ($query) use ($search) {
+                if ($search) {
+                    $query->where('users.user_id_no', 'like', "%{$search}%")
+                        ->orWhere('user_information.first_name', 'like', "%{$search}%")
+                        ->orWhere('user_information.last_name', 'like', "%{$search}%");
+                }
+            })
+            ->whereNull('student_subject_nstp_schedule.id')
+            ->select(
+                'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
+                'enrolled_students.id as enrolled_student_id',
+                'course_name_abbreviation as course',
+                'year_section.section as course_section',
+                'year_level_id',
+                'contact_number'
+            )
+            ->orderBy('last_name', 'ASC')
+            ->distinct()
+            ->paginate(10)
+            ->withQueryString();
+    }
+
     public function viewSections($component)
     {
         return Inertia::render('NstpDirector/ComponentSection/Index', [
             'component' => $component
         ]);
     }
+
     public function getSections($component, Request $request)
     {
         $componentId = NstpComponent::where('component_name', $component)->first()->id;

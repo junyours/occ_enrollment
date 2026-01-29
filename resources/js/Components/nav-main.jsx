@@ -349,6 +349,7 @@ export function NavMain() {
                 {
                     items: [
                         { name: "Dashboard", route: "nstp-director.dashboard", icon: Presentation },
+                        { name: "Students", route: "nstp-director.students", icon: Users },
                     ],
                 },
                 {
@@ -383,15 +384,16 @@ export function NavMain() {
                 </SidebarMenu>
             )}
 
-            {menuSections.map((section) => (
-                <SidebarMenu key={section.label} className="space-y-0.5 mb-4">
+            {menuSections.map((section, index) => (
+                <SidebarMenu key={index} className="space-y-0.5 mb-4">
                     <SidebarGroupLabel className="px-3 text-xs uppercase text-muted-foreground h-min">
                         {section.label}
                     </SidebarGroupLabel>
                     {section.items.map((item) => {
                         const itemUrl = route(item.route, item.params)
                         const itemPath = new URL(itemUrl).pathname
-                        const isActive = currentUrl == itemPath || currentUrl.startsWith(`${itemPath}/`)
+                        const pathname = currentUrl.split('?')[0];
+                        const isActive = pathname === itemPath || pathname.startsWith(`${itemPath}/`);
 
                         return (
                             <SidebarMenuItem
