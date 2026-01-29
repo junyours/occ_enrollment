@@ -122,7 +122,7 @@ export default function Index() {
                     {/* GENDER DISTRIBUTION CARD - Restored aggregation logic */}
                     <motion.div variants={itemVariants} initial="hidden" animate="show">
                         <Card className="border-none shadow-md overflow-hidden bg-card">
-                            <CardHeader className="pb-3 border-b bg-muted/30">
+                            <CardHeader className="py-3 border-b bg-muted/20 mt-0">
                                 <CardTitle className="text-sm font-bold tracking-tight">
                                     {selectedComponent ? `${selectedComponent.toUpperCase()}` : 'Gender Distribution'}
                                 </CardTitle>
@@ -164,7 +164,7 @@ export default function Index() {
                 {/* RIGHT COLUMN: SECTION UTILIZATION */}
                 <motion.div variants={itemVariants} initial="hidden" animate="show" className="lg:col-span-2">
                     <Card className="h-full flex flex-col shadow-md">
-                        <CardHeader className="border-b bg-muted/10">
+                        <CardHeader className="border-b bg-muted/30 mt-0 py-4">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
                                     <CardTitle className="text-lg">
