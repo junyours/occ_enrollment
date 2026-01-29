@@ -88,7 +88,7 @@ export default function Index() {
         <div className="p-6 space-y-8 bg-background text-foreground min-h-screen">
             {/* KPI STATS - Same as your code */}
             <motion.div variants={containerVariants} initial="hidden" animate="show" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard title="Total Enrollment" value={summary.totalStudents} icon={<Users className="h-4 w-4" />} description="Grand total students" />
+                <StatCard title="Total Enrollment" value={`${summary.totalStudents}/${summary.nstpEnrolledStudents}`} icon={<Users className="h-4 w-4" />} description="Grand total students" />
                 <StatCard title="Active Sections" value={summary.totalSections} icon={<LayoutGrid className="h-4 w-4" />} description="Total groups managed" />
                 <StatCard title="Staff Deployed" value={summary.assignedFaculty} icon={<UserCheck className="h-4 w-4" />} description="Faculty with assignments" />
                 <StatCard title="Faculty Gaps" value={summary.unassignedFaculty} icon={<AlertCircle className="h-4 w-4" />} description="Needs immediate attention" trend={summary.unassignedFaculty > 0 ? "destructive" : "muted"} />
@@ -110,7 +110,7 @@ export default function Index() {
                             <Card key={c.component_name} onClick={() => setSelectedComponent(c.component_name === selectedComponent ? null : c.component_name)} className={`relative overflow-hidden cursor-pointer transition-all duration-300 border-2 ${selectedComponent === c.component_name ? 'border-primary ring-2 ring-primary/10 shadow-lg' : 'border-transparent hover:border-muted-foreground/20'}`}>
                                 <CardContent className="p-5 flex items-center justify-between">
                                     <div>
-                                        <p className={`text-xs font-bold transition-colors ${selectedComponent === c.component_name ? 'text-primary' : 'text-muted-foreground'}`}>{c.component_name}</p>
+                                        <p className={`text-xs font-bold transition-colors ${selectedComponent === c.component_name ? 'text-primary' : 'text-muted-foreground'}`}>{c.component_name.toUpperCase()}</p>
                                         <h4 className="text-2xl font-bold">{c.total_students.toLocaleString()}</h4>
                                     </div>
                                     <Badge variant={selectedComponent === c.component_name ? "default" : "outline"}>{c.total_sections} Sections</Badge>
@@ -124,7 +124,7 @@ export default function Index() {
                         <Card className="border-none shadow-md overflow-hidden bg-card">
                             <CardHeader className="pb-3 border-b bg-muted/30">
                                 <CardTitle className="text-sm font-bold tracking-tight">
-                                    {selectedComponent ? `${selectedComponent} Gender Split` : 'System-Wide Distribution'}
+                                    {selectedComponent ? `${selectedComponent.toUpperCase()}` : 'Gender Distribution'}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-6">

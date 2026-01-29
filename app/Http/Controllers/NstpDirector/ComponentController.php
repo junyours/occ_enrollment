@@ -8,6 +8,7 @@ use App\Models\NstpComponent;
 use App\Models\NstpSection;
 use App\Models\NstpSectionSchedule;
 use App\Models\Room;
+use App\Models\StudentSubject;
 use App\Models\StudentSubjectNstpSchedule;
 use App\Models\SubjectSecondarySchedule;
 use App\Models\User;
@@ -85,8 +86,16 @@ class ComponentController extends Controller
             ->select('c.component_name', 'ui.gender', DB::raw('COUNT(*) as total'))
             ->get();
 
+        $nstpEnrolledStudents = StudentSubject::join('year_section_subjects', 'student_subjects.year_section_subjects_id', '=', 'year_section_subjects.id')
+            ->join('year_section', 'year_section_subjects.year_section_id', '=', 'year_section.id')
+            ->join(('subjects'), 'year_section_subjects.subject_id', '=', 'subjects.id')
+            ->where('year_section.school_year_id', $schoolYearId)
+            ->where('subjects.type', 'nstp')
+            ->count();
+
         return response()->json([
             'summary' => [
+                'nstpEnrolledStudents' => $nstpEnrolledStudents,
                 'totalStudents' => $totalStudents,
                 'totalSections' => $totalSections,
                 'assignedFaculty' => $facultyQuery->assigned ?? 0,
