@@ -450,6 +450,7 @@ class GradeController extends Controller
     {
         $subject = YearSectionSubjects::select(
             'course_name_abbreviation',
+            'subject_code',
             'section',
             'year_level_id',
             'year_section_subjects.id',
@@ -471,15 +472,25 @@ class GradeController extends Controller
 
         $faculty = User::where('user_id_no', '=', $facultyId)
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->select(
-                DB::raw(
-                    "CONCAT(
-                    first_name, ' ',
-                    IF(middle_name IS NOT NULL AND middle_name != '', CONCAT(middle_name, ' '), ''),
-                    last_name
-                    ) AS name"
-                ),
-            )
+            ->select('first_name', 'middle_name', 'last_name')
+            ->first();
+
+        $years = explode('-', $schoolYear);
+
+        $semesterInfo = Semester::where('semester_name', '=', $semester)->first();
+
+        $schoolYear = SchoolYear::where('start_year', '=', $years[0])
+            ->select('school_years.id', 'start_year', 'end_year', 'semester_name')
+            ->where('end_year', '=', $years[1])
+            ->where('semester_id', '=', $semesterInfo->id)
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
+        $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$yearSectionSubjectsId])
+            ->first();
+
+        $courseSection = YearSection::join('course', 'course.id', '=', 'year_section.course_id')
+            ->where('year_section.id', $yearSectionSubjects->year_section_id)
             ->first();
 
         return Inertia::render(
@@ -487,6 +498,10 @@ class GradeController extends Controller
             [
                 'subject' => $subject,
                 'faculty' => $faculty,
+                'schoolYear' => $schoolYear,
+                'courseSection' => $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section,
+                'subjectCode' => $subject->subject_code,
+                'descriptiveTitle' => $subject->descriptive_title,
             ]
         );
     }

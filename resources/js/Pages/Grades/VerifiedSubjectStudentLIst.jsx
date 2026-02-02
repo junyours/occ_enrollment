@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { formatFullName } from '@/Lib/Utils';
+import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AlertCircle, ArrowLeft, BookOpen, CheckCircle, FileText, Loader2, Rocket, Send, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, BookOpen, CheckCircle, FileText, Loader2, Printer, Rocket, Send, XCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import { useGradeSubmission } from '../InstructorClasses/ClassComponents/GradePartials/useGradeSubmission';
 import RegistrarHeadGradeDeploymentButton from './RegistrarHeadGradeDeploymentButton';
@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/Components/ui/badge';
 import { computeFinalGrade } from './GradeUtility';
+import { Button } from '@/Components/ui/button';
+import { useReactToPrint } from 'react-to-print';
+import GradeHeader from './GradeHeader';
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -33,21 +36,22 @@ function StatusLabel({ label }) {
     )
 }
 
-function VerifiedSubjectStudentLIst({ faculty, subject }) {
-
+function VerifiedSubjectStudentLIst({ faculty, subject, schoolYear, courseSection, subjectCode, descriptiveTitle }) {
+    console.log(schoolYear);
+    
     const { data, isLoading, refetch } = useGradeSubmission(subject.id);
     const [submitting, setSubimitting] = useState(false);
 
-    const selectSubject = async () => {
-        await axios.post(route('faculty.verified.subjects.students'), { yearSectionSubjectsId: subject.id })
-            .then(response => {
-                setStudentList(response.data);
-            })
-    }
+    // const selectSubject = async () => {
+    //     await axios.post(route('faculty.verified.subjects.students'), { yearSectionSubjectsId: subject.id })
+    //         .then(response => {
+    //             setStudentList(response.data);
+    //         })
+    // }
 
-    useEffect(() => {
-        selectSubject();
-    }, [subject.id])
+    // useEffect(() => {
+    //     selectSubject();
+    // }, [subject.id])
 
     const fetchSubjectsStudents = async () => {
         const response = await axios.post(route('faculty.verified.subjects.students'), { yearSectionSubjectsId: subject.id });
@@ -118,6 +122,12 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
         )
     }
 
+    const componentRef = useRef(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: componentRef,
+    });
+
     return (
         <div className='space-y-4'>
             <div className='flex justify-between'>
@@ -133,7 +143,7 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                     </Card>
                     <Card className='w-max'>
                         <CardContent className='px-4 py-2'>
-                            <h1>{faculty.name.toUpperCase()}</h1>
+                            <h1>{formatFullNameFML(faculty).toUpperCase()}</h1>
                         </CardContent>
                     </Card>
                     <Card className='w-max'>
@@ -142,85 +152,97 @@ function VerifiedSubjectStudentLIst({ faculty, subject }) {
                         </CardContent>
                     </Card>
                 </div>
+                <Button
+                    variant="outline"
+                    onClick={handlePrint}
+                    className="h-11"
+                >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Print
+                </Button>
                 {/* <GradeSubmissionStatus gradeStatus={subject} /> */}
             </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle className='text-lg mb-2'>{subject.descriptive_title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {studentLoading ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                            <Loader2 className="w-8 h-8 animate-spin mb-3" />
-                            <p className="text-sm">Loading requests...</p>
-                        </div>
-                    ) : isError ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-destructive">
-                            <AlertCircle className="w-8 h-8 mb-3" />
-                            <p className="text-sm font-medium">Failed to load requests</p>
-                            <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
-                        </div>
-                    ) : studentList.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                            <BookOpen className="w-12 h-12 mb-3 opacity-30" />
-                            <p className="text-sm font-medium">No requests</p>
-                            <p className="text-xs mt-1">Check back later or contact administration</p>
-                        </div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-8 text-center">#</TableHead>
-                                    <TableHead>ID NUMBER</TableHead>
-                                    <TableHead>STUDENT NAME</TableHead>
-                                    <TableHead className="text-center">MIDTERM</TableHead>
-                                    <TableHead className="text-center">FINAL</TableHead>
-                                    <TableHead className="text-center">FINAL RATING</TableHead>
-                                    <TableHead className="text-center">REMARKS</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {studentList.map((student, index) => {
-                                    const finalGrade = computeFinalGrade(student.midterm_grade, student.final_grade);
-                                    const isDropped = student.midterm_grade == 0.0 || student.final_grade == 0.0;
-                                    const isPassed = !isDropped && student.midterm_grade && student.final_grade && finalGrade <= 3;
-                                    const isFailed = !isDropped && student.midterm_grade && student.final_grade && finalGrade > 3;
-                                    return (
-                                        <TableRow key={index}>
-                                            <TableCell className="text-center">{index + 1}.</TableCell>
-                                            <TableCell>{student.user_id_no}</TableCell>
-                                            <TableCell>{formatFullName(student)}</TableCell>
-                                            <TableCell className="text-center">{student.midterm_grade?.toFixed(1)}</TableCell>
-                                            <TableCell className="text-center">{student.final_grade?.toFixed(1)}
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                {finalGrade || '-'}
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                {isDropped ? (
-                                                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200 font-semibold">
-                                                        DROPPED
-                                                    </Badge>
-                                                ) : isPassed ? (
-                                                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 font-semibold">
-                                                        PASSED
-                                                    </Badge>
-                                                ) : isFailed ? (
-                                                    <Badge className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200 font-semibold">
-                                                        FAILED
-                                                    </Badge>
-                                                ) : (
-                                                    <span className="text-slate-400">-</span>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
+
+            <div ref={componentRef} className='print:p-4 print:space-y-4'>
+                <GradeHeader name={formatFullName(faculty)} subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} schoolYear={schoolYear} />
+                <Card>
+                    <CardHeader>
+                        <CardTitle className='text-lg mb-2 print:hidden'>{subject.descriptive_title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {studentLoading ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                <Loader2 className="w-8 h-8 animate-spin mb-3" />
+                                <p className="text-sm">Loading requests...</p>
+                            </div>
+                        ) : isError ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-destructive">
+                                <AlertCircle className="w-8 h-8 mb-3" />
+                                <p className="text-sm font-medium">Failed to load requests</p>
+                                <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+                            </div>
+                        ) : studentList.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                <BookOpen className="w-12 h-12 mb-3 opacity-30" />
+                                <p className="text-sm font-medium">No requests</p>
+                                <p className="text-xs mt-1">Check back later or contact administration</p>
+                            </div>
+                        ) : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className='print:p-0 print:h-min'>
+                                        <TableHead className="print:p-0 print:h-min w-8 text-center">#</TableHead>
+                                        <TableHead className="print:p-0 print:h-min">ID NUMBER</TableHead>
+                                        <TableHead className="print:p-0 print:h-min">STUDENT NAME</TableHead>
+                                        <TableHead className="print:p-0 print:h-min text-center">MIDTERM</TableHead>
+                                        <TableHead className="print:p-0 print:h-min text-center">FINAL</TableHead>
+                                        <TableHead className="print:p-0 print:h-min text-center">FINAL RATING</TableHead>
+                                        <TableHead className="print:p-0 print:h-min text-center">REMARKS</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {studentList.map((student, index) => {
+                                        const finalGrade = computeFinalGrade(student.midterm_grade, student.final_grade);
+                                        const isDropped = student.midterm_grade == 0.0 || student.final_grade == 0.0;
+                                        const isPassed = !isDropped && student.midterm_grade && student.final_grade && finalGrade <= 3;
+                                        const isFailed = !isDropped && student.midterm_grade && student.final_grade && finalGrade > 3;
+                                        return (
+                                            <TableRow key={index}>
+                                                <TableCell className="print:py-0 text-center">{index + 1}.</TableCell>
+                                                <TableCell className="print:py-0">{student.user_id_no}</TableCell>
+                                                <TableCell className="print:py-0">{formatFullName(student)}</TableCell>
+                                                <TableCell className="print:py-0 text-center">{student.midterm_grade?.toFixed(1)}</TableCell>
+                                                <TableCell className="print:py-0 text-center">{student.final_grade?.toFixed(1)}
+                                                </TableCell>
+                                                <TableCell className="print:py-0 text-center">
+                                                    {finalGrade || '-'}
+                                                </TableCell>
+                                                <TableCell className="print:py-0 text-center">
+                                                    {isDropped ? (
+                                                        <Badge className="print:border-0 print:rounded-none print:h-max print:py-0 bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200 font-semibold">
+                                                            DROPPED
+                                                        </Badge>
+                                                    ) : isPassed ? (
+                                                        <Badge className="print:border-0 print:rounded-none print:h-max print:py-0 bg-green-100 text-green-800 hover:bg-green-100 border-green-200 font-semibold">
+                                                            PASSED
+                                                        </Badge>
+                                                    ) : isFailed ? (
+                                                        <Badge className="print:border-0 print:rounded-none print:h-max print:py-0 bg-red-100 text-red-800 hover:bg-red-100 border-red-200 font-semibold">
+                                                            FAILED
+                                                        </Badge>
+                                                    ) : (
+                                                        <span className="text-slate-400">-</span>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })}
+                                </TableBody>
+                            </Table>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
             <div className='h-24' />
 
