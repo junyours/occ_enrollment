@@ -10,7 +10,6 @@ import { CheckCircle2, GraduationCap, BookOpen, BarChart3, Globe } from "lucide-
 import AppLogo from "@/Components/AppLogo";
 import { TwoModeToggle } from "@/Components/two-modes-toggle";
 import { Checkbox } from "@/Components/ui/checkbox";
-import { ModeToggle } from "@/Components/mode-toggle";
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, setError } = useForm({
@@ -85,7 +84,6 @@ export default function Login({ status }) {
                     {/* Theme Toggle */}
                     <div className="absolute top-4 right-4 z-20">
                         <TwoModeToggle />
-                        <ModeToggle />
                     </div>
 
                     <div className="grid lg:grid-cols-2">
