@@ -378,7 +378,7 @@ export function NavMain() {
         <SidebarGroup>
             {(userRole === "gened_coordinator" || userRole === "nstp_director") && (
                 <SidebarMenu className="space-y-0.5 mb-4">
-                    <SidebarGroupLabel className="p-0 text-xs uppercase text-muted-foreground h-min flex flex-col">
+                    <SidebarGroupLabel className="p-0 text-xs uppercase text-muted-foreground h-min flex flex-col text-none">
                         <SchoolYearPicker layout="horizontal-select-only" />
                     </SidebarGroupLabel>
                 </SidebarMenu>

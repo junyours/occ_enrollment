@@ -51,7 +51,7 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
     if (!isLoaded) {
         return <div className="p-4"></div>;
     }
-    
+
     if (layout === 'vertical') {
         return (
             <div className="relative flex flex-row w-max">
@@ -150,65 +150,44 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
     if (layout === 'horizontal-select-only') {
         return (
             <div className='w-max'>
-                <div className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
-                    {/* Collapsed horizontal view - shows as arrow button */}
-                    <Button
-                        onClick={toggleCollapse}
-                        size="sm"
-                        variant="outline"
-                        className="flex items-center"
-                    >
-                        <ChevronDown className="h-4 w-4" />
-                        <span className="text-xs">{selectedSchoolYear} | {selectedSemester} sem</span>
-                    </Button>
-                </div>
-                {!isCollapsed && (
-                    <div className={`transition-all duration-300 ease-in-out ${!isCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
-                        {/* Expanded horizontal view */}
-                            <CardContent className='p-0'>
-                                <div className="flex gap-1 items-start">
-                                    {/* <div className='h-9 flex items-center'>
-                                        <div>SY:</div>
-                                    </div> */}
-                                    {/* School Year Select */}
-                                    <div className="w-32">
-                                        <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select School Year" />
-                                            </SelectTrigger>
-                                            <SelectContent className='gap-0'>
-                                                {uniqueSchoolYears.map((year) => (
-                                                    <SelectItem key={year} value={year}>
-                                                        {year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {/* Semester Select */}
-                                    <div className="w-24">
-                                        <Select value={selectedSemester} onValueChange={handleSemesterChange}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select Semester" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {allSemesters.map((sem) => (
-                                                    <SelectItem
-                                                        key={sem}
-                                                        value={sem}
-                                                        disabled={!availableSemesters.includes(sem)}
-                                                    >
-                                                        {sem}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                            </CardContent>
+                <CardContent className='p-0'>
+                    <div className="flex gap-1 items-start">
+                        <div className="w-32">
+                            <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select School Year" />
+                                </SelectTrigger>
+                                <SelectContent className='gap-0'>
+                                    {uniqueSchoolYears.map((year) => (
+                                        <SelectItem key={year} value={year}>
+                                            {year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        
+                        {/* Semester Select */}
+                        <div className="w-24">
+                            <Select value={selectedSemester} onValueChange={handleSemesterChange}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Semester" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {allSemesters.map((sem) => (
+                                        <SelectItem
+                                            key={sem}
+                                            value={sem}
+                                            disabled={!availableSemesters.includes(sem)}
+                                        >
+                                            {sem}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                )}
+                </CardContent>
             </div>
         );
     }
