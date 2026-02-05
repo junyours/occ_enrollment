@@ -82,8 +82,12 @@ export default function Index({ tab, search }) {
                                 {/* We use asChild on the Trigger so the Link becomes the Trigger */}
                                 <TabsTrigger value="enrolled" asChild>
                                     <Link
-                                        href={route('nstp-director.students', { tab: 'enrolled' })}
+                                        href={route('nstp-director.students', {
+                                            tab: 'enrolled',
+                                            ...(search ? { search } : {}),
+                                        })}
                                         preserveState
+                                        replace
                                     >
                                         Enrolled
                                     </Link>
@@ -91,8 +95,12 @@ export default function Index({ tab, search }) {
 
                                 <TabsTrigger value="not-enrolled" asChild>
                                     <Link
-                                        href={route('nstp-director.students', { tab: 'not-enrolled' })}
+                                        href={route('nstp-director.students', {
+                                            tab: 'not-enrolled',
+                                            ...(search ? { search } : {}),
+                                        })}
                                         preserveState
+                                        replace
                                     >
                                         Not Enrolled
                                     </Link>
