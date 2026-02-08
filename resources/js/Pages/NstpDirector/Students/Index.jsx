@@ -9,7 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import { formatFullName } from '@/Lib/Utils'
 import { Input } from '@/Components/ui/input'
-import { Loader2, Search } from 'lucide-react'
+import { FileDown, Loader2, Search } from 'lucide-react'
+import { Separator } from '@radix-ui/react-context-menu'
+import axios from 'axios'
+import { DownloadButton } from './DownloadButton'
 
 export default function Index({ tab, search }) {
 
@@ -68,7 +71,7 @@ export default function Index({ tab, search }) {
             replace: true,
         });
     };
-
+    
     return (
         <div className="w-full mx-auto">
             <Card>
@@ -78,41 +81,45 @@ export default function Index({ tab, search }) {
                 <CardContent>
                     <Tabs value={selectedTab} className="w-full">
                         <div className='flex gap-4'>
-                            <TabsList className="grid w-full grid-cols-2">
-                                {/* We use asChild on the Trigger so the Link becomes the Trigger */}
-                                <TabsTrigger value="enrolled" asChild>
-                                    <Link
-                                        href={route('nstp-director.students', {
-                                            tab: 'enrolled',
-                                            ...(search ? { search } : {}),
-                                        })}
-                                        preserveState
-                                        replace
-                                    >
-                                        Enrolled
-                                    </Link>
-                                </TabsTrigger>
+                            <div className='flex gap-4 w-full'>
+                                <TabsList className="grid w-full grid-cols-2">
+                                    {/* We use asChild on the Trigger so the Link becomes the Trigger */}
+                                    <TabsTrigger value="enrolled" asChild>
+                                        <Link
+                                            href={route('nstp-director.students', {
+                                                tab: 'enrolled',
+                                                ...(search ? { search } : {}),
+                                            })}
+                                            preserveState
+                                            replace
+                                        >
+                                            Enrolled
+                                        </Link>
+                                    </TabsTrigger>
 
-                                <TabsTrigger value="not-enrolled" asChild>
-                                    <Link
-                                        href={route('nstp-director.students', {
-                                            tab: 'not-enrolled',
-                                            ...(search ? { search } : {}),
-                                        })}
-                                        preserveState
-                                        replace
-                                    >
-                                        Not Enrolled
-                                    </Link>
-                                </TabsTrigger>
-                            </TabsList>
-                            <div className='w-full flex gap-2'>
+                                    <TabsTrigger value="not-enrolled" asChild>
+                                        <Link
+                                            href={route('nstp-director.students', {
+                                                tab: 'not-enrolled',
+                                                ...(search ? { search } : {}),
+                                            })}
+                                            preserveState
+                                            replace
+                                        >
+                                            Not Enrolled
+                                        </Link>
+                                    </TabsTrigger>
+                                </TabsList>
+                                <DownloadButton selectedTab={selectedTab} selectedSchoolYearEntry={selectedSchoolYearEntry} />
+                            </div>
+                            <Separator aria-orientation='vertical' className='border-l' />
+                            <div className="w-full flex gap-2 items-center">
                                 <div className="w-full gap-2">
                                     <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                         <Input
                                             type="text"
-                                            placeholder={`Search...`}
+                                            placeholder="Search..."
                                             value={searchKey}
                                             onChange={(e) => setSearchKey(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -120,19 +127,16 @@ export default function Index({ tab, search }) {
                                         />
                                     </div>
                                 </div>
-
-                                <Button onClick={handleSearch}>
-                                    Search
-                                </Button>
+                                <Button onClick={handleSearch}>Search</Button>
                             </div>
                         </div>
-                        
+
                         <TabsContent value="enrolled" className="mt-4">
                             <Card>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead  className='w-44'>Student ID</TableHead>
+                                            <TableHead className='w-44'>Student ID</TableHead>
                                             <TableHead className='w-96'>Name</TableHead>
                                             <TableHead>Course</TableHead>
                                             <TableHead>NSTP Section</TableHead>
@@ -183,7 +187,7 @@ export default function Index({ tab, search }) {
                                 </Table>
                             </Card>
                         </TabsContent>
-                        
+
                         <TabsContent value="not-enrolled" className="mt-4">
                             <Card>
                                 <Table>

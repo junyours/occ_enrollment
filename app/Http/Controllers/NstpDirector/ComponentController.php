@@ -8,6 +8,7 @@ use App\Models\NstpComponent;
 use App\Models\NstpSection;
 use App\Models\NstpSectionSchedule;
 use App\Models\Room;
+use App\Models\SchoolYear;
 use App\Models\StudentSubject;
 use App\Models\StudentSubjectNstpSchedule;
 use App\Models\SubjectSecondarySchedule;
@@ -16,6 +17,9 @@ use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ComponentController extends Controller
 {
@@ -826,6 +830,177 @@ class ComponentController extends Controller
         StudentSubjectNstpSchedule::create([
             'nstp_section_schedule_id' => $request->nstpSectionScheduleId,
             'student_subject_id' => $request->studentNstpSubjectId,
+        ]);
+    }
+
+    public function downloadEnrolledStudent(Request $request)
+    {
+        $schoolYear = SchoolYear::where('id', '=', $request->schoolYearId)
+            ->with('Semester')
+            ->first();
+
+        $students = StudentSubjectNstpSchedule::join('nstp_section_schedules', 'student_subject_nstp_schedule.nstp_section_schedule_id', '=', 'nstp_section_schedules.id')
+            ->join('nstp_sections', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->where('nstp_sections.school_year_id', $request->schoolYearId)
+            ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'user_information.user_id', '=', 'users.id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->select(
+                'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
+                'enrolled_students.id as enrolled_student_id',
+                'nstp_sections.section as nstp_section',
+                'component_name',
+                'student_subject_nstp_schedule.created_at as enrolled_date',
+                'course_name_abbreviation as course',
+                'year_section.section as course_section',
+                'year_level_id',
+            )
+            ->orderBy('last_name', 'ASC')
+            ->distinct()
+            ->get();
+
+        // 2. Initialize Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // 3. Set Headers
+        $headers = ['Student ID', 'Name', 'Course', 'NSTP Section', 'Date Enrolled'];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        // Style the header (Optional but recommended)
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+
+        $sheet->getColumnDimension('A')->setWidth(25);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(25);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(30);
+
+        // 4. Fill Data
+        $row = 2;
+        foreach ($students as $student) {
+            // Format Name: Lastname, Firstname MI.
+            $mi = $student->middle_name ? strtoupper(substr($student->middle_name, 0, 1)) . '.' : '';
+            $fullName = "{$student->last_name}, {$student->first_name} {$mi}";
+
+            // Format Course: {course}-{year}{section}
+            $courseDisplay = "{$student->course}-{$student->year_level_id}{$student->course_section}";
+
+            // Format NSTP: {COMPONENT}-{section}
+            $nstpDisplay = strtoupper($student->component_name) . "-{$student->nstp_section}";
+
+            // Date enrolled
+            $formattedDate = date('d-m-Y', strtotime($student->enrolled_date));
+
+            $sheet->setCellValue('A' . $row, $student->user_id_no);
+            $sheet->setCellValue('B' . $row, $fullName);
+            $sheet->setCellValue('C' . $row, $courseDisplay);
+            $sheet->setCellValue('D' . $row, $nstpDisplay);
+            $sheet->setCellValue('E' . $row, $formattedDate);
+            $row++;
+        }
+
+        // 5. Stream the response to the browser
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'NSTP - Enrolled Students_' . $schoolYear->start_year . '-' . $schoolYear->end_year . '_' . $schoolYear->Semester->semester_name . '_Semester-' . now() . '.xlsx';
+
+        return new StreamedResponse(function () use ($writer) {
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    public function downloadNotEnrolledStudent(Request $request)
+    {
+        $schoolYear = SchoolYear::where('id', '=', $request->schoolYearId)
+            ->with('Semester')
+            ->first();
+
+        $students = StudentSubject::join('year_section_subjects', 'student_subjects.year_section_subjects_id', '=', 'year_section_subjects.id')
+            ->join('year_section', 'year_section_subjects.year_section_id', '=', 'year_section.id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->join('subjects', 'year_section_subjects.subject_id', '=', 'subjects.id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'user_information.user_id', '=', 'users.id')
+            ->leftJoin('student_subject_nstp_schedule', 'student_subject_nstp_schedule.student_subject_id', '=', 'student_subjects.id')
+            ->where('year_section.school_year_id', $request->schoolYearId)
+            ->where('subjects.type', 'nstp')
+            ->whereNull('student_subject_nstp_schedule.id')
+            ->select(
+                'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
+                'enrolled_students.id as enrolled_student_id',
+                'course_name_abbreviation as course',
+                'year_section.section as course_section',
+                'year_level_id',
+                'contact_number'
+            )
+            ->orderBy('last_name', 'ASC')
+            ->distinct()
+            ->get();
+
+        // 2. Initialize Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // 3. Set Headers
+        $headers = ['Student ID', 'Name', 'Course', 'Contact No.'];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        // Style the header (Optional but recommended)
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+
+        $sheet->getColumnDimension('A')->setWidth(25);
+        $sheet->getColumnDimension('B')->setWidth(30);
+        $sheet->getColumnDimension('C')->setWidth(25);
+        $sheet->getColumnDimension('D')->setWidth(20);
+
+        // 4. Fill Data
+        $row = 2;
+        foreach ($students as $student) {
+            // Format Name: Lastname, Firstname MI.
+            $mi = $student->middle_name ? strtoupper(substr($student->middle_name, 0, 1)) . '.' : '';
+            $fullName = "{$student->last_name}, {$student->first_name} {$mi}";
+
+            // Format Course: {course}-{year}{section}
+            $courseDisplay = "{$student->course}-{$student->year_level_id}{$student->course_section}";
+
+            // Format NSTP: {COMPONENT}-{section}
+            $nstpDisplay = strtoupper($student->component_name) . "-{$student->nstp_section}";
+
+            // Date enrolled
+            $formattedDate = date('d-m-Y', strtotime($student->enrolled_date));
+
+            $sheet->setCellValue('A' . $row, $student->user_id_no);
+            $sheet->setCellValue('B' . $row, $fullName);
+            $sheet->setCellValue('C' . $row, $courseDisplay);
+            $sheet->setCellValue('D' . $row, $student->contact_number);
+            $row++;
+        }
+
+        // 5. Stream the response to the browser
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'NSTP - Not Enrolled Students_' . $schoolYear->start_year . '-' . $schoolYear->end_year . '_' . $schoolYear->Semester->semester_name . '_Semester-' . now() . '.xlsx';
+
+        return new StreamedResponse(function () use ($writer) {
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
         ]);
     }
 }

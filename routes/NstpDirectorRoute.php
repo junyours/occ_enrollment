@@ -41,4 +41,7 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
 
     Route::post('/nstp-director/school-year-components-sections', [ComponentController::class, 'getAllComponentSections'])->name('nstp-director.school-year-components-sections');
     Route::post('/nstp-director/remove-section', [ComponentController::class, 'removeSection'])->name('nstp-director.remove-section');
+
+    Route::post('/nstp-director/donwload-enrolled-students', [ComponentController::class, 'downloadEnrolledStudent'])->name('nstp-director.enrolled-students.download');
+    Route::post('/nstp-director/donwload-not-enrolled-students', [ComponentController::class, 'downloadNotEnrolledStudent'])->name('nstp-director.not-enrolled-students.download');
 });
