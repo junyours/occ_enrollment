@@ -269,7 +269,7 @@ class EnrollmentClassSchedulingController extends Controller
 
     public function getEnrollmentFacultiesSchedules($schoolYearId, $departmentId)
     {
-        return User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+        return User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'faculty.active')
             ->with([
                 'Schedules' => function ($query) use ($schoolYearId) {
                     $query->select(
@@ -314,7 +314,7 @@ class EnrollmentClassSchedulingController extends Controller
             ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->where('department_id', '=', $departmentId)
-            ->where('active', '=', 1)
+            ->where('faculty.active', '=', 1)
             ->orderBy('last_name', 'asc')
             ->get();
     }

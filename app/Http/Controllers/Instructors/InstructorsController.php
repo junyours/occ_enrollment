@@ -13,7 +13,7 @@ class InstructorsController extends Controller
         return User::select('users.id', 'first_name', 'last_name', 'middle_name')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
-            ->where('active', '=', 1)
+            ->where('faculty.active', '=', 1)
             ->whereIn('users.user_role', ['faculty', 'program_head', 'registrar', 'evaluator'])
             ->orderBy('last_name', 'ASC')
             ->get();

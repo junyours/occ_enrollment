@@ -13,9 +13,11 @@ use App\Models\StudentSubject;
 use App\Models\StudentSubjectNstpSchedule;
 use App\Models\SubjectSecondarySchedule;
 use App\Models\User;
+use App\Models\UserInformation;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -353,7 +355,7 @@ class ComponentController extends Controller
         $instructors = User::select('users.id', 'first_name', 'last_name', 'middle_name')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
-            ->where('active', '=', 1)
+            ->where('faculty.active', '=', 1)
             ->whereIn('users.user_role', ['faculty', 'program_head', 'registrar', 'evaluator'])
             ->orderBy('last_name', 'ASC')
             ->get();
@@ -597,7 +599,7 @@ class ComponentController extends Controller
 
     public function getFacultiesSchedules(Request $request)
     {
-        $yearSectionSched = User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+        $yearSectionSched = User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'faculty.active')
             ->with([
                 'Schedules' => function ($query) use ($request) {
                     $query->select(
@@ -641,7 +643,7 @@ class ComponentController extends Controller
             ])
             ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->where('active', '=', 1)
+            ->where('faculty.active', '=', 1)
             ->orderBy('last_name', 'asc')
             ->get();
 

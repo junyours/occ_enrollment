@@ -154,7 +154,7 @@ class CourseController extends Controller
         $instructors = User::select('users.id', 'first_name', 'last_name', 'middle_name')
             ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
             ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
-            ->where('active', '=', 1)
+            ->where('faculty.active', '=', 1)
             ->whereIn('users.user_role', ['faculty', 'program_head', 'registrar', 'evaluator'])
             ->orderBy('last_name', 'ASC')
             ->get();
@@ -346,7 +346,7 @@ class CourseController extends Controller
 
     public function getFacultiesSchedules(Request $request)
     {
-        return User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+        return User::select('users.id', 'faculty_id', 'first_name', 'middle_name', 'last_name', 'faculty.active')
             ->with([
                 'Schedules' => function ($query) use ($request) {
                     $query->select(
@@ -390,7 +390,7 @@ class CourseController extends Controller
             ])
             ->join('faculty', 'users.id', '=', 'faculty.faculty_id')
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->where('active', '=', 1)
+            ->where('faculty.active', '=', 1)
             ->orderBy('last_name', 'asc')
             ->get();
     }

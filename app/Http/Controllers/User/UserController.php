@@ -34,7 +34,7 @@ class UserController extends Controller
                 'user_information.middle_name',
                 'user_information.last_name',
                 'department_name_abbreviation',
-                'active'
+                'faculty.active'
             )->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', '%' . $search . '%')
@@ -66,7 +66,7 @@ class UserController extends Controller
                 'user_information.middle_name',
                 'user_information.last_name',
                 'department_name_abbreviation',
-                'active'
+                'faculty.active'
             )->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', '%' . $search . '%')
@@ -219,7 +219,7 @@ class UserController extends Controller
             'present_address',
             'zip_code',
             'email_address',
-            'active',
+            'faculty.active',
             'user_role'
         )
             ->where('department_id', '=', $departmentId)
@@ -246,7 +246,7 @@ class UserController extends Controller
             'present_address',
             'zip_code',
             'email_address',
-            'active',
+            'faculty.active',
             'user_role',
             'department_name_abbreviation'
         )
@@ -262,7 +262,7 @@ class UserController extends Controller
     public function setFacultyActiveStatus(Request $request)
     {
         Faculty::where('faculty_id', '=', $request->id)
-            ->update(['active' => $request->active]);
+            ->update(['faculty.active' => $request->active]);
     }
 
     public function setFacultyRole(Request $request)
