@@ -12,6 +12,8 @@ import axios from 'axios';
 import { Check, CircleX } from 'lucide-react';
 import React, { useState } from 'react'
 import { toast } from 'sonner';
+// 1. Import framer-motion
+import { motion } from 'framer-motion';
 
 function NstpEnrollment({ data, setErollingStudent, component }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
@@ -24,6 +26,32 @@ function NstpEnrollment({ data, setErollingStudent, component }) {
     const [typingTimeout, setTypingTimeout] = useState(null);
     const [conflicts, setConflicts] = useState([])
     const [scheduleType, setScheduleType] = useState('tabular');
+
+    const [isClosing, setIsClosing] = useState(false);
+    const pageVariants = {
+        initial: {
+            opacity: 0,
+            y: 40 // Start 40px below natural position
+        },
+        animate: {
+            opacity: 1,
+            y: 0 // Move up to natural position
+        },
+        exit: {
+            opacity: 0,
+            y: 40, // Move back down 40px
+            transition: { duration: 0.2, ease: "easeIn" }
+        },
+    };
+
+    const handleClose = () => {
+        setIsClosing(true);
+
+        // Match the timeout to your transition duration
+        setTimeout(() => {
+            setErollingStudent(false);
+        }, 300);
+    };
 
     const handleStudentIdChange = (e) => {
         const value = e.target.value;
@@ -145,8 +173,14 @@ function NstpEnrollment({ data, setErollingStudent, component }) {
     if (!data) return <></>
 
     return (
-        <div className='space-y-4'>
-            <Button variant="destructive" className='w-full' onClick={() => setErollingStudent(false)}><CircleX /> Close Enrollment</Button>
+        <motion.div
+            className='space-y-4'
+            variants={pageVariants}
+            initial="initial"
+            animate={isClosing ? "exit" : "animate"}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+            <Button variant="destructive" className='w-full' onClick={handleClose}><CircleX /> Close Enrollment</Button>
             <Card>
                 <CardHeader className="mb-2">
                     <CardTitle className="text-2xl">{component.toUpperCase()} Sections</CardTitle>
@@ -326,7 +360,7 @@ function NstpEnrollment({ data, setErollingStudent, component }) {
                     </Card>
                 </CardContent>
             </Card>
-        </div>
+        </motion.div>
     )
 }
 
