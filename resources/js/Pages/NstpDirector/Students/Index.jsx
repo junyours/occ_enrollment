@@ -13,6 +13,9 @@ import { FileDown, Loader2, Search } from 'lucide-react'
 import { Separator } from '@radix-ui/react-context-menu'
 import axios from 'axios'
 import { DownloadButton } from './DownloadButton'
+import { Skeleton } from '@/Components/ui/skeleton'
+import SearchBar from '@/Components/ui/SearchBar'
+import PaginationPages from '@/Components/ui/PaginationPages'
 
 export default function Index({ tab, search }) {
 
@@ -66,12 +69,12 @@ export default function Index({ tab, search }) {
 
     const handleClearSearch = () => {
         setSearchKey('');
-        router.get('', {}, {
+        router.get('', { search: '' }, {
             preserveState: true,
             replace: true,
         });
     };
-    
+
     return (
         <div className="w-full mx-auto">
             <Card>
@@ -80,10 +83,9 @@ export default function Index({ tab, search }) {
                 </CardHeader>
                 <CardContent>
                     <Tabs value={selectedTab} className="w-full">
-                        <div className='flex gap-4'>
-                            <div className='flex gap-4 w-full'>
+                        <div className="flex gap-4">
+                            <div className="flex gap-4 w-full">
                                 <TabsList className="grid w-full grid-cols-2">
-                                    {/* We use asChild on the Trigger so the Link becomes the Trigger */}
                                     <TabsTrigger value="enrolled" asChild>
                                         <Link
                                             href={route('nstp-director.students', {
@@ -112,186 +114,162 @@ export default function Index({ tab, search }) {
                                 </TabsList>
                                 <DownloadButton selectedTab={selectedTab} selectedSchoolYearEntry={selectedSchoolYearEntry} />
                             </div>
-                            <Separator aria-orientation='vertical' className='border-l' />
+
+                            <Separator aria-orientation="vertical" className="border-l" />
+
                             <div className="w-full flex gap-2 items-center">
-                                <div className="w-full gap-2">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            type="text"
-                                            placeholder="Search..."
-                                            value={searchKey}
-                                            onChange={(e) => setSearchKey(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                            className="pl-10"
-                                        />
-                                    </div>
-                                </div>
-                                <Button onClick={handleSearch}>Search</Button>
+                                <SearchBar
+                                    type="text"
+                                    placeholder="Search..."
+                                    value={searchKey}
+                                    onChange={(e) => setSearchKey(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    onSearch={handleSearch}
+                                    onClear={handleClearSearch}
+                                />
                             </div>
                         </div>
 
-                        <TabsContent value="enrolled" className="mt-4">
+                        {/* Enrolled Tab */}
+                        <TabsContent value="enrolled" className="mt-4"> 
                             <Card>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead className='w-44'>Student ID</TableHead>
-                                            <TableHead className='w-96'>Name</TableHead>
+                                            <TableHead className="w-44">Student ID</TableHead>
+                                            <TableHead className="w-96">Name</TableHead>
                                             <TableHead>Course</TableHead>
                                             <TableHead>NSTP Section</TableHead>
                                             <TableHead className="text-right w-36">Date Enrolled</TableHead>
                                         </TableRow>
                                     </TableHeader>
+
                                     <TableBody>
-                                        {isLoading ? (
-                                            <>
-                                                <TableRow rowSpan={10}>
-                                                    <TableCell colSpan={5}>
-                                                        <div className="flex flex-col items-center justify-center py-10">
-                                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                                            <p className="text-sm text-muted-foreground mt-2">Loading students...</p>
-                                                        </div>
+                                        {(() => {
+                                            if (isLoading) {
+                                                return renderSkeletonRows(["w-24", "w-52", "w-28", "w-16", "w-20"]);
+                                            }
+
+                                            if (isError) {
+                                                return renderErrorRow(5);
+                                            }
+
+                                            if (!students?.length) {
+                                                return renderEmptyRow(5, "No enrolled students found.");
+                                            }
+
+                                            return students.map((student) => (
+                                                <TableRow key={student.enrolled_student_id}>
+                                                    <TableCell>{student.user_id_no ?? "-"}</TableCell>
+                                                    <TableCell>{formatFullName(student)}</TableCell>
+                                                    <TableCell>
+                                                        {student.course}-{student.year_level_id}
+                                                        {student.course_section}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {student.component_name
+                                                            ? `${student.component_name.toUpperCase()}-${student.nstp_section}`
+                                                            : "-"}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {formatDate(student.enrolled_date)}
                                                     </TableCell>
                                                 </TableRow>
-                                                {
-                                                    [1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => (
-                                                        <TableRow key={index}>
-
-                                                        </TableRow>
-                                                    ))
-                                                }
-                                            </>
-                                        ) : isError ? (
-                                            <Alert variant="destructive">
-                                                <AlertTitle>Error</AlertTitle>
-                                                <AlertDescription>Failed to fetch students. Please try again.</AlertDescription>
-                                            </Alert>
-                                        ) : students && students.length > 0 ? (
-                                            <>
-                                                {students.map((student) => (
-                                                    <TableRow key={student.enrolled_student_id}>
-                                                        <TableCell>{student.user_id_no}</TableCell>
-                                                        <TableCell>{formatFullName(student)}</TableCell>
-                                                        <TableCell>{student.course}-{student.year_level_id}{student.course_section}</TableCell>
-                                                        <TableCell>{student.component_name && student.component_name.toUpperCase()}-{student.nstp_section}</TableCell>
-                                                        <TableCell className="text-right">
-                                                            {new Date(student.enrolled_date).toLocaleDateString('en-GB')}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}</>
-                                        ) : (
-                                            <></>
-                                        )}
+                                            ));
+                                        })()}
                                     </TableBody>
                                 </Table>
                             </Card>
                         </TabsContent>
 
+                        {/* Not Enrolled Tab */}
                         <TabsContent value="not-enrolled" className="mt-4">
                             <Card>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead className='w-44'>Student ID</TableHead>
-                                            <TableHead className='w-96'>Name</TableHead>
+                                            <TableHead className="w-44">Student ID</TableHead>
+                                            <TableHead className="w-96">Name</TableHead>
                                             <TableHead>Course</TableHead>
                                             <TableHead className="text-right w-36">Contact No.</TableHead>
                                         </TableRow>
                                     </TableHeader>
-                                    <TableBody>
-                                        {isLoading ? (
-                                            <>
-                                                <TableRow rowSpan={10}>
-                                                    <TableCell colSpan={5}>
-                                                        <div className="flex flex-col items-center justify-center py-10">
-                                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                                            <p className="text-sm text-muted-foreground mt-2">Loading students...</p>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                                {
-                                                    [1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => (
-                                                        <TableRow key={index}>
 
-                                                        </TableRow>
-                                                    ))
-                                                }
-                                            </>
-                                        ) : isError ? (
-                                            <Alert variant="destructive">
-                                                <AlertTitle>Error</AlertTitle>
-                                                <AlertDescription>Failed to fetch students. Please try again.</AlertDescription>
-                                            </Alert>
-                                        ) : students && students.length > 0 ? (
-                                            <>
-                                                {students.map((student) => (
-                                                    <TableRow key={student.enrolled_student_id}>
-                                                        <TableCell>{student.user_id_no}</TableCell>
-                                                        <TableCell>{formatFullName(student)}</TableCell>
-                                                        <TableCell>{student.course}-{student.year_level_id}{student.course_section}</TableCell>
-                                                        <TableCell className="text-right">
-                                                            {student.contact_number}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}</>
-                                        ) : (
-                                            <></>
-                                        )}
+                                    <TableBody>
+                                        {(() => {
+                                            if (isLoading) {
+                                                return renderSkeletonRows(["w-24", "w-52", "w-28", "w-20"]);
+                                            }
+
+                                            if (isError) {
+                                                return renderErrorRow(4);
+                                            }
+
+                                            if (!students?.length) {
+                                                return renderEmptyRow(4, "No students found.");
+                                            }
+
+                                            return students.map((student) => (
+                                                <TableRow key={student.enrolled_student_id}>
+                                                    <TableCell>{student.user_id_no}</TableCell>
+                                                    <TableCell>{formatFullName(student)}</TableCell>
+                                                    <TableCell>
+                                                        {student.course}-{student.year_level_id}
+                                                        {student.course_section}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">{student.contact_number ?? "-"}</TableCell>
+                                                </TableRow>
+                                            ));
+                                        })()}
                                     </TableBody>
                                 </Table>
                             </Card>
                         </TabsContent>
                     </Tabs>
                 </CardContent>
+
                 <CardFooter>
-                    {students.length > 0 && (
-                        <div className="flex items-center justify-between px-4 w-full">
-                            <div className="text-sm">
-                                Showing <span className="font-medium">{from}</span> to{' '}
-                                <span className="font-medium">{to}</span> of{' '}
-                                <span className="font-medium">{total}</span> results
-                            </div>
-
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handlePageChange(prev_page_url)}
-                                    disabled={!prev_page_url}
-                                >
-                                    Previous
-                                </Button>
-
-                                <div className="flex gap-1">
-                                    {links.slice(1, -1).map((link, index) => (
-                                        <Button
-                                            key={index}
-                                            variant={link.active ? "default" : "outline"}
-                                            size="sm"
-                                            onClick={() => handlePageChange(link.url)}
-                                            disabled={!link.url}
-                                            className="min-w-[40px]"
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    ))}
-                                </div>
-
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handlePageChange(next_page_url)}
-                                    disabled={!next_page_url}
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
-                    )}
+                    <PaginationPages data={data} />
                 </CardFooter>
             </Card>
         </div>
+
     )
 }
+
+const renderSkeletonRows = (cols) =>
+    [...Array(10)].map((_, index) => (
+        <TableRow key={`skeleton-${index}`}>
+            {cols.map((width, i) => (
+                <TableCell key={i} className={i === cols.length - 1 ? "text-right" : ""}>
+                    <Skeleton className={`h-5 ${width}`} />
+                </TableCell>
+            ))}
+        </TableRow>
+    ));
+
+const renderErrorRow = (colSpan) => (
+    <TableRow>
+        <TableCell colSpan={colSpan}>
+            <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                    Failed to fetch students. Please try again.
+                </AlertDescription>
+            </Alert>
+        </TableCell>
+    </TableRow>
+);
+
+const renderEmptyRow = (colSpan, message) => (
+    <TableRow>
+        <TableCell colSpan={colSpan} className="text-center text-muted-foreground py-6">
+            {message}
+        </TableCell>
+    </TableRow>
+);
+
+const formatDate = (date) => date ? new Date(date).toLocaleDateString("en-GB") : "-";
+
 
 Index.layout = page => <AuthenticatedLayout children={page} />
