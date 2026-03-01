@@ -34,14 +34,14 @@ export default function Index({ user }) {
                 <Tabs
                     value={activeTab}
                     onValueChange={setActiveTab}
-                    className="flex flex-col lg:flex-row w-full gap-8"
+                    className="flex flex-col lg:flex-row w-full gap-4"
                 >
                     {/* Navigation Sidebar */}
                     <aside>
-                        <TabsList className="flex lg:flex-col h-auto w-48 justify-start gap-2 bg-transparent p-0">
+                        <TabsList className="flex lg:flex-col h-auto w-full lg:w-48 justify-between lg:justify-start gap-2 bg-transparent p-0">
                             <TabsTrigger
                                 value="profile"
-                                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                                className="w-full justify-start gap-2 px-4 py-3 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
                             >
                                 <UserCircle className="w-4 h-4" />
                                 <span className="font-medium">Profile Information</span>
@@ -49,7 +49,7 @@ export default function Index({ user }) {
 
                             <TabsTrigger
                                 value="password"
-                                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                                className="w-full justify-start gap-2 px-4 py-3 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
                             >
                                 <KeyRound className="w-4 h-4" />
                                 <span className="font-medium">Password</span>
