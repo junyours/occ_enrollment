@@ -5,7 +5,7 @@ import { Input } from "@/Components/ui/input"
 import { Button } from "@/Components/ui/button"
 import { Separator } from "@/Components/ui/separator"
 
-const SearchBar = React.forwardRef(({ className, value: controlledValue, onChange, onSearch, ...props }, ref) => {
+const SearchBar = React.forwardRef(({ className, value: controlledValue, onChange, onSearch, onClear, ...props }, ref) => {
     // 1. Internal state to hold the value if the parent doesn't provide one
     const [internalValue, setInternalValue] = React.useState("")
 
@@ -35,6 +35,7 @@ const SearchBar = React.forwardRef(({ className, value: controlledValue, onChang
         if (onChange) {
             onChange({ target: { value: "" } })
         }
+        onClear()
     }
 
     return (
@@ -59,10 +60,10 @@ const SearchBar = React.forwardRef(({ className, value: controlledValue, onChang
                 {value && (
                     <Button
                         type="button"
-                        variant="ghost"
+                        variant="secondary"
                         size="icon"
                         onClick={handleClear}
-                        className="h-5 w-5 rounded-full mx-1 bg-muted hover:bg-transparent text-muted-foreground hover:text-foreground border-none ring-none relative"
+                        className="h-5 w-5 rounded-full mx-1 relative"
                     >
                         <X className="h-4 w-4" />
                     </Button>
