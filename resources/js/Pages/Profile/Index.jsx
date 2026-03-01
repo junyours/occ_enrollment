@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Head } from '@inertiajs/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
-import { User, Mail } from 'lucide-react';
+import { UserCircle, KeyRound } from 'lucide-react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
 
-// Import the separated Components
+// Partials
 import ProfileInformation from './Partials/ProfileInformation';
 import ChangePassword from './Partials/ChangePassword';
-import AccountSettings from './Partials/AccountSettings';
 
 export default function Index({ user }) {
     const [activeTab, setActiveTab] = useState('profile');
 
-    const userRole = user.user_role;
-
+    // Clean userInfo object
     const userInfo = {
         user_id_no: user.user_id_no || '',
         user_id: user.user_id || '',
@@ -30,64 +26,49 @@ export default function Index({ user }) {
         zip_code: user.zip_code || '',
     };
 
-    const getInitials = () => {
-        return `${user.first_name?.charAt(0) || ''}${user.last_name?.charAt(0) || ''}`.toUpperCase();
-    };
-
     return (
-        <div className="container mx-auto max-w-6xl">
-            <Head title="Profile" />
-            <div className="space-y-6">
-                {/* Profile Header */}
-                <Card>
-                    <CardHeader className="pb-4">
-                        <div className="flex items-center space-x-4">
-                            <Avatar className="w-20 h-20">
-                                <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary">
-                                    {(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role !=  'president' && user.user_role != 'announcement_admin') ? getInitials() : user.user_role.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="space-y-1">
-                                <CardTitle className="text-2xl">
-                                    {(user.user_role != 'mis' && user.user_role != 'super_admin' && user.user_role !=  'president' && user.user_role != 'announcement_admin') ? `${userInfo.first_name} ${userInfo.middle_name} ${userInfo.last_name}` : user.user_role.replace(/_/g, ' ').toUpperCase()}
-                                </CardTitle>
-                                <CardDescription className="flex items-center gap-2">
-                                    <Mail className="w-4 h-4" />
-                                    {userInfo.email}
-                                </CardDescription>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <User className="w-4 h-4" />
-                                    ID: {userInfo.user_id_no}
-                                </div>
+        <div className="container mx-auto py-10 max-w-6xl px-4">
+            <Head title="Profile Settings" />
+
+            <div className="flex flex-col lg:flex-row gap-8">
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="flex flex-col lg:flex-row w-full gap-8"
+                >
+                    {/* Navigation Sidebar */}
+                    <aside>
+                        <TabsList className="flex lg:flex-col h-auto w-48 justify-start gap-2 bg-transparent p-0">
+                            <TabsTrigger
+                                value="profile"
+                                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                            >
+                                <UserCircle className="w-4 h-4" />
+                                <span className="font-medium">Profile Information</span>
+                            </TabsTrigger>
+
+                            <TabsTrigger
+                                value="password"
+                                className="w-full justify-start gap-3 px-4 py-3 data-[state=active]:bg-primary/10 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 transition-all"
+                            >
+                                <KeyRound className="w-4 h-4" />
+                                <span className="font-medium">Password</span>
+                            </TabsTrigger>
+                        </TabsList>
+                    </aside>
+
+                    {/* Content Area */}
+                    <div className="flex-1">
+                        <TabsContent value="profile" className="m-0 focus-visible:ring-0">
+                            <ProfileInformation userInfo={userInfo} />
+                        </TabsContent>
+
+                        <TabsContent value="password" className="m-0 focus-visible:ring-0">
+                            <div className="">
+                                <ChangePassword />
                             </div>
-                        </div>
-                    </CardHeader>
-                </Card>
-
-                {/* Main Content */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="profile">Profile Information</TabsTrigger>
-                        <TabsTrigger value="password">Change Password</TabsTrigger>
-                        {/* <TabsTrigger value="settings">Account Settings</TabsTrigger> */}
-                    </TabsList>
-
-                    {/* Profile Information Tab */}
-                    <TabsContent value="profile" className="space-y-6">
-                        <ProfileInformation userInfo={userInfo} />
-                    </TabsContent>
-
-                    {/* Change Password Tab */}
-                    <TabsContent value="password" className="space-y-6">
-                        <ChangePassword />
-                    </TabsContent>
-
-                    {/* Account Settings Tab */}
-                    {/* <TabsContent value="settings" className="space-y-6">
-                        <AccountSettings
-                            userInfo={userInfo}
-                        />
-                    </TabsContent> */}
+                        </TabsContent>
+                    </div>
                 </Tabs>
             </div>
         </div>
