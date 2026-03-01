@@ -1,254 +1,221 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset - {{ config('app.name') }}</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Base styles */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            padding: 20px;
             line-height: 1.6;
+            color: #334155;
+            margin: 0;
+            padding: 0;
+            background-color: #f1f5f9;
         }
 
-        .email-container {
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f1f5f9;
+            padding: 40px 0;
+        }
+
+        .container {
+            width: 100%;
             max-width: 600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border-radius: 8px;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
+        /* Header Theme - Solid Institutional Blue */
         .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            padding: 40px 30px;
+            background-color: #1e3a8a;
+            padding: 35px 20px;
             text-align: center;
-            color: white;
-            position: relative;
-            overflow: hidden;
+            color: #ffffff;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.05"/><circle cx="20" cy="80" r="0.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            pointer-events: none;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
+        .school-name {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
             margin: 0;
+            text-transform: uppercase;
         }
 
+        .sub-header {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
 
+        /* Content Area */
         .content {
             padding: 40px 30px;
         }
 
-        .greeting {
-            font-size: 18px;
-            color: #2d3748;
-            margin-bottom: 24px;
-            font-weight: 500;
+        h3 {
+            color: #1e3a8a;
+            margin-top: 0;
+            font-size: 22px;
+            margin-bottom: 20px;
         }
 
-        .message {
+        .message-text {
             font-size: 16px;
-            color: #4a5568;
-            margin-bottom: 32px;
-            line-height: 1.6;
+            color: #475569;
+            margin-bottom: 25px;
         }
 
-        .reset-section {
-            text-align: center;
-            margin: 32px 0;
-        }
-
-        .reset-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            text-decoration: none;
-            padding: 16px 40px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: transform 0.2s ease;
-        }
-
-        .reset-button:hover {
-            transform: translateY(-1px);
-        }
-
+        /* Info & Security Boxes */
         .info-box {
-            background: #f7fafc;
+            background-color: #f8fafc;
             border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            border-radius: 6px;
             padding: 20px;
-            margin: 24px 0;
+            margin: 20px 0;
         }
 
         .info-box.warning {
-            background: #fffbeb;
-            border-color: #fbbf24;
+            background-color: #fffbeb;
+            border-color: #fde68a;
         }
 
-        .info-box h4 {
-            color: #2d3748;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
+        .info-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
         }
 
-        .info-box p {
-            color: #4a5568;
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .info-box.warning p {
+        .info-box.warning .info-title {
             color: #92400e;
         }
 
-        .link-fallback {
-            background: #f7fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 24px 0;
+        .info-content {
+            font-size: 14px;
+            color: #64748b;
+            margin: 0;
         }
 
-        .link-fallback h4 {
-            color: #2d3748;
-            font-size: 14px;
-            font-weight: 600;
+        .info-box.warning .info-content {
+            color: #92400e;
+        }
+
+        /* Button */
+        .btn-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 16px 40px;
+            background-color: #1e3a8a;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Link Fallback */
+        .fallback {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .fallback-text {
+            font-size: 12px;
+            color: #94a3b8;
             margin-bottom: 8px;
         }
 
-        .link-url {
+        .url-box {
             font-family: monospace;
-            font-size: 12px;
-            color: #4a5568;
-            background: white;
-            padding: 8px;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
+            font-size: 11px;
+            color: #64748b;
             word-break: break-all;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
         }
 
+        /* Footer */
         .footer {
-            background: #2d3748;
-            color: white;
             text-align: center;
-            padding: 24px 30px;
-            font-size: 14px;
+            padding: 30px 20px;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
         }
 
-        .footer p {
-            margin: 4px 0;
-            opacity: 0.8;
-        }
-
-        /* Responsive */
-        @media only screen and (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-
-            .email-container {
-                border-radius: 8px;
-            }
-
-            .header {
-                padding: 30px 20px;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
+        @media screen and (max-width: 600px) {
             .content {
                 padding: 30px 20px;
             }
 
-            .reset-button {
-                display: block;
+            .school-name {
+                font-size: 20px;
+            }
+
+            .button {
                 width: 100%;
-                text-align: center;
+                box-sizing: border-box;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="email-container">
-        <!-- Header -->
-        <div class="header">
-            <h1>{{ config('app.name') }}</h1>
-            <p>Password Reset Request</p>
-        </div>
-
-        <!-- Content -->
-        <div class="content">
-            <div class="greeting">
-                Hello {{ trim($user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name) ?: 'there' }},
+    <div class="wrapper">
+        <div class="container">
+            <div class="header">
+                <p class="school-name">Opol Community College</p>
+                <p class="sub-header">ACCOUNT SECURITY</p>
             </div>
 
-            <div class="message">
-                We received a request to reset your password. Click the button below to create a new password for your account.
+            <div class="content">
+                <h3>Password Reset Request</h3>
+
+                <p class="message-text">
+                    Hello {{ trim($user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name) ?: 'there' }},<br><br>
+                    We received a request to reset the password for your account. Please use the button below to proceed.
+                </p>
+
+                <div class="btn-container">
+                    <a href="{{ $resetUrl }}" class="button">Reset My Password</a>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-title">⏰ Expiration</span>
+                    <p class="info-content">This reset link will expire in {{ config('auth.passwords.users.expire', 60) }} minutes.</p>
+                </div>
+
+                <div class="info-box warning">
+                    <span class="info-title">🔒 Security Notice</span>
+                    <p class="info-content">If you did not request this change, please disregard this email. Your password will remain unchanged.</p>
+                </div>
+
+                <div class="fallback">
+                    <p class="fallback-text">If the button above doesn't work, copy and paste this URL into your browser:</p>
+                    <div class="url-box">{{ $resetUrl }}</div>
+                </div>
             </div>
 
-            <!-- Reset Button -->
-            <div class="reset-section">
-                <a href="{{ $resetUrl }}" class="reset-button">Reset Password</a>
+            <div class="footer">
+                &copy; {{ date('Y') }} Opol Community College. All rights reserved.<br>
+                Opol, Misamis Oriental, Philippines.
             </div>
-
-            <!-- Expiry Info -->
-            <div class="info-box">
-                <h4>⏰ Time Limit</h4>
-                <p>This link will expire in {{ config('auth.passwords.users.expire', 60) }} minutes for security reasons.</p>
-            </div>
-
-            <!-- Security Notice -->
-            <div class="info-box warning">
-                <h4>🔒 Security Notice</h4>
-                <p>If you didn't request this password reset, you can safely ignore this email. Your account remains secure.</p>
-            </div>
-
-            <!-- Link Fallback -->
-            <div class="link-fallback">
-                <h4>Button not working?</h4>
-                <p style="margin-bottom: 8px; font-size: 14px; color: #4a5568;">Copy and paste this link:</p>
-                <div class="link-url">{{ $resetUrl }}</div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <p><strong>Opol Community College</strong></p>
-            <p>Building futures, one student at a time</p>
-            <p>&copy; {{ date('Y') }} Opol Community College. All rights reserved.</p>
         </div>
     </div>
 </body>
