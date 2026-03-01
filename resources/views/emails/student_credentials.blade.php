@@ -173,10 +173,10 @@
                 </p>
 
                 <div class="credential-box">
-                    <div class="label">Student ID Number</div>
+                    <div class="label">ID Number</div>
                     <span class="value">{{ $student['user_id_no'] }}</span>
 
-                    <div class="label">Temporary Password</div>
+                    <div class="label">Password</div>
                     <span class="value">{{ $password }}</span>
                 </div>
 
