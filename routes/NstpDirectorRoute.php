@@ -44,4 +44,11 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
 
     Route::post('/nstp-director/donwload-enrolled-students', [ComponentController::class, 'downloadEnrolledStudent'])->name('nstp-director.enrolled-students.download');
     Route::post('/nstp-director/donwload-not-enrolled-students', [ComponentController::class, 'downloadNotEnrolledStudent'])->name('nstp-director.not-enrolled-students.download');
+
+    Route::get('/nstp-director/nstp-evaluators', [ComponentController::class, 'nstpEvaluators'])->name('nstp-director.nstp-evaluators');
+    Route::post('/nstp-director/nstp-evaluators', [ComponentController::class, 'getEvaluators'])->name('nstp-director.nstp-evaluators');
+
+    Route::post('/nstp-director/create-nstp-evaluator', [ComponentController::class, 'createEvaluator'])->name('nstp-director.create-nstp-evaluator');
+    Route::post('/nstp-director/update-nstp-evaluator', [ComponentController::class, 'updateEvaluator'])->name('nstp-director.update-nstp-evaluator');
+    Route::post('/nstp-director/toggle-active', [ComponentController::class, 'toggleActive'])->name('nstp-director.toggle-active');
 });

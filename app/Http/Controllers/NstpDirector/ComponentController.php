@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\NstpDirector;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EvaluatorCredentialsMail;
 use App\Models\EnrolledStudent;
 use App\Models\NstpComponent;
 use App\Models\NstpSection;
@@ -18,6 +19,7 @@ use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -1004,5 +1006,151 @@ class ComponentController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
             'Cache-Control' => 'max-age=0',
         ]);
+    }
+
+    public function nstpEvaluators()
+    {
+        return Inertia::render('NstpDirector/Evaluators/Index');
+    }
+
+    public function getEvaluators(Request $request)
+    {
+        $search = $request->search;
+
+        return User::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email', 'users.active', 'user_role')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->whereIn('users.user_role', ['cwts_evaluator', 'rotc_evaluator', 'lts_evaluator'])
+            ->orderByDesc('users.created_at')
+            ->where(function ($query) use ($search) {
+                if ($search) {
+                    $query->where('users.user_id_no', 'like', "%{$search}%")
+                        ->orWhere('user_information.first_name', 'like', "%{$search}%")
+                        ->orWhere('user_information.last_name', 'like', "%{$search}%");
+                }
+            })
+            ->paginate(10);
+    }
+
+    public function createEvaluator(Request $request)
+    {
+        $validated = $request->validate([
+            'user_role' => 'required|string',
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
+        //  Check Email
+        $emailExists = User::where('email', $validated['email'])->first();
+
+        if ($emailExists) {
+            return response()->json(['message' => 'Email already exists.', 'errors' => ['email' => 'Email already exists.']], 400);
+        }
+
+        // Generate Password
+        $password = $this->generateRandomPassword();
+
+        // Create id number
+        $prefix = match ($validated['user_role']) {
+            'cwts_evaluator' => 'CWTS',
+            'rotc_evaluator' => 'ROTC',
+            default => 'LTS',
+        };
+
+        // Get the max numeric suffix from user_id_no that starts with this prefix
+        $latestNumber = User::where('user_id_no', 'like', $prefix . '%')
+            ->selectRaw("MAX(CAST(SUBSTRING(user_id_no, " . (strlen($prefix) + 1) . ") AS UNSIGNED)) as max_number")
+            ->value('max_number');
+
+        $newNumber = str_pad(($latestNumber ?? 0) + 1, 3, '0', STR_PAD_LEFT);
+
+        $userIdNo = $prefix . $newNumber;
+
+        $user = User::create([
+            'user_id_no' => $userIdNo,
+            'user_role' => $validated['user_role'],
+            'email' => $validated['email'],
+            'password' =>  Hash::make($password),
+        ]);
+
+        UserInformation::create([
+            'user_id' => $user->id,
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email_address' => $validated['email']
+        ]);
+
+        Mail::to($validated['email'])->send(new EvaluatorCredentialsMail($userIdNo, $password, $validated));
+
+        return response()->json([
+            'success' => 'Evaluator created successfully!',
+            'credentials' => [
+                'user_id_no' => $userIdNo,
+                'password' => $password,
+            ],
+        ]);
+    }
+    
+    public function updateEvaluator(Request $request)
+    {
+        $evaluatorId = $request->id;
+
+        $validated = $request->validate([
+            'user_role' => 'required|string',
+            'first_name' => 'required|string',
+            'last_name' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
+        // Check Email
+        $emailExists = User::where('email', $validated['email'])->whereNot('id', '=', $evaluatorId)->first();
+
+        if ($emailExists) {
+            return back()->withErrors(['email' => 'Email already exists.']);
+        }
+
+        $user = User::findOrFail($evaluatorId);
+        $user->update([
+            'user_role' => $validated['user_role'],
+            'email' => $validated['email'],
+        ]);
+
+        UserInformation::where('user_id', $evaluatorId)->update([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email_address' => $validated['email'],
+        ]);
+    }
+
+    private function generateRandomPassword()
+    {
+        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        $numbers = '0123456789';
+
+        $password = $uppercase[random_int(0, strlen($uppercase) - 1)] .
+            $lowercase[random_int(0, strlen($lowercase) - 1)] .
+            $numbers[random_int(0, strlen($numbers) - 1)];
+
+        $allCharacters = $uppercase . $lowercase . $numbers;
+        for ($i = 3; $i < 8; $i++) {
+            $password .= $allCharacters[random_int(0, strlen($allCharacters) - 1)];
+        }
+
+        return str_shuffle($password);
+    }
+
+    public function toggleActive(Request $request)
+    {
+        $user = User::where('id', $request->id)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->active = !$user->active;
+        $user->save();
+
+        return response()->json(['message' => 'Success']);
     }
 }

@@ -34,6 +34,7 @@ import {
     Shield,
     Users,
     GraduationCap,
+    Users2,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -365,6 +366,12 @@ export function NavMain() {
                     items: [
                         { name: "Room", route: "nstp-director.rooms-schedules", icon: MdOutlineMeetingRoom },
                         { name: "Faculty", route: "nstp-director.faculties-schedules", icon: UsersIcon },
+                    ],
+                },
+                {
+                    label: "Others",
+                    items: [
+                        { name: "Evaluators", route: "nstp-director.nstp-evaluators", icon: Users2 },
                     ],
                 },
             );
