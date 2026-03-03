@@ -83,7 +83,7 @@ export default function AddUserDialog({ open, onOpenChange }) {
                                 <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                             <SelectContent>
-                                {userRoles().map((role) => (
+                                {userRoles({ exclude: ['super_admin', 'mis'] }).map((role) => (
                                     <SelectItem key={role.value} value={role.value}>
                                         {role.label}
                                     </SelectItem>

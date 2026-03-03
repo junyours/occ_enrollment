@@ -301,8 +301,8 @@ export function toTwoDecimals(number) {
     });
 }
 
-export const userRoles = () => {
-    return [
+export const userRoles = ({ exclude = [], include = null } = {}) => {
+    const roles = [
         { value: 'announcement_admin', label: 'Announcement Admin' },
         { value: 'evaluator', label: 'Evaluator' },
         { value: 'faculty', label: 'Faculty' },
@@ -319,5 +319,11 @@ export const userRoles = () => {
         { value: 'super_admin', label: 'Super Admin' },
         { value: 'student', label: 'Student' },
         { value: 'vpaa', label: 'Vpaa' },
-    ]
-}
+    ];
+
+    if (include) {
+        return roles.filter(role => include.includes(role.value));
+    }
+
+    return roles.filter(role => !exclude.includes(role.value));
+};

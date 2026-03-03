@@ -15,6 +15,7 @@ import UserDetails from './UserDetails';
 import UsersTable from './UsersTable';
 import AddUserDialog from './AddUserDialog';
 import { userRoles } from '@/Lib/Utils';
+import PaginationPages from '@/Components/ui/PaginationPages';
 
 export default function Index({ users, filters }) {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -139,53 +140,11 @@ export default function Index({ users, filters }) {
                     )}
                 </div>
             </div>
-
+                
+            {/* Users */}
             <UsersTable users={users} setSelectedUser={setSelectedUser} />
 
-            {/* Pagination Controls */}
-            {users.data.length > 0 && (
-                <div className="flex items-center justify-between px-4">
-                    <div className="text-sm">
-                        Showing <span className="font-medium">{users.from}</span> to{' '}
-                        <span className="font-medium">{users.to}</span> of{' '}
-                        <span className="font-medium">{users.total}</span> results
-                    </div>
-
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(users.prev_page_url)}
-                            disabled={!users.prev_page_url}
-                        >
-                            Previous
-                        </Button>
-
-                        <div className="flex gap-1">
-                            {users.links.slice(1, -1).map((link, index) => (
-                                <Button
-                                    key={index}
-                                    variant={link.active ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => handlePageChange(link.url)}
-                                    disabled={!link.url}
-                                    className="min-w-[40px]"
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
-                            ))}
-                        </div>
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(users.next_page_url)}
-                            disabled={!users.next_page_url}
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </div>
-            )}
+            <PaginationPages data={users} />
 
             <UserDetails selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
             <AddUserDialog open={showAddDialog} onOpenChange={setShowAddDialog} />

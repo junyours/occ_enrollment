@@ -21,8 +21,8 @@ import { Badge } from '@/Components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { AlertCircle, Edit2, Save, X } from 'lucide-react';
 import { formatRole, getRoleBadgeColor } from './Utility';
-import { userRoles } from '@/Lib/Utils';
 import { toast } from 'sonner';
+import UserRoleBadge from '@/Components/ui/UserRoleBadge';
 
 export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -190,26 +190,9 @@ export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
                                 </div>
                                 <div>
                                     <Label>Role</Label>
-                                    {isEditing ? (
-                                        <Select value={data.user_role} onValueChange={(value) => setData('user_role', value)}>
-                                            <SelectTrigger className={errors.user_role ? 'border-red-500' : ''}>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {userRoles().map((role) => (
-                                                    <SelectItem key={role.value} value={role.value}>
-                                                        {role.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    ) : (
-                                        <div className="mt-2">
-                                            <Badge className={`${getRoleBadgeColor(data.user_role)} text-white`}>
-                                                {formatRole(data.user_role)}
-                                            </Badge>
-                                        </div>
-                                    )}
+                                    <div className="mt-2">
+                                        <UserRoleBadge role={data.user_role} />
+                                    </div>
                                     {errors.user_role && (
                                         <p className="text-sm text-red-500 mt-1">{errors.user_role}</p>
                                     )}

@@ -1,8 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import React from 'react'
-import { formatRole, getRoleBadgeColor } from './Utility'
-import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import UserRoleBadge from '@/Components/ui/UserRoleBadge'
 
 function UsersTable({ users, setSelectedUser }) {
     return (
@@ -39,9 +38,7 @@ function UsersTable({ users, setSelectedUser }) {
                                     {user.email || <span className="text-gray-400 italic">No email</span>}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge className={`${getRoleBadgeColor(user.user_role)} text-white`}>
-                                        {formatRole(user.user_role)}
-                                    </Badge>
+                                    <UserRoleBadge role={user.user_role}/>
                                 </TableCell>
                                 <TableCell>
                                     {user.contact_number || <span className="text-gray-400 italic">No contact</span>}

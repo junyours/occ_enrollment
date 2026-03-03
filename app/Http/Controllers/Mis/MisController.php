@@ -80,19 +80,25 @@ class MisController extends Controller
                 }
             })
             ->orderByRaw("CASE
-                WHEN user_role = 'super_admin' THEN 1
-                WHEN user_role = 'president' THEN 2
-                WHEN user_role = 'program_head' THEN 3
-                WHEN user_role = 'registrar' THEN 4
-                WHEN user_role = 'evaluator' THEN 5
-                WHEN user_role = 'mis' THEN 6
-                WHEN user_role = 'guidance' THEN 7
-                WHEN user_role = 'announcement_admin' THEN 8
-                WHEN user_role = 'faculty' THEN 9
-                WHEN user_role = 'student' THEN 10
-                ELSE 11
-                END")
+                                WHEN user_role = 'student' THEN 1
+                                WHEN user_role = 'librarian' THEN 3
+
+                                WHEN user_role = 'president' THEN 10
+                                WHEN user_role = 'program_head' THEN 11
+                                WHEN user_role = 'registrar' THEN 12
+                                WHEN user_role = 'nstp_director' THEN 13
+                                WHEN user_role = 'gened_coordinator' THEN 14
+                                WHEN user_role = 'vpaa' THEN 15
+                                WHEN user_role = 'evaluator' THEN 16
+                                WHEN user_role = 'mis' THEN 17
+                                WHEN user_role = 'guidance' THEN 18
+                                WHEN user_role = 'announcement_admin' THEN 19
+                                WHEN user_role = 'faculty' THEN 20
+                                ELSE 20
+                            END")
             ->orderByRaw('COALESCE(user_information.last_name, users.user_id_no)')
+            ->orderBy('users.created_at', 'desc')
+            ->whereNotIn('users.user_role', ['super_admin', 'mis'])
             ->paginate(10);
 
         $users->appends($request->query());
@@ -107,7 +113,7 @@ class MisController extends Controller
     {
         $validated = $request->validate([
             'user_id_no' => ['required', 'unique:users,user_id_no'],
-            'user_role' => ['required', 'in:faculty,student,program_head,evaluator,registrar,mis,president,announcement_admin,guidance,vpaa,librarian,ojt_coordinator,research_coordinator,gened_coordinator,nstp_director'],
+            'user_role' => ['required', 'in:faculty,student,program_head,evaluator,registrar,president,guidance,vpaa,librarian,ojt_coordinator,research_coordinator,gened_coordinator,nstp_director'],
             'password' => ['required', 'confirmed'],
         ], [
             'user_id_no.required' => 'User ID number is required.',
