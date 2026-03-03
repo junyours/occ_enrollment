@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Guidance\GuidanceController;
 
-Route::middleware(['auth', 'Guidance'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'Guidance'])->group(function () {
     Route::get('/guidance/dashboard', [GuidanceController::class, 'index'])->name('guidance.dashboard');
 
 
@@ -88,7 +88,7 @@ Route::middleware(['auth', 'Guidance'])->group(function () {
     Route::delete('/trash/delete-all', [GuidanceController::class, 'deleteAll']);
 });
 
-Route::middleware(['auth', 'student'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'student'])->group(function () {
     // Student Evaluation Questions
     Route::get('/student_evalaution', [GuidanceController::class, 'stud_questionnaire'])->name('student.evaluation');
     Route::get('/student_eval_question', [GuidanceController::class, 'stud_eval_questionnaire'])->name('student.eval_question');
@@ -104,7 +104,7 @@ Route::middleware(['auth', 'student'])->group(function () {
 
 
 
-Route::middleware(['auth', 'program_head'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::get('/program-head/facresult', [GuidanceController::class, 'phFacultyReport'])->name('ph.result');
     // Route::get('/faculty-result/', [GuidanceController::class, 'phFacultyReport'])->name('faculty-report');
     Route::get('/program-head/faculty-list/{schoolYearId}', [GuidanceController::class, 'facultyReport'])
@@ -118,7 +118,7 @@ Route::middleware(['auth', 'program_head'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'faculty'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'faculty'])->group(function () {
     Route::get('/faculty-result/', [GuidanceController::class, 'FacultyResult'])->name('fac.faculty.report');
     Route::get('/faculty/subjects/{schoolYearId}', [GuidanceController::class, 'FesfacultySubjects'])->name('fac.facultySubjects');
     Route::get(

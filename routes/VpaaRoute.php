@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VPAA\VPAAController;
 
-Route::middleware(['auth', 'vpaa'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'vpaa'])->group(function () {
     Route::get('/vpaadashboard', [VPAAController::class, 'vpaadashboard'])->name('vdashboard');
 
     //Faculty List

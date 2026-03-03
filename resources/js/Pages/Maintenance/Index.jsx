@@ -7,6 +7,7 @@ import { Label } from '@/Components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { AlertTriangle, Settings, Users } from 'lucide-react';
+import { userRoles } from '@/Lib/UsersUtility';
 
 const roles = [
     { value: 'faculty', label: 'Faculty' },
@@ -92,9 +93,9 @@ export default function Index({ settings, errors }) {
                         Select which user roles should be blocked during maintenance mode
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className='pt-4'>
                     <div className="space-y-4">
-                        {roles.map(({ value, label }) => (
+                        {userRoles({ exclude: ['super_admin'] }).map(({ value, label }) => (
                             <div key={value} className="flex items-center space-x-3">
                                 <Checkbox
                                     id={`role-${value}`}

@@ -3,7 +3,7 @@
 use App\Http\Controllers\Librarian\ApprovalSheetController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'Librarian'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'Librarian'])->group(function () {
     Route::get('approval-sheets', [ApprovalSheetController::class, 'list'])->name('approval-sheets');
     Route::post('approval-sheets', [ApprovalSheetController::class, 'searchList'])->name('approval-sheets.list');
 

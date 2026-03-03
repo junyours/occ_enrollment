@@ -57,7 +57,7 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
     Route::post('/program-head-name/{yearSectionSubjectsId}', [GradeController::class, 'programHeadName'])->name('program-head-name');
 });
 
-Route::middleware(['auth', 'ClassesPermission'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function () {
     Route::get('/subjects-list', [GradeController::class, 'gradesSubjectsList'])->name('subjects-list');
     Route::post('/instructor-subjects', [GradeController::class, 'instructorSubjects'])->name('instructor-subjects');
 
