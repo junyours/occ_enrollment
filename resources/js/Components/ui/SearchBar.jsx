@@ -46,7 +46,7 @@ const SearchBar = React.forwardRef(({ className, value: controlledValue, onChang
                 className
             )}
         >
-            <div className="flex items-center border border-r-0 h-full w-full focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-2 rounded-l-[var(--radius)] focus-visible:ring-1">
+            <div className="flex items-center border border-r-0 h-full w-full focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background rounded-l-[var(--radius)] focus-visible:ring-1">
                 <Input
                     type="text"
                     ref={ref}
