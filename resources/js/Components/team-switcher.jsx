@@ -15,7 +15,7 @@ export function TeamSwitcher() {
                         size="lg"
                         className="w-full transition-all duration-200 hover:bg-sidebar-accent active:scale-[0.98] group gap-1 group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:hover:bg-transparent"
                     >
-                        <div className="flex aspect-square size-8 items-center justify-center text-primary-foreground shadow-sm group-hover:shadow-md transition-shadow">
+                        <div className="flex aspect-square size-8 items-center justify-center text-primary-foreground transition-shadow">
                             <AppLogo className="size-4" />
                         </div>
 
@@ -23,7 +23,7 @@ export function TeamSwitcher() {
                             <span className="truncate font-bold text-sm tracking-tight">
                                 SIS - OCC
                             </span>
-                            <span className="truncate text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                            <span className="truncate text-[11px] font-medium text-muted-primary uppercase tracking-wider">
                                 Opol Community College
                             </span>
                         </div>
