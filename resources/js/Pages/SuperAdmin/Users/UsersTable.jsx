@@ -6,6 +6,7 @@ import { Button } from '@/Components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip'
 import { LogIn } from 'lucide-react'
 import { router } from '@inertiajs/react'
+import UserRoleBadge from '@/Components/ui/UserRoleBadge'
 
 function UsersTable({ users }) {
 
@@ -46,9 +47,7 @@ function UsersTable({ users }) {
                                     {user.email || <span className="text-gray-400 italic">No email</span>}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge className={`${getRoleBadgeColor(user.user_role)} text-white`}>
-                                        {formatRole(user.user_role)}
-                                    </Badge>
+                                    <UserRoleBadge role={user.user_role} />
                                 </TableCell>
                                 <TableCell>
                                     {user.contact_number || <span className="text-gray-400 italic">No contact</span>}
@@ -56,16 +55,9 @@ function UsersTable({ users }) {
 
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button variant="ghost" className="h-max" size="icon" onClick={() => loginAs(user)}>
-                                                    <LogIn />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                Login as
-                                            </TooltipContent>
-                                        </Tooltip>
+                                        <Button variant="ghost" className="h-max py-1" size="icon" onClick={() => loginAs(user)}>
+                                            <LogIn />
+                                        </Button>
                                     </div>
                                 </TableCell>
                             </TableRow>
