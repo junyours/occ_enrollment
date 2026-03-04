@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\StudentCredentialsMail;
+use App\Mail\StudentResetCredentialsMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -171,7 +172,7 @@ class SuperAdminController extends Controller
             'user_id' => 'required|exists:users,id',
         ]);
 
-        $password = $this->generateRandomPassword();
+        $password = $this->generateRandomPassword(); // Make sure this returns a plain string
 
         $user = User::findOrFail($request->user_id);
         $user->password = Hash::make($password);
@@ -179,21 +180,16 @@ class SuperAdminController extends Controller
         $user->password_change = false;
         $user->save();
 
-        $student = User::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address')
+        $student = User::select('users.id', 'user_id_no', 'first_name', 'last_name', 'email_address')
             ->where('users.id', $user->id)
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->first();
 
-        $studentData = [
-            "first_name" => ucwords(strtolower($student->first_name)),
-            "middle_name" => ucwords(strtolower($student->middle_name)),
-            "last_name" => ucwords(strtolower($student->last_name)),
-            "user_id_no" => $student->user_id_no
-        ];
-
         if ($request->email_address) {
-            Mail::to($request->email_address)->send(new StudentCredentialsMail($studentData, $password));
+            Mail::to($request->email_address)->send(new StudentResetCredentialsMail($student, $password));
         }
+
+        Mail::to($request->email_address)->send(new StudentCredentialsMail($student, $password));
 
         return Redirect::back()->with('success', 'Credentials successfully reset and emailed.');
     }

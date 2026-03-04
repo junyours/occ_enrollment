@@ -7,7 +7,7 @@ import { Label } from '@/Components/ui/label';
 import { Separator } from '@/Components/ui/separator';
 import { Badge } from '@/Components/ui/badge';
 import { toast } from 'sonner';
-import { router, usePage, Head } from '@inertiajs/react';
+import { router, usePage, Head, useForm } from '@inertiajs/react';
 import { Search, User as UserIcon, Key, RefreshCw, ShieldAlert, Mail, Calendar } from 'lucide-react';
 import axios from 'axios';
 import UserRoleBadge from '@/Components/ui/UserRoleBadge'; // Using our previous component
@@ -17,10 +17,21 @@ import { Alert, AlertDescription } from '@/Components/ui/alert';
 function ResetCredentials() {
     const [searchId, setSearchId] = useState('');
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+    const [isResettingAccount, setIsResettingAccount] = useState(false);
     const [password, setPassword] = useState('');
-
     const { props } = usePage();
+
+    const passwordForm = useForm({
+        user_id: '',
+        password: '',
+    });
+
+    const resetForm = useForm({
+        user_id: '',
+        email_address: '',
+    });
 
     useEffect(() => {
         if (props.flash?.success) toast.success(props.flash.success);
@@ -31,42 +42,56 @@ function ResetCredentials() {
         e?.preventDefault();
         if (!searchId.trim()) return;
 
-        setLoading(true);
+        setIsSearching(true);
         try {
             const res = await axios.post(route('super-admin.search-user', { user_id_no: searchId }));
-            setUser(res.data.user);
-            setPassword(''); // Clear password field on new search
+            const foundUser = res.data.user;
+            setUser(foundUser);
+
+            // Seed the forms with the new user's ID
+            passwordForm.setData('user_id', foundUser.id);
+            resetForm.setData({
+                user_id: foundUser.id,
+                email_address: foundUser.email
+            });
+            passwordForm.reset('password'); // Clear password field on new search
         } catch (error) {
             toast.error(error.response?.data?.message || 'User not found.');
             setUser(null);
         } finally {
-            setLoading(false);
+            setIsSearching(false);
         }
     };
 
     const handleReset = () => {
-        if (!user) return;
-        router.post(route('super-admin.reset-user-credentials'),
-            { user_id: user.id, email_address: user.email },
-            {
-                preserveScroll: true,
-                onStart: () => setLoading(true),
-                onFinish: () => setLoading(false)
-            }
-        );
+        resetForm.post(route('super-admin.reset-user-credentials'), {
+            preserveScroll: true,
+            onSuccess: () => toast.success("Credentials successfully reset and emailed."),
+        });
     };
 
     const changePassword = () => {
-        if (!user || !password) return toast.error("Please enter a new password");
-        router.post(route('super-admin.change-user-password'),
-            { user_id: user.id, password: password },
-            {
-                preserveScroll: true,
-                onStart: () => setLoading(true),
-                onFinish: () => setLoading(false)
-            }
-        );
+        if (!passwordForm.data.password.trim()) {
+            passwordForm.setError('password', 'Password cannot be empty');
+            toast.error("Password cannot be empty");
+            return;
+        }
+        
+        if (passwordForm.data.password.length < 8) {
+            passwordForm.setError('password', 'Password must be at least 8 characters');
+            toast.error("Password must be at least 8 characters");
+            return;
+        }
+
+        passwordForm.post(route('super-admin.change-user-password'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success("Password updated successfully");
+                passwordForm.reset('password');
+            },
+        });
     };
+
 
     return (
         <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
@@ -85,13 +110,13 @@ function ResetCredentials() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 className="pl-10 h-11"
-                                placeholder="Search by User ID No. (e.g. 2024-0001)"
+                                placeholder="Search by User ID No. (e.g. 2027-1-07890)"
                                 value={searchId}
                                 onChange={(e) => setSearchId(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" size="lg" disabled={loading} className="px-8">
-                            {loading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
+                        <Button type="submit" size="lg" disabled={isSearching} className="px-8">
+                            {isSearching ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
                             Search
                         </Button>
                     </form>
@@ -146,14 +171,23 @@ function ResetCredentials() {
                                     <Label htmlFor="new-password">New Password</Label>
                                     <Input
                                         id="new-password"
-                                        type="text" // Set to text so admin can see what they are typing
+                                        type="text"
                                         placeholder="Enter secure password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        disabled={loading}
+                                        value={passwordForm.data.password}
+                                        onChange={(e) => passwordForm.setData('password', e.target.value)}
+                                        disabled={passwordForm.processing}
                                     />
+                                    {passwordForm.errors.password && (
+                                        <p className="text-red-500 text-sm">{passwordForm.errors.password}</p>
+                                    )}
                                 </div>
-                                <Button className="w-full" onClick={changePassword} disabled={loading || !password}>
+                                <Button
+                                    className="w-full"
+                                    onClick={changePassword}
+                                    // This will now work because passwordForm.data.password is being updated
+                                    disabled={passwordForm.processing}
+                                >
+                                    {passwordForm.processing && <RefreshCw className="h-4 w-4 animate-spin mr-2" />}
                                     Update Password
                                 </Button>
                             </CardContent>
@@ -178,10 +212,10 @@ function ResetCredentials() {
                                 </Alert>
                                 <Button
                                     variant="destructive"
-                                    className="w-full"
                                     onClick={handleReset}
-                                    disabled={loading}
+                                    disabled={resetForm.processing}
                                 >
+                                    {resetForm.processing && <RefreshCw className="h-4 w-4 animate-spin mr-2" />}
                                     Force Account Reset
                                 </Button>
                             </CardContent>
