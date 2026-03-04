@@ -47,7 +47,7 @@ export default function RankEval({ auth, schoolYears }) {
         {/* Page Title */}
         <header className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Student Evaluation Records
+            Faculty Ranking Archive
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Browse all evaluation records by school year and semester.

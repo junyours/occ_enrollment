@@ -16,7 +16,7 @@ import {
 import { CSSTransition } from "react-transition-group";
 import "@/Pages/Guidance/analyticsTransition.css";
 
-export default function PhFacultySubjects({ auth, faculty, subjects = [], schoolYearId }) {
+export default function FesfacultySubjects({ auth, faculty, subjects = [], schoolYearId }) {
     const [showAnalytics, setShowAnalytics] = React.useState(true);
 
     // ---------------------------
@@ -37,21 +37,17 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
         return "Poor – Rarely exhibits the quality being rated.";
     };
 
-    // ---------------------------
-    // Map backend fields (NEW FORMULA OUTPUT)
-    // expected per subject:
-    // overall_average, total_students_handled, total_respondents, response_rate (percent), is_valid_evaluation
-    // ---------------------------
+    // ✅ Map backend data (NEW FIELDS from your updated controller)
     const subjectsWithStats = subjects.map((s) => ({
         ...s,
         mean: s.overall_average ?? null,
         total_students_handled: s.total_students_handled ?? 0,
         total_respondents: s.total_respondents ?? 0,
-        response_rate: s.response_rate ?? 0, // already percent from backend (0-100)
+        response_rate: s.response_rate ?? 0, // percent
         is_valid_evaluation: !!s.is_valid_evaluation,
     }));
 
-    // ✅ Overall rating = average of VALID subjects only (same logic as ranking)
+    // ✅ Overall rating: average of VALID subjects only
     const validSubjects = subjectsWithStats.filter(
         (s) => s.is_valid_evaluation && s.overall_average !== null && Number(s.overall_average) > 0
     );
@@ -88,11 +84,10 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
             colName: "Response Rate",
             cell: ({ row }) => {
                 const rr = Number(row.original.response_rate ?? 0);
-                const ok = rr >= 50;
                 return (
                     <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            ok ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                            rr >= 50 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
                         }`}
                     >
                         {rr.toFixed(2)}%
@@ -133,12 +128,10 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
             colName: "Actions",
             cell: ({ row }) => {
                 const subject = row.original;
-
-                // If you want to DISABLE view when not valid, uncomment below block
-                // const canView =
-                //     subject.is_valid_evaluation &&
-                //     subject.student_subject_id &&
-                //     subject.overall_average !== null;
+                const canView =
+                    subject.is_valid_evaluation &&
+                    subject.student_subject_id &&
+                    subject.overall_average !== null;
 
                 // if (!canView) {
                 //     return (
@@ -146,7 +139,7 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
                 //             type="button"
                 //             disabled
                 //             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium bg-gray-200 text-gray-500 cursor-not-allowed"
-                //             title="Not available (needs ≥50% response rate and valid computed mean)"
+                //             title="Not available (needs ≥50% response rate)"
                 //         >
                 //             <BarChart2 className="w-4 h-4" />
                 //             View Evaluation
@@ -154,12 +147,13 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
                 //     );
                 // }
 
-                const studentSubjectId = subject.student_subject_id;
-                const facultyId = faculty.id;
-
                 return (
                     <Link
-                        href={route("ph.faculty.evaluation", { facultyId, studentSubjectId, schoolYearId })}
+                        href={route("eval.faculty.evaluation", {
+                            facultyId: faculty.id,
+                            studentSubjectId: subject.student_subject_id,
+                            schoolYearId,
+                        })}
                         className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-1.5 rounded-md hover:bg-green-700 transition text-sm font-medium shadow-sm"
                     >
                         <BarChart2 className="w-4 h-4" />
@@ -172,11 +166,9 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
 
     // ---------------------------
     // Graph data (UPDATED)
-    // Invalid subjects show 0 rating but tooltip shows Not valid
     // ---------------------------
     const graphData = subjectsWithStats.map((s) => {
-        const valid = !!s.is_valid_evaluation;
-        const rating = valid ? Number(s.overall_average ?? 0) : 0;
+        const rating = s.is_valid_evaluation ? Number(s.overall_average ?? 0) : 0;
 
         return {
             subject: s.subject_code,
@@ -184,14 +176,15 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
             handled: s.total_students_handled ?? 0,
             respondents: s.total_respondents ?? 0,
             responseRate: Number(s.response_rate ?? 0),
-            valid,
-            description: valid && rating > 0 ? getDescription(rating) : "Not valid (needs ≥ 50% response rate).",
+            valid: !!s.is_valid_evaluation,
+            description: rating > 0 ? getDescription(rating) : "Not valid (needs ≥ 50% response rate).",
         };
     });
 
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
+
             return (
                 <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700">
                     <p className="font-semibold text-gray-800 dark:text-gray-100">{data.subject}</p>
@@ -230,7 +223,7 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
             <Head title="Handled Subjects" />
 
             <div className="p-6 mx-auto space-y-6 max-w-7xl">
-                {/* Header Section */}
+                {/* Header */}
                 <div className="flex items-center gap-3">
                     <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
@@ -242,7 +235,7 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
                     Department: <strong>{faculty.department_name ?? "N/A"}</strong>
                 </p>
 
-                {/* Back Link */}
+                {/* Back */}
                 <div>
                     <Link
                         onClick={() => window.history.back()}
@@ -253,7 +246,7 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
                     </Link>
                 </div>
 
-                {/* Toggle Analytics Button */}
+                {/* Toggle */}
                 <div className="flex justify-end mt-4">
                     <button
                         onClick={() => setShowAnalytics(!showAnalytics)}
@@ -263,10 +256,10 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
                     </button>
                 </div>
 
-                {/* Animated Analytics Section */}
+                {/* Analytics */}
                 <CSSTransition in={showAnalytics} timeout={300} classNames="analytics" unmountOnExit>
                     <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-3">
-                        {/* Left: Overall Rating Card */}
+                        {/* Overall Rating */}
                         <div className="flex flex-col items-center justify-center p-6 shadow bg-blue-50 dark:bg-blue-900 rounded-xl">
                             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-100">Overall Rating</h3>
 
@@ -287,7 +280,7 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
                             </p>
                         </div>
 
-                        {/* Right: Subject Overall Means Graph */}
+                        {/* Graph */}
                         <div className="p-4 bg-white shadow dark:bg-gray-900 rounded-xl md:col-span-2">
                             <h3 className="flex items-center gap-2 mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
                                 <BarChart2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -323,13 +316,13 @@ export default function PhFacultySubjects({ auth, faculty, subjects = [], school
                             </div>
 
                             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                Note: Invalid subjects (below 50% response rate) are shown as 0 in the graph but will display “Not valid” in tooltip.
+                                Invalid subjects (below 50% response rate) show as 0 in graph but tooltip shows status.
                             </p>
                         </div>
                     </div>
                 </CSSTransition>
 
-                {/* Data Table */}
+                {/* Table */}
                 <div className="p-6 bg-white border border-gray-200 shadow dark:bg-gray-900 rounded-xl dark:border-gray-700">
                     <DataTable
                         columns={columns}

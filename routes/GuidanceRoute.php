@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Guidance\GuidanceController;
+use App\Http\Controllers\Guidance\LanguageController;
+use App\Http\Controllers\Guidance\FeedbackCategoryController;
+use App\Http\Controllers\Guidance\FeedbackKeywordController;
+use App\Http\Controllers\Guidance\UnknownFeedbackKeywordController;
 
 Route::middleware(['auth', 'Guidance'])->group(function () {
     Route::get('/guidance/dashboard', [GuidanceController::class, 'index'])->name('guidance.dashboard');
@@ -86,7 +90,62 @@ Route::middleware(['auth', 'Guidance'])->group(function () {
     Route::delete('/trash/delete/{type}/{id}', [GuidanceController::class, 'delete'])->name('trash.delete');
     Route::post('/trash/restore-all', [GuidanceController::class, 'restoreAll']);
     Route::delete('/trash/delete-all', [GuidanceController::class, 'deleteAll']);
-});
+
+
+    //Recommendation Management
+    Route::resource('Guidance/languages', LanguageController::class)
+    ->names([
+        'index' => 'languages.index',
+        'create' => 'languages.create',
+        'store' => 'languages.store',
+        'show' => 'languages.show',
+        'edit' => 'languages.edit',
+        'update' => 'languages.update',
+        'destroy' => 'languages.destroy',
+    ]);
+
+    Route::resource('Guidance/feedback-categories', FeedbackCategoryController::class)
+        ->names([
+            'index' => 'feedback-categories.index',
+            'store' => 'feedback-categories.store',
+            'update' => 'feedback-categories.update',
+            'destroy' => 'feedback-categories.destroy',
+        ]);
+
+    Route::resource('Guidance/feedback-keywords', FeedbackKeywordController::class)
+        ->names([
+            'index' => 'feedback-keywords.index',
+            'store' => 'feedback-keywords.store',
+            'update' => 'feedback-keywords.update',
+            'destroy' => 'feedback-keywords.destroy',
+        ]);
+
+    Route::get(
+        '/unknown-keywords',
+        [UnknownFeedbackKeywordController::class, 'index']
+    )->name('unknown-keywords.index');
+
+    Route::get('/unknown-keywords/rejected', [UnknownFeedbackKeywordController::class, 'rejected'])
+    ->name('unknown-keywords.rejected');
+
+    Route::post(
+        '/unknown-keywords/{id}/approve',
+        [UnknownFeedbackKeywordController::class, 'approve']
+    )->name('unknown-keywords.approve');
+
+    Route::post(
+        '/unknown-keywords/{id}/reject',
+        [UnknownFeedbackKeywordController::class, 'reject']
+    )->name('unknown-keywords.reject');
+    });
+
+    Route::get('/unknown-keywords/rejected', [UnknownFeedbackKeywordController::class, 'rejected'])
+    ->name('unknown-keywords.rejected');
+
+    Route::delete(
+        '/unknown-keywords/{id}',
+        [UnknownFeedbackKeywordController::class, 'destroy']
+    )->name('unknown-keywords.destroy');
 
 Route::middleware(['auth', 'student'])->group(function () {
     // Student Evaluation Questions
@@ -125,4 +184,14 @@ Route::middleware(['auth', 'faculty'])->group(function () {
         '/faculty/faculty-evaluation/{facultyId}/{studentSubjectId}/{schoolYearId}',
         [GuidanceController::class, 'facEvaluationResult']
     )->name('fac.faculty.evaluation');
+});
+
+
+Route::middleware(['auth', 'evaluator'])->group(function () {
+    Route::get('/eval-faculty-result/', [GuidanceController::class, 'EvalFacultyResult'])->name('eval.faculty.report');
+    Route::get('/eval/faculty/subjects/{schoolYearId}', [GuidanceController::class, 'EvalFesfacultySubjects'])->name('eval.facultySubjects');
+    Route::get(
+        '/eval/faculty/faculty-evaluation/{facultyId}/{studentSubjectId}/{schoolYearId}',
+        [GuidanceController::class, 'EvalfacEvaluationResult']
+    )->name('eval.faculty.evaluation');
 });

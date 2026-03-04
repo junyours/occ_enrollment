@@ -162,7 +162,7 @@ export function NavMain() {
                     ],
                 },
                 {
-                    label: "Evalaution Result",
+                    label: "Evaluation Result",
                     items: [
                         { name: "Faculty Result", route: "fac.faculty.report", icon: User },
                     ],
@@ -171,12 +171,20 @@ export function NavMain() {
             break;
 
         case "evaluator":
-            menuSections.push({
+            menuSections.push(
+                {
                 label: "Academic",
                 items: [
                     { name: "Classes", route: "classes", icon: Presentation },
                 ],
-            });
+            },
+            {
+                    label: "Evaluation Result",
+                    items: [
+                        { name: "Faculty Result", route: "eval.faculty.report", icon: User },
+                    ],
+                }
+        );
             break;
 
         case "super_admin":
@@ -254,6 +262,15 @@ export function NavMain() {
                     label: "Archives",
                     items: [
                         { name: "Archives", route: "guidance.archive", icon: Archive },
+                    ],
+                },
+                {
+                    label: "Recommendation Management",
+                    items: [
+                        { name: "Language", route: "languages.index", icon: Archive },
+                        { name: "Categories", route: "feedback-categories.index", icon: Archive },
+                        { name: "Keywords", route: "feedback-keywords.index", icon: Archive },
+                        { name: "Unknown Keywords", route: "unknown-keywords.index", icon: Archive },
                     ],
                 },
                 {
@@ -378,7 +395,7 @@ export function NavMain() {
         <SidebarGroup>
             {(userRole === "gened_coordinator" || userRole === "nstp_director") && (
                 <SidebarMenu className="space-y-0.5 mb-4">
-                    <SidebarGroupLabel className="p-0 text-xs uppercase text-muted-foreground h-min flex flex-col text-none">
+                    <SidebarGroupLabel className="flex flex-col p-0 text-xs uppercase text-muted-foreground h-min text-none">
                         <SchoolYearPicker layout="horizontal-select-only" />
                     </SidebarGroupLabel>
                 </SidebarMenu>

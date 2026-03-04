@@ -16,6 +16,13 @@ class EvaluationFeedback extends Model
         'strengths',
         'weaknesses',
         'anonymous',
+        'sentiment',
+        'sentiment_score',
+    ];
+
+     protected $casts = [
+        'anonymous' => 'boolean',
+        'sentiment_score' => 'integer',
     ];
 
     public function evaluationSession()
@@ -31,5 +38,10 @@ class EvaluationFeedback extends Model
     public function studentSubject()
     {
         return $this->belongsTo(StudentSubject::class); // ✅ new relationship
+    }
+
+    public function analyses()
+    {
+        return $this->hasMany(FeedbackAnalysis::class);
     }
 }

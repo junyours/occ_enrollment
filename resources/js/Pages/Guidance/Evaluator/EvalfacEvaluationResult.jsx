@@ -57,7 +57,7 @@ const SectionCard = ({ title, className = "", children }) => (
 
 /* ------------------------- Page ------------------------- */
 
-export default function facEvaluationResult({
+export default function EvalfacEvaluationResult({
   auth,
   faculty,
   subject,
