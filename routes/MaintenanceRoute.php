@@ -11,5 +11,5 @@ Route::middleware(['auth', 'can-manage-maintenance'])->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/maintenance', [MaintenanceController::class, 'maintenance'])->name('maintenance-settings');
+    Route::get('/maintenance', [MaintenanceController::class, 'maintenance'])->name('maintenance');
 });
