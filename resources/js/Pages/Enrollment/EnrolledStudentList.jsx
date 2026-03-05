@@ -99,10 +99,10 @@ export default function EnrolledStudentList({
             const studentId = (student.user_id_no || "").toLowerCase();
             const firstName = (student.first_name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const lastName = (student.last_name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const middleName = (student.middle_name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            // const middleName = (student.middle_name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
             // Combine all searchable text into one string for this student
-            const searchableStack = `${studentId} ${firstName} ${lastName} ${middleName}`;
+            const searchableStack = `${studentId} ${firstName} ${lastName}`;
 
             // 3. Logic: Every keyword must be found somewhere in the searchableStack (AND logic)
             return keywords.every(word => searchableStack.includes(word));

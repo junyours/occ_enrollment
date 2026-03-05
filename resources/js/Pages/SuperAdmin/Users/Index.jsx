@@ -66,61 +66,59 @@ function Index({ users, filters }) {
     };
 
     return (
-        <div>
-            <div className="p-6 space-y-6">
-                <div className="flex flex-col gap-4">
-                    <div className="flex gap-6 items-end justify-between">
-                        <div className='flex gap-4 w-full'>
-                            <div className="flex-1">
-                                <label className="text-sm font-medium mb-2 block">Role Filter</label>
-                                <Select value={roleFilter} onValueChange={setRoleFilter}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='all'>All Roles</SelectItem>
-                                        {userRoles().map((role) => (
-                                            <SelectItem key={role.value} value={role.value}>
-                                                {role.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="flex-1">
-                                <label className="text-sm font-medium mb-2 block">Search Field</label>
-                                <Select value={searchField} onValueChange={setSearchField}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {searchableFields.map((field) => (
-                                            <SelectItem key={field.value} value={field.value}>
-                                                {field.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+        <div className="space-y-4">
+            <div className="flex flex-col gap-4">
+                <div className="flex gap-6 items-end justify-between">
+                    <div className='flex gap-4 w-full'>
+                        <div className="flex-1">
+                            <label className="text-sm font-medium mb-2 block">Role Filter</label>
+                            <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value='all'>All Roles</SelectItem>
+                                    {userRoles().map((role) => (
+                                        <SelectItem key={role.value} value={role.value}>
+                                            {role.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
 
-                        <SearchBar
-                            type="text"
-                            placeholder={`Search by ${searchableFields.find(f => f.value === searchField)?.label.toLowerCase()}...`}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onSearch={handleSearch}
-                            onClear={handleClearSearch}
-                        />
+                        <div className="flex-1">
+                            <label className="text-sm font-medium mb-2 block">Search Field</label>
+                            <Select value={searchField} onValueChange={setSearchField}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {searchableFields.map((field) => (
+                                        <SelectItem key={field.value} value={field.value}>
+                                            {field.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
+
+                    <SearchBar
+                        type="text"
+                        placeholder={`Search by ${searchableFields.find(f => f.value === searchField)?.label.toLowerCase()}...`}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onSearch={handleSearch}
+                        onClear={handleClearSearch}
+                    />
                 </div>
-
-                {/* Users */}
-                <UsersTable users={users} />
-
-                <PaginationPages data={users} />
             </div>
+
+            {/* Users */}
+            <UsersTable users={users} />
+
+            <PaginationPages data={users} />
         </div>
     );
 }
