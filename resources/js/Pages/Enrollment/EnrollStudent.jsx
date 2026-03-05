@@ -199,8 +199,8 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
     const alreadyEnrolledAlert = () => {
         toast({
             description: "Student already enrolled!",
-            variant: "warning",
-        })
+            variant: "destructive",
+        });
     }
 
     const detectOwnConflict = (schedule) => {
@@ -505,7 +505,7 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                 </CardHeader>
                 <CardContent className='space-y-4'>
                     <div className="flex flex-col mt-2">
-                        <div className="flex items-start gap-2 rounded-md border border-muted bg-muted/40 text-sm text-muted-foreground">
+                        <div className="flex items-start gap-2 rounded-md border border-muted bg-muted/40 text-sm text-muted-foreground mb-2 px-2">
                             <span className="font-medium">Note:</span>
                             <p>Only subjects available for this school year are shown.</p>
                         </div>

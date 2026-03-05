@@ -154,7 +154,7 @@ class EnrollmentCourseSectionController extends Controller
         if (!$course) {
             return Inertia::render('Enrollment/EnrollmentCourseSection', ['error' => true]);
         }
-    
+
         return YearLevel::select('year_level.id', 'year_level_name')
             ->with([
                 'YearSection' => function ($query) use ($schoolYearId, $course) {
@@ -508,11 +508,11 @@ class EnrollmentCourseSectionController extends Controller
             'message' => 'COR marked as printed'
         ]);
     }
-    
-    public function corInfo(Request $request )
+
+    public function corInfo(Request $request)
     {
         $corInfo = CorInfo::where('enrolled_student_id', $request->enrolledStudentId)->first();
-        
+
         return response()->json($corInfo, 200);
     }
 
@@ -799,6 +799,18 @@ class EnrollmentCourseSectionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Maximum number of students has been reached for this section.',
+            ], 400);
+        }
+
+        $isEnrolled = EnrolledStudent::where('student_id', '=', $studID)
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->where('school_year_id', '=', $yearSection->school_year_id)
+            ->first();
+
+        if ($isEnrolled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student is already enrolled in this school year.',
             ], 400);
         }
 
