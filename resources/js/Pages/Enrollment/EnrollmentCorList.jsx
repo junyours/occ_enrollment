@@ -73,7 +73,6 @@ export default function EnrollmentCorList({
             }));
 
             setCorData(response.data);
-            console.log(response.data);
         } catch (error) {
             console.error("Failed to fetch student info:", error);
             setError('Failed to load student information. Please try again.');

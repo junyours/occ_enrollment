@@ -4,9 +4,9 @@ import CorStudentSubjects from './CorStudentSubjects';
 import CorStudentInfo from './CorStudentInfo';
 import CorFees from './CorFees';
 import Signatories from './Signatories';
-import { useState, useEffect } from 'react'; // Added useEffect
+import { useState, useEffect } from 'react';
 
-// Shadcn UI Imports (Adjust paths based on your aliases, usually @/components/ui/...)
+// Shadcn UI Imports
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator";
 import { Settings2 } from "lucide-react";
 
-// Define defaults outside the component so we can fallback to them easily
 const defaultSettings = {
     showSubjectCode: true,
     showCourseSection: true,
@@ -31,9 +30,8 @@ const defaultSettings = {
 };
 
 function CorGenerator({ data, showSeal }) {
-    // 1. Initialize state from localStorage, fallback to defaultSettings
+    // 1. Initialize global table settings from localStorage
     const [settings, setSettings] = useState(() => {
-        // Ensure we are in a browser environment (important for Next.js/SSR)
         if (typeof window !== 'undefined') {
             const savedSettings = localStorage.getItem('cor_table_settings');
             if (savedSettings) {
@@ -47,14 +45,31 @@ function CorGenerator({ data, showSeal }) {
         return defaultSettings;
     });
 
-    // 2. Save to localStorage whenever settings change
+    // 2. Local State for hiding specific subjects (NOT saved to localStorage)
+    const [hiddenSubjects, setHiddenSubjects] = useState([]);
+
+    // Save table settings to localStorage
     useEffect(() => {
         localStorage.setItem('cor_table_settings', JSON.stringify(settings));
     }, [settings]);
 
     const toggle = (key) => setSettings(s => ({ ...s, [key]: !s[key] }));
 
+    // Toggle individual subject visibility based on its unique ID
+    const toggleSubjectVisibility = (subjectId) => {
+        setHiddenSubjects(prev =>
+            prev.includes(subjectId)
+                ? prev.filter(id => id !== subjectId) // Remove from hidden list
+                : [...prev, subjectId] // Add to hidden list
+        );
+    };
+
     if (!data) return <>No Data</>
+
+    // 3. Filter subjects before passing them to child components
+    const visibleSubjects = data.student_subject.filter(
+        sub => !hiddenSubjects.includes(sub.id)
+    );
 
     return (
         <div className="flex flex-col items-center min-h-screen">
@@ -68,12 +83,14 @@ function CorGenerator({ data, showSeal }) {
                         </Button>
                     </PopoverTrigger>
 
-                    <PopoverContent className="w-80 p-5 shadow-xl rounded-xl" align="end">
+                    {/* Increased width to accommodate longer subject names and added max-height for scrolling */}
+                    <PopoverContent className="w-96 p-5 shadow-xl rounded-xl max-h-[85vh] overflow-y-auto" align="end">
                         <div className="space-y-4">
                             <div>
                                 <h3 className="font-semibold leading-none tracking-tight">Table Settings</h3>
                                 <p className="text-sm text-muted-foreground mt-1.5">Toggle column visibility for printing.</p>
                             </div>
+
 
                             <Separator />
 
@@ -83,19 +100,19 @@ function CorGenerator({ data, showSeal }) {
                                 <div className="flex flex-col gap-3">
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="showSubjectCode" checked={settings.showSubjectCode} onCheckedChange={() => toggle('showSubjectCode')} />
-                                        <Label htmlFor="showSubjectCode" className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Subject Code</Label>
+                                        <Label htmlFor="showSubjectCode" className="cursor-pointer text-sm font-medium leading-none">Subject Code</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="showCourseSection" checked={settings.showCourseSection} onCheckedChange={() => toggle('showCourseSection')} />
-                                        <Label htmlFor="showCourseSection" className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Course Section</Label>
+                                        <Label htmlFor="showCourseSection" className="cursor-pointer text-sm font-medium leading-none">Course Section</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="showDescriptiveTitle" checked={settings.showDescriptiveTitle} onCheckedChange={() => toggle('showDescriptiveTitle')} />
-                                        <Label htmlFor="showDescriptiveTitle" className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Descriptive Title</Label>
+                                        <Label htmlFor="showDescriptiveTitle" className="cursor-pointer text-sm font-medium leading-none">Descriptive Title</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox id="showInstructor" checked={settings.showInstructor} onCheckedChange={() => toggle('showInstructor')} />
-                                        <Label htmlFor="showInstructor" className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Instructor</Label>
+                                        <Label htmlFor="showInstructor" className="cursor-pointer text-sm font-medium leading-none">Instructor</Label>
                                     </div>
                                 </div>
                             </div>
@@ -154,6 +171,40 @@ function CorGenerator({ data, showSeal }) {
                                 </div>
                             </div>
 
+
+                            <Separator />
+
+                            {/* --- NEW: FILTER SUBJECTS SECTION --- */}
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Filter Subjects</h4>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-5 text-[10px] px-2 text-blue-600 hover:text-blue-800"
+                                        onClick={() => setHiddenSubjects([])}
+                                    >
+                                        Show All
+                                    </Button>
+                                </div>
+                                <div className="flex flex-col gap-3 max-h-48 overflow-y-auto pr-2 scrollbar-thin">
+                                    {data.student_subject.map((sub) => (
+                                        <div key={sub.id} className="flex items-start space-x-2">
+                                            <Checkbox
+                                                id={`sub-${sub.id}`}
+                                                checked={!hiddenSubjects.includes(sub.id)}
+                                                onCheckedChange={() => toggleSubjectVisibility(sub.id)}
+                                                className="mt-0.5"
+                                            />
+                                            <Label htmlFor={`sub-${sub.id}`} className="cursor-pointer text-xs font-medium leading-tight">
+                                                <span className="font-bold">{sub.year_section_subjects.subject.subject_code}</span>
+                                                <span className="text-muted-foreground block text-[10px] mt-0.5">{sub.year_section_subjects.subject.descriptive_title}</span>
+                                            </Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <Separator />
 
                             <Button
@@ -162,7 +213,7 @@ function CorGenerator({ data, showSeal }) {
                                 className="w-full text-xs text-muted-foreground hover:text-red-600"
                                 onClick={() => setSettings(defaultSettings)}
                             >
-                                Reset to Defaults
+                                Reset Layout to Defaults
                             </Button>
 
                         </div>
@@ -192,11 +243,13 @@ function CorGenerator({ data, showSeal }) {
 
                     <CorStudentInfo data={data} showSeal={showSeal} />
 
-                    <CorStudentSubjects data={data.student_subject} showSeal={showSeal} settings={settings} />
+                    {/* PASSING FILTERED SUBJECTS HERE */}
+                    <CorStudentSubjects data={visibleSubjects} showSeal={showSeal} settings={settings} />
 
                     <div className='flex justify-around gap-4'>
+                        {/* PASSING FILTERED SUBJECTS HERE */}
                         <CorFees
-                            subjects={data.student_subject}
+                            subjects={visibleSubjects}
                             course={data.year_section.course.course_name_abbreviation}
                             courseId={data.year_section.course.id}
                             yearLevel={data.year_section.year_level_id}
