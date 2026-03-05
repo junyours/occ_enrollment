@@ -16,6 +16,7 @@ import UsersTable from './UsersTable';
 import AddUserDialog from './AddUserDialog';
 import { userRoles } from '@/Lib/Utils';
 import PaginationPages from '@/Components/ui/PaginationPages';
+import SearchBar from '@/Components/ui/SearchBar';
 
 export default function Index({ users, filters }) {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -78,69 +79,56 @@ export default function Index({ users, filters }) {
 
                 {/* <h1 className="text-3xl font-bold">User Management</h1> */}
 
-                <div className="flex gap-4 items-end">
-                    <div className="flex-1">
-                        <label className="text-sm font-medium mb-2 block">Role Filter</label>
-                        <Select value={roleFilter} onValueChange={setRoleFilter}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">
-                                    All roles
-                                </SelectItem>
-                                {userRoles().map((role) => (
-                                    <SelectItem key={role.value} value={role.value}>
-                                        {role.label}
+                <div className="flex gap-4 justify-between">
+                    <div className='flex gap-4 w-full'>
+                        <div className="flex-1">
+                            <label className="text-sm font-medium mb-2 block">Role Filter</label>
+                            <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        All roles
                                     </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                                    {userRoles().map((role) => (
+                                        <SelectItem key={role.value} value={role.value}>
+                                            {role.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    <div className="flex-1">
-                        <label className="text-sm font-medium mb-2 block">Search Field</label>
-                        <Select value={searchField} onValueChange={setSearchField}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {searchableFields.map((field) => (
-                                    <SelectItem key={field.value} value={field.value}>
-                                        {field.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="flex-[2]">
-                        <label className="text-sm font-medium mb-2 block">Search</label>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                            <Input
-                                type="text"
-                                placeholder={`Search by ${searchableFields.find(f => f.value === searchField)?.label.toLowerCase()}...`}
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                className="pl-10"
-                            />
+                        <div className="flex-1">
+                            <label className="text-sm font-medium mb-2 block">Search Field</label>
+                            <Select value={searchField} onValueChange={setSearchField}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {searchableFields.map((field) => (
+                                        <SelectItem key={field.value} value={field.value}>
+                                            {field.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
-
-                    <Button onClick={handleSearch}>
-                        Search
-                    </Button>
-
-                    {(filters.search || filters.searchField || filters.role) && (
-                        <Button variant="outline" onClick={handleClearSearch}>
-                            Clear
-                        </Button>
-                    )}
+                    <div className='flex-row justify-end w-full self-end'>
+                        <SearchBar
+                            type="text"
+                            placeholder={`Search by ${searchableFields.find(f => f.value === searchField)?.label.toLowerCase()}...`}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            onClear={handleClearSearch}
+                        />
+                    </div>
                 </div>
             </div>
-                
+
             {/* Users */}
             <UsersTable users={users} setSelectedUser={setSelectedUser} />
 
