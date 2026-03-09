@@ -990,7 +990,8 @@ class EnrollmentCourseSectionController extends Controller
             'email_address',
             'contact_number',
             'birthday',
-            'present_address'
+            'present_address',
+            'date_enrolled'
         )
             ->where('year_section_id', $yearSection->id)
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
@@ -1022,6 +1023,7 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->setCellValue('L1', 'Age');
         $sheet->setCellValue('M1', 'Civil Status');
         $sheet->setCellValue('N1', 'Address');
+        $sheet->setCellValue('O1', 'Date Enrolled');
 
         $sheet->getColumnDimension('A')->setWidth(20); // ID Number
         $sheet->getColumnDimension('B')->setWidth(25); // Last Name
@@ -1041,7 +1043,8 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->getColumnDimension('K')->setWidth(20); // Date of Birth
         $sheet->getColumnDimension('L')->setWidth(10); // Age
         $sheet->getColumnDimension('M')->setWidth(15); // Civil Status
-        $sheet->getColumnDimension('N')->setWidth(40); // Address
+        $sheet->getColumnDimension('N')->setWidth(20); // Address
+        $sheet->getColumnDimension('O')->setWidth(20); // Date Enrolled
 
         // Data
         $row = 2;
@@ -1077,6 +1080,7 @@ class EnrollmentCourseSectionController extends Controller
             $sheet->setCellValue("L$row", $age);
             $sheet->setCellValue("M$row", $student->civil_status);
             $sheet->setCellValue("N$row", $student->present_address);
+            $sheet->setCellValue("O$row", $student->date_enrolled);
             $row++;
         }
 

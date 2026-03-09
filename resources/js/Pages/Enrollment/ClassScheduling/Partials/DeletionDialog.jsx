@@ -47,8 +47,10 @@ function DeletionDialog({ openDeleteDialog, setOpenDeleteDialog, classType, clas
                             Confirm Deletion
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-sm mt-1">
+                            This subject will be removed and will affect the students enrolled in it.
+                            It will disappear from their schedules and records.
+                            <br /><br />
                             This action <span className="font-semibold text-red-600">cannot be undone</span>.
-                            Are you sure you want to permanently delete this item? All related data will be lost.
                         </AlertDialogDescription>
                     </div>
                 </AlertDialogHeader>
