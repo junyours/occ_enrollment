@@ -7,11 +7,11 @@ import Signatories from './Signatories';
 import { useState, useEffect } from 'react';
 
 // Shadcn UI Imports
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/Components/ui/button";
+import { Checkbox } from "@/Components/ui/checkbox";
+import { Label } from "@/Components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover";
+import { Separator } from "@/Components/ui/separator";
 import { Settings2 } from "lucide-react";
 
 const defaultSettings = {
