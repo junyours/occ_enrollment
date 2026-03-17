@@ -771,7 +771,7 @@ $insights = [
             JOIN users f ON fac.faculty_id = f.id
             JOIN user_information fui ON f.id = fui.user_id
             JOIN evaluation e ON e.school_year_id = sy.id
-            WHERE sy.id = 3 AND es.student_id = ?
+            WHERE sy.is_current = 1 AND es.student_id = ?
         ', [$studentId]);
 
         $evaluationsWithProgress = collect($evaluations)->map(function ($eval) use ($studentId) {
