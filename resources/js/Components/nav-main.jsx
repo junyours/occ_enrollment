@@ -55,7 +55,7 @@ export function NavMain() {
     const { user, courses } = usePage().props.auth;
     const userRole = user.user_role;
     const currentUrl = usePage().url;
-    const { setOpenMobile } = useSidebar();
+    const { setOpenMobile, open } = useSidebar();
 
     const menuSections = [];
 
@@ -174,18 +174,18 @@ export function NavMain() {
         case "evaluator":
             menuSections.push(
                 {
-                label: "Academic",
-                items: [
-                    { name: "Classes", route: "classes", icon: Presentation },
-                ],
-            },
-            {
+                    label: "Academic",
+                    items: [
+                        { name: "Classes", route: "classes", icon: Presentation },
+                    ],
+                },
+                {
                     label: "Evaluation Result",
                     items: [
                         { name: "Faculty Result", route: "eval.faculty.report", icon: User },
                     ],
                 }
-        );
+            );
             break;
 
         case "super_admin":
@@ -400,22 +400,30 @@ export function NavMain() {
 
     return (
         <SidebarGroup>
-            {(userRole === "gened_coordinator" || userRole === "nstp_director") && (
-                <SidebarMenu className="space-y-0.5 mb-4">
-                    <SidebarGroupLabel className="flex flex-col p-0 text-xs uppercase text-muted-foreground h-min text-none">
-                        <SchoolYearPicker layout="horizontal-select-only" />
-                    </SidebarGroupLabel>
-                </SidebarMenu>
+            {((userRole === "gened_coordinator" || userRole === "nstp_director") && open) && (
+                <>
+                    <SidebarMenu className="space-y-0.5 mb-4">
+                        <SidebarGroupLabel className="flex flex-col p-0 text-xs uppercase text-muted-foreground h-min text-none">
+                            <SchoolYearPicker layout="horizontal-select-only" />
+                        </SidebarGroupLabel>
+                    </SidebarMenu>
+                </>
+
             )}
 
+            {/* Dynamic Navigation Sections */}
             {menuSections.map((section, index) => (
-                <SidebarMenu key={index} className="space-y-0.5 mb-4">
-                    <SidebarGroupLabel className="px-3 text-xs uppercase text-muted-foreground h-min">
-                        {section.label}
-                    </SidebarGroupLabel>
+                <SidebarMenu key={index} className="mb-4 space-y-1">
+                    {/* Conditionally render the label to prevent empty space */}
+                    {open && (
+                        <SidebarGroupLabel className="px-3 text-xs font-semibold tracking-wider uppercase text-muted-foreground/80 h-min">
+                            {section.label}
+                        </SidebarGroupLabel>
+                    )}
+
                     {section.items.map((item) => {
-                        const itemUrl = route(item.route, item.params)
-                        const itemPath = new URL(itemUrl).pathname
+                        const itemUrl = route(item.route, item.params);
+                        const itemPath = new URL(itemUrl).pathname;
                         const pathname = currentUrl.split('?')[0];
                         const isActive = pathname === itemPath || pathname.startsWith(`${itemPath}/`);
 
@@ -425,23 +433,23 @@ export function NavMain() {
                                 onClick={() => setOpenMobile(false)}
                             >
                                 <SidebarMenuButton
+                                    isActive={isActive}
                                     tooltip={item.name}
                                     className={cn(
-                                        "h-10 text-md",
-                                        isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                                        "h-10 text-sm font-medium transition-colors duration-200 rounded-md",
                                     )}
                                     asChild
                                 >
                                     <Link
                                         href={itemUrl}
-                                        className="flex items-center w-full gap-2"
+                                        className="flex items-center w-full gap-3 px-3 py-2"
                                     >
                                         <item.icon size={18} />
                                         <span>{item.name}</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
-                        )
+                        );
                     })}
                 </SidebarMenu>
             ))}
