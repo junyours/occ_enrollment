@@ -51,7 +51,6 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
     if (layout === 'vertical') {
         return (
             <div className="flex flex-row items-start">
-                {/* Collapsed Vertical View */}
                 <motion.div
                     initial={false}
                     animate={{ width: isCollapsed ? "auto" : 0, opacity: isCollapsed ? 1 : 0 }}
@@ -60,8 +59,9 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                 >
                     <motion.div
                         initial={false}
-                        animate={{ x: isCollapsed ? 0 : -20 }} // Slides from left
+                        animate={{ x: isCollapsed ? 0 : -20 }}
                         transition={expandTransition}
+                        className="w-max"
                     >
                         <Button
                             onClick={toggleCollapse}
@@ -81,7 +81,6 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                     </motion.div>
                 </motion.div>
 
-                {/* Expanded Vertical View */}
                 <motion.div
                     initial={false}
                     animate={{ width: isCollapsed ? 0 : "auto", opacity: isCollapsed ? 0 : 1 }}
@@ -90,7 +89,7 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                 >
                     <motion.div
                         initial={false}
-                        animate={{ x: isCollapsed ? -20 : 0 }} // Slides from left
+                        animate={{ x: isCollapsed ? -20 : 0 }}
                         transition={expandTransition}
                         className="min-w-max"
                     >
@@ -138,7 +137,6 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
 
     // --- HORIZONTAL SELECT ONLY ---
     if (layout === 'horizontal-select-only') {
-        // (Unchanged)
         return (
             <div className='w-max'>
                 <CardContent className='p-0'>
@@ -170,17 +168,20 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
     // --- DEFAULT HORIZONTAL LAYOUT ---
     return (
         <div className='w-max'>
-            {/* Collapsed Horizontal View */}
             <motion.div
                 initial={false}
-                animate={{ height: isCollapsed ? "auto" : 0, opacity: isCollapsed ? 1 : 0 }}
+                animate={{
+                    height: isCollapsed ? "auto" : 0,
+                    opacity: isCollapsed ? 1 : 0
+                }}
                 transition={expandTransition}
                 className="overflow-hidden"
             >
                 <motion.div
                     initial={false}
-                    animate={{ y: isCollapsed ? 0 : -20 }} // Slides down from above
+                    animate={{ y: isCollapsed ? 0 : -20 }}
                     transition={expandTransition}
+                    className="w-max"
                 >
                     <Button onClick={toggleCollapse} size="sm" variant="outline" className="flex items-center gap-2">
                         <ChevronDown className="h-4 w-4" />
@@ -189,18 +190,21 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
                 </motion.div>
             </motion.div>
 
-            {/* Expanded Horizontal View */}
             <motion.div
                 initial={false}
-                animate={{ height: isCollapsed ? 0 : "auto", opacity: isCollapsed ? 0 : 1 }}
+                animate={{
+                    height: isCollapsed ? 0 : "auto",
+                    width: isCollapsed ? 188 : "auto",
+                    opacity: isCollapsed ? 0 : 1
+                }}
                 transition={expandTransition}
                 className="overflow-hidden"
             >
                 <motion.div
                     initial={false}
-                    animate={{ y: isCollapsed ? -20 : 0 }} // Slides down from above
+                    animate={{ y: isCollapsed ? -20 : 0 }}
                     transition={expandTransition}
-                    className="min-h-max"
+                    className="w-max min-h-max"
                 >
                     <Card className="max-w-max p-2 space-y-2">
                         <CardHeader className='p-0 m-0 flex flex-row items-center justify-between space-y-0'>
