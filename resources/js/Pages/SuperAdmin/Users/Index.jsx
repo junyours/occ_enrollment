@@ -65,8 +65,8 @@ function Index({ users, filters }) {
     return (
         <div className="space-y-4">
             <div className="flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-end justify-between w-full">
-                    <div className='flex flex-col sm:flex-row gap-4 w-full md:flex-1'>
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-end justify-between">
+                    <div className='flex flex-col md:flex-row gap-4 w-full'>
                         <div className="flex-1 w-full">
                             <label className="text-sm font-medium mb-2 block">Role Filter</label>
                             <Select value={roleFilter} onValueChange={setRoleFilter}>
@@ -101,16 +101,14 @@ function Index({ users, filters }) {
                         </div>
                     </div>
 
-                    <div className="w-full md:w-auto md:min-w-[300px] mt-2 md:mt-0">
-                        <SearchBar
-                            type="text"
-                            placeholder={`Search by ${searchableFields.find(f => f.value === searchField)?.label.toLowerCase()}...`}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onSearch={handleSearch}
-                            onClear={handleClearSearch}
-                        />
-                    </div>
+                    <SearchBar
+                        type="text"
+                        placeholder={`Search by ${searchableFields.find(f => f.value === searchField)?.label.toLowerCase()}...`}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onSearch={handleSearch}
+                        onClear={handleClearSearch}
+                    />
                 </div>
             </div>
 

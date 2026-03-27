@@ -3,7 +3,6 @@ import { Search, X } from "lucide-react"
 import { cn } from "@/Lib/Utils"
 import { Input } from "@/Components/ui/input"
 import { Button } from "@/Components/ui/button"
-import { Separator } from "@/Components/ui/separator"
 
 const SearchBar = React.forwardRef(({ className, value: controlledValue, onChange, onSearch, onClear, ...props }, ref) => {
     // 1. Internal state to hold the value if the parent doesn't provide one
@@ -35,18 +34,20 @@ const SearchBar = React.forwardRef(({ className, value: controlledValue, onChang
         if (onChange) {
             onChange({ target: { value: "" } })
         }
-        onClear()
+        if (onClear) {
+            onClear()
+        }
     }
 
     return (
         <form
             onSubmit={handleSubmit}
             className={cn(
-                "flex h-9 w-full items-center rounded-md bg-background shadow-sm transition-shadow border-0",
+                "flex h-9 w-full items-center rounded-md bg-background shadow-sm border-0",
                 className
             )}
         >
-            <div className="flex items-center border border-r-0 h-full w-full focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background rounded-l-[var(--radius)] focus-visible:ring-1">
+            <div className="flex items-center border border-r-0 h-full w-full focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background rounded-l-[var(--radius)] focus-visible:ring-1 transition-shadow duration-200 ease-in-out">
                 <Input
                     type="text"
                     ref={ref}
@@ -83,5 +84,4 @@ const SearchBar = React.forwardRef(({ className, value: controlledValue, onChang
 })
 
 SearchBar.displayName = "SearchBar"
-
 export default SearchBar
