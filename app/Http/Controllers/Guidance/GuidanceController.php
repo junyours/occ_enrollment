@@ -862,7 +862,7 @@ $insights = [
                 'student_id' => $studentId,
                 'student_subject_id' => $request->student_subject_id,
                 'rating' => $rating,
-                'anonymous' => $anonymous,
+                'anonymous' => 1,
             ]);
         }
 
@@ -872,7 +872,7 @@ $insights = [
             'student_id' => $studentId,
             'strengths' => $request->strengths,
             'weaknesses' => $request->weaknesses,
-            'anonymous' => $anonymous,
+            'anonymous' => 1,
         ]);
 
         $analyzer->analyze($feedback);
@@ -1306,12 +1306,20 @@ public function facultyEvaluationResult($facultyId, $studentSubjectId)
 
     if (!$subjectInfo) abort(404, 'Subject not found.');
 
+    $activeEval = DB::table('evaluation as e')
+    ->join('school_years as sy', 'e.school_year_id', '=', 'sy.id')
+    ->where('e.status', 'active')
+    ->select('sy.id as sy_id')
+    ->first();
+
     // Step 2: Get all student_subject_id with same faculty & subject (EXCLUDE DROPPED)
     $relatedStudentSubjectIds = DB::table('student_subjects as ss')
         ->join('year_section_subjects as yss', 'ss.year_section_subjects_id', '=', 'yss.id')
+         ->join('year_section as ys', 'yss.year_section_id', '=', 'ys.id')
         ->join('subjects as s', 'yss.subject_id', '=', 's.id')
         ->where('yss.faculty_id', $facultyId)
         ->where('s.id', $subjectInfo->subject_id)
+        ->where('ys.school_year_id', $activeEval->sy_id)
         ->where('ss.dropped', 0)
         ->pluck('ss.id');
 
@@ -3418,6 +3426,7 @@ public function facultyEvaluationResult($facultyId, $studentSubjectId)
     ]);
 }
    // ----------------Faculty Side Result ----------------------------------------//
+
 public function FesfacultySubjects($schoolYearId, Request $request)
 {
     // Signed-in faculty
@@ -3599,6 +3608,8 @@ public function facEvaluationResult($facultyId, $studentSubjectId, $schoolYearId
     $relatedStudentSubjectIds = DB::table('student_subjects as ss')
         ->join('year_section_subjects as yss', 'ss.year_section_subjects_id', '=', 'yss.id')
         ->join('subjects as s', 'yss.subject_id', '=', 's.id')
+        ->join('year_section as ys', 'yss.year_section_id', '=', 'ys.id')
+        ->where('ys.school_year_id', $schoolYearId)
         ->where('yss.faculty_id', $facultyId)
         ->where('s.id', $subjectInfo->subject_id)
         ->where('ss.dropped', 0)

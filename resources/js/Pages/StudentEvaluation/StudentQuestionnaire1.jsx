@@ -201,14 +201,14 @@ function StudentQuestionnaire() {
   return (
     <>
       <Head title="Faculty Evaluation Questionnaire" />
-      <div className="py-12 max-w-7xl mx-auto px-4 space-y-6 dark:bg-gray-900 dark:text-white">
-        <h1 className="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4">Student Evaluation Questionnaire</h1>
+      <div className="px-4 py-12 mx-auto space-y-6 max-w-7xl dark:bg-gray-900 dark:text-white">
+        <h1 className="mb-4 text-2xl font-bold text-blue-800 dark:text-blue-300">Student Evaluation Questionnaire</h1>
 
-        <div className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 p-4 rounded shadow flex justify-between">
-          <p className="text-gray-800 dark:text-gray-200 font-medium">
+        <div className="flex justify-between p-4 bg-white border border-gray-300 rounded shadow dark:bg-gray-800 dark:border-gray-600">
+          <p className="font-medium text-gray-800 dark:text-gray-200">
             Faculty: <span className="font-bold">{evaluation.instructor_first_name} {evaluation.instructor_last_name}</span>
           </p>
-          <p className="text-gray-800 dark:text-gray-200 font-medium">
+          <p className="font-medium text-gray-800 dark:text-gray-200">
             Subject: <span className="font-bold">{evaluation.subject_code} - {evaluation.subject_title}</span>
           </p>
         </div>
@@ -219,14 +219,14 @@ function StudentQuestionnaire() {
             {strengths ? " ✓ Strengths," : " ✗ Strengths,"}
             {weaknesses ? " ✓ Weaknesses" : " ✗ Weaknesses"}
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+          <div className="w-full h-2 bg-gray-200 rounded-full dark:bg-gray-700">
+            <div className="h-2 transition-all duration-300 bg-blue-500 rounded-full" style={{ width: `${progressPercent}%` }} />
           </div>
         </div>
 
         <div
           ref={dragRef}
-          className="fixed z-50 group cursor-move"
+          className="fixed z-50 cursor-move group"
           style={{ left: dragPos.x, top: dragPos.y, width: "56px", height: "56px" }}
           title={`${progressPercent}% Complete`}
         >
@@ -250,7 +250,7 @@ function StudentQuestionnaire() {
                 className="text-blue-500 transition-all duration-300"
               />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-blue-700 group-hover:scale-110 transition-transform">
+            <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-blue-700 transition-transform group-hover:scale-110">
               {progressPercent}%
             </div>
           </div>
@@ -260,16 +260,16 @@ function StudentQuestionnaire() {
           <Card key={c.id}>
             <CardHeader>
               <div className="grid grid-cols-[1fr_repeat(5,_4rem)] items-center bg-gray-100 dark:bg-gray-700 rounded px-2 py-1">
-                <h2 className="font-bold text-lg text-gray-800 dark:text-white">{c.title}</h2>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white">{c.title}</h2>
                 {[5, 4, 3, 2, 1].map((num) => (
-                  <span key={num} className="text-center text-sm font-semibold text-gray-600 dark:text-gray-300">{num}</span>
+                  <span key={num} className="text-sm font-semibold text-center text-gray-600 dark:text-gray-300">{num}</span>
                 ))}
               </div>
             </CardHeader>
             <CardContent className="pt-4">
               {c.questions.map((q, index) => (
                 <div key={q.id} className="grid grid-cols-[1fr_repeat(5,_4rem)] items-center border-b dark:border-gray-600 py-3">
-                  <p className="text-gray-700 dark:text-gray-100 font-medium pl-2">
+                  <p className="pl-2 font-medium text-gray-700 dark:text-gray-100">
                     {index + 1}. {q.question_text}
                   </p>
                   {[5, 4, 3, 2, 1].map((opt) => (
@@ -290,12 +290,12 @@ function StudentQuestionnaire() {
           </Card>
         ))}
 
-        <div className="flex flex-col md:flex-row gap-6 mt-4">
+        <div className="flex flex-col gap-6 mt-4 md:flex-row">
           <div className="w-full">
-            <label className="block text-gray-700 dark:text-gray-200 font-medium mb-2">Strengths</label>
+            <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Strengths</label>
             <textarea
               ref={strengthsRef}
-              className="w-full border rounded p-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               rows="3"
               placeholder="Please provide constructive feedback on the strengths of the faculty member."
               value={strengths}
@@ -304,10 +304,10 @@ function StudentQuestionnaire() {
             />
           </div>
           <div className="w-full">
-            <label className="block text-gray-700 dark:text-gray-200 font-medium mb-2">Weaknesses</label>
+            <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Weaknesses</label>
             <textarea
               ref={weaknessesRef}
-              className="w-full border rounded p-2 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               rows="3"
               placeholder="Please provide constructive feedback on areas for improvement."
               value={weaknesses}

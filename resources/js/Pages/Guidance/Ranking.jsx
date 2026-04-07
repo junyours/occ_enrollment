@@ -192,7 +192,7 @@ export default function Ranking({
                 </div>
 
                 {/* Optional Filters (if you want to show them) */}
-                {(departments?.length > 0 || true) && (
+                {/* {(departments?.length > 0 || true) && (
                     <form onSubmit={handleFilter} className="flex flex-col gap-3 sm:flex-row sm:items-end">
                         <div className="flex-1">
                             <label className="block mb-1 text-sm font-medium text-gray-700">Search</label>
@@ -227,7 +227,7 @@ export default function Ranking({
                             Apply
                         </button>
                     </form>
-                )}
+                )} */}
 
                 {/* Top 5 message */}
                 {top5.length === 0 && (
