@@ -2,14 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import axios from "axios";
-import {
-  Card, CardHeader, CardContent
-} from "@/Components/ui/card";
+import { Card, CardHeader, CardContent } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogFooter, AlertDialogHeader,
-  AlertDialogTitle, AlertDialogDescription,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
 } from "@/Components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -24,6 +27,9 @@ function StudentQuestionnaire() {
   } = usePage().props;
 
   const { toast } = useToast();
+
+  const MIN_FEEDBACK_WORDS = 10;
+
   const [answers, setAnswers] = useState({});
   const [strengths, setStrengths] = useState("");
   const [weaknesses, setWeaknesses] = useState("");
@@ -35,18 +41,15 @@ function StudentQuestionnaire() {
   const weaknessesRef = useRef(null);
   const dragRef = useRef(null);
   const dragOffset = useRef({ x: 0, y: 0 });
-  const [dragPos, setDragPos] = useState({ x: window.innerWidth - 100, y: window.innerHeight - 100 });
+
+  const [dragPos, setDragPos] = useState({
+    x: typeof window !== "undefined" ? window.innerWidth - 100 : 0,
+    y: typeof window !== "undefined" ? window.innerHeight - 100 : 0,
+  });
 
   const [openSections, setOpenSections] = useState(() =>
     Object.fromEntries(criteria.map((c) => [c.id, true]))
   );
-
-  const totalQuestions = criteria.reduce((sum, c) => sum + c.questions.length, 0);
-  const answeredCount = Object.keys(answers).length;
-  const filledExtras = strengths.trim() !== "" && weaknesses.trim() !== "";
-  const progressPercent = totalQuestions > 0
-    ? Math.round(((answeredCount + (filledExtras ? 2 : 0)) / (totalQuestions + 2)) * 100)
-    : 0;
 
   const ratingDescriptions = {
     1: "Strongly Disagree",
@@ -55,6 +58,38 @@ function StudentQuestionnaire() {
     4: "Agree",
     5: "Strongly Agree",
   };
+
+  const countWords = (text) => {
+    if (!text || !text.trim()) return 0;
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  };
+
+  const totalQuestions = criteria.reduce(
+    (sum, c) => sum + c.questions.length,
+    0
+  );
+  const answeredCount = Object.keys(answers).length;
+
+  const strengthsWordCount = countWords(strengths);
+  const weaknessesWordCount = countWords(weaknesses);
+
+  const strengthsCharCount = strengths.length;
+  const weaknessesCharCount = weaknesses.length;
+
+  const isStrengthsValid =
+    strengths.trim() !== "" && strengthsWordCount >= MIN_FEEDBACK_WORDS;
+  const isWeaknessesValid =
+    weaknesses.trim() !== "" && weaknessesWordCount >= MIN_FEEDBACK_WORDS;
+
+  const filledExtras = isStrengthsValid && isWeaknessesValid;
+
+  const progressPercent =
+    totalQuestions > 0
+      ? Math.round(
+          ((answeredCount + (filledExtras ? 2 : 0)) / (totalQuestions + 2)) *
+            100
+        )
+      : 0;
 
   // Load answers from DB
   useEffect(() => {
@@ -67,7 +102,9 @@ function StudentQuestionnaire() {
     }
 
     axios
-      .get(`/student/evaluation/draft/${evaluation.evaluation_id}/${evaluation.student_subject_id}`)
+      .get(
+        `/student/evaluation/draft/${evaluation.evaluation_id}/${evaluation.student_subject_id}`
+      )
       .then((res) => {
         const draft = res.data;
         if (draft) {
@@ -123,26 +160,82 @@ function StudentQuestionnaire() {
   };
 
   const handleSubmit = () => {
-    const missing = criteria.flatMap((c) => c.questions.filter((q) => !answers[q.id]));
+    const missing = criteria.flatMap((c) =>
+      c.questions.filter((q) => !answers[q.id])
+    );
+
     if (missing.length > 0) {
-      const firstMissing = document.querySelector(`input[name='question_${missing[0].id}']`);
+      const firstMissing = document.querySelector(
+        `input[name='question_${missing[0].id}']`
+      );
       firstMissing?.scrollIntoView({ behavior: "smooth", block: "center" });
       firstMissing?.focus();
-      toast({ title: "Incomplete", description: "Please answer all questions before submitting.", variant: "destructive" });
+
+      toast({
+        title: "Incomplete",
+        description: "Please answer all questions before submitting.",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!strengths.trim()) {
-      strengthsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      strengthsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       strengthsRef.current?.focus();
-      toast({ title: "Missing Strengths", description: "Please provide feedback on strengths.", variant: "destructive" });
+
+      toast({
+        title: "Missing Strengths",
+        description: "Please provide feedback on strengths.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (strengthsWordCount < MIN_FEEDBACK_WORDS) {
+      strengthsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      strengthsRef.current?.focus();
+
+      toast({
+        title: "Strengths feedback too short",
+        description: `Please enter at least ${MIN_FEEDBACK_WORDS} words for strengths.`,
+        variant: "destructive",
+      });
       return;
     }
 
     if (!weaknesses.trim()) {
-      weaknessesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      weaknessesRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
       weaknessesRef.current?.focus();
-      toast({ title: "Missing Weaknesses", description: "Please provide feedback on weaknesses.", variant: "destructive" });
+
+      toast({
+        title: "Missing Weaknesses",
+        description: "Please provide feedback on weaknesses.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (weaknessesWordCount < MIN_FEEDBACK_WORDS) {
+      weaknessesRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      weaknessesRef.current?.focus();
+
+      toast({
+        title: "Weaknesses feedback too short",
+        description: `Please enter at least ${MIN_FEEDBACK_WORDS} words for weaknesses.`,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -152,6 +245,7 @@ function StudentQuestionnaire() {
   const handleSubmitConfirmed = () => {
     setShowConfirm(false);
     setSubmitting(true);
+
     router.post(
       route("student.evaluation.submit"),
       {
@@ -164,7 +258,9 @@ function StudentQuestionnaire() {
       },
       {
         onSuccess: () => {
-          axios.delete(`/student/evaluation/draft/${evaluation.evaluation_id}/${evaluation.student_subject_id}`);
+          axios.delete(
+            `/student/evaluation/draft/${evaluation.evaluation_id}/${evaluation.student_subject_id}`
+          );
           toast({
             title: "Evaluation Submitted",
             description: "Your evaluation was successfully submitted.",
@@ -191,12 +287,17 @@ function StudentQuestionnaire() {
 
   useEffect(() => {
     const onMouseMove = (e) => {
-      setDragPos({ x: e.clientX - dragOffset.current.x, y: e.clientY - dragOffset.current.y });
+      setDragPos({
+        x: e.clientX - dragOffset.current.x,
+        y: e.clientY - dragOffset.current.y,
+      });
     };
+
     const onMouseUp = () => {
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
     };
+
     const el = dragRef.current;
     if (el) {
       const onMouseDown = (e) => {
@@ -207,23 +308,47 @@ function StudentQuestionnaire() {
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp);
       };
+
       el.addEventListener("mousedown", onMouseDown);
       return () => el.removeEventListener("mousedown", onMouseDown);
     }
   }, []);
 
+  const getCounterColor = (wordCount, text) => {
+    if (!text.trim()) return "text-gray-500 dark:text-gray-400";
+    if (wordCount < MIN_FEEDBACK_WORDS) return "text-red-600 dark:text-red-400";
+    return "text-green-600 dark:text-green-400";
+  };
+
+  const getTextareaBorder = (wordCount, text) => {
+    if (!text.trim()) return "border-gray-300 dark:border-gray-600";
+    if (wordCount < MIN_FEEDBACK_WORDS)
+      return "border-red-500 focus:ring-red-500 focus:border-red-500";
+    return "border-green-500 focus:ring-green-500 focus:border-green-500";
+  };
+
   return (
     <>
       <Head title="Faculty Evaluation Questionnaire" />
+
       <div className="px-4 py-12 mx-auto space-y-6 max-w-7xl dark:bg-gray-900 dark:text-white">
-        <h1 className="mb-4 text-2xl font-bold text-blue-800 dark:text-blue-300">Student Evaluation Questionnaire</h1>
+        <h1 className="mb-4 text-2xl font-bold text-blue-800 dark:text-blue-300">
+          Student Evaluation Questionnaire
+        </h1>
 
         <div className="flex justify-between p-4 bg-white border border-gray-300 rounded shadow dark:bg-gray-800 dark:border-gray-600">
           <p className="font-medium">
-            Faculty: <span className="font-bold">{evaluation.instructor_first_name} {evaluation.instructor_last_name}</span>
+            Faculty:{" "}
+            <span className="font-bold">
+              {evaluation.instructor_first_name}{" "}
+              {evaluation.instructor_last_name}
+            </span>
           </p>
           <p className="font-medium">
-            Subject: <span className="font-bold">{evaluation.subject_code} - {evaluation.subject_title}</span>
+            Subject:{" "}
+            <span className="font-bold">
+              {evaluation.subject_code} - {evaluation.subject_title}
+            </span>
           </p>
         </div>
 
@@ -244,18 +369,27 @@ function StudentQuestionnaire() {
           <div className="flex-1">
             <div className="mb-1 text-sm">
               Progress: {answeredCount} / {totalQuestions} questions,
-              {strengths ? " ✓ Strengths," : " ✗ Strengths,"}
-              {weaknesses ? " ✓ Weaknesses" : " ✗ Weaknesses"}
+              {isStrengthsValid ? " ✓ Strengths," : " ✗ Strengths,"}
+              {isWeaknessesValid ? " ✓ Weaknesses" : " ✗ Weaknesses"}
             </div>
             <div className="w-full h-3 overflow-hidden bg-gray-200 rounded-full dark:bg-gray-700">
-              <div className="h-3 transition-all duration-300 bg-blue-500 rounded-full" style={{ width: `${progressPercent}%` }} />
+              <div
+                className="h-3 transition-all duration-300 bg-blue-500 rounded-full"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
           </div>
 
-          <Button variant="outline" className="flex items-center gap-2" onClick={() => {
-            const anyClosed = Object.values(openSections).some((isOpen) => !isOpen);
-            toggleAll(anyClosed);
-          }}>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={() => {
+              const anyClosed = Object.values(openSections).some(
+                (isOpen) => !isOpen
+              );
+              toggleAll(anyClosed);
+            }}
+          >
             {Object.values(openSections).some((isOpen) => !isOpen) ? (
               <>
                 <ChevronRight className="w-4 h-4" />
@@ -273,19 +407,36 @@ function StudentQuestionnaire() {
         <div
           ref={dragRef}
           className="fixed z-50 cursor-move group"
-          style={{ left: dragPos.x, top: dragPos.y, width: "56px", height: "56px" }}
+          style={{
+            left: dragPos.x,
+            top: dragPos.y,
+            width: "56px",
+            height: "56px",
+          }}
           title={`${progressPercent}% Complete`}
         >
           <div className="relative w-14 h-14">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0 -31.831"
-                fill="none" stroke="currentColor" strokeWidth="3"
-                className="text-gray-300 dark:text-gray-700" />
-              <path d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0 -31.831"
-                fill="none" stroke="currentColor" strokeWidth="3"
-                strokeDasharray="100" strokeDashoffset={100 - progressPercent}
+            <svg
+              className="w-full h-full transform -rotate-90"
+              viewBox="0 0 36 36"
+            >
+              <path
+                d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0 -31.831"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                className="text-gray-300 dark:text-gray-700"
+              />
+              <path
+                d="M18 2.0845a15.9155 15.9155 0 1 1 0 31.831a15.9155 15.9155 0 1 1 0 -31.831"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeDasharray="100"
+                strokeDashoffset={100 - progressPercent}
                 strokeLinecap="round"
-                className="text-blue-500 transition-all duration-300" />
+                className="text-blue-500 transition-all duration-300"
+              />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-blue-700 transition-transform group-hover:scale-110">
               {progressPercent}%
@@ -297,29 +448,40 @@ function StudentQuestionnaire() {
           <Card key={c.id} className="border dark:border-gray-700">
             <CardHeader
               className="px-4 py-2 space-y-2 bg-gray-100 rounded-t dark:bg-gray-800"
-              onClick={() => setOpenSections(prev => ({ ...prev, [c.id]: !prev[c.id] }))}
+              onClick={() =>
+                setOpenSections((prev) => ({ ...prev, [c.id]: !prev[c.id] }))
+              }
             >
               <div className="flex items-center justify-between cursor-pointer">
                 <h2 className="text-lg font-bold">{c.title}</h2>
                 <span>{openSections[c.id] ? "−" : "+"}</span>
               </div>
+
               <div className="grid grid-cols-[1fr_repeat(5,_4rem)] items-center bg-gray-200 dark:bg-gray-700 rounded px-2 py-1 text-sm font-semibold">
                 <span></span>
                 {[5, 4, 3, 2, 1].map((num) => (
-                  <span key={num} className="text-center">{num}</span>
+                  <span key={num} className="text-center">
+                    {num}
+                  </span>
                 ))}
               </div>
             </CardHeader>
+
             {openSections[c.id] && (
               <CardContent className="pt-4">
                 {c.questions.map((q, index) => (
-                 <div
-                key={q.id}
-                className={`grid grid-cols-[1fr_repeat(5,_4rem)] items-center border-b dark:border-gray-600 py-3
-                    ${!answers[q.id] ? "bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 font-semibold" : ""}
-                `}
-                >
-                    <p className="pl-2 font-medium">{index + 1}. {q.question_text}</p>
+                  <div
+                    key={q.id}
+                    className={`grid grid-cols-[1fr_repeat(5,_4rem)] items-center border-b dark:border-gray-600 py-3 ${
+                      !answers[q.id]
+                        ? "bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 font-semibold"
+                        : ""
+                    }`}
+                  >
+                    <p className="pl-2 font-medium">
+                      {index + 1}. {q.question_text}
+                    </p>
+
                     {[5, 4, 3, 2, 1].map((opt) => (
                       <div key={opt} className="flex justify-center px-2">
                         <input
@@ -340,32 +502,99 @@ function StudentQuestionnaire() {
           </Card>
         ))}
 
-        <div className="flex flex-col gap-6 mt-4 md:flex-row">
-          <div className="w-full">
-            <label className="block mb-2 font-medium">Strengths</label>
+        <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
+          <div className="p-4 bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <label className="flex items-center justify-between mb-2 font-medium">
+              <span>Strengths</span>
+              <span
+                className={`text-sm font-medium ${getCounterColor(
+                  strengthsWordCount,
+                  strengths
+                )}`}
+              >
+                {strengthsWordCount} / {MIN_FEEDBACK_WORDS}+ words
+              </span>
+            </label>
+
             <textarea
               ref={strengthsRef}
-              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600"
-              rows="3"
+              className={`w-full p-3 border rounded-lg dark:bg-gray-900 focus:outline-none focus:ring-2 transition ${getTextareaBorder(
+                strengthsWordCount,
+                strengths
+              )}`}
+              rows="5"
               value={strengths}
               onChange={(e) => !isPreview && setStrengths(e.target.value)}
               disabled={isPreview}
+              placeholder="Write at least 10 words about the instructor's strengths..."
             />
+
+            <div className="flex items-center justify-between mt-2 text-xs">
+              <span
+                className={`${getCounterColor(
+                  strengthsWordCount,
+                  strengths
+                )}`}
+              >
+                {!strengths.trim()
+                  ? "Please provide your feedback."
+                  : strengthsWordCount < MIN_FEEDBACK_WORDS
+                  ? `Minimum ${MIN_FEEDBACK_WORDS} words required.`
+                  : "Feedback looks good."}
+              </span>
+              <span className="text-gray-500 dark:text-gray-400">
+                {strengthsCharCount} characters
+              </span>
+            </div>
           </div>
-          <div className="w-full">
-            <label className="block mb-2 font-medium">Weaknesses</label>
+
+          <div className="p-4 bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <label className="flex items-center justify-between mb-2 font-medium">
+              <span>Weaknesses</span>
+              <span
+                className={`text-sm font-medium ${getCounterColor(
+                  weaknessesWordCount,
+                  weaknesses
+                )}`}
+              >
+                {weaknessesWordCount} / {MIN_FEEDBACK_WORDS}+ words
+              </span>
+            </label>
+
             <textarea
               ref={weaknessesRef}
-              className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600"
-              rows="3"
+              className={`w-full p-3 border rounded-lg dark:bg-gray-900 focus:outline-none focus:ring-2 transition ${getTextareaBorder(
+                weaknessesWordCount,
+                weaknesses
+              )}`}
+              rows="5"
               value={weaknesses}
               onChange={(e) => !isPreview && setWeaknesses(e.target.value)}
               disabled={isPreview}
+              placeholder="Write at least 10 words about the instructor's weaknesses or areas for improvement..."
             />
+
+            <div className="flex items-center justify-between mt-2 text-xs">
+              <span
+                className={`${getCounterColor(
+                  weaknessesWordCount,
+                  weaknesses
+                )}`}
+              >
+                {!weaknesses.trim()
+                  ? "Please provide your feedback."
+                  : weaknessesWordCount < MIN_FEEDBACK_WORDS
+                  ? `Minimum ${MIN_FEEDBACK_WORDS} words required.`
+                  : "Feedback looks good."}
+              </span>
+              <span className="text-gray-500 dark:text-gray-400">
+                {weaknessesCharCount} characters
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center mt-4">
+        <div className="flex items-center hidden mt-4">
           <input
             id="anonymous"
             type="checkbox"
@@ -374,13 +603,23 @@ function StudentQuestionnaire() {
             className="mr-2"
             disabled={isPreview}
           />
-          <label htmlFor="anonymous" className="text-sm">Submit anonymously</label>
+          <label htmlFor="anonymous" className="text-sm">
+            Submit anonymously
+          </label>
         </div>
 
         {!isPreview && (
           <>
             <div className="flex justify-end mt-4">
-              <Button onClick={handleSubmit} disabled={submitting || answeredCount < totalQuestions || !filledExtras}>
+              <Button
+                onClick={handleSubmit}
+                disabled={
+                  submitting ||
+                  answeredCount < totalQuestions ||
+                  !isStrengthsValid ||
+                  !isWeaknessesValid
+                }
+              >
                 {submitting ? "Submitting..." : "Submit Evaluation"}
               </Button>
             </div>
@@ -390,12 +629,20 @@ function StudentQuestionnaire() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Submit Evaluation?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to submit this evaluation? You won’t be able to change your answers afterwards.
+                    Are you sure you want to submit this evaluation? You won’t
+                    be able to change your answers afterwards.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleSubmitConfirmed} disabled={submitting}>Submit</AlertDialogAction>
+                  <AlertDialogCancel disabled={submitting}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleSubmitConfirmed}
+                    disabled={submitting}
+                  >
+                    Submit
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -406,6 +653,8 @@ function StudentQuestionnaire() {
   );
 }
 
-StudentQuestionnaire.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+StudentQuestionnaire.layout = (page) => (
+  <AuthenticatedLayout>{page}</AuthenticatedLayout>
+);
 
 export default StudentQuestionnaire;

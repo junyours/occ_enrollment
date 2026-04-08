@@ -35,6 +35,10 @@ import {
     Users,
     GraduationCap,
     Users2,
+    BookA,
+    BookType,
+    BookKey,
+    Languages
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -268,10 +272,10 @@ export function NavMain() {
                 {
                     label: "Recommendation Management",
                     items: [
-                        { name: "Language", route: "languages.index", icon: Archive },
-                        { name: "Categories", route: "feedback-categories.index", icon: Archive },
-                        { name: "Keywords", route: "feedback-keywords.index", icon: Archive },
-                        { name: "Unknown Keywords", route: "unknown-keywords.index", icon: Archive },
+                        { name: "Language", route: "languages.index", icon: Languages },
+                        { name: "Categories", route: "feedback-categories.index", icon: BookType  },
+                        { name: "Keywords", route: "feedback-keywords.index", icon: BookKey },
+                        { name: "Unknown Keywords", route: "unknown-keywords.index", icon: BookA},
                     ],
                 },
                 {
