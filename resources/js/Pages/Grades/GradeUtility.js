@@ -17,5 +17,6 @@ export function computeFinalGrade(midterm, final) {
         return '5.0';
     }
 
-    return avg.toFixed(1);
+    const roundedAvg = Math.round((avg + Number.EPSILON) * 10) / 10;
+    return roundedAvg.toFixed(1);
 }
