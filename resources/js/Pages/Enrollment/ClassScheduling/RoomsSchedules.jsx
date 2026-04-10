@@ -17,9 +17,9 @@ import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import html2canvas from "html2canvas";
 import * as XLSX from "xlsx";
+import { useQuery } from "@tanstack/react-query";
 
 export default function RoomSchedules({ schoolYearId, departmentId }) {
-    const [rooms, setRooms] = useState([]);
 
     // Convert time to AM/PM
     const convertToAMPM = (time) => {
@@ -79,7 +79,7 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
 
         setLoading(false);
     };
-    
+
     const [loading, setLoading] = useState(true);
     const [colorful, setColorful] = useState(true);
     const [selectedRoom, setSelectedRoom] = useState("All");
@@ -87,53 +87,56 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
     const [openRoomPopover, setOpenRoomPopover] = useState(false);
     const [isDownloadingAll, setIsDownloadingAll] = useState(false);
     const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
+    const [selectedRooms, setSelectedRooms] = useState([]);
 
     const getEnrollmentRoomSchedules = async () => {
-        axios.post(route('enrollment.get.enrollment.rooms.schedules', { schoolYearId, departmentId }))
-            .then(response => {
-                const sortedRooms = response.data.map(room => {
-                    let schedLength = 0;
+        const response = await axios.post(route('enrollment.get.enrollment.rooms.schedules', { schoolYearId, departmentId }));
 
-                    const sortedSchedules = room.schedules.sort((a, b) => {
-                        const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const processedRooms = response.data.map(room => {
+            let schedLength = 0;
 
-                        // Sort by day
-                        const dayComparison = daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day);
-                        if (dayComparison !== 0) return dayComparison;
+            const sortedSchedules = room.schedules.sort((a, b) => {
+                const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                const dayComparison = daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day);
+                if (dayComparison !== 0) return dayComparison;
+                const titleComparison = a.descriptive_title.localeCompare(b.descriptive_title);
+                if (titleComparison !== 0) return titleComparison;
+                return a.start_time.localeCompare(b.start_time);
+            });
 
-                        // Sort by descriptive title
-                        const titleComparison = a.descriptive_title.localeCompare(b.descriptive_title);
-                        if (titleComparison !== 0) return titleComparison;
+            sortedSchedules.forEach(sched => {
+                const dayType = identifyDayType(sched.day);
+                if (sched.day !== "TBA") {
+                    schedLength = schedLength + countDays(dayType, sched.day);
+                } else {
+                    schedLength++;
+                }
+            });
 
-                        // Sort by start time
-                        return a.start_time.localeCompare(b.start_time);
-                    });
+            return {
+                ...room,
+                schedules: sortedSchedules,
+                schedLength
+            };
+        });
 
-                    // Compute schedLength inside the room mapping
-                    sortedSchedules.forEach(sched => {
-                        const dayType = identifyDayType(sched.day);
+        // Sort: Rooms with schedLength > 0 first, then alphabetically
+        const sortedAndGroupedRooms = processedRooms.sort((a, b) => {
+            const aHasClasses = a.schedLength > 0;
+            const bHasClasses = b.schedLength > 0;
 
-                        if (sched.day !== "TBA") {
-                            schedLength = schedLength + countDays(dayType, sched.day)
-                        } else {
-                            schedLength++;
-                        }
-                    });
+            // Grouping
+            if (aHasClasses && !bHasClasses) return -1;
+            if (!aHasClasses && bHasClasses) return 1;
 
-                    // Return the room object with schedLength included
-                    return {
-                        ...room,
-                        schedules: sortedSchedules,
-                        schedLength // Add calculated length inside the room object
-                    };
-                });
+            // Alphabetical sort (adjust 'room_name' to match your DB if needed)
+            const nameA = (a.room_name || "").toLowerCase();
+            const nameB = (b.room_name || "").toLowerCase();
 
-                // Update state
-                setRooms(sortedRooms);
-            })
-            .finally(() => {
-                setLoading(false);
-            })
+            return nameA.localeCompare(nameB);
+        });
+
+        return sortedAndGroupedRooms;
     }
 
     const countDays = (dayType, day) => {
@@ -153,7 +156,13 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
         getEnrollmentRoomSchedules();
     }, []);
 
-    if (loading) return <PreLoader title="Room schedules" />;
+    const { data: rooms, isLoading } = useQuery({
+        queryKey: ['room-schedules', schoolYearId, departmentId],
+        queryFn: getEnrollmentRoomSchedules,
+        enabled: !!schoolYearId && !!departmentId,
+    });
+
+    if (isLoading) return <PreLoader title="Room schedules" />;
 
     const downloadAllRoomImagesWithProgress = async () => {
         setIsDownloadingAll(true);
@@ -221,14 +230,24 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
                         <Popover open={openRoomPopover} onOpenChange={setOpenRoomPopover}>
                             <PopoverTrigger asChild>
                                 {(() => {
-                                    const selectedRoomObj = rooms.find(room => room.id === selectedRoom);
+                                    // Determine the display text based on the selection array length
+                                    let displayText = "All";
+                                    if (selectedRooms.length > 0) {
+                                        if (selectedRooms.length === 1) {
+                                            const selectedRoomObj = rooms.find(room => room.id === selectedRooms[0]);
+                                            displayText = selectedRoomObj
+                                                ? `${selectedRoomObj.room_name} (${selectedRoomObj.schedLength})`
+                                                : "1 selected";
+                                        } else {
+                                            displayText = `${selectedRooms.length} rooms selected`;
+                                        }
+                                    }
+
                                     return (
                                         <Input
                                             placeholder=""
                                             readOnly
-                                            value={selectedRoomObj
-                                                ? `${selectedRoomObj.room_name} (${selectedRoomObj.schedLength})`
-                                                : "All"}
+                                            value={displayText}
                                             className="cursor-pointer text-start border w-60 truncate overflow-hidden"
                                         />
                                     );
@@ -240,34 +259,54 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
                                     <CommandList>
                                         <CommandEmpty>No room found.</CommandEmpty>
                                         <CommandGroup>
+                                            {/* "All" Option */}
                                             <CommandItem
                                                 key="all-rooms"
                                                 value="All"
                                                 onSelect={() => {
-                                                    setSelectedRoom("All");
-                                                    setOpenRoomPopover(false);
+                                                    setSelectedRooms([]); // Clear the array to represent "All"
                                                 }}
                                             >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedRooms.length === 0 ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
                                                 All
                                             </CommandItem>
-                                            {rooms.map(room => (
-                                                <CommandItem
-                                                    key={`room-${room.id}`}
-                                                    value={room.id}
-                                                    onSelect={() => {
-                                                        setSelectedRoom(room.id);
-                                                        setOpenRoomPopover(false);
-                                                    }}
-                                                >
-                                                    {room.room_name} ({room.schedLength})
-                                                    <Check
-                                                        className={cn(
-                                                            "ml-auto",
-                                                            selectedRoom == room.id ? "opacity-100" : "opacity-0"
-                                                        )}
-                                                    />
-                                                </CommandItem>
-                                            ))}
+
+                                            {/* Individual Room Options */}
+                                            {rooms.map(room => {
+                                                const isSelected = selectedRooms.includes(room.id);
+                                                const hasClasses = room.schedLength > 0;
+
+                                                return (
+                                                    <CommandItem
+                                                        key={`room-${room.id}`}
+                                                        value={room.id.toString()}
+                                                        onSelect={() => {
+                                                            // Toggle logic: add if missing, remove if present
+                                                            setSelectedRooms((prev) =>
+                                                                prev.includes(room.id)
+                                                                    ? prev.filter((id) => id !== room.id)
+                                                                    : [...prev, room.id]
+                                                            );
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                isSelected ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {/* Gray out text if the room has 0 schedule entries */}
+                                                        <span className={hasClasses ? "self-start" : "text-gray-500"}>
+                                                            {room.room_name} ({room.schedLength})
+                                                        </span>
+                                                    </CommandItem>
+                                                );
+                                            })}
                                         </CommandGroup>
                                     </CommandList>
                                 </Command>
@@ -315,11 +354,14 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
             {rooms.length > 0 ? (
                 <div className="space-y-4">
                     {rooms
-                        .filter((room) => room.id == selectedRoom || selectedRoom == "All")
+                        // UPDATED FILTER LOGIC HERE
+                        .filter((room) => selectedRooms.length === 0 || selectedRooms.includes(room.id))
                         .map((room) => (
                             <Card id={room.id} className="w-full" key={room.id}>
                                 <CardHeader>
-                                    <CardTitle className="text-4xl">{room.room_name} <span className="italic font-thin">({room.schedLength})</span></CardTitle>
+                                    <CardTitle className="text-4xl">
+                                        {room.room_name} <span className="italic font-thin">({room.schedLength})</span>
+                                    </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {scheduleType == "timetable" ? (
