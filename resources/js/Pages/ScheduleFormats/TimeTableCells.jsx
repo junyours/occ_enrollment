@@ -6,8 +6,8 @@ import { PiStudent } from 'react-icons/pi';
 // Helper function to convert time to row index
 function timeToRowIndex(time) {
     const [hour, minute] = time.split(":").map(Number);
-    const startHour = 7; // Starting hour of the schedule
-    return (hour - startHour) * 2 + (minute === 30 ? 2 : 1); // No need to add 1 for header
+    const startHour = 7;
+    return (hour - startHour) * 2 + (minute === 30 ? 3 : 2);
 }
 
 // Helper function to map days to column indices

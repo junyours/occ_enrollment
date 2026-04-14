@@ -13,7 +13,6 @@ function TimeTable({ data, colorful = true }) {
         const nextMinute = (startHour * 60 + (i + 1) * 30) % 60;
 
         const formattedStart = `${hour}:${minute.toString().padStart(2, "0")}`;
-        if (formattedStart === "7:00") return null; // Skip the 7:00 row
 
         return `${formattedStart} - ${nextHour}:${nextMinute.toString().padStart(2, "0")}`;
     }).filter(Boolean); // Filter out the null value
@@ -59,7 +58,7 @@ function TimeTable({ data, colorful = true }) {
                             <div
                                 key={`cell-${rowIndex}-${colIndex}`}
                                 className={`border border-b-0 border-r-0 flex items-center justify-center ${day === "Monday" ? "border-l-[hsl(var(--timetable-outside-border))]" : "border-l-[hsl(var(--timetable-inside-cells-border))]"
-                                    } ${timeSlot === "7:30 - 8:00" ? "border-t-[hsl(var(--timetable-outside-border))]" : "border-t-[hsl(var(--timetable-inside-cells-border))]"}`}
+                                    } ${timeSlot === "7:00 - 7:30" ? "border-t-[hsl(var(--timetable-outside-border))]" : "border-t-[hsl(var(--timetable-inside-cells-border))]"}`}
                                 style={{
                                     gridColumn: `${colIndex + 2} / ${colIndex + 3}`, // Days start after time column
                                     gridRow: rowIndex + 2,
