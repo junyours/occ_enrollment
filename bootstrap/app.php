@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Session\TokenMismatchException; 
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -45,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'GenedCoordinator' => \App\Http\Middleware\GenedCoordinator::class,
             'NstpDirector' => \App\Http\Middleware\NstpDirector::class,
             'StudentManagementPermission' => \App\Http\Middleware\StudentManagementPermission::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
         //
     })
