@@ -640,4 +640,38 @@ class UserController extends Controller
             'school_year' => $schoolYear
         ];
     }
+
+    public function searchStudent(Request $request)
+    {
+        // 1. Grab the search key sent from your React frontend
+        $key = $request->input('key');
+
+        $students = User::join('user_information', 'users.id', '=', 'user_information.user_id')
+            // It's best practice to specify the table name for each column to avoid "Ambiguous Column" SQL errors
+            ->select(
+                'users.id',
+                'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name'
+            )
+            ->where('users.user_role', 'student')
+            // 2. Group the search logic inside a closure to protect the 'user_role' filter
+            ->where(function ($query) use ($key) {
+                $query->where('users.user_id_no', 'LIKE', "%{$key}%")
+                    ->orWhere('user_information.first_name', 'LIKE', "%{$key}%")
+                    ->orWhere('user_information.last_name', 'LIKE', "%{$key}%")
+
+                    // 1. Allows searching exactly: "First Last" (e.g., "John Doe")
+                    ->orWhereRaw("CONCAT(user_information.first_name, ' ', user_information.last_name) LIKE ?", ["%{$key}%"])
+
+                    // 2. Allows searching exactly: "First M. Last" (e.g., "John D. Doe")
+                    ->orWhereRaw("CONCAT(user_information.first_name, ' ', SUBSTRING(user_information.middle_name, 1, 1), '. ', user_information.last_name) LIKE ?", ["%{$key}%"]);
+            })
+            // 3. Limit to a maximum of 10 results
+            ->take(20)
+            ->get();
+
+        return response()->json($students);
+    }
 }
