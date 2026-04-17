@@ -60,7 +60,7 @@ export default function StudentSearch({ onSelect }) {
             setIsOpen(true);
 
             try {
-                const response = await axios.post('search-student', { key: debouncedQuery });
+                const response = await axios.post(route('search-student'), { key: debouncedQuery });
                 setStudents(response.data);
             } catch (error) {
                 console.error("Failed to fetch students:", error);
