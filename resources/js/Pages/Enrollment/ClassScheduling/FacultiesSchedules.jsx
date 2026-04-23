@@ -196,7 +196,6 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
 
         // Update state with the perfectly formatted data
         return sortedAndGroupedFaculties
-
     }
 
     const countDays = (dayType, day) => {
@@ -212,16 +211,11 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
         }
     }
 
-    const { data: faculties, isLoading, isError } = useQuery({
+    const { data: faculties, isLoading } = useQuery({
         queryKey: ['faculty-schedules', schoolYearId, departmentId],
         queryFn: getEnrollmentFacultiesSchedules,
         enabled: !!schoolYearId && !!departmentId,
     });
-
-
-    // useEffect(() => {
-    //     getEnrollmentFacultiesSchedules();
-    // }, []);
 
     if (isLoading) return <PreLoader title="Faculty schedules" />;
 
@@ -337,6 +331,7 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
                                             {/* Individual Faculty Options */}
                                             {faculties.map((faculty) => {
                                                 const isSelected = selectedFaculties.includes(faculty.id);
+                                                const hasClasses = faculty.schedules.reduce((acc, sched) => acc + sched.lecture_hours + sched.laboratory_hours, 0) > 0;
                                                 return (
                                                     <CommandItem
                                                         key={`faculty-${faculty.id}`}
@@ -355,7 +350,10 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
                                                             className={`mr-2 h-4 w-4 ${isSelected ? "opacity-100" : "opacity-0"
                                                                 }`}
                                                         />
-                                                        {formatFullName(faculty)} | {faculty.schedules.reduce((acc, sched) => acc + sched.lecture_hours + sched.laboratory_hours, 0)} hr
+
+                                                        <span className={hasClasses ? "self-start" : "text-gray-500"}>
+                                                            {formatFullName(faculty)} | {faculty.schedules.reduce((acc, sched) => acc + sched.lecture_hours + sched.laboratory_hours, 0)} hr
+                                                        </span>
                                                     </CommandItem>
                                                 );
                                             })}
