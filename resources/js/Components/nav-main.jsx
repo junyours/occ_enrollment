@@ -127,6 +127,7 @@ export function NavMain() {
                     items: [
                         { name: "Enrollment Record", route: "enrollment-record", icon: Library },
                         { name: "Promotional Report", route: "promotional-report", icon: BarChart2 },
+                        { name: "Form 9", route: "form-9", icon: ClipboardList },
                         { name: "Subjects", route: "subjects-report", icon: NotebookText },
                         { name: "Faculty", route: "faculties-report", icon: User },
                     ],
