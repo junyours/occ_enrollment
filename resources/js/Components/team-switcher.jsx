@@ -16,7 +16,7 @@ export function TeamSwitcher() {
                         className="w-full transition-all duration-200 hover:bg-sidebar-accent active:scale-[0.98] group gap-1 group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:hover:bg-transparent"
                     >
                         <div className="flex aspect-square size-8 items-center justify-center text-primary-foreground transition-shadow">
-                            <AppLogo className="size-4" />
+                            <AppLogo />
                         </div>
 
                         <div className="grid flex-1 text-left leading-tight ml-1">
