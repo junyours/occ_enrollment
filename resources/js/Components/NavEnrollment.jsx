@@ -16,7 +16,6 @@ export function NavEnrollment() {
     const { user, courses, enrollment_status, schoolYear } = usePage().props.auth;
     const currentUrl = usePage().url; // Get the current route
     const { setOpenMobile, open } = useSidebar();
-    console.log(open);
     
     return (
         <>
