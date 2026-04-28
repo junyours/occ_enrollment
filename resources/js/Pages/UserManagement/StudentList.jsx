@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip
 import axios from 'axios';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import StudentGrades from '../components/StudentGrades';
+import PaginationPages from '@/Components/ui/PaginationPages';
 
 export default function StudentList({ students, filters }) {
 
@@ -205,68 +206,8 @@ export default function StudentList({ students, filters }) {
                         </Table>
                     </div>
 
-                    {/* Pagination */}
-                    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="text-sm text-gray-700 text-center sm:text-left">
-                            Showing <span className="font-medium">{students.from || 0}</span> to <span className="font-medium">{students.to || 0}</span> of{' '}
-                            <span className="font-medium">{students.total}</span> results
-                        </div>
+                    <PaginationPages data={students} />
 
-                        <div className="flex items-center gap-2 flex-wrap justify-center">
-                            {students.prev_page_url ? (
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href={students.prev_page_url}>
-                                        <ChevronLeft className="h-4 w-4 sm:mr-2" />
-                                        <span className="hidden sm:inline">Previous</span>
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button variant="outline" size="sm" disabled>
-                                    <ChevronLeft className="h-4 w-4 sm:mr-2" />
-                                    <span className="hidden sm:inline">Previous</span>
-                                </Button>
-                            )}
-
-                            <div className="flex items-center gap-1">
-                                {students.links.slice(1, -1).map((link, index) => (
-                                    link.url ? (
-                                        <Button
-                                            key={index}
-                                            asChild
-                                            variant={link.active ? 'default' : 'outline'}
-                                            size="sm"
-                                            className="min-w-[2.5rem]"
-                                        >
-                                            <Link href={link.url} dangerouslySetInnerHTML={{ __html: link.label }} />
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            key={index}
-                                            variant="outline"
-                                            size="sm"
-                                            disabled
-                                            className="min-w-[2.5rem]"
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    )
-                                ))}
-                            </div>
-
-                            {students.next_page_url ? (
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href={students.next_page_url}>
-                                        <span className="hidden sm:inline">Next</span>
-                                        <ChevronRight className="h-4 w-4 sm:ml-2" />
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button variant="outline" size="sm" disabled>
-                                    <span className="hidden sm:inline">Next</span>
-                                    <ChevronRight className="h-4 w-4 sm:ml-2" />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
             {(editMode || open) && (

@@ -33,12 +33,12 @@ export default function PaginationPages({ data = {} }) {
                         <Button
                             variant="outline"
                             size="sm"
-                            className="h-9 w-10 sm:w-24 px-0 sm:pl-2 flex justify-center sm:justify-between sm:pr-4"
+                            className="h-9 w-10 sm:w-20 px-0 sm:pl-2 flex justify-center sm:justify-between sm:pr-4"
                             onClick={() => handlePageChange(prev_page_url)}
                             disabled={!prev_page_url}
                         >
                             <ChevronLeft className="h-4 w-4 sm:mr-1" />
-                            <span className="hidden sm:inline">Previous</span>
+                            <span className="hidden sm:inline mr-2">Prev</span>
                         </Button>
 
                         {/* Page Numbers - Hidden on mobile if there are many */}
@@ -67,11 +67,11 @@ export default function PaginationPages({ data = {} }) {
                         <Button
                             variant="outline"
                             size="sm"
-                            className="h-9 w-10 sm:w-24 px-0 flex justify-center sm:justify-between sm:px-2"
+                            className="h-9 w-10 sm:w-20 px-0 flex justify-center sm:justify-between sm:px-2"
                             onClick={() => handlePageChange(next_page_url)}
                             disabled={!next_page_url}
                         >
-                            <span className="hidden sm:inline">Next</span>
+                            <span className="hidden sm:inline ml-2">Next</span>
                             <ChevronRight className="h-4 w-4 sm:ml-1" />
                         </Button>
                     </nav>
