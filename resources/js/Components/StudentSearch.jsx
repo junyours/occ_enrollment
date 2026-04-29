@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/Components/ui/input";
 import { Search, Loader2, User, XCircle, AlertCircle } from "lucide-react";
 import axios from "axios";
 import { formatName } from "@/Lib/InfoUtils";
