@@ -268,123 +268,130 @@ function Scheduling({
                             <Label>Time</Label>
                             <div className='flex gap-2'>
                                 <div className='flex gap-1 w-full items-center'>
-                                    {(() => {
-                                        const [hourValue, mins] = data.start_time.split(":");
-                                        return (
-                                            <Popover>
-                                                <PopoverTrigger
-                                                    disabled={data.start_time == 'TBA'}
-                                                    className="w-full">
-                                                    <Input
+                                    <div className="flex-1">
+                                        {(() => {
+                                            const [hourValue, mins] = data.start_time.split(":");
+                                            return (
+                                                <Popover>
+                                                    <PopoverTrigger
                                                         disabled={data.start_time == 'TBA'}
-                                                        label="Start Time"
-                                                        type={data.start_time == 'TBA' ? 'text' : 'time'}
-                                                        readOnly={true}
-                                                        value={data.start_time}
-                                                        onChange={(e) => setData("start_time", e.target.value)}
-                                                        error={errors.start_time}
-                                                    />
-                                                </PopoverTrigger>
-                                                <PopoverContent className="p-2 w-min flex flex-row gap-2">
-                                                    <ToggleGroup
-                                                        type="single"
-                                                        variant="outline"
-                                                        className="flex flex-col w-min"
-                                                        value={hourValue} onValueChange={(value) => startTimeChange(value, 'hour')}
-                                                    >
-                                                        {hours.filter(hour => (meridiem === 'PM' ? hour.value >= 12 : hour.value < 12)) // Filter correctly
-                                                            .map(hour => (
-                                                                <ToggleGroupItem
-                                                                    className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]"
-                                                                    key={hour.value}
-                                                                    value={hour.value}>
-                                                                    {hour.hour}
-                                                                </ToggleGroupItem>
-                                                            ))}
-                                                    </ToggleGroup>
-                                                    <ToggleGroup
-                                                        type="single"
-                                                        variant="outline"
-                                                        className="flex flex-col w-min justify-start"
-                                                        value={mins}
-                                                        onValueChange={(value) => startTimeChange(value, 'min')}>
-                                                        <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='00'>
-                                                            00
-                                                        </ToggleGroupItem>
-                                                        <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='30'>
-                                                            30
-                                                        </ToggleGroupItem>
-                                                    </ToggleGroup>
-                                                    <ToggleGroup
-                                                        type="single"
-                                                        variant="outline"
-                                                        className="flex flex-col w-min justify-start"
-                                                        value={meridiem}
-                                                        onValueChange={(value) => startTimeChange(value, 'meridiem')}>
-                                                        <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='AM'>
-                                                            AM
-                                                        </ToggleGroupItem>
-                                                        <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='PM'>
-                                                            PM
-                                                        </ToggleGroupItem>
-                                                    </ToggleGroup>
-                                                </PopoverContent>
-                                            </Popover>
-                                        )
-                                    })()}
+                                                        className="w-full">
+                                                        <Input
+                                                            disabled={data.start_time == 'TBA'}
+                                                            label="Start Time"
+                                                            type={data.start_time == 'TBA' ? 'text' : 'time'}
+                                                            readOnly={true}
+                                                            value={data.start_time}
+                                                            onChange={(e) => setData("start_time", e.target.value)}
+                                                            error={errors.start_time}
+                                                        />
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="p-2 w-min flex flex-row gap-2">
+                                                        <ToggleGroup
+                                                            type="single"
+                                                            variant="outline"
+                                                            className="flex flex-col w-min"
+                                                            value={hourValue} onValueChange={(value) => startTimeChange(value, 'hour')}
+                                                        >
+                                                            {hours.filter(hour => (meridiem === 'PM' ? hour.value >= 12 : hour.value < 12)) // Filter correctly
+                                                                .map(hour => (
+                                                                    <ToggleGroupItem
+                                                                        className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]"
+                                                                        key={hour.value}
+                                                                        value={hour.value}>
+                                                                        {hour.hour}
+                                                                    </ToggleGroupItem>
+                                                                ))}
+                                                        </ToggleGroup>
+                                                        <ToggleGroup
+                                                            type="single"
+                                                            variant="outline"
+                                                            className="flex flex-col w-min justify-start"
+                                                            value={mins}
+                                                            onValueChange={(value) => startTimeChange(value, 'min')}>
+                                                            <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='00'>
+                                                                00
+                                                            </ToggleGroupItem>
+                                                            <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='30'>
+                                                                30
+                                                            </ToggleGroupItem>
+                                                        </ToggleGroup>
+                                                        <ToggleGroup
+                                                            type="single"
+                                                            variant="outline"
+                                                            className="flex flex-col w-min justify-start"
+                                                            value={meridiem}
+                                                            onValueChange={(value) => startTimeChange(value, 'meridiem')}>
+                                                            <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='AM'>
+                                                                AM
+                                                            </ToggleGroupItem>
+                                                            <ToggleGroupItem className="data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]" value='PM'>
+                                                                PM
+                                                            </ToggleGroupItem>
+                                                        </ToggleGroup>
+                                                    </PopoverContent>
+                                                </Popover>
+                                            )
+                                        })()}
+                                    </div>
                                     <span className="text-2xl">-</span>
-                                    <Select
-                                        disabled={data.start_time == 'TBA'}
-                                        value={classHour}
-                                        onValueChange={(value) => classHourChange(value)}>
-                                        <SelectTrigger className='w-full'>
-                                            <Input
-                                                disabled={data.start_time == 'TBA'}
-                                                label="End Time"
-                                                type={data.start_time == 'TBA' ? 'text' : 'time'}
-                                                readOnly={true}
-                                                value={data.end_time}
-                                                onChange={(e) => setData("end_time", e.target.value)}
-                                                error={errors.end_time}
-                                                className="border-none px-0 cursor-pointer"
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">
-                                                1hr
-                                            </SelectItem>
-                                            <SelectItem value="2">
-                                                2hrs
-                                            </SelectItem>
-                                            <SelectItem value="3">
-                                                3hrs
-                                            </SelectItem>
-                                            <SelectItem value="4">
-                                                4hrs
-                                            </SelectItem>
-                                            <SelectItem value="5">
-                                                5hrs
-                                            </SelectItem>
-                                            <SelectItem value="6">
-                                                6hrs
-                                            </SelectItem>
-                                            <SelectItem value="7">
-                                                7hrs
-                                            </SelectItem>
-                                            <SelectItem value="8">
-                                                8hrs
-                                            </SelectItem>
-                                            <SelectItem value="9">
-                                                9hrs
-                                            </SelectItem>
-                                            <SelectItem value="10">
-                                                10hrs
-                                            </SelectItem>
-                                            <SelectItem value="11">
-                                                11hrs
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <div className="flex-1">
+                                        <Select
+                                            disabled={data.start_time == 'TBA'}
+                                            value={classHour}
+                                            onValueChange={(value) => classHourChange(value)}>
+                                            <SelectTrigger className='w-full'>
+                                                <Input
+                                                    disabled={data.start_time == 'TBA'}
+                                                    label="End Time"
+                                                    type={data.start_time == 'TBA' ? 'text' : 'time'}
+                                                    readOnly={true}
+                                                    value={data.end_time}
+                                                    onChange={(e) => setData("end_time", e.target.value)}
+                                                    error={errors.end_time}
+                                                    className="border-none px-0 cursor-pointer"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="1">
+                                                    1hr
+                                                </SelectItem>
+                                                <SelectItem value="1.5">
+                                                    1hr 30m
+                                                </SelectItem>
+                                                <SelectItem value="2">
+                                                    2hrs
+                                                </SelectItem>
+                                                <SelectItem value="3">
+                                                    3hrs
+                                                </SelectItem>
+                                                <SelectItem value="4">
+                                                    4hrs
+                                                </SelectItem>
+                                                <SelectItem value="5">
+                                                    5hrs
+                                                </SelectItem>
+                                                <SelectItem value="6">
+                                                    6hrs
+                                                </SelectItem>
+                                                <SelectItem value="7">
+                                                    7hrs
+                                                </SelectItem>
+                                                <SelectItem value="8">
+                                                    8hrs
+                                                </SelectItem>
+                                                <SelectItem value="9">
+                                                    9hrs
+                                                </SelectItem>
+                                                <SelectItem value="10">
+                                                    10hrs
+                                                </SelectItem>
+                                                <SelectItem value="11">
+                                                    11hrs
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                                 <TooltipProvider>
                                     <Tooltip>
@@ -558,7 +565,7 @@ function Scheduling({
                     variant="secondary">
                     Cancel
                 </Button>
-                
+
                 <Button
                     onClick={handleSubmit}
                     className="ml-2"
