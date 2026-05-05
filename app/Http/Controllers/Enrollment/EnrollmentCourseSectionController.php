@@ -1127,17 +1127,22 @@ class EnrollmentCourseSectionController extends Controller
             ->join('year_section as student_section', 'student_section.id', '=', 'enrolled_students.year_section_id') // actual section of student
             ->join('course', 'course.id', '=', 'student_section.course_id')
             ->join('users', 'users.id', '=', 'enrolled_students.student_id')
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->join('users as instructor', 'instructor.id', '=', 'year_section_subjects.faculty_id')
+            ->join('user_information as instructor_information', 'instructor_information.user_id', '=', 'instructor.id')
+            ->join('user_information', 'user_information.user_id', '=', 'enrolled_students.student_id')
             ->where('year_section_subjects.subject_id', $subjectId)
             ->where('subject_section.school_year_id', $schoolYearId)
             ->select([
-                'user_id_no',
-                'last_name',
-                'first_name',
-                'middle_name',
+                'users.user_id_no',
+                'user_information.last_name',
+                'user_information.first_name',
+                'user_information.middle_name',
                 'student_section.section',
                 'student_section.year_level_id',
                 'course.course_name_abbreviation',
+                'instructor_information.first_name as instructor_first_name',
+                'instructor_information.last_name as instructor_last_name',
+                'instructor_information.middle_name as instructor_middle_name',
             ])
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -1153,6 +1158,8 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->setCellValue('D1', 'Middle Name');
         $sheet->setCellValue('E1', 'Course');
         $sheet->setCellValue('F1', 'Year & Section');
+        $sheet->setCellValue('G1', 'Instructor');
+
 
         // Set column widths
         $sheet->getColumnDimension('A')->setWidth(20);
@@ -1161,16 +1168,26 @@ class EnrollmentCourseSectionController extends Controller
         $sheet->getColumnDimension('D')->setWidth(25);
         $sheet->getColumnDimension('E')->setWidth(20);
         $sheet->getColumnDimension('F')->setWidth(15);
+        $sheet->getColumnDimension('G')->setWidth(30);
 
         // Fill data
         $row = 2;
         foreach ($students as $student) {
+            $name = format_name([
+                'first_name' => $student->instructor_first_name,
+                'middle_name' => $student->instructor_middle_name,
+                'last_name' => $student->instructor_last_name,
+            ], [
+                'format' => 'LFM'
+            ]);
+
             $sheet->setCellValue("A{$row}", $student->user_id_no);
             $sheet->setCellValue("B{$row}", $student->last_name);
             $sheet->setCellValue("C{$row}", $student->first_name);
             $sheet->setCellValue("D{$row}", $student->middle_name);
             $sheet->setCellValue("E{$row}", $student->course_name_abbreviation);
             $sheet->setCellValue("F{$row}", $student->year_level_id . $student->section);
+            $sheet->setCellValue("G{$row}", $name);
             $row++;
         }
 

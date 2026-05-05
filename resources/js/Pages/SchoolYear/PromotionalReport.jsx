@@ -10,45 +10,12 @@ import { formatFullName } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import { FileDown, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
-import StudentSubjects from './StudentSubjects';
 import StudentSubjectsGrades from './StudentSubjectsGrades';
-
-function PromotionalReport({ schoolYears }) {
-    const uniqueSchoolYears = Array.from(
-        new Set(schoolYears.map((sy) => `${sy.start_year}-${sy.end_year}`))
-    );
-
-    const [selectedSchoolYear, setSelectedSchoolYear] = useState(uniqueSchoolYears[0] || '');
-
-    const getSemestersForYear = (year) =>
-        schoolYears
-            .filter((sy) => `${sy.start_year}-${sy.end_year}` === year)
-            .map((sy) => sy.semester_name);
-
-    const [selectedSemester, setSelectedSemester] = useState(() => {
-        const semesters = getSemestersForYear(selectedSchoolYear);
-        return semesters.includes('First') ? 'First' : semesters[0] || '';
-    });
-
-    const handleSchoolYearChange = (value) => {
-        setSelectedSchoolYear(value);
-        const available = getSemestersForYear(value);
-        setSelectedSemester(available.includes('First') ? 'First' : available[0] || '');
-    };
-
-    const handleSemesterChange = (value) => {
-        setSelectedSemester(value);
-    };
-
-    const allSemesters = ['First', 'Second', 'Summer'];
-    const availableSemesters = getSemestersForYear(selectedSchoolYear);
-
-    // 🔥 FINAL: Find the exact object matching both selected school year AND semester
-    const selectedSchoolYearEntry = schoolYears.find(
-        (sy) =>
-            `${sy.start_year}-${sy.end_year}` === selectedSchoolYear &&
-            sy.semester_name === selectedSemester
-    );
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import SearchBar from '@/Components/ui/SearchBar';
+function PromotionalReport() {
+    const { selectedSchoolYearEntry } = useSchoolYearStore();
 
     const [studentList, setStudentList] = useState([]);
     const [page, setPage] = useState(1);
@@ -111,70 +78,30 @@ function PromotionalReport({ schoolYears }) {
         <div className='space-y-4'>
             <Head title="Promotional Report" />
             <PageTitle align='center' className='w-full'>PROMOTIONAL REPORT</PageTitle>
-            <div className='mt-2 flex justify-between'>
-                <div className='flex gap-2 w-max'>
+            <div className='mt-6 flex flex-col xl:flex-row gap-4 w-full items-start xl:items-stretch'>
+                <div className='flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full xl:w-auto'>
                     {/* School Year Select */}
-                    <div className="flex items-center gap-2">
-                        <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
-                            <SelectTrigger className='w-36'>
-                                <SelectValue placeholder="Select School Year" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {uniqueSchoolYears.map((year) => (
-                                    <SelectItem key={year} value={year}>
-                                        {year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <SchoolYearPicker />
 
-                    {/* Semester Select */}
-                    <div className="flex items-center gap-2">
-                        <Select value={selectedSemester} onValueChange={handleSemesterChange}>
-                            <SelectTrigger className='w-28' >
-                                <SelectValue placeholder="Select Semester" />
-                            </SelectTrigger>
-                            <SelectContent >
-                                {allSemesters.map((sem) => (
-                                    <SelectItem key={sem} value={sem} disabled={!availableSemesters.includes(sem)}>
-                                        {sem}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
                     <Button
                         onClick={handleDownload}
-                        size='lg'
-                        className={`bg-green-600 hover:bg-green-500`}
+                        className='bg-green-600 hover:bg-green-700 text-white flex justify-center items-center gap-2 shadow-sm h-full min-h-[44px] px-6 transition-all duration-200'
                     >
                         Download
-                        <FileDown />
+                        <FileDown size={18} />
                     </Button>
                 </div>
-                <form
-                    className='flex gap-2'
-                    onSubmit={(e) => {
-                        e.preventDefault(); // stops page reload
-                        getEnrollmentRecord();
-                    }}
-                >
-                    <Input
-                        className='w-56'
-                        value={search}
-                        placeholder='search'
-                        onChange={searchOnChange}
-                    />
-                    <Button type="submit">
-                        <Search />
-                    </Button>
-                    {search && (
-                        <Button type="button" onClick={handleReset} variant="outline">
-                            Reset
-                        </Button>
-                    )}
-                </form>
+
+                <div className='flex-1 w-full flex items-center'>
+                    <div className='w-full'>
+                        <SearchBar
+                            value={search}
+                            onSearch={getEnrollmentRecord}
+                            onClear={handleReset}
+                            onChange={searchOnChange}
+                        />
+                    </div>
+                </div>
             </div>
             <div className='flex gap-4 w-full'>
                 <Card className="w-full">
@@ -251,7 +178,7 @@ function PromotionalReport({ schoolYears }) {
                                     max-h-[calc(100vh-19rem)]
                                     overflow-x-auto gap-0"
                     >
-                        <DialogHeader className='gap-0'>    
+                        <DialogHeader className='gap-0'>
                             <DialogTitle>{formatFullName(selectedStudent)}</DialogTitle>
                             <DialogDescription>
                                 {selectedStudent.user_id_no} - {selectedStudent.course_name_abbreviation}-{selectedStudent.year_level_id}{selectedStudent.section}

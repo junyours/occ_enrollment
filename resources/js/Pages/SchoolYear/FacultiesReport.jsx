@@ -11,43 +11,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { convertToAMPM, formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Card, CardContent, CardFooter } from '@/Components/ui/card';
-
-function FacultiesReport({ schoolYears }) {
-    const uniqueSchoolYears = Array.from(
-        new Set(schoolYears.map((sy) => `${sy.start_year}-${sy.end_year}`))
-    );
-
-    const [selectedSchoolYear, setSelectedSchoolYear] = useState(uniqueSchoolYears[0] || '');
-
-    const getSemestersForYear = (year) =>
-        schoolYears
-            .filter((sy) => `${sy.start_year}-${sy.end_year}` === year)
-            .map((sy) => sy.semester_name);
-
-    const [selectedSemester, setSelectedSemester] = useState(() => {
-        const semesters = getSemestersForYear(selectedSchoolYear);
-        return semesters.includes('First') ? 'First' : semesters[0] || '';
-    });
-
-    const handleSchoolYearChange = (value) => {
-        setSelectedSchoolYear(value);
-        const available = getSemestersForYear(value);
-        setSelectedSemester(available.includes('First') ? 'First' : available[0] || '');
-    };
-
-    const handleSemesterChange = (value) => {
-        setSelectedSemester(value);
-    };
-
-    const allSemesters = ['First', 'Second', 'Summer'];
-    const availableSemesters = getSemestersForYear(selectedSchoolYear);
-
-    // 🔥 FINAL: Find the exact object matching both selected school year AND semester
-    const selectedSchoolYearEntry = schoolYears.find(
-        (sy) =>
-            `${sy.start_year}-${sy.end_year}` === selectedSchoolYear &&
-            sy.semester_name === selectedSemester
-    );
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import SearchBar from '@/Components/ui/SearchBar';
+export default function FacultiesReport() {
+    const { selectedSchoolYearEntry } = useSchoolYearStore();
 
     const [facultyList, setFacultyList] = useState([]);
     const [page, setPage] = useState(1);
@@ -62,8 +30,8 @@ function FacultiesReport({ schoolYears }) {
                 search: search
             })
         ).then(response => {
-            setFacultyList(response.data.data); // "data" inside paginator
-            setLastPage(response.data.last_page); // store last page for controls
+            setFacultyList(response.data.data);
+            setLastPage(response.data.last_page);
         });
     };
 
@@ -71,7 +39,7 @@ function FacultiesReport({ schoolYears }) {
         if (selectedSchoolYearEntry?.id) {
             getEnrollmentRecord();
         }
-    }, [selectedSchoolYearEntry?.id, page]); // refetch when page changes
+    }, [selectedSchoolYearEntry?.id, page]);
 
     const handleReset = async () => {
         setSearch('');
@@ -82,12 +50,13 @@ function FacultiesReport({ schoolYears }) {
                 search: ''
             })
         ).then(response => {
-            setFacultyList(response.data.data); // "data" inside paginator
-            setLastPage(response.data.last_page); // store last page for controls
+            setFacultyList(response.data.data);
+            setLastPage(response.data.last_page);
         });
     };
 
     const searchOnChange = (e) => {
+        console.log("hello")
         setSearch(e.target.value);
     }
 
@@ -99,76 +68,46 @@ function FacultiesReport({ schoolYears }) {
 
     return (
         <div className='space-y-4'>
-            <Head title="Promotional Report" />
-            <PageTitle align='center' className='w-full'>Faculties Subjects</PageTitle>
-            <div className='mt-2 flex justify-between'>
-                <div className='flex gap-2 w-max'>
-                    {/* School Year Select */}
-                    <div className="flex items-center gap-2">
-                        <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
-                            <SelectTrigger className='w-36'>
-                                <SelectValue placeholder="Select School Year" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {uniqueSchoolYears.map((year) => (
-                                    <SelectItem key={year} value={year}>
-                                        {year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+            <Head title="Faculty Teaching Load" />
+            <PageTitle align='center' className='w-full'>Faculty Teaching Load</PageTitle>
 
-                    {/* Semester Select */}
-                    <div className="flex items-center gap-2">
-                        <Select value={selectedSemester} onValueChange={handleSemesterChange}>
-                            <SelectTrigger className='w-28' >
-                                <SelectValue placeholder="Select Semester" />
-                            </SelectTrigger>
-                            <SelectContent >
-                                {allSemesters.map((sem) => (
-                                    <SelectItem key={sem} value={sem} disabled={!availableSemesters.includes(sem)}>
-                                        {sem}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+            {/* Enhanced Action Bar Layout */}
+            <div className='mt-6 flex flex-col xl:flex-row gap-4 w-full items-start xl:items-stretch'>
+
+                {/* Left Side: Filter and Download */}
+                <div className='flex flex-col sm:flex-row gap-4 items-stretch sm:items-center w-full xl:w-auto'>
+                    <SchoolYearPicker />
+
                     <Button
                         onClick={handleDownload}
-                        size='lg'
-                        className={`bg-green-600 hover:bg-green-500`}
+                        className='bg-green-600 hover:bg-green-700 text-white flex justify-center items-center gap-2 shadow-sm h-full min-h-[44px] px-6 transition-all duration-200'
                     >
                         Download
-                        <FileDown />
+                        <FileDown size={18} />
                     </Button>
                 </div>
-                <form
-                    className='flex gap-2'
-                    onSubmit={(e) => {
-                        e.preventDefault(); // stops page reload
-                        getEnrollmentRecord();
-                    }}
-                >
-                    <Input
-                        className='w-56'
-                        value={search}
-                        placeholder='search'
-                        onChange={searchOnChange}
-                    />
-                    <Button type="submit">
-                        <Search />
-                    </Button>
-                    {search && (
-                        <Button type="button" onClick={handleReset} variant="outline">
-                            Reset
-                        </Button>
-                    )}
-                </form>
+
+                {/* Right Side: Search Bar */}
+                <div className='flex-1 w-full flex items-center'>
+                    <div className='w-full'>
+                        <SearchBar
+                            value={search}
+                            onSearch={getEnrollmentRecord}
+                            onClear={handleReset}
+                            onChange={searchOnChange}
+                        />
+                    </div>
+                </div>
             </div>
 
-            <Card className=''>
-                <CardContent className='pt-2'>
+            {/* Card Layout Below */}
+            <Card className='shadow-sm'>
+                <CardContent className='pt-4'>
+                    <div className="flex flex-1 items-center justify-between text-sm font-medium transition-all text-left [&[data-state=open]>svg]:rotate-180 hover:no-underline py-2 border-b">
+                        <div className="w-80">Faculty Name</div>
+                        <div className="ml-2 w-72">Schedules</div>
+                        <div className="w-4 text-transparent">.</div>
+                    </div>
                     <Accordion
                         type="single"
                         collapsible
@@ -177,11 +116,16 @@ function FacultiesReport({ schoolYears }) {
                     >
                         {facultyList.map(faculty => (
                             <AccordionItem key={faculty.id} value={faculty.id}>
-                                <AccordionTrigger>{formatFullName(faculty)} - {faculty.schedules.length}</AccordionTrigger>
+                                <AccordionTrigger className="hover:no-underline py-2">
+                                    <span className="font-semibold w-96">{formatFullName(faculty)}</span>
+                                    <span className="ml-2 text-sm font-normal w-72">
+                                        {faculty.schedules.length}
+                                    </span>
+                                </AccordionTrigger>
                                 <AccordionContent className="flex flex-col gap-4 text-balance">
-                                    <Card>
-                                        <CardContent className='p-0'>
-                                            <Table>
+                                    <Card className="border shadow-none">
+                                        <CardContent className='p-0 overflow-x-auto'>
+                                            <Table className="min-w-full">
                                                 <TableHeader>
                                                     <TableRow>
                                                         <TableHead>Subject</TableHead>
@@ -195,19 +139,25 @@ function FacultiesReport({ schoolYears }) {
                                                     {faculty.schedules.map(subjects => (
                                                         <React.Fragment key={subjects.id}>
                                                             <TableRow>
-                                                                <TableCell>{subjects.descriptive_title}</TableCell>
+                                                                <TableCell className="font-medium">{subjects.descriptive_title}</TableCell>
                                                                 <TableCell>{subjects.day}</TableCell>
                                                                 <TableCell>
                                                                     {subjects.start_time === "-" ? "-" : `${convertToAMPM(subjects.start_time)} - ${convertToAMPM(subjects.end_time)}`}
                                                                 </TableCell>
-                                                                <TableCell rowSpan={subjects.secondary_schedule ? 2 : 1} className=''>{subjects.course_name_abbreviation}-{subjects.year_level_id}{subjects.section}</TableCell>
-                                                                <TableCell rowSpan={subjects.secondary_schedule ? 2 : 1} className='text-center'>{subjects.credit_units}</TableCell>
+                                                                <TableCell rowSpan={subjects.secondary_schedule ? 2 : 1} className=''>
+                                                                    {subjects.course_name_abbreviation}-{subjects.year_level_id}{subjects.section}
+                                                                </TableCell>
+                                                                <TableCell rowSpan={subjects.secondary_schedule ? 2 : 1} className='text-center font-medium'>
+                                                                    {subjects.credit_units}
+                                                                </TableCell>
                                                             </TableRow>
                                                             {subjects.secondary_schedule && (
                                                                 <TableRow>
-                                                                    <TableCell>{subjects.descriptive_title} <span className='text-xs italic'>(2nd schedule)</span></TableCell>
-                                                                    <TableCell>{subjects.secondary_schedule.day}</TableCell>
                                                                     <TableCell>
+                                                                        {subjects.descriptive_title} <span className='text-xs italic px-2 py-0.5 rounded-full ml-1'>(2nd schedule)</span>
+                                                                    </TableCell>
+                                                                    <TableCell>{subjects.secondary_schedule.day}</TableCell>
+                                                                    <TableCell >
                                                                         {subjects.secondary_schedule.start_time === "-" ? "-" : `${convertToAMPM(subjects.secondary_schedule.start_time)} - ${convertToAMPM(subjects.secondary_schedule.end_time)}`}
                                                                     </TableCell>
                                                                 </TableRow>
@@ -223,23 +173,23 @@ function FacultiesReport({ schoolYears }) {
                         ))}
                     </Accordion>
                 </CardContent>
-                <CardFooter>
-                    <div className='flex gap-2'>
-                        <div className="flex justify-center items-center gap-2">
+                <CardFooter className="border-t rounded-b-lg py-4">
+                    <div className='flex w-full justify-between items-center'>
+                        <p className="text-sm">
+                            Showing page <span className="font-medium ">{page}</span> of <span className="font-medium">{lastPage}</span>
+                        </p>
+                        <div className="flex gap-2">
                             <button
                                 disabled={page === 1}
                                 onClick={() => setPage(prev => prev - 1)}
-                                className="px-3 py-1 border rounded"
+                                className="px-4 py-2 border text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                Prev
+                                Previous
                             </button>
-
-                            <span>Page {page} of {lastPage}</span>
-
                             <button
                                 disabled={page === lastPage}
                                 onClick={() => setPage(prev => prev + 1)}
-                                className="px-3 py-1 border rounded"
+                                className="px-4 py-2 border text-sm font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 Next
                             </button>
@@ -247,10 +197,8 @@ function FacultiesReport({ schoolYears }) {
                     </div>
                 </CardFooter>
             </Card>
-
         </div>
     )
 }
 
-export default FacultiesReport
 FacultiesReport.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
