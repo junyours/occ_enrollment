@@ -33,31 +33,18 @@ export default function SYGrades({ data, className }) {
                         <th className='text-xs text-left w-32 pl-8 font-normal py-0.5'>Subject Code</th>
                         <th className='text-xs font-normal'>Descriptive Title</th>
                         <th className='text-xs font-normal w-16'>Grade</th>
-                        <th className='text-xs font-normal w-16'>Remarks</th>
+                        <th className='text-xs font-normal w-16'>Re-</th>
                         <th className='text-xs font-normal w-16'>Units</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data.subjects.map((subject, index) => {
-                        const isDropped = subject.grade == 0.0;
-                        const isPassed = !isDropped && subject.grade && subject.grade <= 3;
-                        const isFailed = !isDropped && subject.grade && subject.grade > 3;
                         return (
                             <tr key={index} className='border-b border-gray-400'>
                                 <td className='text-xs  pl-8 py-0.5'>{subject.subject_code}</td>
                                 <td className='text-xs'>{subject.descriptive_title}</td>
                                 <td className='text-xs text-center'>{subject.grade}</td>
-                                <td className='text-xs text-center'>
-                                    {isDropped ? (
-                                        <p className=''>Dropped</p>
-                                    ) : isPassed ? (
-                                        <p className=''>Passed</p>
-                                    ) : isFailed ? (
-                                        <p className=''>Failed</p>
-                                    ) : (
-                                        <span className="text-muted-foreground text-xs">-</span>
-                                    )}
-                                </td>
+                                <td className='text-xs text-center' />
                                 <td className='text-xs text-center'>{subject.credit_units}</td>
                             </tr>
                         )

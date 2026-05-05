@@ -8,8 +8,8 @@ export default function Header() {
 
                 {/* Logo */}
                 <AppLogo
-                    size="xl"
-                    className="h-36 w-32 object-fill"
+                    size="md"
+                    className="object-fill"
                 />
 
                 {/* Text Content */}
@@ -17,7 +17,7 @@ export default function Header() {
 
                     {/* Main Title */}
                     <h1
-                        className="text-3xl font-black tracking-wide h-8"
+                        className="text-xl font-black tracking-wide h-6"
                         style={{ fontFamily: "'Arial Black', Arial, sans-serif" }}
                     >
                         OPOL COMMUNITY COLLEGE
@@ -25,7 +25,7 @@ export default function Header() {
 
                     {/* Location */}
                     <p
-                        className="text-[1.1rem] font-bold h-[1.3rem]"
+                        className="text-[1rem] font-bold h-[1.1rem]"
                         style={{ fontFamily: "'Times New Roman', Times, serif" }}
                     >
                         Opol, Misamis Oriental
@@ -42,14 +42,14 @@ export default function Header() {
                     <div className='w-full px-10'>
                         {/* Department */}
                         <h2
-                            className="text-2xl font-black tracking-wide h-7"
+                            className="text-lg font-black tracking-wide h-6"
                             style={{ fontFamily: "'Arial Black', Arial, sans-serif" }}
                         >
                             OFFICE OF THE REGISTRAR
                         </h2>
 
                         {/* Bottom Underline */}
-                        <div className="w-full border-b-[3px] border-black"></div>
+                        <div className="w-full border-b-[2px] border-black"></div>
                     </div>
 
                 </div>

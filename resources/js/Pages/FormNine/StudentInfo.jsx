@@ -1,13 +1,9 @@
 import React from 'react';
 import FormField from './components/FormField';
-import { cn } from '@/Lib/Utils';
 import { formatName } from '@/Lib/InfoUtils';
 
 export default function StudentInfo({ info }) {
     const { information, parent } = info;
-    console.log(information);
-    console.log(parent);
-
 
     return (
         <div className='w-full max-w-4xl mx-auto font-sans text-black font-semibold'>
@@ -19,16 +15,16 @@ export default function StudentInfo({ info }) {
             {/* Section 1: Personal Details */}
             <div className='grid grid-cols-[1fr_260px] gap-x-4 pl-8'>
                 <div className='flex flex-col'>
-                    <FormField label="Name:" value={formatName(information)} />
-                    <FormField label="Date of Birth:" value={information.birthday} />
-                    <FormField label=" Place of Birth:" value={information.birthday} />
-                    <FormField label="Home Address:" value={information.address} />
+                    <FormField label="Name:" value={formatName(information) ? formatName(information).toUpperCase() : ''} />
+                    <FormField label="Date of Birth:" value={information.birthday ? information.birthday.toUpperCase() : ''} />
+                    <FormField label=" Place of Birth:" value={information.birthday ? information.birthday.toUpperCase() : ''} />
+                    <FormField label="Home Address:" value={information.address ? information.address.toUpperCase() : ''} />
                 </div>
                 <div className='flex flex-col'>
-                    <FormField label="Gender:" value={information.gender} />
-                    <FormField label="Civil Status:" value={information.civil_status} />
-                    <FormField label="Father's Name:" value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name })} />
-                    <FormField label="Mother's Name:" value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name })} />
+                    <FormField label="Gender:" value={information.gender ? information.gender.toUpperCase() : ''} />
+                    <FormField label="Civil Status:" value={information.civil_status ? information.civil_status.toUpperCase() : ''} />
+                    <FormField label="Father's Name:" value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }) ? formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }).toUpperCase() : ''} />
+                    <FormField label="Mother's Name:" value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }) ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toUpperCase() : ''} />
                 </div>
             </div>
 

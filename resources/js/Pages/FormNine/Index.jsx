@@ -16,7 +16,7 @@ export default function Index() {
     const [selectedStudent, setSelectedStudent] = useState(null);
 
     const fetchStudentRecord = async () => {
-        const { data } = await axios.get(route('form-9-student', { id: selectedStudent?.id }));
+        const { data } = await axios.get(route('permanent-record-student', { id: selectedStudent?.id }));
         return data;
     };
 
@@ -36,7 +36,7 @@ export default function Index() {
 
     return (
         <div>
-            <Head title='Form 9' />
+            <Head title='Permanent Record' />
             <style type="text/css" media="print">
                 {`
                     @page { 
