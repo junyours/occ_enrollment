@@ -118,7 +118,7 @@ export function NavMain() {
                 {
                     label: "Grades",
                     items: [
-                        { name: "Verified Grades", route: "verified-grades", icon: FileText },
+                        { name: "Grade Submission", route: "verified-grades", icon: FileText },
                         { name: "Change Request", route: "change-requests", icon: RefreshCcw },
                     ]
                 },
@@ -127,9 +127,9 @@ export function NavMain() {
                     items: [
                         { name: "Enrollment Record", route: "enrollment-record", icon: Library },
                         { name: "Promotional Report", route: "promotional-report", icon: BarChart2 },
-                        { name: "Form 9", route: "form-9", icon: ClipboardList },
-                        { name: "Subjects", route: "subjects-report", icon: NotebookText },
-                        { name: "Faculty", route: "faculties-report", icon: User },
+                        { name: "Faculty Teaching Load", route: "faculties-report", icon: User },
+                        { name: "Subjects Report", route: "subjects-report", icon: NotebookText },
+                        { name: "Permanent Record", route: "permanent-record", icon: ClipboardList },
                     ],
                 },
                 {
@@ -449,8 +449,11 @@ export function NavMain() {
                                         href={itemUrl}
                                         className="flex items-center w-full gap-3 px-3 py-2"
                                     >
-                                        <item.icon size={18} />
-                                        <span>{item.name}</span>
+                                        <item.icon
+                                            size={18}
+                                            className="shrink-0"
+                                        />
+                                        <span className="truncate">{item.name}</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
