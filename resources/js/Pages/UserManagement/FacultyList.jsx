@@ -1,22 +1,18 @@
-import PreLoader from '@/Components/preloader/PreLoader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
-import { cn, formatFullName } from '@/Lib/Utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Badge } from '@/Components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import DataTable from '@/Components/ui/DataTable';
-import { PageTitle } from '@/Components/ui/PageTitle';
 import AddFaculty from './AddFaculty';
 import { Button } from '@/Components/ui/button';
-import { CheckCircle, ChevronLeft, ChevronRight, Edit3Icon, Plus, Search, X, XCircle } from 'lucide-react';
+import { CheckCircle,  Edit3Icon, Plus, Search, X, XCircle } from 'lucide-react';
 import { Input } from '@/Components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
-import Checkbox from '@/Components/Checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import PaginationPages from '@/Components/ui/PaginationPages';
 
 const FacultyList = ({ faculties, filters }) => {
     const { user } = usePage().props.auth;
@@ -103,7 +99,7 @@ const FacultyList = ({ faculties, filters }) => {
                 <CardHeader>
                     <CardTitle className="text-xl sm:text-2xl font-bold">
                         <div className='w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
-                            <span>Faculties</span>
+                            <span>Faculty List</span>
                             <Button onClick={() => setOpen(true)} className="gap-2 w-full sm:w-auto">
                                 <Plus className="w-4 h-4" />
                                 Add Faculty
@@ -317,69 +313,7 @@ const FacultyList = ({ faculties, filters }) => {
                             </TableBody>
                         </Table>
                     </div>
-
-                    {/* Pagination */}
-                    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="text-sm text-gray-700 text-center sm:text-left">
-                            Showing <span className="font-medium">{faculties.from || 0}</span> to <span className="font-medium">{faculties.to || 0}</span> of{' '}
-                            <span className="font-medium">{faculties.total}</span> results
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-wrap justify-center">
-                            {faculties.prev_page_url ? (
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href={faculties.prev_page_url}>
-                                        <ChevronLeft className="h-4 w-4 sm:mr-2" />
-                                        <span className="hidden sm:inline">Previous</span>
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button variant="outline" size="sm" disabled>
-                                    <ChevronLeft className="h-4 w-4 sm:mr-2" />
-                                    <span className="hidden sm:inline">Previous</span>
-                                </Button>
-                            )}
-
-                            <div className="flex items-center gap-1">
-                                {faculties.links.slice(1, -1).map((link, index) => (
-                                    link.url ? (
-                                        <Button
-                                            key={index}
-                                            asChild
-                                            variant={link.active ? 'default' : 'outline'}
-                                            size="sm"
-                                            className="min-w-[2.5rem]"
-                                        >
-                                            <Link href={link.url} dangerouslySetInnerHTML={{ __html: link.label }} />
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            key={index}
-                                            variant="outline"
-                                            size="sm"
-                                            disabled
-                                            className="min-w-[2.5rem]"
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    )
-                                ))}
-                            </div>
-
-                            {faculties.next_page_url ? (
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href={faculties.next_page_url}>
-                                        <span className="hidden sm:inline">Next</span>
-                                        <ChevronRight className="h-4 w-4 sm:ml-2" />
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button variant="outline" size="sm" disabled>
-                                    <span className="hidden sm:inline">Next</span>
-                                    <ChevronRight className="h-4 w-4 sm:ml-2" />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
+                    <PaginationPages data={faculties} />
                 </CardContent>
             </Card>{(editMode || open) && (
                 <AddFaculty open={open} setOpen={setOpen} faculty={facultyEdit} editing={editMode} setEditing={setEditMode} setFaculty={setFacultyEdit} />

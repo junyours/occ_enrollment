@@ -92,8 +92,9 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                                 <TableHead>#</TableHead>
                                 <TableHead>SUBJECT</TableHead>
                                 <TableHead>PERIOD</TableHead>
-                                <TableHead>VERIFIED AT</TableHead>
-                                <TableHead>DEPLOYED AT</TableHead>
+                                <TableHead>SUBMITTED</TableHead>
+                                <TableHead>VERIFIED</TableHead>
+                                <TableHead>DEPLOYED</TableHead>
                                 <TableHead>STATUS</TableHead>
                                 <TableHead></TableHead>
                             </TableRow>

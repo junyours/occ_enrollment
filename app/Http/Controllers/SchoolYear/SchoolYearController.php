@@ -609,9 +609,7 @@ class SchoolYearController extends Controller
     {
         $user = Auth::user();
         if ($user->user_role == 'registrar') {
-            return Inertia::render('SchoolYear/EnrollmentRecord', [
-                'schoolYears' => $this->schoolYearsList(),
-            ]);
+            return Inertia::render('SchoolYear/EnrollmentRecord');
         } else if ($user->user_role == 'student') {
             $info = UserInformation::where('user_id', $user->id)->first();
             return Inertia::render('StudentClasses/EnrollmentRecord', [
@@ -780,29 +778,23 @@ class SchoolYearController extends Controller
 
     public function promotionalReport()
     {
-        return Inertia::render('SchoolYear/PromotionalReport', [
-            'schoolYears' => $this->schoolYearsList(),
-        ]);
+        return Inertia::render('SchoolYear/PromotionalReport');
     }
 
     public function subjectsReport()
     {
-        return Inertia::render('SchoolYear/SubjectsReport', [
-            'schoolYears' => $this->schoolYearsList(),
-        ]);
+        return Inertia::render('SchoolYear/SubjectsReport');
     }
 
     public function facultiesReport()
     {
-        return Inertia::render('SchoolYear/FacultiesReport', [
-            'schoolYears' => $this->schoolYearsList(),
-        ]);
+        return Inertia::render('SchoolYear/FacultiesReport');
     }
 
     public function getFacultiesSubjects($schoolYearId, Request $request)
     {
         return response()->json(
-            data: User::select('users.id', 'faculty.faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+            data: User::select('users.id', 'faculty.faculty_id', 'first_name', 'middle_name', 'last_name', 'faculty.active')
                 ->with([
                     'Schedules' => function ($query) use ($schoolYearId) {
                         $query->select(
@@ -869,7 +861,7 @@ class SchoolYearController extends Controller
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
 
-        $faculties = User::select('users.id', 'faculty.faculty_id', 'first_name', 'middle_name', 'last_name', 'active')
+        $faculties = User::select('users.id', 'faculty.faculty_id', 'first_name', 'middle_name', 'last_name', 'faculty.active')
             ->with([
                 'schedules' => function ($q) use ($schoolYearId) {
                     $q->with([
@@ -1160,6 +1152,9 @@ class SchoolYearController extends Controller
                     // No grade yet → leave cell empty or mark as "N/A"
                     $sheet->setCellValue("O{$row}", '');
                     $sheet->setCellValue("P{$row}", '');
+                } else if ($midterm == 0 || $final == 0) {
+                    $sheet->setCellValue("O{$row}", number_format(0, 1));
+                    $sheet->setCellValue("P{$row}", 'DROPPED');
                 } else {
                     $average = ($midterm + $final) / 2;
 
