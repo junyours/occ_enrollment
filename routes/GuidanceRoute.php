@@ -39,6 +39,10 @@ Route::middleware(['auth', 'maintenance', 'Guidance'])->group(function () {
     // Faculty Routes
     //  Route::get('/faculty', [GuidanceController::class, 'facultyList'])->name('faculty.list');
     //  Route::get('/faculty/{id}/subjects', [GuidanceController::class, 'facultySubject'])->name('faculty.subjects');
+
+    Route::get('/faculty/evaluation-results/bulk-download', [GuidanceController::class, 'bulkDownloadFacultyEvaluations'])
+    ->name('guidance.faculty.evaluation-results.bulk-download');
+    
     Route::get('/faculty', [GuidanceController::class, 'facultyList'])->name('guidance.faculty.index');
     Route::get('/faculty/{id}/subjects', [GuidanceController::class, 'showSubjects'])->name('guidance.faculty.subjects');
     Route::get('/guidance/faculty/{facultyId}/subject/{studentSubjectId}/evaluation', [GuidanceController::class, 'facultyEvaluationResult'])->name('guidance.faculty.subject.evaluation');
