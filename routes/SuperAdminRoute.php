@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserLogController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,7 @@ Route::middleware(['auth', 'SuperAdmin'])->group(function () {
     Route::post('/super-admin/reset-user-credentials', [SuperAdminController::class, 'resetUserCredentials'])->name('super-admin.reset-user-credentials');
     Route::post('/super-admin/change-user-password', [SuperAdminController::class, 'changePassword'])->name('super-admin.change-user-password');
 
+    Route::get('/activity-logs', [UserLogController::class, 'index'])->name('admin.logs.index');
 });
 
 Route::middleware(['auth'])->group(function () {

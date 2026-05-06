@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        $middleware->append(\App\Http\Middleware\LogAuthenticatedUserActivity::class);
+
         $middleware->alias([
             'faculty' => \App\Http\Middleware\Faculty::class,
             'student' => \App\Http\Middleware\Student::class,

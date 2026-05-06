@@ -19,7 +19,7 @@ export default function PaginationPages({ data = {} }) {
     return (
         <>
             {(data?.data?.length > 0) && (
-                <div className="flex flex-col sm:flex-row items-center justify-between px-2 sm:px-4 w-full gap-4 sm:gap-0 mt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between px-2 sm:px-4 w-full gap-4 sm:gap-0">
                     {/* Results Summary */}
                     <div className="text-sm text-muted-foreground text-center sm:text-left">
                         Showing <span className="font-semibold text-foreground">{from}</span> to{' '}

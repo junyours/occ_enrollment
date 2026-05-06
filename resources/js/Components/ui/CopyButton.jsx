@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { cn } from '@/Lib/Utils';
 
-export default function CopyButton({ text, size = "sm" }) {
+export default function CopyButton({ text, size = "sm", className, ...props }) {
     const [copied, setCopied] = useState(false);
 
     // Configuration for different sizes
@@ -30,11 +31,15 @@ export default function CopyButton({ text, size = "sm" }) {
         <button
             type="button"
             onClick={handleCopy}
-            className={`
-                ${currentSize.button} 
-                p-2 rounded-lg transition-all duration-200 active:scale-90 hover:bg-gray-100 dark:hover:bg-gray-800
-            `}
+            className={
+                cn(
+                    currentSize.button,
+                    "p-2 rounded-lg transition-all duration-200 active:scale-90 hover:bg-gray-100 dark:hover:bg-gray-800",
+                    className
+                )
+            }
             aria-label={copied ? "Copied!" : "Copy to clipboard"}
+            {...props}
         >
             <div className={`transition-transform duration-300 ${copied ? 'scale-110' : 'scale-100'}`}>
                 {copied ? (

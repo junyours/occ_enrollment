@@ -24,3 +24,9 @@ export const userRoles = ({ exclude = [], include = null } = {}) => {
 
     return roles.filter(role => !exclude.includes(role.value));
 };
+
+export const formatRoleName = (role) => {
+    return role
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase());
+};

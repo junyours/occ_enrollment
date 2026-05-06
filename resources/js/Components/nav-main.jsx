@@ -200,6 +200,7 @@ export function NavMain() {
                     { name: "Users", route: "users", icon: UsersIcon },
                     { name: "Maintenance", route: "maintenance-settings", icon: Construction },
                     { name: "Reset Credentials", route: "reset-credentials", icon: KeyRound },
+                    { name: "System Logs", route: "admin.logs.index", icon: FileText },
                 ],
             });
             break;
