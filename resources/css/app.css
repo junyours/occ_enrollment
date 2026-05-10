@@ -46,7 +46,6 @@
 
         --ring: 221.2 90% 45%;
         --focus-ring: 221.2 100% 40%;
-        --radius: 0.7rem;
 
         /* Interactive States */
         --hover: 220 83.2% 45%;
@@ -90,6 +89,9 @@
 
         --male-label-color: 0, 0%, 0%;
         --female-label-color: 0, 0%, 0%;
+
+        /* For all elements */
+        --radius: 0.7rem;
     }
 
     .dark {
@@ -137,7 +139,6 @@
 
         --ring: 217.2 91.2% 59.8%;
         --focus-ring: 217.2 91.2% 50%;
-        --radius: 0.7rem;
 
         /* Interactive States */
         --hover: 217.2 91.2% 55%;
@@ -220,7 +221,6 @@
 
         --ring: 347 70% 22%;
         --focus-ring: 347 70% 30%;
-        --radius: 0.7rem;
 
         /* Interactive States */
         --hover: 347 60% 18%;
@@ -374,7 +374,6 @@
 
         --ring: 46 82% 48%;
         --focus-ring: 46 90% 40%;
-        --radius: 0.7rem;
 
         /* Interactive States */
         --hover: 46 82% 44%;
