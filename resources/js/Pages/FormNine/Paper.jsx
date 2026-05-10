@@ -29,16 +29,24 @@ const NothingFollows = () => (
 )
 
 const Confirmation = () => (
-    <div className='flex border border-black text-xs bg-white'>
-        <div className=' py-4 px-2 border-r border-black'>
-            <p className='text-center'>
-                I hereby certify that the above-named student have been verified by me and that the true copies of the official records substantiating the same are kept in the files of the school. I also certify that this student has enrolled in this institution.
-            </p>
+    <div>
+        <div className='grid grid-cols-[1fr_200px] border border-black text-xs bg-white'>
+            <div className=' py-4 px-2 border-r border-black'>
+                <p className='text-center'>
+                    I hereby certify that the above-named student have been verified by me and that the true copies of the official records substantiating the same are kept in the files of the school. I also certify that this student has enrolled in this institution.
+                </p>
+            </div>
+            <div className='grid grid-rows-[19px_19px_19px_19px] h-full'>
+                <div className='row-span-2'>Prepared by:</div>
+                <div className='font-semibold text-center self-end'>BERNADETH T. NACUA, LPT</div>
+                <div className='self-end w-full border-t border-black text-center'>Registrar 1</div>
+            </div>
         </div>
-        <div className='grid grid-rows-[19px_19px_19px_19px] w-[500px] h-full'>
-            <div className='row-span-2'>Prepared by:</div>
-            <div className='font-semibold text-center self-end'>BERNADETH T. NACUA, LPT</div>
-            <div className='self-end w-full border-t border-black text-center'>Registrar 1</div>
+        <div className='grid grid-cols-[1fr_200px] text-xs'>
+            <div />
+            <div className='h-full'>
+                <div className='row-span-2'>Date: {new Date().toLocaleDateString()}</div>
+            </div>
         </div>
     </div>
 )
@@ -84,6 +92,16 @@ export default function Paper({ data, className }) {
         }, 150);
     }, [data]);
 
+    const totalUnits = data.enrollmentRecord.reduce(
+        (sum, record) =>
+            sum +
+            record.subjects.reduce(
+                (subSum, subject) => subSum + subject.credit_units,
+                0
+            ),
+        0
+    );
+
     return (
         <div
             ref={wrapperRef}
@@ -116,6 +134,27 @@ export default function Paper({ data, className }) {
                         </tr>
                     ))}
 
+                    <table className='w-full mb-4'>
+                        <thead>
+                            <tr className=''>
+                                <th className='text-xs text-left w-32 pl-8 font-normal py-0.5'></th>
+                                <th className='text-xs font-normal'></th>
+                                <th className='text-xs font-normal w-16'></th>
+                                <th className='text-xs font-normal w-16'></th>
+                                <th className='text-xs font-normal w-16'></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className='border-b border-gray-400'>
+                                <td className='text-xs  pl-8 py-0.5'></td>
+                                <td className='text-xs'></td>
+                                <td className='text-xs text-center'></td>
+                                <td className='text-xs text-center'>Total Units:</td>
+                                <td className='text-xs text-center'>{totalUnits}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
                     {/* 4. Nothing Follows */}
                     <tr>
                         <td className="p-0 border-0">
@@ -134,7 +173,7 @@ export default function Paper({ data, className }) {
             {/* THE SIGNATURE: Pinned to the floor of our perfectly calculated wrapper.
                 It sits exactly 20mm from the bottom, safely above your page numbers. */}
             <div
-                className="absolute left-0 w-full px-8 hidden print:block z-0"
+                className="absolute left-0 w-full px-8  print:block z-0"
                 style={{ bottom: '20mm' }}
             >
                 <Confirmation />
