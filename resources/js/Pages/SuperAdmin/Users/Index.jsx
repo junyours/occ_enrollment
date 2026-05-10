@@ -2,8 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { router } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
-import { Search, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -65,7 +64,7 @@ function Index({ users, filters }) {
     return (
         <div className="space-y-4">
             <div className="flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-end justify-between">
+                <div className="flex flex-col md:flex-row gap-4 items-start md:items-end justify-between">
                     <div className='flex flex-col md:flex-row gap-4 w-full'>
                         <div className="flex-1 w-full">
                             <label className="text-sm font-medium mb-2 block">Role Filter</label>
