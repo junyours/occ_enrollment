@@ -25,15 +25,19 @@ class NstpSection extends Model
         return $this->hasOne(NstpSectionSchedule::class, 'nstp_section_id');
     }
 
+    public function Component(){
+        return $this->belongsTo(NstpComponent::class, 'nstp_component_id');
+    }
+
     public function students()
     {
         return $this->hasManyThrough(
             StudentSubjectNstpSchedule::class,
             NstpSectionSchedule::class,
-            'nstp_section_id',                // FK on schedules table
-            'nstp_section_schedule_id',      // FK on student_subject table
-            'id',                             // PK on sections
-            'id'                        // PK on schedules
+            'nstp_section_id',                  // FK on schedules table
+            'nstp_section_schedule_id',         // FK on student_subject table
+            'id',                               // PK on sections
+            'id'                                // PK on schedules
         );
     }
 }
