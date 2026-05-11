@@ -6,7 +6,7 @@ import React from 'react';
 import { usePage } from '@inertiajs/react';
 import StudentList from './Students/StudentList';
 
-function Students({ students, currentPage, studentsPerPage = 10, isLoading }) {
+function Students({ students, currentPage, studentsPerPage = 10, isLoading, nameClass }) {
     const { id } = usePage().props;
 
     const startIndex = (currentPage - 1) * studentsPerPage;
@@ -16,7 +16,7 @@ function Students({ students, currentPage, studentsPerPage = 10, isLoading }) {
         <div className="w-full space-y-4">
             {/* Desktop Table View */}
             <div className="hidden md:block">
-                <StudentList students={students} isLoading={isLoading} />
+                <StudentList students={students} isLoading={isLoading} nameClass={nameClass} />
             </div>
 
             {/* Mobile Card View */}

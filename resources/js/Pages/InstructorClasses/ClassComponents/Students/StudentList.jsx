@@ -9,7 +9,7 @@ import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { toast } from "sonner";
 
-export default function StudentList({ students, isLoading }) {
+export default function StudentList({ students, isLoading, nameClass }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -19,7 +19,7 @@ export default function StudentList({ students, isLoading }) {
 
         const lowerSearch = searchTerm.toLowerCase();
         return students.filter((student) => {
-            const name = formatName(student).toLowerCase();
+            const name = formatName(student, { format: 'LFM' }).toLowerCase();
             const idNo = (student.user_id_no || '').toLowerCase();
             const email = (student.email_address || '').toLowerCase();
 
@@ -70,7 +70,7 @@ export default function StudentList({ students, isLoading }) {
 
         XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
 
-        XLSX.writeFile(workbook, "Students_List.xlsx");
+        XLSX.writeFile(workbook, `${nameClass} - Students_List.xlsx`);
     };
 
     if (isLoading) return <StudentListSkeleton />;

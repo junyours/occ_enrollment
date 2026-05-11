@@ -21,7 +21,7 @@ export default function OpenNstpClass({ id, componentName, sectionName, gradeSub
                     </TabsList>
                 </div>
                 <TabsContent value="students">
-                    <Students id={id} />
+                    <Students id={id} nameClass={section} />
                 </TabsContent>
                 <TabsContent value="grades">
                     <Grades />

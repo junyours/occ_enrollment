@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import StudentList from '../ClassComponents/Students/StudentList';
 
-export default function Students({ id }) {
+export default function Students({ id, nameClass }) {
     const getStudents = async () => {
         try {
             const response = await axios.post(route('nstp.students', { id }));
@@ -27,7 +27,7 @@ export default function Students({ id }) {
 
     return (
         <div>
-            <StudentList students={data || []} isLoading={isLoading} />
+            <StudentList students={data || []} isLoading={isLoading} nameClass={nameClass} />
         </div>
     );
 }

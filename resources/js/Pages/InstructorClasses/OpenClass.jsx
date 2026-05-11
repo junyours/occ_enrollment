@@ -29,6 +29,8 @@ function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStat
         }
     };
 
+    const section = `${subjectCode} - ${descriptiveTitle} | ${courseSection}`;
+
     useEffect(() => {
         getClassStudents();
     }, []);
@@ -36,7 +38,7 @@ function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStat
     return (
         <div className="space-y-4">
             <Head title={subjectCode} />
-            <PageTitle align='center'>{subjectCode} - {descriptiveTitle} | {courseSection}</PageTitle>
+            <PageTitle align='center'>{section}</PageTitle>
             <div className="w-full flex justify-center">
                 {/* Tabs for md and up */}
                 <div className="hidden md:flex">
@@ -71,7 +73,7 @@ function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStat
             </div>
 
             <div className="mt-4">
-                {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} isLoading={loading} />}
+                {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} isLoading={loading} nameClass={section} />}
                 {tab === 'attendance' && <Attendance />}
                 {tab === 'grades' && <Grades students={students} subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} yearSectionSubjectsId={id} gradeStatus={gradeStatus} getClassStudents={getClassStudents} schoolYear={schoolYear} />}
                 {tab === 'assignments' && <Assignments />}
