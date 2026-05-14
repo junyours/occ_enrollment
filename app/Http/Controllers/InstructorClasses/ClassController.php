@@ -7,6 +7,7 @@ use App\Models\EnrolledStudent;
 use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
 use App\Models\NstpComponent;
+use App\Models\NstpGradeSubmission;
 use App\Models\NstpSection;
 use App\Models\NstpSectionSchedule;
 use App\Models\SchoolYear;
@@ -101,6 +102,53 @@ class ClassController extends Controller
             'gradeStatus' => $gradeStatus,
             'schoolYear' => $schoolYear,
         ]);
+    }
+
+    public function viewNstpClass($id, Request $request)
+    {
+        $user = Auth::user();
+
+        $nstpSection = NstpSectionSchedule::whereRaw("SHA2(nstp_section_schedules.id, 256) = ?", [$id])
+            ->first();
+
+        if ($user->id != $nstpSection->faculty_id) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 403,
+            ])->toResponse($request)->setStatusCode(403);
+        }
+
+        $section = NstpSection::where('nstp_sections.id', '=', $nstpSection->nstp_section_id)
+            ->with('Component')
+            ->first();
+
+        $gradeSubmissionStatus = NstpGradeSubmission::where('nstp_section_id', '=', $nstpSection->id)->first();
+
+        if (!$gradeSubmissionStatus) {
+            $gradeSubmissionStatus = NstpGradeSubmission::create([
+                'nstp_section_id' => $nstpSection->id
+            ]);
+        }
+
+        return Inertia::render('InstructorClasses/OpenNstpClass', [
+            'id' => $nstpSection->id,
+            'componentName' => $section->first()->component->component_name,
+            'sectionName' => $section->first()->section,
+            'gradeSubmissionStatus' => $gradeSubmissionStatus,
+        ]);
+    }
+
+    public function nstpStudents($id)
+    {
+        return NstpSection::where('nstp_sections.id', '=', $id)
+            ->select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'gender')
+            ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
+            ->join('student_subject_nstp_schedule', 'student_subject_nstp_schedule.nstp_section_schedule_id', '=', 'nstp_section_schedules.id')
+            ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+            ->orderBy('last_name', 'ASC')
+            ->get();
     }
 
     public function getStudents($id)

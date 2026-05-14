@@ -148,129 +148,128 @@ export default function Index({ logs, filters }) {
                     />
                 </div>
             </div>
-            <div className="border rounded-lg">
-                <Card className="shadow-sm border-border/50">
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader className="bg-muted/20">
-                                <TableRow className="hover:bg-transparent">
-                                    <TableHead className="w-[180px]">Timestamp</TableHead>
-                                    <TableHead>User ID</TableHead>
-                                    <TableHead>User</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead className="w-[100px]">Method</TableHead>
-                                    <TableHead>Endpoint</TableHead>
-                                    <TableHead className="w-[120px] text-right pr-6">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {logs.data.length > 0 ? (
-                                    logs.data.map((log) => (
-                                        <TableRow key={log.id} className="transition-colors">
-                                            <TableCell className="whitespace-nowrap">
-                                                {new Date(log.created_at).toLocaleString(undefined, {
-                                                    year: 'numeric', month: 'short', day: 'numeric',
-                                                    hour: '2-digit', minute: '2-digit'
-                                                })}
-                                            </TableCell>
 
-                                            <TableCell>
-                                                {log.user_id_no}
-                                            </TableCell>
+            <Card>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[180px]">Timestamp</TableHead>
+                                <TableHead>User ID</TableHead>
+                                <TableHead>User</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead className="w-[100px]">Method</TableHead>
+                                <TableHead>Endpoint</TableHead>
+                                <TableHead className="w-[120px] text-right pr-6">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {logs.data.length > 0 ? (
+                                logs.data.map((log) => (
+                                    <TableRow key={log.id}>
+                                        <TableCell>
+                                            {new Date(log.created_at).toLocaleString(undefined, {
+                                                year: 'numeric', month: 'short', day: 'numeric',
+                                                hour: '2-digit', minute: '2-digit'
+                                            })}
+                                        </TableCell>
 
-                                            <TableCell>
-                                                {formatName(log)}
-                                            </TableCell>
+                                        <TableCell>
+                                            {log.user_id_no}
+                                        </TableCell>
 
-                                            <TableCell>
-                                                {formatRoleName(log.user_role)}
-                                            </TableCell>
+                                        <TableCell>
+                                            {formatName(log)}
+                                        </TableCell>
 
-                                            <TableCell>
-                                                {getMethodBadge(log.method)}
-                                            </TableCell>
+                                        <TableCell>
+                                            {formatRoleName(log.user_role)}
+                                        </TableCell>
 
-                                            <TableCell className="font-mono text-xs truncate max-w-[200px]">
-                                                {log.endpoint}
-                                            </TableCell>
+                                        <TableCell>
+                                            {getMethodBadge(log.method)}
+                                        </TableCell>
 
-                                            {/* New Actions Cell */}
-                                            <TableCell className="pr-6 text-right">
-                                                <Dialog>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="h-8 text-xs px-3">
-                                                            View Details
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-                                                        <DialogHeader>
-                                                            <DialogTitle>Log Details</DialogTitle>
-                                                        </DialogHeader>
+                                        <TableCell className="font-mono text-xs truncate max-w-[200px]">
+                                            {log.endpoint}
+                                        </TableCell>
 
-                                                        <div className="mt-2 space-y-6">
-                                                            {/* General Details Grid */}
-                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                                                <div>
-                                                                    <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">User</span>
-                                                                    <span className="font-medium">{formatName(log)}</span>
-                                                                    <span className="text-xs text-muted-foreground block">ID: {log.user_id_no}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Role</span>
-                                                                    <span>{formatRoleName(log.user_role)}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Timestamp</span>
-                                                                    <span>{new Date(log.created_at).toLocaleString()}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">IP Address</span>
-                                                                    <span className="font-mono text-xs">{log.ip_address || '-'}</span>
-                                                                </div>
-                                                                <div className="col-span-2 md:col-span-1">
-                                                                    <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Method & Status</span>
-                                                                    <div className="flex gap-2 items-center">
-                                                                        {getMethodBadge(log.method)}
-                                                                        {getStatusBadge(log.status_code)}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                        {/* New Actions Cell */}
+                                        <TableCell className="pr-6 text-right">
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="outline" size="sm" className="h-8 text-xs px-3">
+                                                        View Details
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+                                                    <DialogHeader>
+                                                        <DialogTitle>Log Details</DialogTitle>
+                                                    </DialogHeader>
 
+                                                    <div className="mt-2 space-y-6">
+                                                        {/* General Details Grid */}
+                                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                                             <div>
-                                                                <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Endpoint</span>
-                                                                <div className="p-3 bg-muted/50 border rounded-md font-mono text-xs break-all text-blue-600 dark:text-blue-400 leading-relaxed">
-                                                                    {log.endpoint}
-                                                                </div>
+                                                                <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">User</span>
+                                                                <span className="font-medium">{formatName(log)}</span>
+                                                                <span className="text-xs text-muted-foreground block">ID: {log.user_id_no}</span>
                                                             </div>
-
                                                             <div>
-                                                                <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-2">Payload Data</span>
-                                                                {log.payload && Object.keys(log.payload).length > 0 ? (
-                                                                    <JSONFormatter data={log.payload} />
-                                                                ) : (
-                                                                    <div className="p-6 border-2 border-dashed rounded-lg text-center text-muted-foreground italic text-sm bg-muted/20">
-                                                                        No payload data for this request.
-                                                                    </div>
-                                                                )}
+                                                                <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Role</span>
+                                                                <span>{formatRoleName(log.user_role)}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Timestamp</span>
+                                                                <span>{new Date(log.created_at).toLocaleString()}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">IP Address</span>
+                                                                <span className="font-mono text-xs">{log.ip_address || '-'}</span>
+                                                            </div>
+                                                            <div className="col-span-2 md:col-span-1">
+                                                                <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Method & Status</span>
+                                                                <div className="flex gap-2 items-center">
+                                                                    {getMethodBadge(log.method)}
+                                                                    {getStatusBadge(log.status_code)}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </DialogContent>
-                                                </Dialog>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={9} className="h-24 text-center">
-                                            No activity logs found.
+
+                                                        <div>
+                                                            <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-1">Endpoint</span>
+                                                            <div className="p-3 border rounded-md font-mono text-xs break-all text-blue-600 dark:text-blue-400 leading-relaxed">
+                                                                {log.endpoint}
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <span className="font-semibold text-muted-foreground block text-xs uppercase tracking-wider mb-2">Payload Data</span>
+                                                            {log.payload && Object.keys(log.payload).length > 0 ? (
+                                                                <JSONFormatter data={log.payload} />
+                                                            ) : (
+                                                                <div className="p-6 border-2 border-dashed rounded-lg text-center text-muted-foreground italic text-sm bg-muted/20">
+                                                                    No payload data for this request.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
                                         </TableCell>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </div>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={9} className="h-24 text-center">
+                                        No activity logs found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
 
             {/* Pagination */}
             <div className="flex justify-end">

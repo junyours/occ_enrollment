@@ -40,6 +40,9 @@ Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function 
     Route::get('/classes/nstp-enrollment/{component}/{id}/', [ClassController::class, 'viewNstpEnrollment'])->name('nstp-enrollment');
     Route::post('/classes/nstp-enrollment/{component}/{id}/', [ClassController::class, 'getComponentSections'])->name('nstp-enrollment');
     Route::post('/classes/nstp-enrollment/enroll', [ClassController::class, 'enroll'])->name('nstp-enrollment.enroll');
+
+    Route::get('/classes/nstp-classroom/{id}', [ClassController::class, 'viewNstpClass'])->name('classes.classroom.yearsection');
+    Route::post('/nstp-students/{id}', [ClassController::class, 'nstpStudents'])->name('nstp.students');
 });
 
 Route::middleware(['auth', 'maintenance', 'student'])->group(function () {

@@ -16,8 +16,19 @@ export default function StudentInfo({ info }) {
             <div className='grid grid-cols-[1fr_260px] gap-x-4 pl-8'>
                 <div className='flex flex-col'>
                     <FormField label="Name:" value={formatName(information) ? formatName(information).toUpperCase() : ''} />
-                    <FormField label="Date of Birth:" value={information.birthday ? information.birthday.toUpperCase() : ''} />
-                    <FormField label=" Place of Birth:" value={information.birthday ? information.birthday.toUpperCase() : ''} />
+                    <FormField
+                        label="Date of Birth:"
+                        value={
+                            information.birthday
+                                ? new Date(information.birthday).toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                }).toUpperCase()
+                                : ''
+                        }
+                    />
+                    <FormField label=" Place of Birth:" value={null} />
                     <FormField label="Home Address:" value={information.address ? information.address.toUpperCase() : ''} />
                 </div>
                 <div className='flex flex-col'>
@@ -50,7 +61,7 @@ export default function StudentInfo({ info }) {
                 <div className='flex flex-col space-y-1'>
                     {/* Elementary */}
                     <div className='grid grid-cols-[1fr_140px] items-end gap-12'>
-                        <div className='flex items-end gap-2'>      
+                        <div className='flex items-end gap-2'>
                             <span className={`text-xs whitespace-nowrap`} style={{ width: '100px' }}>
                                 Elementary:
                             </span>

@@ -1,0 +1,34 @@
+import { Head } from '@inertiajs/react'
+import { PageTitle } from '@/Components/ui/PageTitle'
+import { Tabs, TabsContent, TabsList, TabsTrigger, } from "@/Components/ui/tabs"
+import React from 'react'
+import Grades from './NstpTabs/Grades'
+import Students from './NstpTabs/Students'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+
+export default function OpenNstpClass({ id, componentName, sectionName, gradeSubmissionStatus }) {
+    const section = `${componentName.toUpperCase()}-${sectionName}`
+
+    return (
+        <div className="space-y-4">
+            <Head title={section} />
+            <PageTitle align='center'>{section}</PageTitle>
+            <Tabs defaultValue="students" className="w-full space-y-4">
+                <div className="w-full flex justify-start">
+                    <TabsList className="w-96">
+                        <TabsTrigger value="students" className='w-full'>Students</TabsTrigger>
+                        <TabsTrigger value="grades" className='w-full'>Grades</TabsTrigger>
+                    </TabsList>
+                </div>
+                <TabsContent value="students">
+                    <Students id={id} nameClass={section} />
+                </TabsContent>
+                <TabsContent value="grades">
+                    <Grades />
+                </TabsContent>
+            </Tabs>
+        </div>
+    )
+}
+
+OpenNstpClass.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>

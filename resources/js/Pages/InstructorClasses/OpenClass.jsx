@@ -10,10 +10,11 @@ import Assignments from './ClassComponents/Assignments'
 import Materials from './ClassComponents/Materials'
 import Announcements from './ClassComponents/Announcements'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
-import { Head, usePage } from '@inertiajs/react'
+import { Head } from '@inertiajs/react'
 import { PageTitle } from '@/Components/ui/PageTitle'
 
 function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStatus, schoolYear }) {
+    const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState('students')
     const [students, setStudents] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -22,10 +23,13 @@ function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStat
         try {
             const response = await axios.post(route('class.students', { id }));
             setStudents(response.data);
+            setLoading(false);
         } catch (err) {
             console.error(err);
         }
     };
+
+    const section = `${subjectCode} - ${descriptiveTitle} | ${courseSection}`;
 
     useEffect(() => {
         getClassStudents();
@@ -34,7 +38,7 @@ function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStat
     return (
         <div className="space-y-4">
             <Head title={subjectCode} />
-            <PageTitle align='center'>{subjectCode} - {descriptiveTitle} | {courseSection}</PageTitle>
+            <PageTitle align='center'>{section}</PageTitle>
             <div className="w-full flex justify-center">
                 {/* Tabs for md and up */}
                 <div className="hidden md:flex">
@@ -69,7 +73,7 @@ function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStat
             </div>
 
             <div className="mt-4">
-                {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} />}
+                {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} isLoading={loading} nameClass={section} />}
                 {tab === 'attendance' && <Attendance />}
                 {tab === 'grades' && <Grades students={students} subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} yearSectionSubjectsId={id} gradeStatus={gradeStatus} getClassStudents={getClassStudents} schoolYear={schoolYear} />}
                 {tab === 'assignments' && <Assignments />}
