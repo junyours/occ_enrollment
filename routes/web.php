@@ -64,3 +64,4 @@ require __DIR__ . '/UserManagementRoute.php';
 require __DIR__ . '/RoomsRoute.php';
 require __DIR__ . '/UserInfo.php';
 require __DIR__ . '/VpaaRoute.php';
+require __DIR__ . '/billing_route.php';

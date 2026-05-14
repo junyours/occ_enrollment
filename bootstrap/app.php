@@ -48,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'NstpDirector' => \App\Http\Middleware\NstpDirector::class,
             'StudentManagementPermission' => \App\Http\Middleware\StudentManagementPermission::class,
             'role' => \App\Http\Middleware\CheckRole::class,
+            'billing' => \App\Http\Middleware\Billing::class,
         ]);
         //
     })

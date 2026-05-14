@@ -15,7 +15,7 @@ class HomeController extends Controller
 
         $user = Auth::user();
 
-        if(!$user){
+        if (!$user) {
             return redirect()->route('login');
         }
 
@@ -31,6 +31,8 @@ class HomeController extends Controller
             return redirect()->intended(route('guidance.dashboard', absolute: false));
         } else if ($user->user_role == 'nstp_director') {
             return redirect()->intended(route('nstp-director.dashboard', absolute: false));
+        } else if ($user->user_role == 'billing') {
+            return redirect()->intended(route('billing.dashboard', absolute: false));
         } else {
             return redirect()->intended(route('classes', absolute: false));
         }

@@ -38,7 +38,9 @@ import {
     BookA,
     BookType,
     BookKey,
-    Languages
+    Languages,
+    HandCoins,
+    School,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -69,30 +71,62 @@ export function NavMain() {
                 {
                     label: "Academic",
                     items: [
-                        { name: "School Year", route: "school-year", icon: Calendar1 },
-                        { name: "Curriculum", route: "curriculum", icon: BookOpen },
-                        { name: "Classes", route: "classes", icon: Presentation },
+                        {
+                            name: "School Year",
+                            route: "school-year",
+                            icon: Calendar1,
+                        },
+                        {
+                            name: "Curriculum",
+                            route: "curriculum",
+                            icon: BookOpen,
+                        },
+                        {
+                            name: "Classes",
+                            route: "classes",
+                            icon: Presentation,
+                        },
                     ],
                 },
                 {
                     label: "People",
                     items: [
-                        { name: "Faculty List", route: "faculty-list", icon: User },
-                        { name: "Student List", route: "student-list", icon: PiStudent },
+                        {
+                            name: "Faculty List",
+                            route: "faculty-list",
+                            icon: User,
+                        },
+                        {
+                            name: "Student List",
+                            route: "student-list",
+                            icon: PiStudent,
+                        },
                     ],
                 },
                 {
                     label: "Grades",
                     items: [
-                        { name: "Subjects", route: "subjects-list", icon: BookOpenText },
+                        {
+                            name: "Subjects",
+                            route: "subjects-list",
+                            icon: BookOpenText,
+                        },
                         { name: "Requests", route: "requests", icon: Inbox },
-                        { name: "Submitted Grades", route: "submitted-grades", icon: FileText },
+                        {
+                            name: "Submitted Grades",
+                            route: "submitted-grades",
+                            icon: FileText,
+                        },
                     ],
                 },
                 {
                     label: "Evalaution Result",
                     items: [
-                        { name: "Faculty Result", route: "ph.result", icon: User },
+                        {
+                            name: "Faculty Result",
+                            route: "ph.result",
+                            icon: User,
+                        },
                     ],
                 },
             );
@@ -103,41 +137,93 @@ export function NavMain() {
                 {
                     label: "Academic",
                     items: [
-                        { name: "Classes", route: "classes", icon: Presentation },
-                        { name: "School Year", route: "school-year", icon: Calendar1 },
-                        { name: "Department", route: "department", icon: Building },
+                        {
+                            name: "Classes",
+                            route: "classes",
+                            icon: Presentation,
+                        },
+                        {
+                            name: "School Year",
+                            route: "school-year",
+                            icon: Calendar1,
+                        },
+                        {
+                            name: "Department",
+                            route: "department",
+                            icon: Building,
+                        },
                     ],
                 },
                 {
                     label: "People",
                     items: [
-                        { name: "Faculty List", route: "faculty-list", icon: User2 },
-                        { name: "Student List", route: "student-list", icon: PiStudent },
+                        {
+                            name: "Faculty List",
+                            route: "faculty-list",
+                            icon: User2,
+                        },
+                        {
+                            name: "Student List",
+                            route: "student-list",
+                            icon: PiStudent,
+                        },
                     ],
                 },
                 {
                     label: "Grades",
                     items: [
-                        { name: "Grade Submission", route: "verified-grades", icon: FileText },
-                        { name: "Change Request", route: "change-requests", icon: RefreshCcw },
-                    ]
+                        {
+                            name: "Grade Submission",
+                            route: "verified-grades",
+                            icon: FileText,
+                        },
+                        {
+                            name: "Change Request",
+                            route: "change-requests",
+                            icon: RefreshCcw,
+                        },
+                    ],
                 },
                 {
                     label: "Reports",
                     items: [
-                        { name: "Enrollment Record", route: "enrollment-record", icon: Library },
-                        { name: "Promotional Report", route: "promotional-report", icon: BarChart2 },
-                        { name: "Faculty Teaching Load", route: "faculties-report", icon: User },
-                        { name: "Subjects Report", route: "subjects-report", icon: NotebookText },
-                        { name: "Permanent Record", route: "permanent-record", icon: ClipboardList },
+                        {
+                            name: "Enrollment Record",
+                            route: "enrollment-record",
+                            icon: Library,
+                        },
+                        {
+                            name: "Promotional Report",
+                            route: "promotional-report",
+                            icon: BarChart2,
+                        },
+                        {
+                            name: "Faculty Teaching Load",
+                            route: "faculties-report",
+                            icon: User,
+                        },
+                        {
+                            name: "Subjects Report",
+                            route: "subjects-report",
+                            icon: NotebookText,
+                        },
+                        {
+                            name: "Permanent Record",
+                            route: "permanent-record",
+                            icon: ClipboardList,
+                        },
                     ],
                 },
                 {
                     label: "Others",
                     items: [
-                        { name: "Rooms", route: "rooms", icon: MdOutlineMeetingRoom },
+                        {
+                            name: "Rooms",
+                            route: "rooms",
+                            icon: MdOutlineMeetingRoom,
+                        },
                     ],
-                }
+                },
             );
             break;
 
@@ -146,8 +232,16 @@ export function NavMain() {
                 label: "Academic",
                 items: [
                     { name: "Classes", route: "classes", icon: Presentation },
-                    { name: "Enrollment Record", route: "enrollment-record", icon: Library },
-                    { name: "Faculty Evaluation", route: "student.evaluation", icon: ListTodo },
+                    {
+                        name: "Enrollment Record",
+                        route: "enrollment-record",
+                        icon: Library,
+                    },
+                    {
+                        name: "Faculty Evaluation",
+                        route: "student.evaluation",
+                        icon: ListTodo,
+                    },
                 ],
             });
             break;
@@ -157,22 +251,34 @@ export function NavMain() {
                 {
                     label: "Academic",
                     items: [
-                        { name: "Classes", route: "classes", icon: Presentation },
+                        {
+                            name: "Classes",
+                            route: "classes",
+                            icon: Presentation,
+                        },
                     ],
                 },
                 {
                     label: "Grades",
                     items: [
-                        { name: "Subjects", route: "subjects-list", icon: BookOpenText },
+                        {
+                            name: "Subjects",
+                            route: "subjects-list",
+                            icon: BookOpenText,
+                        },
                         { name: "Requests", route: "requests", icon: Inbox },
                     ],
                 },
                 {
                     label: "Evaluation Result",
                     items: [
-                        { name: "Faculty Result", route: "fac.faculty.report", icon: User },
+                        {
+                            name: "Faculty Result",
+                            route: "fac.faculty.report",
+                            icon: User,
+                        },
                     ],
-                }
+                },
             );
             break;
 
@@ -181,15 +287,23 @@ export function NavMain() {
                 {
                     label: "Academic",
                     items: [
-                        { name: "Classes", route: "classes", icon: Presentation },
+                        {
+                            name: "Classes",
+                            route: "classes",
+                            icon: Presentation,
+                        },
                     ],
                 },
                 {
                     label: "Evaluation Result",
                     items: [
-                        { name: "Faculty Result", route: "eval.faculty.report", icon: User },
+                        {
+                            name: "Faculty Result",
+                            route: "eval.faculty.report",
+                            icon: User,
+                        },
                     ],
-                }
+                },
             );
             break;
 
@@ -198,9 +312,21 @@ export function NavMain() {
                 label: "Administration",
                 items: [
                     { name: "Users", route: "users", icon: UsersIcon },
-                    { name: "Maintenance", route: "maintenance-settings", icon: Construction },
-                    { name: "Reset Credentials", route: "reset-credentials", icon: KeyRound },
-                    { name: "System Logs", route: "admin.logs.index", icon: FileText },
+                    {
+                        name: "Maintenance",
+                        route: "maintenance-settings",
+                        icon: Construction,
+                    },
+                    {
+                        name: "Reset Credentials",
+                        route: "reset-credentials",
+                        icon: KeyRound,
+                    },
+                    {
+                        name: "System Logs",
+                        route: "admin.logs.index",
+                        icon: FileText,
+                    },
                 ],
             });
             break;
@@ -218,9 +344,13 @@ export function NavMain() {
                 {
                     label: "Others",
                     items: [
-                        { name: "Recycle Bin", route: "recycle-bin", icon: Presentation },
+                        {
+                            name: "Recycle Bin",
+                            route: "recycle-bin",
+                            icon: Presentation,
+                        },
                     ],
-                }
+                },
             );
             break;
 
@@ -228,7 +358,11 @@ export function NavMain() {
             menuSections.push({
                 label: "President",
                 items: [
-                    { name: "Enrollment", route: "president.ongoing-enrollment", icon: Hourglass },
+                    {
+                        name: "Enrollment",
+                        route: "president.ongoing-enrollment",
+                        icon: Hourglass,
+                    },
                 ],
             });
             break;
@@ -236,7 +370,11 @@ export function NavMain() {
         case "announcement_admin":
             menuSections.push({
                 items: [
-                    { name: "Announcement", route: "announcement", icon: Hourglass },
+                    {
+                        name: "Announcement",
+                        route: "announcement",
+                        icon: Hourglass,
+                    },
                 ],
             });
             break;
@@ -246,53 +384,110 @@ export function NavMain() {
                 {
                     label: "Dashboard",
                     items: [
-                        { name: "Dashboard", route: "guidance.dashboard", icon: Presentation },
+                        {
+                            name: "Dashboard",
+                            route: "guidance.dashboard",
+                            icon: Presentation,
+                        },
                     ],
                 },
                 {
                     label: "Evaluation Manager",
                     items: [
-                        { name: "Criteria", route: "guidance.criteria", icon: ListChecks },
-                        { name: "Questionnaires", route: "guidance.questionnaire", icon: FileQuestion },
-                        { name: "Evaluation", route: "guidance.evaluation", icon: FolderPlus },
+                        {
+                            name: "Criteria",
+                            route: "guidance.criteria",
+                            icon: ListChecks,
+                        },
+                        {
+                            name: "Questionnaires",
+                            route: "guidance.questionnaire",
+                            icon: FileQuestion,
+                        },
+                        {
+                            name: "Evaluation",
+                            route: "guidance.evaluation",
+                            icon: FolderPlus,
+                        },
                     ],
                 },
                 {
                     label: "People",
                     items: [
-                        { name: "Faculty", route: "guidance.faculty.index", icon: User2Icon },
-                        { name: "Faculty Ranking", route: "guidance.faculty.ranking", icon: FileChartColumn },
-                        { name: "Student", route: "guidance.student.index", icon: ClipboardList },
+                        {
+                            name: "Faculty",
+                            route: "guidance.faculty.index",
+                            icon: User2Icon,
+                        },
+                        {
+                            name: "Faculty Ranking",
+                            route: "guidance.faculty.ranking",
+                            icon: FileChartColumn,
+                        },
+                        {
+                            name: "Student",
+                            route: "guidance.student.index",
+                            icon: ClipboardList,
+                        },
                     ],
                 },
                 {
                     label: "Archives",
                     items: [
-                        { name: "Archives", route: "guidance.archive", icon: Archive },
+                        {
+                            name: "Archives",
+                            route: "guidance.archive",
+                            icon: Archive,
+                        },
                     ],
                 },
                 {
                     label: "Recommendation Management",
                     items: [
-                        { name: "Language", route: "languages.index", icon: Languages },
-                        { name: "Categories", route: "feedback-categories.index", icon: BookType  },
-                        { name: "Keywords", route: "feedback-keywords.index", icon: BookKey },
-                        { name: "Unknown Keywords", route: "unknown-keywords.index", icon: BookA},
+                        {
+                            name: "Language",
+                            route: "languages.index",
+                            icon: Languages,
+                        },
+                        {
+                            name: "Categories",
+                            route: "feedback-categories.index",
+                            icon: BookType,
+                        },
+                        {
+                            name: "Keywords",
+                            route: "feedback-keywords.index",
+                            icon: BookKey,
+                        },
+                        {
+                            name: "Unknown Keywords",
+                            route: "unknown-keywords.index",
+                            icon: BookA,
+                        },
                     ],
                 },
                 {
                     label: "Trash",
                     items: [
-                        { name: "Trash", route: "guidance.trash", icon: Trash2 }
+                        {
+                            name: "Trash",
+                            route: "guidance.trash",
+                            icon: Trash2,
+                        },
                     ],
-                });
+                },
+            );
             break;
 
         case "librarian":
             menuSections.push({
                 label: "Clearance",
                 items: [
-                    { name: "Approval Sheet", route: "approval-sheets", icon: BookCheck },
+                    {
+                        name: "Approval Sheet",
+                        route: "approval-sheets",
+                        icon: BookCheck,
+                    },
                 ],
             });
             break;
@@ -311,7 +506,11 @@ export function NavMain() {
             menuSections.push({
                 label: "Clearance",
                 items: [
-                    { name: "Approval Sheet", route: "classes", icon: FlaskConical },
+                    {
+                        name: "Approval Sheet",
+                        route: "classes",
+                        icon: FlaskConical,
+                    },
                 ],
             });
             break;
@@ -331,15 +530,31 @@ export function NavMain() {
                 {
                     label: "People",
                     items: [
-                        { name: "Faculty", route: "vpaa.faculty.index", icon: User2Icon },
-                        { name: "Faculty Ranking", route: "vpaa.faculty.ranking", icon: FileChartColumn },
-                        { name: "Student", route: "vpaa.student.index", icon: ClipboardList },
+                        {
+                            name: "Faculty",
+                            route: "vpaa.faculty.index",
+                            icon: User2Icon,
+                        },
+                        {
+                            name: "Faculty Ranking",
+                            route: "vpaa.faculty.ranking",
+                            icon: FileChartColumn,
+                        },
+                        {
+                            name: "Student",
+                            route: "vpaa.student.index",
+                            icon: ClipboardList,
+                        },
                     ],
                 },
                 {
                     label: "Archives",
                     items: [
-                        { name: "Archives", route: "vpaa.archive", icon: Archive },
+                        {
+                            name: "Archives",
+                            route: "vpaa.archive",
+                            icon: Archive,
+                        },
                     ],
                 },
             );
@@ -349,21 +564,27 @@ export function NavMain() {
             menuSections.push(
                 {
                     label: "Courses",
-                    items: courses.map(course => ({
+                    items: courses.map((course) => ({
                         name: course.course_name_abbreviation,
-                        route: 'gened-coordinator.sections',
+                        route: "gened-coordinator.sections",
                         params: { hashedCourseID: course.hashed_course_id },
                         icon: BookOpen,
                     })),
-
                 },
                 {
                     label: "Schedules",
                     items: [
-                        { name: "Room", route: "gened-coordinator.rooms-schedules", icon: MdOutlineMeetingRoom },
-                        { name: "Faculty", route: "gened-coordinator.faculties-schedules", icon: UsersIcon },
+                        {
+                            name: "Room",
+                            route: "gened-coordinator.rooms-schedules",
+                            icon: MdOutlineMeetingRoom,
+                        },
+                        {
+                            name: "Faculty",
+                            route: "gened-coordinator.faculties-schedules",
+                            icon: UsersIcon,
+                        },
                     ],
-
                 },
             );
             break;
@@ -372,29 +593,103 @@ export function NavMain() {
             menuSections.push(
                 {
                     items: [
-                        { name: "Dashboard", route: "nstp-director.dashboard", icon: Presentation },
-                        { name: "Students", route: "nstp-director.students", icon: Users },
+                        {
+                            name: "Dashboard",
+                            route: "nstp-director.dashboard",
+                            icon: Presentation,
+                        },
+                        {
+                            name: "Students",
+                            route: "nstp-director.students",
+                            icon: Users,
+                        },
                     ],
                 },
                 {
                     label: "NSTP Components",
                     items: [
-                        { name: "ROTC", route: "nstp-director.component.sections", params: 'rotc', icon: Shield },
-                        { name: "CWTS", route: "nstp-director.component.sections", params: 'cwts', icon: Users },
-                        { name: "LTS", route: "nstp-director.component.sections", params: 'lts', icon: GraduationCap },
+                        {
+                            name: "ROTC",
+                            route: "nstp-director.component.sections",
+                            params: "rotc",
+                            icon: Shield,
+                        },
+                        {
+                            name: "CWTS",
+                            route: "nstp-director.component.sections",
+                            params: "cwts",
+                            icon: Users,
+                        },
+                        {
+                            name: "LTS",
+                            route: "nstp-director.component.sections",
+                            params: "lts",
+                            icon: GraduationCap,
+                        },
                     ],
                 },
                 {
                     label: "Schedules",
                     items: [
-                        { name: "Room", route: "nstp-director.rooms-schedules", icon: MdOutlineMeetingRoom },
-                        { name: "Faculty", route: "nstp-director.faculties-schedules", icon: UsersIcon },
+                        {
+                            name: "Room",
+                            route: "nstp-director.rooms-schedules",
+                            icon: MdOutlineMeetingRoom,
+                        },
+                        {
+                            name: "Faculty",
+                            route: "nstp-director.faculties-schedules",
+                            icon: UsersIcon,
+                        },
                     ],
                 },
                 {
                     label: "Others",
                     items: [
-                        { name: "Evaluators", route: "nstp-director.nstp-evaluators", icon: Users2 },
+                        {
+                            name: "Evaluators",
+                            route: "nstp-director.nstp-evaluators",
+                            icon: Users2,
+                        },
+                    ],
+                },
+            );
+            break;
+
+        case "billing":
+            menuSections.push(
+                {
+                    items: [
+                        {
+                            name: "Dashboard",
+                            route: "billing.dashboard",
+                            icon: Presentation,
+                        },
+                    ],
+                },
+                {
+                    label: "Fees",
+                    items: [
+                        {
+                            name: "Student Balances",
+                            route: "billing.student-balances",
+                            icon: HandCoins,
+                        },
+                    ],
+                },
+                {
+                    label: "Others",
+                    items: [
+                        {
+                            name: "School Year",
+                            route: "billing.school-year",
+                            icon: School,
+                        },
+                        {
+                            name: "Semester",
+                            route: "billing.semester",
+                            icon: GraduationCap,
+                        },
                     ],
                 },
             );
@@ -406,16 +701,17 @@ export function NavMain() {
 
     return (
         <SidebarGroup>
-            {((userRole === "gened_coordinator" || userRole === "nstp_director") && open) && (
-                <>
-                    <SidebarMenu className="space-y-0.5 mb-4">
-                        <SidebarGroupLabel className="flex flex-col p-0 text-xs uppercase text-muted-foreground h-min text-none">
-                            <SchoolYearPicker layout="horizontal-select-only" />
-                        </SidebarGroupLabel>
-                    </SidebarMenu>
-                </>
-
-            )}
+            {(userRole === "gened_coordinator" ||
+                userRole === "nstp_director") &&
+                open && (
+                    <>
+                        <SidebarMenu className="space-y-0.5 mb-4">
+                            <SidebarGroupLabel className="flex flex-col p-0 text-xs uppercase text-muted-foreground h-min text-none">
+                                <SchoolYearPicker layout="horizontal-select-only" />
+                            </SidebarGroupLabel>
+                        </SidebarMenu>
+                    </>
+                )}
 
             {/* Dynamic Navigation Sections */}
             {menuSections.map((section, index) => (
@@ -430,8 +726,10 @@ export function NavMain() {
                     {section.items.map((item) => {
                         const itemUrl = route(item.route, item.params);
                         const itemPath = new URL(itemUrl).pathname;
-                        const pathname = currentUrl.split('?')[0];
-                        const isActive = pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+                        const pathname = currentUrl.split("?")[0];
+                        const isActive =
+                            pathname === itemPath ||
+                            pathname.startsWith(`${itemPath}/`);
 
                         return (
                             <SidebarMenuItem
@@ -454,7 +752,9 @@ export function NavMain() {
                                             size={18}
                                             className="shrink-0"
                                         />
-                                        <span className="truncate">{item.name}</span>
+                                        <span className="truncate">
+                                            {item.name}
+                                        </span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
