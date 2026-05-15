@@ -25,6 +25,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use ReturnTypeWillChange;
 
 class ClassController extends Controller
 {
@@ -62,6 +63,12 @@ class ClassController extends Controller
         $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$id])
             // ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
             ->first();
+
+        if (!$yearSectionSubjects) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+            ])->toResponse($request)->setStatusCode(404);
+        }
 
         $courseSection = YearSection::join('course', 'course.id', '=', 'year_section.course_id')
             ->where('year_section.id', $yearSectionSubjects->year_section_id)
@@ -110,6 +117,12 @@ class ClassController extends Controller
 
         $nstpSection = NstpSectionSchedule::whereRaw("SHA2(nstp_section_schedules.id, 256) = ?", [$id])
             ->first();
+
+        if (!$nstpSection) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+            ])->toResponse($request)->setStatusCode(404);
+        }
 
         if ($user->id != $nstpSection->faculty_id) {
             return Inertia::render('Errors/ErrorPage', [
@@ -178,13 +191,6 @@ class ClassController extends Controller
 
     public function updateStudentsGrades($yearSectionSubjectsId, Request $request)
     {
-        $validated = $request->validate([
-            'data' => 'required|array',
-            'data.*.id_number' => 'required|string',
-            'data.*.midterm_grade' => 'nullable|numeric',
-            'data.*.final_grade' => 'nullable|numeric',
-        ]);
-
         $schoolYearId = YearSectionSubjects::select('school_year_id')
             ->where('year_section_subjects.id', '=', $yearSectionSubjectsId)
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
@@ -192,16 +198,40 @@ class ClassController extends Controller
 
         $schoolYear = SchoolYear::find($schoolYearId);
 
-        foreach ($validated['data'] as $entry) {
+        $allowMidterm = $schoolYear->allow_upload_midterm;
+        $allowFinal = $schoolYear->allow_upload_final;
+
+        $data = $request->input('data', []);
+
+        foreach ($data as $entry) {
+            if (empty($entry['id_number'])) continue;
+
             $student = User::where('user_id_no', '=', $entry['id_number'])->first();
 
-            StudentSubject::join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
-                ->where('student_id', '=', $student->id)
-                ->where('year_section_subjects_id', '=', $yearSectionSubjectsId)
-                ->update([
-                    'midterm_grade' => $schoolYear->allow_upload_midterm ? $entry['midterm_grade'] : null,
-                    'final_grade' => $schoolYear->allow_upload_final ? $entry['final_grade'] : null,
-                ]);
+            if (!$student) continue;
+
+            $updateData = [];
+
+            if ($allowMidterm && isset($entry['midterm_grade'])) {
+                $mGrade = $entry['midterm_grade'];
+                if ($mGrade >= 1 && $mGrade <= 5) {
+                    $updateData['student_subjects.midterm_grade'] = $mGrade;
+                }
+            }
+
+            if ($allowFinal && isset($entry['final_grade'])) {
+                $fGrade = $entry['final_grade'];
+                if ($fGrade >= 1 && $fGrade <= 5) {
+                    $updateData['student_subjects.final_grade'] = $fGrade;
+                }
+            }
+
+            if (!empty($updateData)) {
+                StudentSubject::join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+                    ->where('enrolled_students.student_id', '=', $student->id)
+                    ->where('student_subjects.year_section_subjects_id', '=', $yearSectionSubjectsId)
+                    ->update($updateData);
+            }
         }
 
         return response()->json(['message' => 'Grades updated successfully.']);

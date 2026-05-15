@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import InstructorGradeSubmitionButton from './GradePartials/InstructorGradeSubmitionButton'
 import GradeRequestEditAction from './GradePartials/GradeRequestEditAction'
+import { toast } from 'sonner'
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -42,6 +43,12 @@ function StatusLabel({ label }) {
     )
 }
 
+const isValidGrade = (grade) => {
+    if (grade === undefined || grade === null || grade === '') return false;
+    const num = Number(grade);
+    return !isNaN(num) && num >= 1 && num <= 5;
+};
+
 function Grades({
     students,
     subjectCode,
@@ -51,8 +58,6 @@ function Grades({
     gradeStatus,
     getClassStudents,
     schoolYear }) {
-
-    const { toast } = useToast();
 
     const { user } = usePage().props.auth
 
@@ -95,10 +100,7 @@ function Grades({
         setMissingFields(missing)
 
         if (Object.keys(missing).length != 0) {
-            toast({
-                description: "Fill all grade fields.",
-                variant: "destructive",
-            })
+            toast.error("Please fill all grade fields before submitting.")
         }
 
         return Object.keys(missing).length === 0
@@ -143,26 +145,57 @@ function Grades({
             const worksheet = workbook.Sheets[sheetName]
             const uploadedData = XLSX.utils.sheet_to_json(worksheet)
 
-            // Match and update grades
+            const allowMidtermUpload = schoolYear.allow_upload_midterm;
+            const allowFinalUpload = schoolYear.allow_upload_final;
+
+            let invalidEntriesCount = 0;
+
             const updatedGrades = grades.map((student) => {
-                const match = uploadedData.find((row) => row['ID NUMBER'] === student.id_number)
-                return match
-                    ? {
-                        ...student,
-                        midterm_grade: !!schoolYear.allow_upload_midterm ? Number(match['MIDTERM']).toFixed(1) ?? '' : '',
-                        final_grade: !!schoolYear.allow_upload_final ? Number(match['FINAL']).toFixed(1) ?? '' : '',
+                const match = uploadedData.find((row) => row['ID NUMBER'] === student.id_number);
+
+                if (!match) return student;
+
+                let updatedStudent = { ...student };
+
+                if (allowMidtermUpload) {
+                    const midGrade = match['MIDTERM'];
+                    if (midGrade !== undefined && midGrade !== null && midGrade !== '') {
+                        if (isValidGrade(midGrade)) {
+                            updatedStudent.midterm_grade = Number(midGrade).toFixed(1);
+                        } else {
+                            invalidEntriesCount++;
+                        }
                     }
-                    : student
-            })
-            setGrades(updatedGrades)
+                }
+
+                if (allowFinalUpload) {
+                    const finGrade = match['FINAL'];
+                    if (finGrade !== undefined && finGrade !== null && finGrade !== '') {
+                        if (isValidGrade(finGrade)) {
+                            updatedStudent.final_grade = Number(finGrade).toFixed(1);
+                        } else {
+                            invalidEntriesCount++;
+                        }
+                    }
+                }
+
+                return updatedStudent;
+            });
+
+            if (invalidEntriesCount > 0) {
+                toast.error(`${invalidEntriesCount} invalid grade(s) were skipped. Grades must be a number between 1 and 5.`);
+            } else {
+                toast.success('Grades applied successfully!');
+            }
 
             if (!!schoolYear.allow_upload_midterm || !!schoolYear.allow_upload_final) {
                 uploadToDatabase(
                     updatedGrades.map(({ name, ...rest }) => rest)
                 )
             }
+            
+            setGrades(updatedGrades);
 
-            // 🔥 Reset the input so it can be used again with the same file
             e.target.value = ''
         }
 
@@ -187,9 +220,12 @@ function Grades({
 
             await new Promise((resolve) => setTimeout(resolve, 2000)) // 2-second delay
             setUploadStatus('saved')
+
         } catch (error) {
             console.error('Upload failed:', error)
             setUploadStatus('idle')
+        } finally {
+            getClassStudents()
         }
     }
 
@@ -219,10 +255,6 @@ function Grades({
 
         // Set new timeout
         timeoutRefs.current[key] = setTimeout(() => {
-            if (value !== '' && value !== null) {
-                handleChange(index, field, Number(value).toFixed(1))
-            }
-
             const routeName =
                 field === 'midterm_grade'
                     ? 'student.midterm.grade'
@@ -237,7 +269,6 @@ function Grades({
                     setUploadStatus('idle')
                 })
         }, 1500)
-
     }
 
     const componentRef = useRef(null);
@@ -402,7 +433,7 @@ function Grades({
             type === "final"
                 ? "grades.request-edit-cancel.final-grade"
                 : "grades.request-edit-cancel.midterm-grade";
-                
+
         const requestId = type == 'final' ? finalRequestStatus.id : midtermRequestStatus.id
 
         router.post(
@@ -430,7 +461,7 @@ function Grades({
 
     return (
         <>
-            <div className="relative p-4 overflow-auto space-y-4">
+            <div className="relative pb-4 overflow-auto space-y-4">
                 <div className="flex justify-between items-center mb-4">
                     {/* <div className="flex items-center gap-4"> */}
                     {/* <GradeSubmissionStatus gradeStatus={gradeStatus} /> */}
@@ -584,7 +615,7 @@ function Grades({
                         <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
                             {/* Rejection message for midterm */}
                             <p className='underline w-max'>Final grade</p>
-                            
+
                             <GradeRequestEditAction
                                 gradeSubmissionStatus={data.final_status}
                                 isDisabled={submitting}

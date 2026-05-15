@@ -5,6 +5,7 @@ import React from 'react'
 import Grades from './NstpTabs/Grades'
 import Students from './NstpTabs/Students'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import { Card, CardContent } from '@/Components/ui/card'
 
 export default function OpenNstpClass({ id, componentName, sectionName, gradeSubmissionStatus }) {
     const section = `${componentName.toUpperCase()}-${sectionName}`
@@ -21,7 +22,11 @@ export default function OpenNstpClass({ id, componentName, sectionName, gradeSub
                     </TabsList>
                 </div>
                 <TabsContent value="students">
-                    <Students id={id} nameClass={section} />
+                    <Card>
+                        <CardContent className="pt-6">
+                            <Students id={id} nameClass={section} />
+                        </CardContent>
+                    </Card>
                 </TabsContent>
                 <TabsContent value="grades">
                     <Grades />

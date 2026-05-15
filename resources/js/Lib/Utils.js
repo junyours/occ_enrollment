@@ -304,6 +304,8 @@ export function toTwoDecimals(number) {
 export const userRoles = ({ exclude = [], include = null } = {}) => {
     const roles = [
         { value: 'announcement_admin', label: 'Announcement Admin' },
+        { value: 'billing', label: 'Billing' },
+        { value: 'cashier', label: 'Cashier' },
         { value: 'evaluator', label: 'Evaluator' },
         { value: 'faculty', label: 'Faculty' },
         { value: 'librarian', label: 'Librarian' },

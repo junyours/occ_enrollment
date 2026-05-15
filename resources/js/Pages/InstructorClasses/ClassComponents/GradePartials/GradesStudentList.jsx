@@ -6,49 +6,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import React from 'react'
 import { useGradeSubmissionStore } from './useGradeSubmissionStore'
-import { router } from '@inertiajs/react'
 import { Badge } from '@/Components/ui/badge'
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility'
+import GradeInput from '../GradeInput'
+import { cn } from '@/Lib/Utils'
 
 function GradesStudentList({ grades, status, missingFields, handleGradeChange, setMissingFields, allowMidtermUpload, allowFinalUpload, yearSectionSubjectsId }) {
-
-    const { toast } = useToast();
-
-    // Call the hook
-
-    const { gradeSubmission, updateGradeSubmission } = useGradeSubmissionStore();
-
-    const validateGradesBeforeSubmit = (type) => {
-        const missing = {}
-
-        grades.forEach((student, index) => {
-            if (!student.is_dropped) {
-                if (type === 'midterm' && !student.midterm_grade) {
-                    missing[index] = { ...missing[index], midterm: true };
-                }
-                if (type === 'final' && !student.final_grade) {
-                    missing[index] = { ...missing[index], final: true };
-                }
-            }
-        });
-
-        setMissingFields(missing)
-
-        if (Object.keys(missing).length != 0) {
-            toast({
-                description: "Fill all grade fields.",
-                variant: "destructive",
-            })
-        }
-
-        return Object.keys(missing).length === 0
-    }
-
-
-    // Handle loading and error states
-    // if (isLoading) return <p>Loading submission...</p>;
-    // if (isError) return <p>Error: {error.message}</p>;
-
+    console.log(grades)
     return (
         <Card>
             <CardHeader>
@@ -72,53 +36,62 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                     <TableBody>
                         {grades.map((student, index) => {
                             const finalGrade = computeFinalGrade(student.midterm_grade, student.final_grade);
-                            const isDropped = student.midterm_grade == 0.0 || student.final_grade == 0.0;
+                            const isDropped = student.midterm_grade === 0.0 || student.midterm_grade === 0 || student.midterm_grade === "0.0" || student.midterm_grade === '0' || student.final_grade === 0.0;
                             const isPassed = !isDropped && student.midterm_grade && student.final_grade && finalGrade <= 3;
                             const isFailed = !isDropped && student.midterm_grade && student.final_grade && finalGrade > 3;
                             return (
-                                <TableRow key={index} className='print:p-0'>
+                                <TableRow key={index} className='p-0 print:p-0'>
                                     <TableCell className="text-center print:p-0">{index + 1}.</TableCell>
                                     <TableCell className='print:p-0'>{student.id_number}</TableCell>
                                     <TableCell className='print:p-0'>{student.name}</TableCell>
                                     <TableCell className="text-center print:p-0">
-                                        {(status.midterm_status == 'submitted' || status.midterm_status == 'deployed' || status.midterm_status == 'verified') ? (
+                                        {(status.midterm_status === 'submitted' || status.midterm_status === 'deployed' || status.midterm_status === 'verified') ? (
                                             <div>
                                                 {student.midterm_grade}
                                             </div>
                                         ) : (
                                             <>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Input
-                                                            disabled={!allowMidtermUpload}
-                                                            min={1}
-                                                            max={5}
-                                                            type="number"
-                                                            className={`w-20 text-center h-6 [appearance:textfield] print:w-10 no-print
-                                                                [&::-webkit-inner-spin-button]:appearance-none
-                                                                [&::-webkit-outer-spin-button]:appearance-none
-                                                                ${missingFields[index]?.midterm ? 'border-red-500' : ''}`}
-                                                            value={student.midterm_grade}
-                                                            onChange={(e) => {
-                                                                const raw = parseFloat(e.target.value)
-                                                                const clamped = Math.max(0, Math.min(5, raw))
-                                                                const rounded = Math.round(clamped * 10) / 10
-
-                                                                handleGradeChange(index, 'midterm_grade', isNaN(raw) ? '' : rounded)
-
-                                                                // Clear validation error on change
-                                                                setMissingFields((prev) => {
-                                                                    const updated = { ...prev }
-                                                                    if (updated[index]) updated[index].midterm = false
-                                                                    return updated
-                                                                })
-                                                            }}
-                                                        />
-                                                    </TooltipTrigger>
-                                                    {!allowMidtermUpload && (
+                                                {!allowMidtermUpload ? (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="inline-block">
+                                                                <GradeInput
+                                                                    value={student.midterm_grade}
+                                                                    className={cn(
+                                                                        "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                                        "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                                        missingFields[index]?.midterm ? 'border-red-500' : ''
+                                                                    )}
+                                                                    disabled
+                                                                />
+                                                            </div>
+                                                        </TooltipTrigger>
                                                         <TooltipContent>Not allowed to upload grades</TooltipContent>
-                                                    )}
-                                                </Tooltip>
+                                                    </Tooltip>
+                                                ) : (
+                                                    <GradeInput
+                                                        className={cn(
+                                                            "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                            "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                            missingFields[index]?.midterm ? 'border-red-500' : ''
+                                                        )}
+                                                        disabled={!allowMidtermUpload}
+                                                        min={1}
+                                                        max={5}
+                                                        value={student.midterm_grade}
+                                                        index={index}
+                                                        field="midterm_grade"
+                                                        onValueChange={(returnedIndex, returnedField, value) => {
+                                                            handleGradeChange(returnedIndex, returnedField, value)
+
+                                                            setMissingFields((prev) => {
+                                                                const updated = { ...prev }
+                                                                if (updated[returnedIndex]) updated[returnedIndex].midterm = false
+                                                                return updated
+                                                            })
+                                                        }}
+                                                    />
+                                                )}
                                                 <div className='hidden print:block'>{student.midterm_grade}</div>
                                             </>
                                         )}
@@ -130,38 +103,50 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                                             </>
                                         ) : (
                                             <>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Input
-                                                            disabled={!allowFinalUpload}
-                                                            min={1}
-                                                            max={5}
-                                                            type="number"
-                                                            className={`w-20 text-center h-6 [appearance:textfield] print:w-10 no-print
-                                                                [&::-webkit-inner-spin-button]:appearance-none
-                                                                [&::-webkit-outer-spin-button]:appearance-none
-                                                                ${missingFields[index]?.final ? 'border-red-500' : ''}`}
-                                                            value={student.final_grade}
-                                                            onChange={(e) => {
-                                                                const raw = parseFloat(e.target.value)
-                                                                const clamped = Math.max(0, Math.min(5, raw))
-                                                                const rounded = Math.round(clamped * 10) / 10
+                                                {!allowFinalUpload ? (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="inline-block">
+                                                                <GradeInput
+                                                                    value={student.final_grade}
+                                                                    className={cn(
+                                                                        "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                                        "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                                        missingFields[index]?.final ? 'border-red-500' : ''
+                                                                    )}
+                                                                    disabled
+                                                                />
+                                                            </div>
+                                                        </TooltipTrigger>
 
-                                                                handleGradeChange(index, 'final_grade', isNaN(raw) ? '' : rounded)
+                                                        <TooltipContent>
+                                                            Not allowed to upload grades
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                ) : (
+                                                    <GradeInput
+                                                        className={cn(
+                                                            "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                            "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                            missingFields[index]?.final ? 'border-red-500' : ''
+                                                        )}
+                                                        disabled={!allowFinalUpload}
+                                                        min={1}
+                                                        max={5}
+                                                        value={student.final_grade}
+                                                        index={index}
+                                                        field="final_grade"
+                                                        onValueChange={(returnedIndex, returnedField, value) => {
+                                                            handleGradeChange(returnedIndex, returnedField, value)
 
-                                                                // Clear validation error on change
-                                                                setMissingFields((prev) => {
-                                                                    const updated = { ...prev }
-                                                                    if (updated[index]) updated[index].final = false
-                                                                    return updated
-                                                                })
-                                                            }}
-                                                        />
-                                                    </TooltipTrigger>
-                                                    {!allowFinalUpload && (
-                                                        <TooltipContent>Not allowed to upload grades</TooltipContent>
-                                                    )}
-                                                </Tooltip>
+                                                            setMissingFields((prev) => {
+                                                                const updated = { ...prev }
+                                                                if (updated[returnedIndex]) updated[returnedIndex].final = false
+                                                                return updated
+                                                            })
+                                                        }}
+                                                    />
+                                                )}
                                                 <div className='hidden print:block'>{student.final_grade}</div>
                                             </>
                                         )}

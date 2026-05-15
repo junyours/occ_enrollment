@@ -1,9 +1,9 @@
 export function computeFinalGrade(midterm, final) {
-    if (midterm === 0 || final === 0) {
+    if (midterm === 0 || midterm == '0' || midterm == '0.0' || final === 0 || final == '0' || final == '0.0') {
         return 'DROPPED';
     }
 
-    if (midterm == null || final == null) {
+    if (midterm == null || midterm == '' || final == null || final == '') {
         return '-';
     }
 
