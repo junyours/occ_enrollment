@@ -7,7 +7,10 @@ export function computeFinalGrade(midterm, final) {
         return '-';
     }
 
-    const avg = (Number(midterm) + Number(final)) / 2;
+    const avg = Number(
+        (((Number(midterm) + Number(final)) / 2).toFixed(2))
+    );
+    
 
     if (avg >= 3.0 && avg <= 3.09) {
         return '3.0';

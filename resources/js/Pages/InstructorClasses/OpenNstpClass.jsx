@@ -2,12 +2,12 @@ import { Head } from '@inertiajs/react'
 import { PageTitle } from '@/Components/ui/PageTitle'
 import { Tabs, TabsContent, TabsList, TabsTrigger, } from "@/Components/ui/tabs"
 import React from 'react'
-import Grades from './NstpTabs/Grades'
+import GradesIndex from './NstpTabs/Grades'
 import Students from './NstpTabs/Students'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Card, CardContent } from '@/Components/ui/card'
 
-export default function OpenNstpClass({ id, componentName, sectionName, gradeSubmissionStatus }) {
+export default function OpenNstpClass({ id, componentName, sectionName, gradeSubmissionStatus, studentsList, schoolYear }) {
     const section = `${componentName.toUpperCase()}-${sectionName}`
 
     return (
@@ -24,12 +24,12 @@ export default function OpenNstpClass({ id, componentName, sectionName, gradeSub
                 <TabsContent value="students">
                     <Card>
                         <CardContent className="pt-6">
-                            <Students id={id} nameClass={section} />
+                            <Students id={id} nameClass={section} students={studentsList} />
                         </CardContent>
                     </Card>
                 </TabsContent>
                 <TabsContent value="grades">
-                    <Grades />
+                    <GradesIndex id={id} allowMidtermUpload={schoolYear.allow_upload_midterm} allowFinalUpload={schoolYear.allow_upload_final} />
                 </TabsContent>
             </Tabs>
         </div>

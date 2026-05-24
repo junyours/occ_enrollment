@@ -5,7 +5,6 @@ import React, { useRef, useEffect } from 'react'
 export default function GradeInput({
     onValueChange,
     index,
-    field,
     className,
     ...rest
 }) {
@@ -22,12 +21,15 @@ export default function GradeInput({
         // 2. INSTANT BOUNDARY CHECK: Prevent < 0 and > 5 instantly
         if (value !== '' && !isNaN(value)) {
             const numericValue = parseFloat(value)
-            if (numericValue > 5) value = '5'
+            if (numericValue > 5.0) value = '5.0'
             if (numericValue < 0) value = '0'
+            if (numericValue > 0.0 && numericValue < 1) value = '0.0'
+            if (hasExactlyTwoDecimals(numericValue)) return;
+            
         }
 
         // 3. Immediately update state with raw typing (allows empty strings & decimals)
-        onValueChange(index, field, value)
+        onValueChange(value)
 
         clearTimeout(timeoutRef.current)
 
@@ -42,9 +44,13 @@ export default function GradeInput({
                 const rounded = Math.round(raw * 10) / 10
 
                 // Send the perfectly formatted number back to the parent
-                onValueChange(index, field, rounded.toFixed(1))
+                onValueChange(rounded.toFixed(1))
             }
-        }, 2000)
+        }, 1400)
+    }
+
+    function hasExactlyTwoDecimals(value) {
+        return /^\d+\.\d{2}$/.test(value);
     }
 
     return (

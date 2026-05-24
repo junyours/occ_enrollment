@@ -1,0 +1,287 @@
+import { Card, CardContent, CardDescription, CardHeader } from '@/Components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import GradeInput from '../../ClassComponents/GradeInput';
+import { cn } from '@/Lib/Utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import { formatName } from '@/Lib/InfoUtils';
+import GradeRemarkBadge from '@/Components/GradeRemarkBadge';
+
+const CardTableHead = ({ children }) => (
+    <Card>
+        <CardHeader>
+            <CardDescription className='text-red-500 no-print'>
+                Note: If the student IS DROPPED, enter 0.0. Do not leave it blank.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow className='print:p-0 print:h-min'>
+                        <TableHead className="w-8 text-center print:p-0 print:h-min">#</TableHead>
+                        <TableHead className='print:p-0 print:h-min'>ID NUMBER</TableHead>
+                        <TableHead className='print:p-0 print:h-min'>STUDENT NAME</TableHead>
+                        <TableHead className="text-center print:p-0 print:h-min">MIDTERM</TableHead>
+                        <TableHead className="text-center print:p-0 print:h-min">FINAL</TableHead>
+                        <TableHead className="text-center print:p-0 print:h-min">FINAL RATING</TableHead>
+                        <TableHead className="text-center print:p-0 print:h-min">REMARKS</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {children}
+                </TableBody>
+            </Table>
+        </CardContent>
+    </Card>
+)
+
+const Skeleton = () => (
+    <CardTableHead>
+        {Array.from({ length: 40 }).map((_, index) => (
+            <TableRow key={index}>
+                {Array.from({ length: 7 }).map((_, colIndex) => (
+                    <TableCell key={cn('cell', colIndex)}>
+                        <div className="h-4 bg-muted animate-pulse rounded"></div>
+                    </TableCell>
+                ))}
+            </TableRow>
+        ))}
+    </CardTableHead>
+)
+
+export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }) {
+
+    const [missingFields, setMissingFields] = useState({});
+    const [localGrades, setLocalGrades] = useState({});
+
+    const getStudentNstpGrades = async () => {
+        try {
+            const response = await axios.post(route('nstp.students-grades', { id }));
+            return response.data;
+        } catch (error) {
+            toast.error('Something went wrong! Please try refreshing your browser');
+            throw error;
+        }
+    }
+
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ['nstp.students-grades', id],
+        queryFn: getStudentNstpGrades,
+        enabled: !!id,
+    });
+
+    useEffect(() => {
+        if (data) {
+            const initialGrades = {};
+
+            data.forEach(student => {
+                const roundedMidterm =
+                    student.midterm_grade !== null && student.midterm_grade !== ''
+                        ? (Math.round(student.midterm_grade * 10) / 10).toFixed(1)
+                        : '';
+
+                const roundedFinal =
+                    student.final_grade !== null && student.final_grade !== ''
+                        ? (Math.round(student.final_grade * 10) / 10).toFixed(1)
+                        : '';
+
+                initialGrades[student.id] = {
+                    ...student,
+                    midterm_grade: roundedMidterm,
+                    final_grade: roundedFinal
+                };
+            });
+
+            setLocalGrades(initialGrades);
+        }
+    }, [data]);
+
+    const timeoutRefs = useRef({});
+
+    const updateGrade = (studentId, field, value) => {
+        const previousValue = localGrades[studentId]?.[field];
+
+        setLocalGrades(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [field]: value,
+            }
+        }));
+
+        const key = `${studentId}-${field}`;
+
+        clearTimeout(timeoutRefs.current[key]);
+
+        timeoutRefs.current[key] = setTimeout(async () => {
+            try {
+                await axios.patch(
+                    route('nstp.student-update-grade', {
+                        field,
+                        id: studentId
+                    }),
+                    {
+                        [field]: value === '' ? null : Number(value),
+                    }
+                );
+            } catch (error) {
+
+                setLocalGrades(prev => ({
+                    ...prev,
+                    [studentId]: {
+                        ...prev[studentId],
+                        [field]: previousValue,
+                    }
+                }));
+
+                toast.error(
+                    error.response?.data?.message ||
+                    'Failed to update grade'
+                );
+            }
+        }, 1500);
+    };
+
+    const displayGrades = useMemo(() => {
+        if (!data) return [];
+
+        return data.map((student) => {
+            const local = localGrades[student.id];
+            return {
+                ...student,
+                midterm_grade: local?.midterm_grade ?? student.midterm_grade,
+                final_grade: local?.final_grade ?? student.final_grade,
+            };
+        });
+    }, [data, localGrades]);
+
+    if (isError) return <>Error loading grades.</>;
+    if (isLoading || !data) return <Skeleton />;
+
+    return (
+        <div>
+            <CardTableHead>
+                {displayGrades.map((student, index) => {
+                    const finalGrade = computeFinalGrade(student.midterm_grade, student.final_grade);
+
+                    return (
+                        <TableRow key={student.user_id_no} className='p-0 print:p-0'>
+                            <TableCell className="text-center print:p-0">{index + 1}.</TableCell>
+                            <TableCell className='print:p-0'>{student.user_id_no}</TableCell>
+                            <TableCell className='print:p-0'>{formatName(student, { format: 'LFM' })}</TableCell>
+
+                            {/* MIDTERM GRADE */}
+                            <TableCell className="text-center print:p-0 ">
+                                {['submitted', 'deployed', 'verified'].includes(student.midterm_status) ? (
+                                    <div>{student.midterm_grade}</div>
+                                ) : (
+                                    <>
+                                        {!allowMidtermUpload ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="inline-block">
+                                                        <GradeInput
+                                                            value={student.midterm_grade}
+                                                            className={cn(
+                                                                "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                                "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                                missingFields[index]?.midterm ? 'border-red-500' : ''
+                                                            )}
+                                                            disabled
+                                                        />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Not allowed to upload grades</TooltipContent>
+                                            </Tooltip>
+                                        ) : (
+                                            <div className="inline-block">
+                                                <GradeInput
+                                                    className={cn(
+                                                        "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                        "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                        missingFields[index]?.midterm ? 'border-red-500' : ''
+                                                    )}
+                                                    disabled={!allowMidtermUpload}
+                                                    min={1}
+                                                    max={5}
+                                                    value={student.midterm_grade}
+                                                    onValueChange={(value) => {
+                                                        updateGrade(student.id, 'midterm_grade', value);
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        <div className='hidden print:block'>{student.midterm_grade}</div>
+                                    </>
+                                )}
+                            </TableCell>
+
+                            {/* FINAL GRADE */}
+                            <TableCell className="text-center print:p-0">
+                                {/* Changed status.final_status to student.final_status */}
+                                {['submitted', 'deployed', 'verified'].includes(student.final_status) ? (
+                                    <>{student.final_grade}</>
+                                ) : (
+                                    <>
+                                        {!allowFinalUpload ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="inline-block">
+                                                        <GradeInput
+                                                            value={student.final_grade}
+                                                            className={cn(
+                                                                "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                                "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                                missingFields[index]?.final ? 'border-red-500' : ''
+                                                            )}
+                                                            disabled
+                                                        />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Not allowed to upload grades</TooltipContent>
+                                            </Tooltip>
+                                        ) : (
+                                            <div className="inline-block">
+                                                <GradeInput
+                                                    className={cn(
+                                                        "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
+                                                        "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
+                                                        missingFields[index]?.final ? 'border-red-500' : ''
+                                                    )}
+                                                    disabled={!allowFinalUpload}
+                                                    min={1}
+                                                    max={5}
+                                                    value={student.final_grade}
+                                                    index={index}
+                                                    field="final_grade"
+                                                    onValueChange={(returnedIndex, returnedField, value) => {
+                                                        // Fixed: Changed handleGradeChange to updateGrade
+                                                        const currentStudent = displayGrades[returnedIndex];
+                                                        updateGrade(currentStudent.id, returnedField, value);
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        <div className='hidden print:block'>{student.final_grade}</div>
+                                    </>
+                                )}
+                            </TableCell>
+
+                            <TableCell className="text-center print:p-0">
+                                {finalGrade || '-'}
+                            </TableCell>
+
+                            <TableCell className="text-center print:p-0">
+                                <GradeRemarkBadge midterm={student.midterm_grade} final={student.final_grade} />
+                            </TableCell>
+                        </TableRow>
+                    )
+                })}
+            </CardTableHead>
+        </div>
+    )
+}

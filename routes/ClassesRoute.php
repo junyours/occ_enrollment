@@ -3,7 +3,7 @@
 use App\Http\Controllers\InstructorClasses\ClassController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,student'])->group(function () {
     Route::get('/classes', [ClassController::class, 'view'])->name('classes');
     Route::post('/api/get-faculty-classes/{schoolYearId}', [ClassController::class, 'getFacultyClasses'])->name('get.faculty.classes');
 
@@ -43,6 +43,11 @@ Route::middleware(['auth', 'maintenance', 'ClassesPermission'])->group(function 
 
     Route::get('/classes/nstp-classroom/{id}', [ClassController::class, 'viewNstpClass'])->name('classes.classroom.yearsection');
     Route::post('/nstp-students/{id}', [ClassController::class, 'nstpStudents'])->name('nstp.students');
+
+    Route::post('/nstp-students-grades/{id}', [ClassController::class, 'nstpStudentsGrades'])->name('nstp.students-grades');
+    Route::patch('/nstp-student-update-grade/{field}/{id}', [ClassController::class, 'nstpStudentUpdateGrade'])->name('nstp.student-update-grade');
+
+    Route::post('/nstp-class/grade-submission-details/{id}', [ClassController::class, 'nstpGradeSubmissionDetails'])->name('nstp-class.grade-submission-details');
 });
 
 Route::middleware(['auth', 'maintenance', 'student'])->group(function () {

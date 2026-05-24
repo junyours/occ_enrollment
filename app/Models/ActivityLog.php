@@ -17,11 +17,18 @@ class ActivityLog extends Model
         'action',
         'subject_type',
         'subject_id',
+        'target_type',
+        'target_id',
         'description',
+        'properties',
         'ip_address',
         'user_agent',
     ];
 
+    protected $casts = [
+        'properties' => 'array',
+    ];
+    
     /**
      * Who performed the action
      */

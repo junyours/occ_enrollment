@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\InstructorClasses;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\EnrolledStudent;
 use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
@@ -142,18 +143,8 @@ class ClassController extends Controller
             ]);
         }
 
-        return Inertia::render('InstructorClasses/OpenNstpClass', [
-            'id' => $nstpSection->id,
-            'componentName' => $section->first()->component->component_name,
-            'sectionName' => $section->first()->section,
-            'gradeSubmissionStatus' => $gradeSubmissionStatus,
-        ]);
-    }
-
-    public function nstpStudents($id)
-    {
-        return NstpSection::where('nstp_sections.id', '=', $id)
-            ->select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'gender')
+        $students = NstpSection::where('nstp_sections.id', '=', $nstpSection->id)
+            ->select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'gender', 'midterm_grade', 'final_grade')
             ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
             ->join('student_subject_nstp_schedule', 'student_subject_nstp_schedule.nstp_section_schedule_id', '=', 'nstp_section_schedules.id')
             ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
@@ -162,6 +153,134 @@ class ClassController extends Controller
             ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
             ->orderBy('last_name', 'ASC')
             ->get();
+
+
+        $schoolYear = SchoolYear::where('school_years.id', '=', $section->school_year_id)
+            ->select(
+                'allow_upload_final',
+                'allow_upload_midterm',
+                'start_year',
+                'end_year',
+                'semester_name'
+            )
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
+        return Inertia::render('InstructorClasses/OpenNstpClass', [
+            'id' => $nstpSection->id,
+            'componentName' => $section->component->component_name,
+            'sectionName' => $section->section,
+            'gradeSubmissionStatus' => $gradeSubmissionStatus,
+            'studentsList' => $students,
+            'schoolYear' => $schoolYear,
+        ]);
+    }
+
+    public function nstpStudents($id)
+    {
+        return NstpSection::where('nstp_sections.id', '=', $id)
+            ->select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'gender', 'midterm_grade', 'final_grade')
+            ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
+            ->join('student_subject_nstp_schedule', 'student_subject_nstp_schedule.nstp_section_schedule_id', '=', 'nstp_section_schedules.id')
+            ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+            ->orderBy('last_name', 'ASC')
+            ->get();
+    }
+
+    public function nstpGradeSubmissionDetails($id)
+    {
+        $gradeSubmissionStatus = NstpGradeSubmission::where('nstp_section_id', '=', $id)->first();
+
+        if (!$gradeSubmissionStatus) {
+            $gradeSubmissionStatus = NstpGradeSubmission::create([
+                'nstp_section_id' => $id
+            ]);
+        }
+
+        return response()->json($gradeSubmissionStatus);
+    }
+
+    public function nstpStudentsGrades($id)
+    {
+        return NstpSection::where('nstp_sections.id', '=', $id)
+            ->select('student_subjects.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'midterm_grade', 'final_grade')
+            ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
+            ->join('student_subject_nstp_schedule', 'student_subject_nstp_schedule.nstp_section_schedule_id', '=', 'nstp_section_schedules.id')
+            ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+            ->orderBy('last_name', 'ASC')
+            ->get();
+    }
+
+    public function nstpStudentUpdateGrade($field, $id, Request $request)
+    {
+        $schoolYearSubmissionDetails = StudentSubjectNstpSchedule::where('student_subject_id', '=', $id)
+            ->select('school_years.*')
+            ->join('nstp_section_schedules', 'nstp_section_schedules.id', '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
+            ->join('nstp_sections', 'nstp_sections.id', '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
+            ->join('school_years', 'school_years.id', '=', 'nstp_sections.school_year_id')
+            ->first();
+
+        if ($field == 'midterm_grade') {
+            if (!$schoolYearSubmissionDetails->allow_upload_midterm) {
+                return response()->json([
+                    'message' => 'Changing of midterm grade is not allowed.'
+                ], 403);
+            }
+        } else if ($field == 'final_grade') {
+            if (!$schoolYearSubmissionDetails->allow_upload_final) {
+                return response()->json([
+                    'message' => 'Changing of final grade is not allowed.'
+                ], 403);
+            }
+        }
+
+        $allowedFields = ['midterm_grade', 'final_grade'];
+
+        if (!in_array($field, $allowedFields)) {
+            abort(400, 'Invalid field');
+        }
+
+        $studentSubject = StudentSubject::findOrFail($id);
+
+        $oldValue = $studentSubject->$field;
+        $newValue = $request->$field;
+
+        $studentSubject->update([
+            $field => $newValue
+        ]);
+
+        $user = Auth::user();
+
+        $fullName = $user->userInformation->first_name . ' ' .
+            $user->userInformation->last_name;
+
+        ActivityLog::create([
+            'user_id' => Auth::id(),
+
+            'action' => 'grade_updated',
+
+            'subject_type' => StudentSubject::class,
+            'subject_id' => $studentSubject->id,
+
+            'description' => $fullName .
+                " updated {$field} from {$oldValue} to {$newValue}",
+
+            'properties' => [
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'student_subject_id' => $studentSubject->id,
+            ],
+
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
     }
 
     public function getStudents($id)
