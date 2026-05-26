@@ -8,8 +8,6 @@ import React, { useEffect, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import { formatFullName } from '@/Lib/Utils'
-import { Input } from '@/Components/ui/input'
-import { FileDown, Loader2, Search } from 'lucide-react'
 import { Separator } from '@radix-ui/react-context-menu'
 import axios from 'axios'
 import { DownloadButton } from './DownloadButton'
@@ -38,25 +36,16 @@ export default function Index({ tab, search }) {
 
     const { url } = usePage();
 
-    const { data, isLoading, refetch, isFetching, isError } = useQuery({
+    const { data, isLoading, isError } = useQuery({
         queryKey: [url, selectedSchoolYearEntry?.id],
         queryFn: getDashboardData,
         enabled: !!selectedSchoolYearEntry?.id,
         staleTime: 10000 * 60,
     })
+    
     const [searchKey, setSearchKey] = useState(search || '');
 
-    const { current_page, last_page, first_page_url, prev_page_url, next_page_url, last_page_url, from, to, total, links } = data || {};
     const students = data?.data || [];
-
-    const handlePageChange = (url) => {
-        if (url) {
-            router.get(url, {}, {
-                preserveState: true,
-                replace: true,
-            });
-        }
-    };
 
     const handleSearch = () => {
         router.get('', {
