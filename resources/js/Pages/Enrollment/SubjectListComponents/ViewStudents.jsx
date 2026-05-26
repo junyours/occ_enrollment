@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
-import UseQueryTable from '@/Components/UseQueryTable';
+import UseQueryTable from '@/Components/UseQueryTable/Index';
 
 export default function ViewStudents({ subject, setSubject, schoolYearId }) {
 

@@ -6,8 +6,6 @@ import axios from 'axios';
 import SearchBar from '@/Components/ui/SearchBar';
 import DataTable from './DataTable';
 import Pagination from './Pagination';
-import { Card, CardContent } from '../ui/card';
-
 export default function UseQueryTable({
     queryKeyPrefix,
     routeName,
