@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react'
 import { PageTitle } from '@/Components/ui/PageTitle'
 import { Tabs, TabsContent, TabsList, TabsTrigger, } from "@/Components/ui/tabs"
 import React from 'react'
-import GradesIndex from './NstpTabs/Grades'
+import GradesIndex from './NstpTabs/Grades/Index'
 import Students from './NstpTabs/Students'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Card, CardContent } from '@/Components/ui/card'

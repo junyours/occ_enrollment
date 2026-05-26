@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import StudentList from './StudentList';
 
-
 export default function GradesIndex({ id, allowMidtermUpload, allowFinalUpload }) {
 
     const getNstpSubmissionInfo = async () => {
