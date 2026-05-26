@@ -17,9 +17,11 @@ function SubjectsReport() {
                     <SchoolYearPicker />
                 </div>
             </div>
-            <div className='flex gap-4 w-full'>
-                <SubjectsList schoolYearId={selectedSchoolYearEntry?.id} />
-            </div>
+            {!!selectedSchoolYearEntry && (
+                <div className='flex gap-4 w-full'>
+                    <SubjectsList schoolYearId={selectedSchoolYearEntry?.id} />
+                </div>
+            )}
         </div>
     )
 }

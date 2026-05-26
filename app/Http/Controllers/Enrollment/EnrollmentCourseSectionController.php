@@ -1116,6 +1116,40 @@ class EnrollmentCourseSectionController extends Controller
             ->get();
     }
 
+    public function viewSubjectStudents($schoolYearId, Request $request)
+    {
+
+        $students = YearSectionSubjects::query()
+            ->join('year_section as subject_section', 'subject_section.id', '=', 'year_section_subjects.year_section_id') 
+            ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('year_section as student_section', 'student_section.id', '=', 'enrolled_students.year_section_id')
+            ->join('course', 'course.id', '=', 'student_section.course_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('users as instructor', 'instructor.id', '=', 'year_section_subjects.faculty_id')
+            ->join('user_information as instructor_information', 'instructor_information.user_id', '=', 'instructor.id')
+            ->join('user_information', 'user_information.user_id', '=', 'enrolled_students.student_id')
+            ->where('year_section_subjects.subject_id', $request->subjectId)
+            ->where('subject_section.school_year_id', $schoolYearId)
+            ->select([
+                'users.user_id_no',
+                'user_information.last_name',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'student_section.section',
+                'student_section.year_level_id',
+                'course.course_name_abbreviation',
+                'instructor_information.first_name as instructor_first_name',
+                'instructor_information.last_name as instructor_last_name',
+                'instructor_information.middle_name as instructor_middle_name',
+            ])
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->paginate(10);
+
+        return response()->json($students);
+    }
+
     public function downloadSubjectStudents($schoolYearId, $subjectId)
     {
         $subject = Subject::findOrFail($subjectId);
