@@ -34,7 +34,7 @@ export default function CopyButton({ text, size = "sm", className, ...props }) {
             className={
                 cn(
                     currentSize.button,
-                    "p-2 rounded-lg transition-all duration-200 active:scale-90 bg-transparent",
+                    "rounded-lg transition-all duration-200 active:scale-90 bg-transparent",
                     className
                 )
             }

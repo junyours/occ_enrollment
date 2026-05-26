@@ -1,34 +1,44 @@
 import React from 'react';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import UseQueryTable from '@/Components/UseQueryTable/Index';
+import CopyButton from '@/Components/ui/CopyButton';
+import { formatName } from '@/Lib/InfoUtils';
 
 export default function ViewStudents({ subject, setSubject, schoolYearId }) {
 
     const columns = [
         {
             header: 'ID Number',
-            accessor: 'user_id_no'
+            accessor: 'user_id_no',
+            render: (row) => (
+                <div>
+                    <CopyButton text={row.user_id_no} size='xs' />
+                    <span>{row.user_id_no}</span>
+                </div>
+            )
         },
         {
             header: 'Student Name',
             render: (row) => {
                 const middle = row.middle_name ? ` ${row.middle_name}` : '';
-                return `${row.last_name}, ${row.first_name}${middle}`;
+                return `${formatName(row, { format: 'LFM' })}`;
             }
         },
         {
-            header: 'Course & Year',
-            render: (row) => `${row.course_name_abbreviation} - Year ${row.year_level_id}`
+            header: 'Course',
+            render: (row) => `${row.course_name_abbreviation}`
         },
         {
-            header: 'Section',
-            accessor: 'section'
+            header: 'Year & Section',
+            render: (row) => (
+                <div>{row.year_level_id}{row.section}</div>
+            )
         },
         {
             header: 'Instructor',
             render: (row) => {
                 const middle = row.instructor_middle_name ? ` ${row.instructor_middle_name}` : '';
-                return `${row.instructor_last_name}, ${row.instructor_first_name}${middle}`;
+                return `${formatName({first_name: row.instructor_first_name, last_name: row.instructor_last_name, middle_name: row.instructor_middle_name}, { format: 'LFM' })}`;
             }
         },
     ];
@@ -48,6 +58,7 @@ export default function ViewStudents({ subject, setSubject, schoolYearId }) {
                             extraData={{ subjectId: subject.id }}
                             columns={columns}
                             limit={10}
+                            searchPlaceholder="Search by ID, Name or Instructor..."
                             tableName={subjectTitle}
                         />
                     )}

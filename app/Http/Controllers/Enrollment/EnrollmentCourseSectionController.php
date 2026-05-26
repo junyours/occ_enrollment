@@ -1118,9 +1118,10 @@ class EnrollmentCourseSectionController extends Controller
 
     public function viewSubjectStudents($schoolYearId, Request $request)
     {
+        $search = $request->query('search', '');
 
         $students = YearSectionSubjects::query()
-            ->join('year_section as subject_section', 'subject_section.id', '=', 'year_section_subjects.year_section_id') 
+            ->join('year_section as subject_section', 'subject_section.id', '=', 'year_section_subjects.year_section_id')
             ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
             ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
             ->join('year_section as student_section', 'student_section.id', '=', 'enrolled_students.year_section_id')
@@ -1143,8 +1144,16 @@ class EnrollmentCourseSectionController extends Controller
                 'instructor_information.last_name as instructor_last_name',
                 'instructor_information.middle_name as instructor_middle_name',
             ])
-            ->orderBy('last_name')
-            ->orderBy('first_name')
+            ->when(!empty($search), function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('users.user_id_no', 'like', '%' . $search . '%')
+                        ->orWhere('user_information.first_name', 'like', '%' . $search . '%')
+                        ->orWhere('user_information.last_name', 'like', '%' . $search . '%')
+                        ->orWhere('instructor_information.first_name', 'like', '%' . $search . '%')
+                        ->orWhere('instructor_information.last_name', 'like', '%' . $search . '%');
+                });
+            })
+            ->orderBy('last_name', 'asc')
             ->paginate(10);
 
         return response()->json($students);
