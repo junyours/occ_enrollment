@@ -5,16 +5,18 @@ import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
 import { Button } from "@/Components/ui/button";
+import { Input } from "@/Components/ui/input";
+import { Card } from "@/Components/ui/card";
+import { Separator } from "@/Components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import {
     Select,
     SelectContent,
-    SelectGroup,
     SelectItem,
     SelectTrigger,
     SelectValue,
 } from "@/Components/ui/select";
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
+import { Trash2 } from "lucide-react";
 
 export default function AddStudentBalance() {
     const [page, setPage] = useState(1);
@@ -22,13 +24,63 @@ export default function AddStudentBalance() {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedStudent, setSelectedStudent] = useState(null);
 
-    const fetchStudent = async ({ queryKey }) => {
-        const [_key, page, debouncedSearch] = queryKey;
+    const [schoolYear, setSchoolYear] = useState("");
+    const [semester, setSemester] = useState("");
 
-        const { data } = await axios.get("/api/billing/get-student", {
+    const [billingAccountId, setBillingAccountId] = useState(null);
+
+    const [billingItems, setBillingItems] = useState([
+        {
+            id: null,
+            type_id: "",
+            balance: "",
+            status: "unpaid",
+            locked: false,
+            paid: 0,
+            remaining: 0,
+        },
+    ]);
+
+    const [saving, setSaving] = useState(false);
+    const [initialized, setInitialized] = useState(false);
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEARCH
+    |--------------------------------------------------------------------------
+    */
+
+    const debouncedSearchFn = useMemo(
+        () =>
+            debounce((value) => {
+                setDebouncedSearch(value);
+            }, 800),
+        [],
+    );
+
+    const handleSearch = (value) => {
+        setSearch(value);
+
+        debouncedSearchFn(value);
+    };
+
+    useEffect(() => {
+        return () => debouncedSearchFn.cancel();
+    }, []);
+
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH STUDENTS
+    |--------------------------------------------------------------------------
+    */
+
+    const fetchStudents = async ({ queryKey }) => {
+        const [_key, page, search] = queryKey;
+
+        const { data } = await axios.get("/api/billing/get/students", {
             params: {
                 page,
-                search: debouncedSearch,
+                search,
             },
         });
 
@@ -37,32 +89,196 @@ export default function AddStudentBalance() {
 
     const { data, isLoading } = useQuery({
         queryKey: ["students", page, debouncedSearch],
-        queryFn: fetchStudent,
+        queryFn: fetchStudents,
         enabled: !!debouncedSearch,
     });
 
-    const debouncedSetSearch = useMemo(
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH SCHOOL YEARS
+    |--------------------------------------------------------------------------
+    */
+
+    const { data: schoolYears } = useQuery({
+        queryKey: ["school-years"],
+        queryFn: async () => {
+            const res = await axios.get("/api/billing/get/school-years");
+
+            return res.data;
+        },
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH SEMESTERS
+    |--------------------------------------------------------------------------
+    */
+
+    const { data: semesters } = useQuery({
+        queryKey: ["semesters"],
+        queryFn: async () => {
+            const res = await axios.get("/api/billing/get/semesters");
+
+            return res.data;
+        },
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | FETCH TYPES
+    |--------------------------------------------------------------------------
+    */
+
+    const { data: types } = useQuery({
+        queryKey: ["billing-types"],
+        queryFn: async () => {
+            const res = await axios.get("/api/billing/get/types");
+
+            return res.data;
+        },
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | INITIALIZE ACCOUNT
+    |--------------------------------------------------------------------------
+    */
+
+    useEffect(() => {
+        const initializeBilling = async () => {
+            if (!selectedStudent || !schoolYear || !semester) {
+                return;
+            }
+
+            try {
+                setInitialized(false);
+
+                const res = await axios.post(
+                    "/api/billing/account/initialize",
+                    {
+                        student_id: selectedStudent.id,
+                        school_year_id: schoolYear,
+                        semester_id: semester,
+                    },
+                );
+
+                setBillingAccountId(res.data.account.id);
+
+                if (res.data.items && res.data.items.length > 0) {
+                    setBillingItems(
+                        res.data.items.map((item) => ({
+                            id: item.id,
+                            type_id: String(item.billing_type_id),
+                            balance: String(item.balance),
+
+                            status: item.status,
+                            locked: item.locked,
+
+                            paid: item.paid,
+                            remaining: item.remaining,
+                        })),
+                    );
+                } else {
+                    setBillingItems([
+                        {
+                            id: null,
+                            type_id: "",
+                            balance: "",
+                            status: "unpaid",
+                            locked: false,
+                            paid: 0,
+                            remaining: 0,
+                        },
+                    ]);
+                }
+
+                setTimeout(() => {
+                    setInitialized(true);
+                }, 100);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        initializeBilling();
+    }, [selectedStudent, schoolYear, semester]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO SAVE
+    |--------------------------------------------------------------------------
+    */
+
+    const autoSave = useMemo(
         () =>
-            debounce((value) => {
-                setDebouncedSearch(value);
+            debounce(async (items, accountId) => {
+                if (!accountId) return;
+
+                try {
+                    setSaving(true);
+
+                    const res = await axios.post(
+                        "/api/billing/items/auto-save",
+                        {
+                            billing_account_id: accountId,
+                            items,
+                        },
+                    );
+
+                    setBillingItems((prev) => {
+                        let changed = false;
+
+                        const updated = prev.map((item, index) => {
+                            if (item.id) {
+                                return item;
+                            }
+
+                            const newId = res.data.items?.[index]?.id;
+
+                            if (newId) {
+                                changed = true;
+
+                                return {
+                                    ...item,
+                                    id: newId,
+                                };
+                            }
+
+                            return item;
+                        });
+
+                        return changed ? updated : prev;
+                    });
+                } catch (error) {
+                    console.log(error);
+                } finally {
+                    setSaving(false);
+                }
             }, 1000),
         [],
     );
 
-    const handleSearch = (value) => {
-        setSearch(value);
-        debouncedSetSearch(value);
-    };
-
     useEffect(() => {
-        return () => {
-            debouncedSetSearch.cancel();
-        };
-    }, [debouncedSetSearch]);
+        if (!billingAccountId) return;
 
-    const isTyping = search !== debouncedSearch;
+        if (!initialized) return;
 
-    const loading = isTyping || isLoading;
+        const hasValidItem = billingItems.some(
+            (item) => item.type_id && item.balance,
+        );
+
+        if (!hasValidItem) return;
+
+        autoSave(billingItems, billingAccountId);
+    }, [billingItems, initialized, billingAccountId]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | TABLE
+    |--------------------------------------------------------------------------
+    */
+
+    const loading = search !== debouncedSearch || isLoading;
 
     const columns = [
         {
@@ -81,37 +297,90 @@ export default function AddStudentBalance() {
             accessorKey: "middle_name",
             header: "Middle Name",
         },
-        {
-            id: "action",
-            header: "Action",
-            cell: ({ row }) => (
-                <Button
-                    size="sm"
-                    onClick={() => setSelectedStudent(row.original)}
-                    variant={
-                        selectedStudent?.id === row.original.id
-                            ? "default"
-                            : "secondary"
-                    }
-                >
-                    {selectedStudent?.id === row.original.id
-                        ? "Selected"
-                        : "Select"}
-                </Button>
-            ),
-        },
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | ITEMS
+    |--------------------------------------------------------------------------
+    */
+
+    const addItem = () => {
+        setBillingItems([
+            ...billingItems,
+            {
+                id: null,
+                type_id: "",
+                balance: "",
+                status: "unpaid",
+                locked: false,
+                paid: 0,
+                remaining: 0,
+            },
+        ]);
+    };
+
+    const updateItem = (index, field, value) => {
+        setBillingItems((prev) =>
+            prev.map((item, i) =>
+                i === index
+                    ? {
+                          ...item,
+                          [field]: value,
+                      }
+                    : item,
+            ),
+        );
+    };
+
+    const removeItem = async (index) => {
+        const item = billingItems[index];
+
+        try {
+            if (item.id) {
+                await axios.delete(`/api/billing/items/${item.id}`);
+            }
+
+            const updated = billingItems.filter((_, i) => i !== index);
+
+            if (updated.length === 0) {
+                setBillingItems([
+                    {
+                        id: null,
+                        type_id: "",
+                        balance: "",
+                        status: "unpaid",
+                        locked: false,
+                        paid: 0,
+                        remaining: 0,
+                    },
+                ]);
+
+                return;
+            }
+
+            setBillingItems(updated);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER
+    |--------------------------------------------------------------------------
+    */
 
     return (
         <div className="space-y-6">
-            <div className="rounded-xl border bg-background p-5 shadow-sm">
-                <h1 className="text-xl font-semibold">Add Student Balance</h1>
-                <p className="mt-1 text-sm text-secondary-foreground">
-                    Search and select a student to add balances.
-                </p>
-            </div>
+            <Card className="p-5">
+                <h1 className="text-xl font-semibold">
+                    Add Student Balance
+                </h1>
+            </Card>
+
             <div className="flex gap-6">
-                <div className="flex-1 rounded-xl border bg-background p-5 shadow-sm">
+                <Card className="h-fit flex-1 p-5">
                     <DataTable
                         columns={columns}
                         data={data?.data ?? []}
@@ -122,82 +391,208 @@ export default function AddStudentBalance() {
                         setSearch={handleSearch}
                         isLoading={loading}
                         selected={selectedStudent?.id}
+                        setSelected={setSelectedStudent}
+                        search_placeholder="students"
                     />
-                </div>
+                </Card>
+
                 {selectedStudent && (
-                    <div className="flex-1 rounded-xl border bg-background p-6 shadow-sm h-fit">
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
+                    <Card className="h-fit flex-1 p-6 space-y-5">
+                        <div>
+                            <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold">
-                                    Selected Student
+                                    Billing Setup
                                 </h2>
-                                <Button size="sm" variant="ghost">
-                                    Close
+
+                                <Badge variant="secondary">
+                                    {saving
+                                        ? "Saving..."
+                                        : "Auto Saved"}
+                                </Badge>
+                            </div>
+
+                            <Separator className="my-3" />
+
+                            <p className="font-medium">
+                                {selectedStudent.last_name},{" "}
+                                {selectedStudent.first_name}
+                            </p>
+
+                            <p className="text-sm text-muted-foreground">
+                                {selectedStudent.user_id_no}
+                            </p>
+                        </div>
+
+                        <Select
+                            value={schoolYear}
+                            onValueChange={setSchoolYear}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select School Year" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                {schoolYears?.data?.map((sy) => (
+                                    <SelectItem
+                                        key={sy.id}
+                                        value={String(sy.id)}
+                                    >
+                                        {sy.school_year_name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={semester}
+                            onValueChange={setSemester}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Semester" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                                {semesters?.data?.map((sem) => (
+                                    <SelectItem
+                                        key={sem.id}
+                                        value={String(sem.id)}
+                                    >
+                                        {sem.semester_name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-semibold">
+                                    Billing Items
+                                </h3>
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={addItem}
+                                >
+                                    + Add Item
                                 </Button>
                             </div>
-                            <div className="mt-3 rounded-lg bg-secondary p-4">
-                                <p className="font-medium">
-                                    {selectedStudent.last_name},{" "}
-                                    {selectedStudent.first_name}
-                                </p>
-                                <p className="text-sm">
-                                    {selectedStudent.user_id_no}
-                                </p>
-                            </div>
-                            <div className="space-y-4">
-                                <div className="space-y-1">
-                                    <Label>School Year</Label>
-                                    <Select>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="light">
-                                                    Light
-                                                </SelectItem>
-                                                <SelectItem value="dark">
-                                                    Dark
-                                                </SelectItem>
-                                                <SelectItem value="system">
-                                                    System
-                                                </SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
+
+                            {billingItems.map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="border rounded-lg p-3 space-y-3"
+                                >
+                                    <div className="flex gap-2 items-center">
+                                        <Select
+                                            disabled={item.locked}
+                                            value={item.type_id}
+                                            onValueChange={(val) =>
+                                                updateItem(
+                                                    index,
+                                                    "type_id",
+                                                    val,
+                                                )
+                                            }
+                                        >
+                                            <SelectTrigger className="flex-1">
+                                                <SelectValue placeholder="Select Type" />
+                                            </SelectTrigger>
+
+                                            <SelectContent>
+                                                {types?.data?.map((t) => (
+                                                    <SelectItem
+                                                        key={t.id}
+                                                        value={String(t.id)}
+                                                    >
+                                                        {t.type_name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+
+                                        <Input
+                                            type="number"
+                                            disabled={item.locked}
+                                            placeholder="Balance"
+                                            className="w-32"
+                                            value={item.balance}
+                                            onChange={(e) =>
+                                                updateItem(
+                                                    index,
+                                                    "balance",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            disabled={item.locked}
+                                            onClick={() =>
+                                                removeItem(index)
+                                            }
+                                        >
+                                            <Trash2 />
+                                        </Button>
+                                    </div>
+
+                                    {item.locked && (
+                                        <div className="space-y-2">
+                                            <Badge
+                                                variant="secondary"
+                                                className={
+                                                    item.status ===
+                                                    "paid"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-yellow-100 text-yellow-700"
+                                                }
+                                            >
+                                                {item.status === "paid"
+                                                    ? "Fully Paid"
+                                                    : "Partial Payment"}
+                                            </Badge>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="border rounded-md p-2">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Paid
+                                                    </p>
+
+                                                    <p className="font-semibold text-green-600">
+                                                        ₱
+                                                        {Number(
+                                                            item.paid,
+                                                        ).toLocaleString()}
+                                                    </p>
+                                                </div>
+
+                                                <div className="border rounded-md p-2">
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Remaining
+                                                    </p>
+
+                                                    <p className="font-semibold text-red-600">
+                                                        ₱
+                                                        {Number(
+                                                            item.remaining,
+                                                        ).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="space-y-1">
-                                    <Label>Semester</Label>
-                                    <Select>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="light">
-                                                    Light
-                                                </SelectItem>
-                                                <SelectItem value="dark">
-                                                    Dark
-                                                </SelectItem>
-                                                <SelectItem value="system">
-                                                    System
-                                                </SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-1">
-                                    <Label>Balance</Label>
-                                    <Input/>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    </div>
+                    </Card>
                 )}
             </div>
         </div>
     );
 }
 
-AddStudentBalance.layout = (page) => <AuthenticatedLayout children={page} />;
+AddStudentBalance.layout = (page) => (
+    <AuthenticatedLayout children={page} />
+);
