@@ -8,7 +8,7 @@ import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Card } from "@/Components/ui/card";
 import { Separator } from "@/Components/ui/separator";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/Components/ui/badge";
 import {
     Select,
     SelectContent,
