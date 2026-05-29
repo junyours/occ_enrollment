@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class BillingSemester extends Model
 {
-    protected $table = 'billing_semesters';
-
     protected $fillable = [
-        'semester',
+        'semester_name'
     ];
+
+    public function periods()
+    {
+        return $this->hasMany(BillingPeriod::class);
+    }
 }

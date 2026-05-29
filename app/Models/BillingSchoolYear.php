@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class BillingSchoolYear extends Model
 {
-    protected $table = 'billing_school_years';
-
     protected $fillable = [
-        'school_year',
+        'school_year_name'
     ];
+
+    public function periods()
+    {
+        return $this->hasMany(BillingPeriod::class);
+    }
 }

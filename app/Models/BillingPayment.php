@@ -6,11 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class BillingPayment extends Model
 {
-    protected $table = 'billing_payments';
-
     protected $fillable = [
-        'billing_student_balance_id',
-        'reference_number',
-        'amount',
+        'or_number',
+        'total_amount',
     ];
+
+    public function allocations()
+    {
+        return $this->hasMany(BillingPaymentAllocation::class);
+    }
+
+    public function items()
+    {
+        return $this->belongsToMany(
+            BillingItem::class,
+            'billing_payment_allocations',
+            'billing_payment_id',
+            'billing_item_id'
+        )->withPivot('amount');
+    }
 }

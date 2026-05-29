@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('billing_fee_types', function (Blueprint $table) {
+        Schema::create('billing_school_years', function (Blueprint $table) {
             $table->id();
-            $table->string('fee_type');
+            $table->string('school_year_name');
             $table->timestamps();
         });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('billing_fee_types');
+        Schema::dropIfExists('billing_school_years');
     }
 };

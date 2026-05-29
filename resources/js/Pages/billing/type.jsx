@@ -30,7 +30,7 @@ import {
 } from "@/Components/ui/dropdown-menu";
 import { Card } from "@/Components/ui/card";
 
-export default function SchoolYear() {
+export default function Type() {
     const queryClient = useQueryClient();
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
@@ -38,16 +38,14 @@ export default function SchoolYear() {
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState(null);
 
-    const schoolYearSchema = z.object({
-        school_year_name: z
-            .string()
-            .nonempty("The school year name field is required."),
+    const typeSchema = z.object({
+        type_name: z.string().nonempty("The type name field is required."),
     });
 
-    const schoolYearForm = useForm({
-        resolver: zodResolver(schoolYearSchema),
+    const typeForm = useForm({
+        resolver: zodResolver(typeSchema),
         defaultValues: {
-            school_year_name: "",
+            type_name: "",
         },
     });
 
@@ -58,35 +56,32 @@ export default function SchoolYear() {
         clearErrors,
         setError,
         formState: { errors },
-    } = schoolYearForm;
+    } = typeForm;
 
-    const handleOpen = (school_year) => {
+    const handleOpen = (type) => {
         setOpen(!open);
         clearErrors();
 
-        if (school_year) {
-            setEditing(school_year);
+        if (type) {
+            setEditing(type);
 
-            setValue("school_year_name", school_year.school_year_name);
+            setValue("type_name", type.type_name);
         } else {
             setEditing(null);
-            schoolYearForm.reset();
+            typeForm.reset();
         }
     };
 
     const addMutation = useMutation({
         mutationFn: async (data) => {
-            const response = await axios.post(
-                "/api/billing/add/school-years",
-                data,
-            );
+            const response = await axios.post("/api/billing/add/types", data);
             return response.data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["school-years"] });
+            queryClient.invalidateQueries({ queryKey: ["types"] });
             handleOpen();
-            schoolYearForm.reset();
-            toast.success("School year added successfully!");
+            typeForm.reset();
+            toast.success("Type added successfully!");
         },
         onError: (error) => {
             const errors = error.response.data.errors;
@@ -104,7 +99,7 @@ export default function SchoolYear() {
     const updateMutation = useMutation({
         mutationFn: async (data) => {
             const response = await axios.post(
-                `/api/billing/update/school-years/${editing?.id}`,
+                `/api/billing/update/types/${editing?.id}`,
                 data,
                 {
                     headers: {
@@ -115,10 +110,10 @@ export default function SchoolYear() {
             return response.data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["school-years"] });
+            queryClient.invalidateQueries({ queryKey: ["types"] });
             handleOpen();
             setEditing(null);
-            toast.success("School year updated successfully!");
+            toast.success("Type updated successfully!");
         },
         onError: (error) => {
             const errors = error.response.data.errors;
@@ -146,7 +141,7 @@ export default function SchoolYear() {
     const fetchSchoolYear = async ({ queryKey }) => {
         const [_key, page, debouncedSearch] = queryKey;
 
-        const { data } = await axios.get("/api/billing/get/school-years", {
+        const { data } = await axios.get("/api/billing/get/types", {
             params: {
                 page,
                 search: debouncedSearch,
@@ -157,7 +152,7 @@ export default function SchoolYear() {
     };
 
     const { data, isLoading } = useQuery({
-        queryKey: ["school-years", page, debouncedSearch],
+        queryKey: ["types", page, debouncedSearch],
         queryFn: fetchSchoolYear,
     });
 
@@ -184,13 +179,13 @@ export default function SchoolYear() {
 
     const columns = [
         {
-            accessorKey: "school_year_name",
-            header: "School Year",
+            accessorKey: "type_name",
+            header: "Type",
         },
         {
             id: "actions",
             cell: ({ row }) => {
-                const school_year = row.original;
+                const type = row.original;
                 return (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -200,9 +195,7 @@ export default function SchoolYear() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                                onClick={() => handleOpen(school_year)}
-                            >
+                            <DropdownMenuItem onClick={() => handleOpen(type)}>
                                 <SquarePen />
                                 Edit
                             </DropdownMenuItem>
@@ -225,7 +218,7 @@ export default function SchoolYear() {
                     search={search}
                     setSearch={handleSearch}
                     isLoading={loading}
-                    search_placeholder="school years"
+                    search_placeholder="types"
                     button={
                         <Button onClick={() => setOpen(true)}>
                             <Plus />
@@ -246,20 +239,18 @@ export default function SchoolYear() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {editing ? "Update School Year" : "Add School Year"}
+                            {editing ? "Update Type" : "Add Type"}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-1">
-                        <Label>School Year</Label>
+                        <Label>Type</Label>
                         <Input
-                            value={watch("school_year_name")}
+                            value={watch("type_name")}
                             onChange={(e) =>
-                                setValue("school_year_name", e.target.value)
+                                setValue("type_name", e.target.value)
                             }
                         />
-                        <InputError
-                            message={errors.school_year_name?.message}
-                        />
+                        <InputError message={errors.type_name?.message} />
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
@@ -285,4 +276,4 @@ export default function SchoolYear() {
     );
 }
 
-SchoolYear.layout = (page) => <AuthenticatedLayout children={page} />;
+Type.layout = (page) => <AuthenticatedLayout children={page} />;

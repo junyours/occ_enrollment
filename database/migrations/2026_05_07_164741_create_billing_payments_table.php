@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('billing_semesters', function (Blueprint $table) {
+        Schema::create('billing_payments', function (Blueprint $table) {
             $table->id();
-            $table->string('semester');
+            $table->string('or_number')->unique();
+            $table->decimal('total_amount', 10, 2);
             $table->timestamps();
         });
     }
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('billing_semesters');
+        Schema::dropIfExists('billing_payments');
     }
 };

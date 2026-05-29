@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             User::create([
+                'id' => 5847,
                 'user_id_no' => '0000-0-0001',
                 'user_role' => 'billing',
                 'email' => 'billing@gmail.com',

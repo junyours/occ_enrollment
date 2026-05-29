@@ -41,6 +41,8 @@ import {
     Languages,
     HandCoins,
     School,
+    Shapes,
+    FileClock,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -658,21 +660,21 @@ export function NavMain() {
 
         case "billing":
             menuSections.push(
-                {
-                    items: [
-                        {
-                            name: "Dashboard",
-                            route: "billing.dashboard",
-                            icon: Presentation,
-                        },
-                    ],
-                },
+                // {
+                //     items: [
+                //         {
+                //             name: "Dashboard",
+                //             route: "billing.dashboard",
+                //             icon: Presentation,
+                //         },
+                //     ],
+                // },
                 {
                     label: "Fees",
                     items: [
                         {
                             name: "Student Balances",
-                            route: "billing.student-balances",
+                            route: "billing.student.balance",
                             icon: HandCoins,
                         },
                     ],
@@ -681,14 +683,29 @@ export function NavMain() {
                     label: "Others",
                     items: [
                         {
-                            name: "School Year",
-                            route: "billing.school-year",
+                            name: "School Years",
+                            route: "billing.school.year",
                             icon: School,
                         },
                         {
-                            name: "Semester",
+                            name: "Semesters",
                             route: "billing.semester",
                             icon: GraduationCap,
+                        },
+                        {
+                            name: "Types",
+                            route: "billing.type",
+                            icon: Shapes,
+                        },
+                    ],
+                },
+                {
+                    label: "Reports",
+                    items: [
+                        {
+                            name: "Transaction History",
+                            route: "billing.transaction.history",
+                            icon: FileClock,
                         },
                     ],
                 },

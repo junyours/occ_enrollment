@@ -99,4 +99,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserParents::class, 'user_id');
     }
+
+    public function billingAccounts()
+    {
+        return $this->hasMany(BillingAccount::class, 'student_id');
+    }
 }

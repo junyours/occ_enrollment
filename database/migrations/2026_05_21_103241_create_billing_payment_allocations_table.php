@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('billing_receipts', function (Blueprint $table) {
+        Schema::create('billing_payment_allocations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('billing_payment_id')->constrained('billing_payments');
-            $table->string('or_number');
+            $table->foreignId('billing_item_id')->constrained('billing_items');
+            $table->decimal('amount', 10, 2);
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('billing_receipts');
+        Schema::dropIfExists('billing_payment_allocations');
     }
 };

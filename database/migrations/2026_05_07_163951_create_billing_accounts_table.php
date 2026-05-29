@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('billing_student_balances', function (Blueprint $table) {
+        Schema::create('billing_accounts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained('users');
-            $table->foreignId('billing_school_year_id')->constrained('billing_school_years');
-            $table->foreignId('billing_semester_id')->constrained('billing_semesters');
-            $table->foreignId('billing_fee_type_id')->constrained('billing_fee_types');
-            $table->decimal('balance', 10, 2);
+            $table->foreignId('billing_period_id')->constrained('billing_periods');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('billing_student_balances');
+        Schema::dropIfExists('billing_accounts');
     }
 };

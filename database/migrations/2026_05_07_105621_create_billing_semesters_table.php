@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('billing_school_years', function (Blueprint $table) {
+        Schema::create('billing_semesters', function (Blueprint $table) {
             $table->id();
-            $table->string('school_year');
+            $table->string('semester_name');
             $table->timestamps();
         });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('billing_school_years');
+        Schema::dropIfExists('billing_semesters');
     }
 };

@@ -27,6 +27,8 @@ export function DataTable({
     setSearch,
     isLoading,
     selected,
+    setSelected,
+    search_placeholder,
 }) {
     const table = useReactTable({
         data,
@@ -38,7 +40,7 @@ export function DataTable({
         <div className="space-y-4">
             <div className="flex items-center justify-between gap-4">
                 <Input
-                    placeholder="Search..."
+                    placeholder={`Search for ${search_placeholder}`}
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value);
@@ -55,7 +57,10 @@ export function DataTable({
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id}>
+                                <TableHead
+                                    key={header.id}
+                                    className="whitespace-nowrap"
+                                >
                                     {header.isPlaceholder
                                         ? null
                                         : flexRender(
@@ -74,10 +79,11 @@ export function DataTable({
                             <TableRow
                                 key={row.id}
                                 data-state={row.getIsSelected() && "selected"}
-                                className={cn(
+                                className={cn(setSelected ? 'cursor-pointer' : 'cursor-default',
                                     selected === row.original.id &&
                                         "bg-secondary",
                                 )}
+                                onClick={() => setSelected(row.original)}
                             >
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell
@@ -102,7 +108,11 @@ export function DataTable({
                                 colSpan={columns.length}
                                 className="h-24 text-center"
                             >
-                                {isLoading ? "Loading..." : "No results."}
+                                {isLoading
+                                    ? "Loading..."
+                                    : search
+                                      ? `No result for "${search}"`
+                                      : `Search for ${search_placeholder}`}
                             </TableCell>
                         </TableRow>
                     )}
