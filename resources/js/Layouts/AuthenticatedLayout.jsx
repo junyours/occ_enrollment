@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster"
-import { AppSidebar } from "../Components/AppSidebar"
+import { AppSidebar } from "../components/AppSidebar"
 
 import {
     SidebarInset,
