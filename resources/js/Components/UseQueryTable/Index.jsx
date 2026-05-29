@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import axios from 'axios';
 
-import SearchBar from '@/Components/ui/SearchBar';
+import SearchBar from '@/components/ui/SearchBar';
 import DataTable from './DataTable';
 import Pagination from './Pagination';
 export default function UseQueryTable({

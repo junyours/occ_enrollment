@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Mail,
     Phone,
@@ -9,7 +9,7 @@ import {
     Hash,
     ShieldAlert
 } from 'lucide-react';
-import { formatDate, formatPhoneNumber } from '@/Lib/Utils';
+import { formatDate, formatPhoneNumber } from '@/lib/utils';
 
 export default function ProfileInformation({ userInfo }) {
     // Generate full name and initials for the header Avatar

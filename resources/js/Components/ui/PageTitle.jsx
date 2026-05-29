@@ -2,7 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 
-import { cn } from "@/Lib/Utils";
+import { cn } from "@/lib/utils";
 import { Card } from "./card"; // Ensure the correct import path for your Card component
 
 const pageTitleVariants = cva(

@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import React, { useEffect, useState } from 'react'
 
 // Import components
@@ -9,9 +9,9 @@ import Grades from './ClassComponents/Grades'
 import Assignments from './ClassComponents/Assignments'
 import Materials from './ClassComponents/Materials'
 import Announcements from './ClassComponents/Announcements'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Head } from '@inertiajs/react'
-import { PageTitle } from '@/Components/ui/PageTitle'
+import { PageTitle } from '@/components/ui/PageTitle'
 
 function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStatus, schoolYear }) {
     const [loading, setLoading] = useState(true);

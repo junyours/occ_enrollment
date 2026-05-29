@@ -1,8 +1,8 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@/Components/ui/button";
-import { useTheme } from "@/Components/theme-provider";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/theme-provider";
 
 export function TwoModeToggle() {
     const { theme, setTheme } = useTheme();

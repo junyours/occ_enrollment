@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card";
-import { PageTitle } from "@/Components/ui/PageTitle";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { PageTitle } from "@/components/ui/PageTitle";
 import {
     BarChart,
     Bar,

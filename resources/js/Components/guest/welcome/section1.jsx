@@ -1,5 +1,5 @@
 import Video from "../../../../videos/promotional.mp4";
-import AnimatedSection from "@/Components/guest/welcome/animated-section";
+import AnimatedSection from "@/components/guest/welcome/animated-section";
 
 export default function Section1() {
     return (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/Components/ui/button';
-import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 
 

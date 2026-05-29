@@ -1,6 +1,6 @@
 // components/ActivityCard.jsx
-import { Card, CardContent } from "@/Components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function ActivityCard({ avatarUrl, avatarFallback, title, activities, date }) {
     return (

@@ -10,7 +10,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/Components/ui/table";
+} from "@/components/ui/table";
 import {
     Select,
     SelectItem,

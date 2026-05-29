@@ -6,7 +6,7 @@ import {
     ShieldX,
     Rocket
 } from "lucide-react";
-import { cn, convertToAMPM } from "@/Lib/Utils"; // optional utility for merging class names
+import { cn, convertToAMPM } from "@/lib/utils"; // optional utility for merging class names
 
 export default function GradeSubmissionStatus({ gradeStatus, className }) {
 

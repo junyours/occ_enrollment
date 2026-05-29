@@ -1,13 +1,13 @@
-import { DataTable } from "@/Components/table/data-table";
+import { DataTable } from "@/components/table/data-table";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Card } from "@/Components/ui/card";
-import { Separator } from "@/Components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
     Select,
@@ -15,7 +15,7 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
+} from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 
 export default function AddStudentBalance() {

@@ -7,7 +7,7 @@ import n3 from "../../../../images/guest/news/3.jpg";
 import n4 from "../../../../images/guest/news/4.jpg";
 import n5 from "../../../../images/guest/news/5.jpg";
 import n6 from "../../../../images/guest/news/6.jpg";
-import AnimatedSection from "@/Components/guest/welcome/animated-section";
+import AnimatedSection from "@/components/guest/welcome/animated-section";
 
 const news = [
     {

@@ -1,7 +1,7 @@
 import React, { forwardRef, useId } from "react"
-import { Input } from "@/Components/ui/input"
-import { Label } from "@/Components/ui/label"
-import { cn } from "@/Lib/Utils"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 export const CFloatingInput = forwardRef(
     ({ label, error, className, id, required, ...props }, ref) => {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, router } from "@inertiajs/react";
-import DataTable from "@/Components/ui/dTable";
+import DataTable from "@/components/ui/dTable";
 import { Dialog } from "@headlessui/react";
 import axios from "axios";
 

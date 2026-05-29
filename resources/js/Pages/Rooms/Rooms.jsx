@@ -1,15 +1,15 @@
-import PreLoader from '@/Components/preloader/PreLoader';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import PreLoader from '@/components/preloader/PreLoader';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, Building2, Check, CircleMinus, CirclePlus, Loader2, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import { Label } from '@/Components/ui/label';
-import { Input } from '@/Components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Rooms() {

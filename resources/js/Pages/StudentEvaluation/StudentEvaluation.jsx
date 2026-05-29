@@ -5,9 +5,9 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-} from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
-import { Badge } from "@/Components/ui/badge";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { CheckCircle2 } from "lucide-react";
 import { useEffect } from "react";
 

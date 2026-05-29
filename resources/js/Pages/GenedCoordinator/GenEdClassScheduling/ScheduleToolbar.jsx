@@ -1,7 +1,7 @@
 import React from 'react'
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { cn } from '@/Lib/Utils';
-import { Card } from '@/Components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
 
 function ScheduleToolbar({ scheduleType, setScheduleType, className }) {
     return (

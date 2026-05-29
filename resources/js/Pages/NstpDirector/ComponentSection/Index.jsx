@@ -1,20 +1,20 @@
-import { PageTitle } from '@/Components/ui/PageTitle';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import { PageTitle } from '@/components/ui/PageTitle';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CirclePlus, CircleX, Pencil, Trash, UserPlus } from 'lucide-react';
 import SectionSkeleton from './SectionSkeleton';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { useSection } from './useSection';
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
+import { convertToAMPM, formatFullName } from '@/lib/utils';
 import Scheduling from './Scheduling';
 import RoomSchedules from './RoomSchedules';
 import InstructorSchedules from './InstructorSchedules';
-import { Input } from '@/Components/ui/input';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import axios from 'axios';
 
@@ -24,8 +24,8 @@ import {
     ContextMenuItem,
     ContextMenuShortcut,
     ContextMenuTrigger,
-} from "@/Components/ui/context-menu";
-import { Separator } from '@/Components/ui/separator';
+} from "@/components/ui/context-menu";
+import { Separator } from '@/components/ui/separator';
 import NstpEnrollment from './NstpEnrollment';
 
 const TableHeadTemplate = ({ children }) => {

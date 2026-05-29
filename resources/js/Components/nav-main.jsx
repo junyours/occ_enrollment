@@ -45,7 +45,7 @@ import {
     FileClock,
 } from "lucide-react";
 
-import { cn } from "@/Lib/Utils";
+import { cn } from "@/lib/utils";
 import { Link } from "@inertiajs/react";
 import {
     SidebarGroup,
@@ -54,7 +54,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/Components/ui/sidebar";
+} from "@/components/ui/sidebar";
 import { PiStudent } from "react-icons/pi";
 import { MdOutlineMeetingRoom } from "react-icons/md";
 import SchoolYearPicker from "./SchoolYearPicker";

@@ -1,13 +1,13 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, Ellipsis, Eye, Search, X } from 'lucide-react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import React, { useState } from 'react';
-import { formatFullName } from '@/Lib/Utils';
-import { Input } from '@/Components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { formatFullName } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import StudentGrades from '../../components/StudentGrades';
 
 export default function Index({ students, filters }) {

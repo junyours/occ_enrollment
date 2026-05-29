@@ -1,17 +1,17 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Head, useForm } from '@inertiajs/react'
 import React from 'react';
-import { Switch } from '@/Components/ui/switch';
-import { Checkbox } from '@/Components/ui/checkbox';
-import { Label } from '@/Components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
-import { Button } from '@/Components/ui/button';
-import { Separator } from '@/Components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { AlertTriangle, Settings, Users, ShieldCheck, Info } from 'lucide-react';
-import { userRoles } from '@/Lib/UsersUtility';
-import UserRoleBadge from '@/Components/ui/UserRoleBadge'; // The component we built
-import { cn } from '@/Lib/Utils';
+import { userRoles } from '@/lib/usersUtility';
+import UserRoleBadge from '@/components/ui/UserRoleBadge'; // The component we built
+import { cn } from '@/lib/utils';
 
 export default function Index({ settings, errors }) {
     const { data, setData, processing } = useForm({

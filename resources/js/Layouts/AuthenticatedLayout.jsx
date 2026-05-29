@@ -1,14 +1,14 @@
-import { Toaster } from "@/Components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster"
 import { AppSidebar } from "../Components/AppSidebar"
 
 import {
     SidebarInset,
     SidebarTrigger,
     SidebarProvider,
-} from "@/Components/ui/sidebar"
+} from "@/components/ui/sidebar"
 
 import { usePage } from "@inertiajs/react"
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useState } from "react";
 

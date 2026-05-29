@@ -3,7 +3,7 @@ import StudentInfo from './StudentInfo';
 import CollegiateRecords from './components/CollegiateRecords';
 import SYGrades from './SYGrades';
 import Header from './components/Header';
-import { cn } from '@/Lib/Utils';
+import { cn } from '@/lib/utils';
 
 // 1. Used React.forwardRef so we can measure the Header perfectly
 const THead = React.forwardRef((props, ref) => (

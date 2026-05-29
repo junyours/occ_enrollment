@@ -1,16 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { PageTitle } from '@/Components/ui/PageTitle';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageTitle } from '@/components/ui/PageTitle';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
+import { convertToAMPM, formatFullName } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useState } from 'react'
 import TimeTable from '../ScheduleFormats/TimeTable';
 import MobileViewClasses from './MobileViewClasses';
 import html2canvas from 'html2canvas';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowRight, BookOpen, ImageDown, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 

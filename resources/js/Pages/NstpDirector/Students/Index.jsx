@@ -1,19 +1,19 @@
-import { Button } from '@/Components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card'
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { useSchoolYearStore } from '@/components/useSchoolYearStore'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Link, router, usePage } from '@inertiajs/react'
 import { useQuery } from '@tanstack/react-query'
 import React, { useEffect, useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
-import { formatFullName } from '@/Lib/Utils'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { formatFullName } from '@/lib/utils'
 import { Separator } from '@radix-ui/react-context-menu'
 import axios from 'axios'
 import { DownloadButton } from './DownloadButton'
-import { Skeleton } from '@/Components/ui/skeleton'
-import SearchBar from '@/Components/ui/SearchBar'
-import PaginationPages from '@/Components/ui/PaginationPages'
+import { Skeleton } from '@/components/ui/skeleton'
+import SearchBar from '@/components/ui/SearchBar'
+import PaginationPages from '@/components/ui/PaginationPages'
 
 export default function Index({ tab, search }) {
 

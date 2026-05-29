@@ -5,20 +5,20 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
-} from '@/Components/ui/dialog';
+} from '@/components/ui/dialog';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/Components/ui/select';
-import { Input } from '@/Components/ui/input';
-import { Button } from '@/Components/ui/button';
-import { Label } from '@/Components/ui/label';
-import { Alert, AlertDescription } from '@/Components/ui/alert';
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { userRoles } from '@/Lib/Utils';
+import { userRoles } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function AddUserDialog({ open, onOpenChange }) {

@@ -7,16 +7,16 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/Components/ui/select';
-import { Input } from '@/Components/ui/input';
-import { Button } from '@/Components/ui/button';
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UserDetails from './UserDetails';
 import UsersTable from './UsersTable';
 import AddUserDialog from './AddUserDialog';
-import { userRoles } from '@/Lib/Utils';
-import PaginationPages from '@/Components/ui/PaginationPages';
-import SearchBar from '@/Components/ui/SearchBar';
+import { userRoles } from '@/lib/utils';
+import PaginationPages from '@/components/ui/PaginationPages';
+import SearchBar from '@/components/ui/SearchBar';
 
 export default function Index({ users, filters }) {
     const [selectedUser, setSelectedUser] = useState(null);

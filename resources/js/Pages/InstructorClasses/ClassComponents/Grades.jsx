@@ -1,17 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Button } from '@/Components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Download, FileDown, Printer, Upload, Cloud, CloudUpload, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react'
 import axios from 'axios'
 import GradesStudentList from './GradePartials/GradesStudentList'
 import { useToast } from "@/hooks/use-toast";
 import { router, usePage } from '@inertiajs/react'
-import { Card, CardContent, CardHeader } from '@/Components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useReactToPrint } from 'react-to-print';
 import GradeSignatories from './GradePartials/GradeSignatories'
 import GradeHeader from './GradePartials/GradeHeader'
 import { useGradeSubmission } from './GradePartials/useGradeSubmission'
-import PreLoader from '@/Components/preloader/PreLoader'
+import PreLoader from '@/components/preloader/PreLoader'
 import {
     FileText,
     Send,

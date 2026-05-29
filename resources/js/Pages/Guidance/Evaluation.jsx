@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
 import axios from "axios";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
     Dialog,
@@ -13,16 +13,16 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/Components/ui/dialog";
+} from "@/components/ui/dialog";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
+} from "@/components/ui/select";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { formatDateShort } from "@/Lib/Utils";
+import { formatDateShort } from "@/lib/utils";
 import { Pencil, Loader2, Eye, LayoutGrid, List, Trash2 } from "lucide-react";
 
 export default function Evaluation({ schoolYears: initialSchoolYears }) {

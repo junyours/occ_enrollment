@@ -1,4 +1,4 @@
-import { cn } from "@/Lib/Utils";
+import { cn } from "@/lib/utils";
 import OCC_LOGO from "../../images/OCC_LOGO.png";
 
 export default function AppLogo({ size = "md", className = "" }) {

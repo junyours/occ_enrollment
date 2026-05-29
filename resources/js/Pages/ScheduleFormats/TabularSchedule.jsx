@@ -1,6 +1,6 @@
 import React from "react";
-import { convertToAMPM, formatFullName } from "../../Lib/Utils";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
+import { convertToAMPM, formatFullName } from "../../lib/Utils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PiStudent } from "react-icons/pi";
 function TabularSchedule({ data, type }) {
     const sortSchedule = (data) => {

@@ -1,4 +1,4 @@
-import { toTwoDecimals } from '@/Lib/Utils';
+import { toTwoDecimals } from '@/lib/utils';
 import React from 'react'
 import { MiscellaneousFeesList, MiscellaneousFeesTotal } from './MiscellaneousFees';
 

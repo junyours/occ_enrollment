@@ -1,7 +1,7 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, router } from "@inertiajs/react";
-import DataTable from "@/Components/ui/dTable";
+import DataTable from "@/components/ui/dTable";
 
 export default function FacultyListPage({ auth, faculty, schoolYear, departments, filters, semester }) {
     const { data, meta, links } = faculty;

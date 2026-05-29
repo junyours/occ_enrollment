@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatFullName, formatFullNameFML } from '@/lib/utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { AlertCircle, ArrowLeft, BookOpen, CheckCircle, FileText, Loader2, Printer, Rocket, Send, XCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
@@ -10,9 +10,9 @@ import RegistrarHeadGradeDeploymentButton from './RegistrarHeadGradeDeploymentBu
 
 import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
-import { Badge } from '@/Components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { computeFinalGrade } from './GradeUtility';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 import { useReactToPrint } from 'react-to-print';
 import GradeHeader from './GradeHeader';
 

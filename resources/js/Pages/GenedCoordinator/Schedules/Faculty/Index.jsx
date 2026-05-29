@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PreLoader from '@/Components/preloader/PreLoader';
+import PreLoader from '@/components/preloader/PreLoader';
 import { Head } from '@inertiajs/react';
-import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { Switch } from '@/Components/ui/switch';
-import { Label } from '@/Components/ui/label';
+import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import TabularSchedule from '@/Pages/ScheduleFormats/TabularSchedule';
-import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import { Input } from '@/Components/ui/input';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
 import TimeTableSkeleton from '../TimTableSckeleton';
 

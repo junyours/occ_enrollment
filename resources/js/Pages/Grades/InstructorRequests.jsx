@@ -1,9 +1,9 @@
-import InfoTooltip from '@/Components/InfoTooltip';
-import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import InfoTooltip from '@/components/InfoTooltip';
+import SchoolYearPicker from '@/components/SchoolYearPicker';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Link } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';

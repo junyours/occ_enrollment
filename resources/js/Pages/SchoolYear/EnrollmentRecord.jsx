@@ -1,18 +1,18 @@
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Input } from '@/Components/ui/input';
-import { PageTitle } from '@/Components/ui/PageTitle';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { PageTitle } from '@/components/ui/PageTitle';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatFullName } from '@/Lib/Utils';
+import { formatFullName } from '@/lib/utils';
 import { Head } from '@inertiajs/react';
 import { FileDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import StudentSubjects from './StudentSubjects';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
-import SearchBar from '@/Components/ui/SearchBar';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import SchoolYearPicker from '@/components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import SearchBar from '@/components/ui/SearchBar';
 
 function EnrollmentRecord() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();

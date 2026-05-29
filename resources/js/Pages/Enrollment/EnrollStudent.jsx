@@ -2,22 +2,21 @@ import React, { useEffect, useRef, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
 import { Head, usePage } from '@inertiajs/react';
-import { PageTitle } from '@/Components/ui/PageTitle';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from '@/Components/ui/select';
-import { Label } from '@/Components/ui/label';
-import { Input } from '@/Components/ui/input';
-import { cn, convertToAMPM, formatFullName } from '@/Lib/Utils';
-import PreLoader from '@/Components/preloader/PreLoader';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { PageTitle } from '@/components/ui/PageTitle';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { cn, convertToAMPM, formatFullName } from '@/lib/utils';
+import PreLoader from '@/components/preloader/PreLoader';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import TimeTable from '../ScheduleFormats/TimeTable';
 import { Check, ChevronsUpDown, CircleMinus, CirclePlus, ListRestart, Loader2, Search, TriangleAlert, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { Button } from '@/Components/ui/button';
-import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import Checkbox from '@/Components/Checkbox';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import SearchSubject from './SearchSubject';
 
 export default function EnrollStudent({ yearSectionId, courseName, yearlevel, section, schoolYear, departmentId }) {

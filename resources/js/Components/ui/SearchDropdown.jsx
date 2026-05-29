@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Search, Loader2, ChevronDown } from "lucide-react"
-import { cn } from "@/Lib/Utils"
+import { cn } from "@/lib/utils"
 import { Input } from "./input"
 
 /**

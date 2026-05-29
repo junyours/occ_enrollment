@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, FileText, Search, School, SendHorizonal, Mail } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
-import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { formatFullName } from '@/Lib/Utils';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import SchoolYearPicker from '@/components/SchoolYearPicker';
+import { formatFullName } from '@/lib/utils';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import { Label } from '@/Components/ui/label';
-import InfoTooltip from '@/Components/InfoTooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
+import InfoTooltip from '@/components/InfoTooltip';
 
 export default function ChangeRequests() {
     const [searchQuery, setSearchQuery] = useState('');

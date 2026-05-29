@@ -1,11 +1,11 @@
-import { Card, CardContent, CardDescription, CardHeader } from '@/Components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import React from 'react'
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility' 
 import GradeInput from '../GradeInput'
-import { cn } from '@/Lib/Utils'
-import GradeRemarkBadge from '@/Components/GradeRemarkBadge'
+import { cn } from '@/lib/utils'
+import GradeRemarkBadge from '@/components/GradeRemarkBadge'
 
 function GradesStudentList({ grades, status, missingFields, handleGradeChange, setMissingFields, allowMidtermUpload, allowFinalUpload, yearSectionSubjectsId }) {
     return (

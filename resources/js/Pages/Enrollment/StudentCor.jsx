@@ -3,13 +3,13 @@ import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react'
 import CorGenerator from '../COR/CorGenerator';
-import PreLoader from '@/Components/preloader/PreLoader';
-import { Button } from '@/Components/ui/button';
+import PreLoader from '@/components/preloader/PreLoader';
+import { Button } from '@/components/ui/button';
 import { useReactToPrint } from 'react-to-print';
 import { useQuery } from '@tanstack/react-query';
 import CORSkeleton from './CorSkeleton';
 import { set } from 'react-hook-form';
-import { cn } from '@/Lib/Utils';
+import { cn } from '@/lib/utils';
 
 function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId }) {
 

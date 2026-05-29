@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/Components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/Components/ui/table';
-import { Button } from '@/Components/ui/button';
-import PreLoader from '@/Components/preloader/PreLoader';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import PreLoader from '@/components/preloader/PreLoader';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Eye, SquarePlus } from 'lucide-react';
 import {
@@ -15,17 +15,17 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "@/Components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog"
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select"
-import { Skeleton } from '@/Components/ui/skeleton';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import { Input } from '@/Components/ui/input';
+} from "@/components/ui/select"
+import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 export default function CoursesCurriculumLists() {
     const [coursesCurriculums, setCoursesCurriculums] = useState([]);

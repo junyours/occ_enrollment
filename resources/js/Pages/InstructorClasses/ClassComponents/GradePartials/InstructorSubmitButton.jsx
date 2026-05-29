@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Button } from '@/Components/ui/button'
-import { convertToAMPM } from '@/Lib/Utils'
+import { Button } from '@/components/ui/button'
+import { convertToAMPM } from '@/lib/utils'
 import { Clock, Loader2, Send } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export default function InstructorSubmitButton({ disabledButton, gradeSubmission, onSubmit, cancel }) {
     const {

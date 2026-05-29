@@ -10,11 +10,11 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/Components/ui/table";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { MoveLeft, MoveRight } from "lucide-react";
-import { cn } from "@/Lib/Utils";
+import { cn } from "@/lib/utils";
 
 export function DataTable({
     columns,

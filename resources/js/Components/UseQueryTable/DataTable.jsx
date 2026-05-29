@@ -1,6 +1,6 @@
 // components/DataTable.jsx
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function DataTable({ columns, data, isLoading, isFetching }) {
     return (

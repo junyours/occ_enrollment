@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Button } from '@/Components/ui/button'
-import { convertToAMPM } from '@/Lib/Utils'
+import { Button } from '@/components/ui/button'
+import { convertToAMPM } from '@/lib/utils'
 import { Clock, SendHorizonal} from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
-import { Label } from '@/Components/ui/label'
-import { Input } from '@/Components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 export default function ProgramHeadGradeVerificationButton({ disabledButton, handleCancel, type, status, rejectionMessage, setRejectionMessage, handleReject, verify, unReject }) {
 

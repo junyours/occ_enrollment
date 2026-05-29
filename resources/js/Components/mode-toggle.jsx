@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Check, Palette } from "lucide-react"; // ✅ Icons for selected theme
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,8 +10,8 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
-import { useTheme } from "@/Components/theme-provider";
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/components/theme-provider";
 
 export function ModeToggle() {
     const { theme, setTheme } = useTheme();

@@ -1,7 +1,7 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
-import DataTable from "@/Components/ui/dTable";
+import DataTable from "@/components/ui/dTable";
 
 export default function FacultySubjectsPage({ auth, faculty, subjects }) {
     const columns = [

@@ -1,4 +1,4 @@
-import { convertToAMPM, formatFullName, formatFullNameFML } from "@/Lib/Utils";
+import { convertToAMPM, formatFullName, formatFullNameFML } from "@/lib/utils";
 import OCC_LOGO from '../../../images/OCC_LOGO.png'
 
 function ScheduleGenerator({ data, schoolYear }) {

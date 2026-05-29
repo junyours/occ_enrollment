@@ -1,11 +1,11 @@
 import { Head } from '@inertiajs/react'
-import { PageTitle } from '@/Components/ui/PageTitle'
-import { Tabs, TabsContent, TabsList, TabsTrigger, } from "@/Components/ui/tabs"
+import { PageTitle } from '@/components/ui/PageTitle'
+import { Tabs, TabsContent, TabsList, TabsTrigger, } from "@/components/ui/tabs"
 import React from 'react'
 import GradesIndex from './NstpTabs/Grades/Index'
 import Students from './NstpTabs/Students'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Card, CardContent } from '@/Components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default function OpenNstpClass({ id, componentName, sectionName, gradeSubmissionStatus, studentsList, schoolYear }) {
     const section = `${componentName.toUpperCase()}-${sectionName}`

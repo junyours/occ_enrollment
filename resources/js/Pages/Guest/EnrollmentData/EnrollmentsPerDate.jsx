@@ -4,12 +4,12 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
-} from '@/Components/ui/card'
+} from '@/components/ui/card'
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from '@/Components/ui/chart'
+} from '@/components/ui/chart'
 import {
     AreaChart,
     Area,

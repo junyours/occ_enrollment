@@ -1,12 +1,12 @@
-import { Button } from '@/Components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
-import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
-import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
+import { convertToAMPM, formatFullName } from '@/lib/utils';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import axios from 'axios';
 import { Check, CircleX } from 'lucide-react';

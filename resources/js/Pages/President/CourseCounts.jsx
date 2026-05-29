@@ -17,11 +17,11 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
-} from "@/Components/ui/card"
+} from "@/components/ui/card"
 
 import {
     ChartContainer,
-} from "@/Components/ui/chart"
+} from "@/components/ui/chart"
 
 function CoursesCounts({ data }) {
 

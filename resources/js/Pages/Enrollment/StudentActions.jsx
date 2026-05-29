@@ -5,9 +5,9 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter
-} from '@/Components/ui/dialog';
-import { Button } from '@/Components/ui/button';
-import { formatFullName } from '@/Lib/Utils';
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { formatFullName } from '@/lib/utils';
 
 function StudentActions({ show, setShowModal, onConfirm, student }) {
 

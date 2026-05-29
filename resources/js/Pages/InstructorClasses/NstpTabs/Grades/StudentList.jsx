@@ -1,15 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import GradeInput from '../../ClassComponents/GradeInput';
-import { cn } from '@/Lib/Utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
-import { formatName } from '@/Lib/InfoUtils';
-import GradeRemarkBadge from '@/Components/GradeRemarkBadge';
+import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { formatName } from '@/lib/infoUtils';
+import GradeRemarkBadge from '@/components/GradeRemarkBadge';
 
 const CardTableHead = ({ children }) => (
     <Card>
@@ -52,6 +52,51 @@ const Skeleton = () => (
         ))}
     </CardTableHead>
 )
+
+const TABLE_CELL_CLASS = "print:p-0";
+const INPUT_BASE_CLASS = "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out";
+
+// 2. Create a reusable component for the Grade logic
+const GradeCellContent = ({ status, grade, allowUpload, isMissing, onGradeChange, index, field }) => {
+    const isLocked = ['submitted', 'deployed', 'verified'].includes(status);
+    const inputClassName = cn(INPUT_BASE_CLASS, isMissing ? 'border-red-500' : '');
+
+    // If locked, just show the grade text
+    if (isLocked) {
+        return <div>{grade}</div>;
+    }
+
+    // The shared input component
+    const InputComponent = (
+        <GradeInput
+            value={grade}
+            className={inputClassName}
+            disabled={!allowUpload}
+            min={1}
+            max={5}
+            index={index}
+            field={field}
+            onValueChange={!allowUpload ? undefined : onGradeChange}
+        />
+    );
+
+    return (
+        <>
+            {!allowUpload ? (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div className="inline-block">{InputComponent}</div>
+                    </TooltipTrigger>
+                    <TooltipContent>Not allowed to upload grades</TooltipContent>
+                </Tooltip>
+            ) : (
+                <div className="inline-block">{InputComponent}</div>
+            )}
+            {/* Print-only fallback */}
+            <div className="hidden print:block">{grade}</div>
+        </>
+    );
+};
 
 export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }) {
 
@@ -169,117 +214,46 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
                     const finalGrade = computeFinalGrade(student.midterm_grade, student.final_grade);
 
                     return (
-                        <TableRow key={student.user_id_no} className='p-0 print:p-0'>
-                            <TableCell className="text-center print:p-0">{index + 1}.</TableCell>
-                            <TableCell className='print:p-0'>{student.user_id_no}</TableCell>
-                            <TableCell className='print:p-0'>{formatName(student, { format: 'LFM' })}</TableCell>
+                        <TableRow key={student.user_id_no} className="p-0 print:p-0">
+                            <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>{index + 1}.</TableCell>
+                            <TableCell className={TABLE_CELL_CLASS}>{student.user_id_no}</TableCell>
+                            <TableCell className={TABLE_CELL_CLASS}>{formatName(student, { format: 'LFM' })}</TableCell>
 
-                            {/* MIDTERM GRADE */}
-                            <TableCell className="text-center print:p-0 ">
-                                {['submitted', 'deployed', 'verified'].includes(student.midterm_status) ? (
-                                    <div>{student.midterm_grade}</div>
-                                ) : (
-                                    <>
-                                        {!allowMidtermUpload ? (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="inline-block">
-                                                        <GradeInput
-                                                            value={student.midterm_grade}
-                                                            className={cn(
-                                                                "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
-                                                                "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                                missingFields[index]?.midterm ? 'border-red-500' : ''
-                                                            )}
-                                                            disabled
-                                                        />
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Not allowed to upload grades</TooltipContent>
-                                            </Tooltip>
-                                        ) : (
-                                            <div className="inline-block">
-                                                <GradeInput
-                                                    className={cn(
-                                                        "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
-                                                        "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                        missingFields[index]?.midterm ? 'border-red-500' : ''
-                                                    )}
-                                                    disabled={!allowMidtermUpload}
-                                                    min={1}
-                                                    max={5}
-                                                    value={student.midterm_grade}
-                                                    onValueChange={(value) => {
-                                                        updateGrade(student.id, 'midterm_grade', value);
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
-                                        <div className='hidden print:block'>{student.midterm_grade}</div>
-                                    </>
-                                )}
+                            {/* Midterm Column */}
+                            <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>
+                                <GradeCellContent
+                                    status={student.midterm_status}
+                                    grade={student.midterm_grade}
+                                    allowUpload={allowMidtermUpload}
+                                    isMissing={missingFields[index]?.midterm}
+                                    index={index}
+                                    field="midterm_grade"
+                                    onGradeChange={(value) => updateGrade(student.id, 'midterm_grade', value)}
+                                />
                             </TableCell>
 
-                            {/* FINAL GRADE */}
-                            <TableCell className="text-center print:p-0">
-                                {/* Changed status.final_status to student.final_status */}
-                                {['submitted', 'deployed', 'verified'].includes(student.final_status) ? (
-                                    <>{student.final_grade}</>
-                                ) : (
-                                    <>
-                                        {!allowFinalUpload ? (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="inline-block">
-                                                        <GradeInput
-                                                            value={student.final_grade}
-                                                            className={cn(
-                                                                "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
-                                                                "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                                missingFields[index]?.final ? 'border-red-500' : ''
-                                                            )}
-                                                            disabled
-                                                        />
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent>Not allowed to upload grades</TooltipContent>
-                                            </Tooltip>
-                                        ) : (
-                                            <div className="inline-block">
-                                                <GradeInput
-                                                    className={cn(
-                                                        "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
-                                                        "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                        missingFields[index]?.final ? 'border-red-500' : ''
-                                                    )}
-                                                    disabled={!allowFinalUpload}
-                                                    min={1}
-                                                    max={5}
-                                                    value={student.final_grade}
-                                                    index={index}
-                                                    field="final_grade"
-                                                    onValueChange={(returnedIndex, returnedField, value) => {
-                                                        // Fixed: Changed handleGradeChange to updateGrade
-                                                        const currentStudent = displayGrades[returnedIndex];
-                                                        updateGrade(currentStudent.id, returnedField, value);
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
-                                        <div className='hidden print:block'>{student.final_grade}</div>
-                                    </>
-                                )}
+                            {/* Final Column */}
+                            <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>
+                                <GradeCellContent
+                                    status={student.final_status}
+                                    grade={student.final_grade}
+                                    allowUpload={allowFinalUpload}
+                                    isMissing={missingFields[index]?.final}
+                                    index={index}
+                                    field="final_grade"
+                                    onGradeChange={(value) => updateGrade(student.id, 'final_grade', value)}
+                                />
                             </TableCell>
 
-                            <TableCell className="text-center print:p-0">
+                            <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>
                                 {finalGrade || '-'}
                             </TableCell>
 
-                            <TableCell className="text-center print:p-0">
+                            <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>
                                 <GradeRemarkBadge midterm={student.midterm_grade} final={student.final_grade} />
                             </TableCell>
                         </TableRow>
-                    )
+                    );
                 })}
             </CardTableHead>
         </div>

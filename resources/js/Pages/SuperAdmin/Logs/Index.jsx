@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PaginationPages from '@/Components/ui/PaginationPages';
-import { formatName } from '@/Lib/InfoUtils';
+import PaginationPages from '@/components/ui/PaginationPages';
+import { formatName } from '@/lib/infoUtils';
 
 import {
     Table,
@@ -11,18 +11,18 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/Components/ui/table";
-import { Badge } from "@/Components/ui/badge";
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
     Card,
     CardContent,
-} from "@/Components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { userRoles, formatRoleName } from '@/Lib/UsersUtility';
-import SearchBar from '@/Components/ui/SearchBar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog';
-import { Button } from '@/Components/ui/button';
-import JSONFormatter from '@/Components/ui/JSONFormatter';
+} from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { userRoles, formatRoleName } from '@/lib/usersUtility';
+import SearchBar from '@/components/ui/SearchBar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import JSONFormatter from '@/components/ui/JSONFormatter';
 
 const getMethodBadge = (method) => {
     switch (method) {

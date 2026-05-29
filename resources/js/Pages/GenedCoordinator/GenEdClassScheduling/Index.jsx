@@ -1,5 +1,5 @@
-import { PageTitle } from '@/Components/ui/PageTitle';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import { PageTitle } from '@/components/ui/PageTitle';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react'
@@ -10,7 +10,7 @@ import Scheduling from './Scheduling';
 import useScheduleStore from './useClassScheduleStore';
 import InstructorSchedules from './InstructorSchedules';
 import RoomSchedules from './RoomSchedules';
-import { formatFullName } from '@/Lib/Utils';
+import { formatFullName } from '@/lib/utils';
 
 export default function Index({ course, yearlevel, section }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();

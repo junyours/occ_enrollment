@@ -1,13 +1,13 @@
-import { Dialog, DialogContent } from '@/Components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table"
-import { Badge } from "@/Components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/Components/ui/alert"
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Search, CheckCircle2, XCircle, User } from 'lucide-react'
 import axios from 'axios'
 import React, { useMemo } from 'react'
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility'
-import { Card, CardContent } from '@/Components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 
 const semesterDisplayMap = {
     First: <div>1<sup>st</sup> Semester</div>,

@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
-import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table"
 import { AlarmClockPlus, LoaderCircle, Pencil, Trash } from 'lucide-react';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
+import { convertToAMPM, formatFullName } from '@/lib/utils';
 import { usePage } from '@inertiajs/react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { router } from '@inertiajs/react'
 
 function ClassList({

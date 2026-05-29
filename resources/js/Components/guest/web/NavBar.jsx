@@ -4,17 +4,17 @@ import {
     NavigationMenuLink,
     NavigationMenuList,
     navigationMenuTriggerStyle,
-} from "@/Components/ui/navigation-menu";
+} from "@/components/ui/navigation-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link, router, usePage } from "@inertiajs/react";
-import { Drawer, DrawerContent } from "@/Components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "../../ui/button";
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/Components/ui/accordion";
+} from "@/components/ui/accordion";
 import { UserCircle } from "lucide-react";
 
 const items = [

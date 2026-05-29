@@ -1,8 +1,8 @@
 import { usePage, router, useForm } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
-import { PageTitle } from "@/Components/ui/PageTitle";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { PageTitle } from "@/components/ui/PageTitle";
 import React, { useState } from "react";
 
 const UnknownKeywords = () => {

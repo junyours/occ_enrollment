@@ -1,4 +1,4 @@
-import { formatDate } from '@/Lib/Utils'
+import { formatDate } from '@/lib/utils'
 import React from 'react'
 
 function CorStudentInfo({data}) {

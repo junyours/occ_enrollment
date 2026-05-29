@@ -1,12 +1,12 @@
 import React from 'react'
 import { usePage, Link, Head } from '@inertiajs/react'
-import { PageTitle } from '@/Components/ui/PageTitle'
+import { PageTitle } from '@/components/ui/PageTitle'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import {
     Tabs,
     TabsList,
     TabsTrigger,
-} from '@/Components/ui/tabs'
+} from '@/components/ui/tabs'
 import Dashboard from '../Enrollment/Dashboard'
 import EnrollmentCourseSection from '../Enrollment/EnrollmentCourseSection'
 import ClassScheduling from '../Enrollment/ClassScheduling/ClassScheduling'

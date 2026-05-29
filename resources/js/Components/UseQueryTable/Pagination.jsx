@@ -1,6 +1,6 @@
 // components/Pagination.jsx
 import React from 'react';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Pagination({ page, totalPages, totalItems, setPage, customFrom, customTo, data }) {

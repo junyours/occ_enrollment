@@ -2,7 +2,7 @@ import b4 from "../../../../images/guest/backgrounds/4.jpg";
 import m1 from "../../../../images/guest/mission-vision/1.jpg";
 import m2 from "../../../../images/guest/mission-vision/2.jpg";
 import m3 from "../../../../images/guest/mission-vision/3.jpg";
-import AnimatedSection from "@/Components/guest/welcome/animated-section";
+import AnimatedSection from "@/components/guest/welcome/animated-section";
 
 export default function Section5() {
     return (

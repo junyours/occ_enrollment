@@ -1,7 +1,7 @@
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { convertToAMPM } from '@/Lib/Utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { convertToAMPM } from '@/lib/utils';
 import { AlertCircle, BookOpen, Eye, Loader2 } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 

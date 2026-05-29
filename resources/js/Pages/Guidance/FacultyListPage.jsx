@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link, router } from "@inertiajs/react";
-import DataTable from "@/Components/ui/dTable";
+import DataTable from "@/components/ui/dTable";
 import { Download, Loader2 } from "lucide-react";
 
 export default function FacultyListPage({

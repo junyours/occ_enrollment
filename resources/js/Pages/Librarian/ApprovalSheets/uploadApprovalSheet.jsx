@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Upload, FileText, X, Search, Users, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
-import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import SchoolYearPicker from '@/components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Head, router } from '@inertiajs/react';
-import { cn, formatFullName } from '@/Lib/Utils';
+import { cn, formatFullName } from '@/lib/utils';
 import { set } from 'react-hook-form';
 
 const yearMap = {

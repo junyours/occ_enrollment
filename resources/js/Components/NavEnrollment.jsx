@@ -1,6 +1,6 @@
 import { usePage } from "@inertiajs/react";
 import { LayoutDashboard, BookOpen, GraduationCap } from "lucide-react";
-import { cn, formatDateShort } from "@/Lib/Utils"; // Ensure you have a utility for class merging
+import { cn, formatDateShort } from "@/lib/utils"; // Ensure you have a utility for class merging
 import { Link } from "@inertiajs/react";
 import {
     SidebarGroup,
@@ -9,7 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/Components/ui/sidebar";
+} from "@/components/ui/sidebar";
 import { DoorClosed, User, NotebookText } from "lucide-react";
 
 export function NavEnrollment() {

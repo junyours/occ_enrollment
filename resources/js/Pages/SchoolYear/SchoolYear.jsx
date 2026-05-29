@@ -1,9 +1,9 @@
-import PreLoader from '@/Components/preloader/PreLoader';
-import { Badge } from '@/Components/ui/badge';
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import PreLoader from '@/components/preloader/PreLoader';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatDateShort } from '@/Lib/Utils';
+import { formatDateShort } from '@/lib/utils';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import {
@@ -13,7 +13,7 @@ import {
     SheetFooter,
     SheetHeader,
     SheetTitle,
-} from "@/Components/ui/sheet"
+} from "@/components/ui/sheet"
 import {
     Dialog,
     DialogContent,
@@ -21,13 +21,13 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/Components/ui/dialog"
-import { Input } from "@/Components/ui/input"
-import { Label } from "@/Components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import Checkbox from '@/Components/Checkbox';
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Checkbox from '@/components/Checkbox';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { PageTitle } from '@/Components/ui/PageTitle';
+import { PageTitle } from '@/components/ui/PageTitle';
 import SchoolYearSettings from './SchoolYearSettings';
 
 export default function SchoolYear() {

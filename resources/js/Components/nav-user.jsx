@@ -1,6 +1,6 @@
 import { Link, usePage } from "@inertiajs/react";
-import { formatFullNameFML } from "@/Lib/Utils";
-import { ModeToggle } from "@/Components/mode-toggle";
+import { formatFullNameFML } from "@/lib/utils";
+import { ModeToggle } from "@/components/mode-toggle";
 
 import {
     BadgeCheck,
@@ -12,7 +12,7 @@ import {
 import {
     Avatar,
     AvatarFallback,
-} from "@/Components/ui/avatar";
+} from "@/components/ui/avatar";
 
 import {
     DropdownMenu,
@@ -22,14 +22,14 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/Components/ui/sidebar";
+} from "@/components/ui/sidebar";
 
 export function NavUser() {
     const { auth } = usePage().props;

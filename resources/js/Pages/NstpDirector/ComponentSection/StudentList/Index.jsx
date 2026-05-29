@@ -1,14 +1,14 @@
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog';
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Input } from '@/Components/ui/input';
-import { PageTitle } from '@/Components/ui/PageTitle'
-import { Skeleton } from '@/Components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { PageTitle } from '@/components/ui/PageTitle'
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
+import { convertToAMPM, formatFullName } from '@/lib/utils';
 import { router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios, { Axios } from 'axios';

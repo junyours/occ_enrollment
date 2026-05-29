@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 
 export default function ErrorPage() {
     const { status, title, message } = usePage().props;

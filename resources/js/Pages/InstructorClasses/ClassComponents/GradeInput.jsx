@@ -1,5 +1,5 @@
-import { Input } from '@/Components/ui/input'
-import { cn } from '@/Lib/Utils'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import React, { useRef, useEffect } from 'react'
 
 export default function GradeInput({

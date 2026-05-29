@@ -1,20 +1,20 @@
-import { DataTable } from "@/Components/table/data-table";
+import { DataTable } from "@/components/table/data-table";
 import {
     Sheet,
     SheetContent,
     SheetDescription,
     SheetHeader,
     SheetTitle,
-} from "@/Components/ui/sheet";
-import { Card } from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
+} from "@/components/ui/sheet";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/Components/ui/accordion";
+} from "@/components/ui/accordion";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -22,7 +22,7 @@ import { useMemo, useState } from "react";
 import { debounce } from "lodash";
 import { router } from "@inertiajs/react";
 import { Plus } from "lucide-react";
-import { capitalizeFirstLetter, cn } from "@/Lib/Utils";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
 
 export default function StudentBalance() {
     const [selectedStudent, setSelectedStudent] = useState(null);

@@ -1,10 +1,10 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import React from 'react'
-import { Button } from '@/Components/ui/button'
+import { Button } from '@/components/ui/button'
 import { LogIn } from 'lucide-react'
 import { router } from '@inertiajs/react'
-import UserRoleBadge from '@/Components/ui/UserRoleBadge'
-import { Card, CardContent } from '@/Components/ui/card'
+import UserRoleBadge from '@/components/ui/UserRoleBadge'
+import { Card, CardContent } from '@/components/ui/card'
 
 function UsersTable({ users }) {
 

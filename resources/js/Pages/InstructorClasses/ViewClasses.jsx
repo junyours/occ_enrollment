@@ -1,20 +1,20 @@
-import PreLoader from '@/Components/preloader/PreLoader';
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import PreLoader from '@/components/preloader/PreLoader';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM } from '@/Lib/Utils';
+import { convertToAMPM } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query';
 import TimeTable from '../ScheduleFormats/TimeTable';
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MobileViewClasses from './MobileViewClasses';
 import html2canvas from 'html2canvas';
 import { ImageDown, BookOpen, Clock, MapPin, Users, ArrowRight, GraduationCap, Calendar, Loader2, AlertCircle } from 'lucide-react';
-import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import SchoolYearPicker from '@/components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
 
 const CellData = ({ icon, value }) => (
     <div className="flex items-center gap-2">

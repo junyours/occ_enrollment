@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
 import axios from "axios";
-import { Card, CardHeader, CardContent } from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogDescription,
-} from "@/Components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronRight } from "lucide-react";
 

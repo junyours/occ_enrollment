@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
-import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table'
-import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities'
-import { convertToAMPM } from '@/Lib/Utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+import { detectTwoScheduleConflict } from '@/lib/conflictUtilities'
+import { convertToAMPM } from '@/lib/utils'
 import React, { useEffect, useState } from 'react'
 
 function Instructor({ data, instructorId, yearSectionId, instructorName, setInstructorConflict, day, start_time, end_time, setLoadingInstructors }) {

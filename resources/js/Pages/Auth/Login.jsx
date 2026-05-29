@@ -2,14 +2,14 @@ import { Link, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Head } from "@inertiajs/react";
-import { Card, CardContent } from "@/Components/ui/card";
-import { Input } from "@/Components/ui/input";
-import { Button } from "@/Components/ui/button";
-import { Alert, AlertTitle } from "@/Components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, GraduationCap, BookOpen, BarChart3, Globe } from "lucide-react";
-import AppLogo from "@/Components/AppLogo";
-import { TwoModeToggle } from "@/Components/two-modes-toggle";
-import { Checkbox } from "@/Components/ui/checkbox";
+import AppLogo from "@/components/AppLogo";
+import { TwoModeToggle } from "@/components/two-modes-toggle";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, setError } = useForm({

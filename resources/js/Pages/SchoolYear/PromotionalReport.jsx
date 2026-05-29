@@ -1,19 +1,19 @@
-import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
-import { Input } from '@/Components/ui/input';
-import { PageTitle } from '@/Components/ui/PageTitle';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { PageTitle } from '@/components/ui/PageTitle';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatFullName } from '@/Lib/Utils';
+import { formatFullName } from '@/lib/utils';
 import { Head } from '@inertiajs/react';
 import { FileDown, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import StudentSubjectsGrades from './StudentSubjectsGrades';
-import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
-import SearchBar from '@/Components/ui/SearchBar';
+import SchoolYearPicker from '@/components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import SearchBar from '@/components/ui/SearchBar';
 function PromotionalReport() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
 

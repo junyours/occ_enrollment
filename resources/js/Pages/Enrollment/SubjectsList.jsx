@@ -4,9 +4,9 @@ import { Head } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Download, Eye, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import ViewStudents from './SubjectListComponents/ViewStudents';

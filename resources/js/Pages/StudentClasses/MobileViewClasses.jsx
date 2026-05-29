@@ -1,15 +1,15 @@
 import React from 'react'
-import { Badge } from '@/Components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/Components/ui/card'
-import { convertToAMPM, formatFullName } from '@/Lib/Utils'
+} from '@/components/ui/card'
+import { convertToAMPM, formatFullName } from '@/lib/utils'
 import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, ArrowRight, Calendar, ChevronRight } from 'lucide-react'
-import { Button } from '@/Components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Link } from '@inertiajs/react'
 
 const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());

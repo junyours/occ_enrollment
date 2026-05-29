@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Dropdown from '@/Components/Dropdown';
+import Dropdown from '@/components/Dropdown';
 import { HiBars3 } from "react-icons/hi2";
 
 function Header({ toggleSidebar, user }) {

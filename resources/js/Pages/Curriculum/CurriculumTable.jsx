@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/Components/ui/table";
-import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/ui/table";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pencil, Trash } from "lucide-react";
 import axios from "axios";
 import { useForm } from "@inertiajs/react";

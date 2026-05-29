@@ -11,8 +11,8 @@ import {
 import logo from "/resources/images/OCC_LOGO.png";
 import {
   Card, CardHeader, CardContent
-} from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 
 // Utility function to generate a random hex color
