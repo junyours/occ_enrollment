@@ -4,19 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
-<<<<<<< HEAD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-=======
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Card } from "@/Components/ui/card";
-import { Separator } from "@/Components/ui/separator";
-import { Badge } from "@/Components/ui/badge";
->>>>>>> a044d26d14048d13382567c14d969c2c9eaf6554
 import {
     Select,
     SelectContent,
