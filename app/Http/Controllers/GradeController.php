@@ -45,6 +45,9 @@ class GradeController extends Controller
             ->select(
                 'faculty.faculty_id',
                 'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
                 DB::raw("CONCAT(user_information.last_name, ', ', user_information.first_name, ' ',
             IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
                 CONCAT(SUBSTRING(user_information.middle_name, 1, 1), '.'),
