@@ -23,6 +23,17 @@ import { debounce } from "lodash";
 import { router } from "@inertiajs/react";
 import { Plus } from "lucide-react";
 import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function StudentBalance() {
     const [selectedStudent, setSelectedStudent] = useState(null);
@@ -125,6 +136,13 @@ export default function StudentBalance() {
         refetchStudentDetails();
         refetchStudentBalance();
     };
+
+    const allBalancesPaid =
+        details?.school_years?.every((schoolYear) =>
+            schoolYear.semesters.every((semester) =>
+                semester.items.every((item) => item.remaining <= 0),
+            ),
+        ) ?? false;
 
     const columns = [
         { accessorKey: "user_id_no", header: "ID Number" },
@@ -231,12 +249,52 @@ export default function StudentBalance() {
                         <h3 className="font-semibold">Bulk Pay All Items</h3>
                         <Input
                             placeholder="OR Number"
+                            disabled={allBalancesPaid}
                             value={bulkOrNumber}
                             onChange={(e) => setBulkOrNumber(e.target.value)}
                         />
-                        <Button onClick={payAll} className="w-full">
-                            Pay All Balances
-                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    className="w-full"
+                                    disabled={allBalancesPaid}
+                                    variant={
+                                        allBalancesPaid
+                                            ? "secondary"
+                                            : "default"
+                                    }
+                                >
+                                    {allBalancesPaid
+                                        ? "All Balances Paid"
+                                        : "Pay All Balances"}
+                                </Button>
+                            </AlertDialogTrigger>
+
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                        Confirm Full Payment
+                                    </AlertDialogTitle>
+
+                                    <AlertDialogDescription>
+                                        This will pay all remaining balances for
+                                        this student using OR Number "
+                                        {bulkOrNumber}". This action cannot be
+                                        undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                        Cancel
+                                    </AlertDialogCancel>
+
+                                    <AlertDialogAction onClick={payAll}>
+                                        Confirm Payment
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </Card>
                     <div className="mt-5 space-y-4">
                         <Accordion type="single" collapsible>
@@ -496,28 +554,97 @@ export default function StudentBalance() {
                                                                                     </div>
 
                                                                                     {/* BUTTON */}
-                                                                                    <Button
-                                                                                        className="w-full"
-                                                                                        disabled={
-                                                                                            isPaid
-                                                                                        }
-                                                                                        variant={
-                                                                                            isPaid
-                                                                                                ? "secondary"
-                                                                                                : "default"
-                                                                                        }
-                                                                                        onClick={() =>
-                                                                                            paySingle(
-                                                                                                item.id,
-                                                                                            )
-                                                                                        }
-                                                                                    >
-                                                                                        {isPaid
-                                                                                            ? "Fully Paid"
-                                                                                            : isPartial
-                                                                                              ? "Continue Partial Payment"
-                                                                                              : "Pay This Type"}
-                                                                                    </Button>
+                                                                                    <AlertDialog>
+                                                                                        <AlertDialogTrigger
+                                                                                            asChild
+                                                                                        >
+                                                                                            <Button
+                                                                                                className="w-full"
+                                                                                                disabled={
+                                                                                                    isPaid
+                                                                                                }
+                                                                                                variant={
+                                                                                                    isPaid
+                                                                                                        ? "secondary"
+                                                                                                        : "default"
+                                                                                                }
+                                                                                            >
+                                                                                                {isPaid
+                                                                                                    ? "Fully Paid"
+                                                                                                    : isPartial
+                                                                                                      ? "Continue Partial Payment"
+                                                                                                      : "Pay This Type"}
+                                                                                            </Button>
+                                                                                        </AlertDialogTrigger>
+
+                                                                                        <AlertDialogContent>
+                                                                                            <AlertDialogHeader>
+                                                                                                <AlertDialogTitle>
+                                                                                                    Confirm
+                                                                                                    Payment
+                                                                                                </AlertDialogTitle>
+
+                                                                                                <AlertDialogDescription>
+                                                                                                    You
+                                                                                                    are
+                                                                                                    about
+                                                                                                    to
+                                                                                                    pay{" "}
+                                                                                                    <strong>
+                                                                                                        {
+                                                                                                            item
+                                                                                                                .type
+                                                                                                                ?.type_name
+                                                                                                        }
+                                                                                                    </strong>
+                                                                                                    .
+                                                                                                    <br />
+                                                                                                    Remaining
+                                                                                                    Balance:{" "}
+                                                                                                    <strong>
+                                                                                                        {formatCurrency(
+                                                                                                            item.remaining,
+                                                                                                        )}
+                                                                                                    </strong>
+                                                                                                    <br />
+                                                                                                    OR
+                                                                                                    Number:{" "}
+                                                                                                    <strong>
+                                                                                                        {payment.or_number ||
+                                                                                                            "N/A"}
+                                                                                                    </strong>
+                                                                                                    <br />
+                                                                                                    Amount:{" "}
+                                                                                                    <strong>
+                                                                                                        {payment.amount
+                                                                                                            ? formatCurrency(
+                                                                                                                  Number(
+                                                                                                                      payment.amount,
+                                                                                                                  ),
+                                                                                                              )
+                                                                                                            : "N/A"}
+                                                                                                    </strong>
+                                                                                                </AlertDialogDescription>
+                                                                                            </AlertDialogHeader>
+
+                                                                                            <AlertDialogFooter>
+                                                                                                <AlertDialogCancel>
+                                                                                                    Cancel
+                                                                                                </AlertDialogCancel>
+
+                                                                                                <AlertDialogAction
+                                                                                                    onClick={() =>
+                                                                                                        paySingle(
+                                                                                                            item.id,
+                                                                                                        )
+                                                                                                    }
+                                                                                                >
+                                                                                                    Confirm
+                                                                                                    Payment
+                                                                                                </AlertDialogAction>
+                                                                                            </AlertDialogFooter>
+                                                                                        </AlertDialogContent>
+                                                                                    </AlertDialog>
                                                                                 </div>
                                                                             );
                                                                         },
