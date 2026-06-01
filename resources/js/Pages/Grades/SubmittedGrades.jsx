@@ -16,6 +16,7 @@ import SchoolYearPicker from '@/Components/SchoolYearPicker';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, BookOpen, Loader2 } from 'lucide-react';
+import { formatName } from '@/Lib/InfoUtils';
 
 export default function SubmittedGrades({ departmentId }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
@@ -48,7 +49,7 @@ export default function SubmittedGrades({ departmentId }) {
         <div className="space-y-4">
             <Head title='Submitted Grades' />
             <div className='flex flex-row gap-4'>
-                <SchoolYearPicker layout='vertical'/>
+                <SchoolYearPicker layout='vertical' />
                 <Card className="w-full">
                     <CardHeader>
                         {/* <CardTitle className='text-xl'>Faculty List</CardTitle> */}
@@ -88,12 +89,12 @@ export default function SubmittedGrades({ departmentId }) {
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead className="w-[40px] text-center">#</TableHead>
-                                                    <TableHead className="w-[140px]">FACULTY ID</TableHead>
-                                                    <TableHead className=''>NAME</TableHead>
-                                                    <TableHead className='w-32 text-center'>SUBJECTS</TableHead>
-                                                    <TableHead className='w-32'>VERIFIED</TableHead>
-                                                    <TableHead className="w-32 text-right">ACTION</TableHead>
+                                                    <TableHead className="w-10 text-center">#</TableHead>
+                                                    <TableHead className="w-24">FACULTY ID</TableHead>
+                                                    <TableHead className='w-48'>NAME</TableHead>
+                                                    <TableHead className='w-28'>VERIFIED</TableHead>
+                                                    <TableHead className='w-24 text-left'>SUBJECTS</TableHead>
+                                                    <TableHead className="w-24 text-right">ACTION</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                         </Table>
@@ -103,17 +104,34 @@ export default function SubmittedGrades({ departmentId }) {
                                             <TableBody>
                                                 {filteredFacultyList.map((faculty, index) => (
                                                     <TableRow key={faculty.user_id_no}>
-                                                        <TableCell className="w-[40px] text-center">{index + 1}.</TableCell>
-                                                        <TableCell className='w-[140px]'>{faculty.user_id_no}</TableCell>
-                                                        <TableCell>{faculty.name}</TableCell>
-                                                        <TableCell className='w-32 text-center'>{faculty.subjects_count}</TableCell>
-                                                        <TableCell className='w-32 py-0'>
-                                                            <div className='flex flex-col'>
-                                                                <div>Midterm: {faculty.midterm_valid_count}</div>
-                                                                <div>Final: {faculty.final_valid_count}</div>
+                                                        <TableCell className="w-10 text-center">{index + 1}.</TableCell>
+                                                        <TableCell className='w-24'>{faculty.user_id_no}</TableCell>
+                                                        <TableCell className='w-48'>{formatName(faculty, { format: 'LFM' })}</TableCell>
+                                                        <TableCell className='w-28'>
+                                                            <div className='flex flex-col gap-1 text-sm'>
+                                                                <div className='flex items-center justify-between'>
+                                                                    <span className='text-muted-foreground'>Midterm:</span>
+                                                                    <span className={`font-medium ${faculty.midterm_valid_count === faculty.subjects_count
+                                                                        ? 'text-emerald-600'
+                                                                        : 'text-amber-500'
+                                                                        }`}>
+                                                                        {faculty.midterm_valid_count}
+                                                                    </span>
+                                                                </div>
+                                                                <div className='border-b'/>
+                                                                <div className='flex items-center justify-between'>
+                                                                    <span className='text-muted-foreground'>Final:</span>
+                                                                    <span className={`font-medium ${faculty.final_valid_count === faculty.subjects_count
+                                                                        ? 'text-emerald-600'
+                                                                        : 'text-amber-500'
+                                                                        }`}>
+                                                                        {faculty.final_valid_count}
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell className="w-32 text-right">
+                                                        <TableCell className='w-24 text-left text-2xl'>/{faculty.subjects_count}</TableCell>
+                                                        <TableCell className="w-24 text-right">
                                                             {selectedSchoolYearEntry?.id && (
                                                                 <div className="relative">
                                                                     <Link
