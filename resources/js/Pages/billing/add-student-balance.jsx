@@ -5,11 +5,12 @@ import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
 import { Button } from "@/components/ui/button";
-import { Input } from "@@/Componentsui/input";
-import { Card } from "@@/Componentsui/card";
-import { Separator } f@/Componentsnents/ui/separator";
-import { Badge } from "@/co@/Componentsbadge";
-import {@/Components
+import { Input } from "@/Components/ui/input";
+import { Card } from "@/Components/ui/card";
+import { Separator } from "@/Components/ui/separator";
+import { Badge } from "@/Componentsbadge";
+import { ArrowDownIcon } from "lucide-react";
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -23,7 +24,7 @@ export default function AddStudentBalance() {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedStudent, setSelectedStudent] = useState(null);
-@/Components
+
     const [schoolYear, setSchoolYear] = useState("");
     const [semester, setSemester] = useState("");
 
