@@ -1,5 +1,5 @@
 import React from "react";
-import { convertToAMPM } from "../../lib/Utils";
+import { convertToAMPM } from "../../Lib/Utils";
 import TimeTableCells from "./TimeTableCells";
 
 function TimeTable({ data, colorful = true }) {

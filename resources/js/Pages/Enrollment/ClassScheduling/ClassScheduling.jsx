@@ -4,7 +4,7 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import React, { useEffect, useState, useRef } from 'react'
 import { formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
-import { detectTwoScheduleConflict } from '../../../lib/conflictUtilities';
+import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
 import ClassList from './Partials/ClassList';
 import Scheduling from './Partials/Scheduling';
 import DeletionDialog from './Partials/DeletionDialog';
