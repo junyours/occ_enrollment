@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/Components/ui/command"
 import { cn } from '@/lib/utils';
 import useScheduleStore from './useClassScheduleStore';
-import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
+import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities';
 import { toast } from 'sonner';
 import { router } from '@inertiajs/react';
 

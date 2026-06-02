@@ -14,7 +14,7 @@ import TimeTable from '../ScheduleFormats/TimeTable';
 import { Check, ChevronsUpDown, CircleMinus, CirclePlus, ListRestart, Loader2, Search, TriangleAlert, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/Components/ui/button';
-import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
+import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import SearchSubject from './SearchSubject';

@@ -5,7 +5,7 @@ import { Label } from '@/Components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
-import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
+import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities';
 import { convertToAMPM, formatFullName } from '@/lib/utils';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import axios from 'axios';

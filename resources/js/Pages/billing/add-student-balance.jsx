@@ -4,19 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Card } from "@/Components/ui/card";
 import { Separator } from "@/Components/ui/separator";
 import { Badge } from "@/Componentsbadge";
-import { ArrowDownIcon } from "lucide-react";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from "@/Components/ui/select";
 import { Trash2 } from "lucide-react";
 
 export default function AddStudentBalance() {

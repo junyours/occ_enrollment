@@ -12,7 +12,7 @@ import { router } from '@inertiajs/react'
 import { toast } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog'
 import { Progress } from '@/Components/ui/progress'
-import { detectTwoScheduleConflict } from '@/lib/conflictUtilities'
+import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities'
 import { Card, CardContent } from '@/Components/ui/card'
 
 const semesterDisplayMap = {

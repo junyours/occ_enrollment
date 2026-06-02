@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table'
-import { detectTwoScheduleConflict } from '@/lib/conflictUtilities'
+import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities'
 import { convertToAMPM } from '@/lib/utils'
 import React, { useEffect, useState } from 'react'
 

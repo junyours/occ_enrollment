@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover
 import { Input } from '@/Components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/Components/ui/toggle-group';
 import { cn, formatFullName } from '@/lib/utils';
-import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
+import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/Components/ui/command"
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
