@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { formatFullName } from '@/Lib/Utils';
 import { Input } from '@/Components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import StudentGrades from '../../components/StudentGrades';
+import StudentGrades from '../../Components/StudentGrades';
 
 export default function Index({ students, filters }) {
 

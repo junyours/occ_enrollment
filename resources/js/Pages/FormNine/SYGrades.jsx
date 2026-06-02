@@ -1,5 +1,5 @@
 import React from 'react'
-import FormField from './components/FormField'
+import FormField from './Components/FormField'
 
 const formatProgram = (text) => {
     return text
