@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader } from '@/Components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -7,9 +7,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import GradeInput from '../../ClassComponents/GradeInput';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import { formatName } from '@/lib/infoUtils';
-import GradeRemarkBadge from '@/components/GradeRemarkBadge';
+import GradeRemarkBadge from '@/Components/GradeRemarkBadge';
 
 const CardTableHead = ({ children }) => (
     <Card>

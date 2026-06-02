@@ -1,7 +1,7 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
-import DataTable from "@/components/ui/dTable";
+import DataTable from "@/Components/ui/dTable";
 import { BookOpen, ArrowLeft, BarChart2, CheckCircle2, XCircle } from "lucide-react";
 import {
     BarChart,

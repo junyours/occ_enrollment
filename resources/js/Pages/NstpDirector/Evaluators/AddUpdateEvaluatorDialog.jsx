@@ -1,8 +1,8 @@
-import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { CFloatingInput } from "@/components/ui/CFloatingInput";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/Components/ui/alert-dialog";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Button } from "@/Components/ui/button";
+import { CFloatingInput } from "@/Components/ui/CFloatingInput";
+import { Field, FieldGroup } from "@/Components/ui/field";
 import { useForm, usePage } from "@inertiajs/react";
 import { isValidEmail } from "@/lib/utils";
 import { useEffect, useState } from "react";

@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/Components/ui/input';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card';
+import { Label } from '@/Components/ui/label';
+import { Separator } from '@/Components/ui/separator';
+import { Badge } from '@/Components/ui/badge';
 import { toast } from 'sonner';
 import { router, usePage, Head, useForm } from '@inertiajs/react';
 import { Search, User as UserIcon, Key, RefreshCw, ShieldAlert, Mail, Calendar } from 'lucide-react';
 import axios from 'axios';
-import UserRoleBadge from '@/components/ui/UserRoleBadge'; // Using our previous component
+import UserRoleBadge from '@/Components/ui/UserRoleBadge'; // Using our previous component
 import { cn } from '@/lib/utils';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
 
 function ResetCredentials() {
     const [searchId, setSearchId] = useState('');

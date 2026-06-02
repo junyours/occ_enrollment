@@ -1,10 +1,10 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/Components/ui/card';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Switch } from '@/Components/ui/switch';
+import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import React from 'react';
 
 const TimeTableSkeleton = () => {

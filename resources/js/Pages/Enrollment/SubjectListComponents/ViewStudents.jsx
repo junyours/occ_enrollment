@@ -1,7 +1,7 @@
 import React from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import UseQueryTable from '@/components/UseQueryTable/Index';
-import CopyButton from '@/components/ui/CopyButton';
+import { Dialog, DialogContent } from '@/Components/ui/dialog';
+import UseQueryTable from '@/Components/UseQueryTable/Index';
+import CopyButton from '@/Components/ui/CopyButton';
 import { formatName } from '@/lib/infoUtils';
 
 export default function ViewStudents({ subject, setSubject, schoolYearId }) {

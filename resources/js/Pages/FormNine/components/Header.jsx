@@ -1,5 +1,5 @@
 import React from 'react';
-import AppLogo from '@/components/AppLogo';
+import AppLogo from '@/Components/AppLogo';
 
 export default function Header() {
     return (

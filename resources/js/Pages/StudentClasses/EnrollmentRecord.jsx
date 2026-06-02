@@ -1,8 +1,8 @@
-import PreLoader from '@/components/preloader/PreLoader';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageTitle } from '@/components/ui/PageTitle';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import PreLoader from '@/Components/preloader/PreLoader';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { PageTitle } from '@/Components/ui/PageTitle';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatFullName, formatFullNameFML } from '@/lib/utils';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -12,7 +12,7 @@ import React, { useEffect, useState } from 'react'
 import FillUpPrompt from './CollectStudentData/FillUpPrompt';
 import { useQuery } from '@tanstack/react-query';
 import { computeFinalGrade } from '../Grades/GradeUtility';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/Components/ui/badge';
 
 function EnrollmentRecord({ need_fill_up }) {
     const [error] = useState(null);

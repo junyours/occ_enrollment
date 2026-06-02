@@ -8,7 +8,7 @@ import {
     CarouselItem,
     CarouselNext,
     CarouselPrevious,
-} from "@/components/ui/carousel";
+} from "@/Components/ui/carousel";
 import c1 from "../../../../images/guest/carousels/1.jpg";
 import c2 from "../../../../images/guest/carousels/2.jpg";
 import c3 from "../../../../images/guest/carousels/3.jpg";
@@ -16,7 +16,7 @@ import c4 from "../../../../images/guest/carousels/4.jpg";
 import c5 from "../../../../images/guest/carousels/5.jpg";
 import c6 from "../../../../images/guest/carousels/6.jpg";
 import c7 from "../../../../images/guest/carousels/7.jpg";
-import AnimatedSection from "@/components/guest/welcome/animated-section";
+import AnimatedSection from "@/Components/guest/welcome/animated-section";
 
 const carousels = [c1, c2, c3, c4, c5, c6, c7];
 

@@ -1,6 +1,6 @@
-import PreLoader from '@/components/preloader/PreLoader';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import PreLoader from '@/Components/preloader/PreLoader';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/Components/ui/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';

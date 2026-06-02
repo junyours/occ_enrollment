@@ -1,12 +1,12 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PageTitle } from '@/components/ui/PageTitle';
-import { Separator } from '@/components/ui/separator';
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { PageTitle } from '@/Components/ui/PageTitle';
+import { Separator } from '@/Components/ui/separator';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Link } from '@inertiajs/react';
 import CourseSectionsSkeleton from './CourseSectionsSekeleton';
 import { AlertCircle, BookOpen } from 'lucide-react';

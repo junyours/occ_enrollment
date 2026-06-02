@@ -1,4 +1,4 @@
-import AnimatedSection from "@/components/guest/welcome/animated-section";
+import AnimatedSection from "@/Components/guest/welcome/animated-section";
 
 export default function Section6() {
     return (

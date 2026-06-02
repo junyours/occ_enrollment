@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { PageTitle } from '@/components/ui/PageTitle';
+import { PageTitle } from '@/Components/ui/PageTitle';
 import { Head, Link, router } from '@inertiajs/react';
 import { formatFullName, formatFullNameFML } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import {
     MoveRightIcon,
     UserMinus,
@@ -15,7 +15,7 @@ import {
     Loader2,
     Users
 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import StudentActions from './StudentActions';
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
@@ -26,12 +26,12 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle
-} from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableRow, TableHeader, TableHead } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from "@/components/ui/skeleton";
+} from '@/Components/ui/dialog';
+import { Table, TableBody, TableCell, TableRow, TableHeader, TableHead } from '@/Components/ui/table';
+import { Input } from '@/Components/ui/input';
+import { Skeleton } from "@/Components/ui/skeleton";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import CopyButton from '@/components/ui/CopyButton';
+import CopyButton from '@/Components/ui/CopyButton';
 
 export default function EnrolledStudentList({
     hashedCourseId,

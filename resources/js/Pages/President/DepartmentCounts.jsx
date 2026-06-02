@@ -19,12 +19,12 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/Components/ui/card"
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/Components/ui/chart"
 
 function DepartmentCounts({ data }) {
     // Assign color based on department abbreviation

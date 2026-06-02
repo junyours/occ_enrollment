@@ -2,13 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
 import { Head, usePage } from '@inertiajs/react';
-import PreLoader from '@/components/preloader/PreLoader';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import PreLoader from '@/Components/preloader/PreLoader';
+import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/Components/ui/chart';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { GraduationCap, TrendingUp } from 'lucide-react';
-import { PageTitle } from '@/components/ui/PageTitle';
+import { PageTitle } from '@/Components/ui/PageTitle';
 import { UserCheck } from "lucide-react";
 
 const studentTypeChartConfig = {

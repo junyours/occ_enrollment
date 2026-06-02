@@ -1,6 +1,6 @@
-import { Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Avatar } from '@/Components/ui/avatar';
+import { Badge } from '@/Components/ui/badge';
+import { Card, CardContent } from '@/Components/ui/card';
 import { formatFullName } from '@/lib/utils';
 import React from 'react';
 import { usePage } from '@inertiajs/react';

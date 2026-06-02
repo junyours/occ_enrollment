@@ -6,8 +6,8 @@ import {
     CardHeader,
     CardTitle,
     CardContent,
-} from "@/components/ui/card";
-import DataTable from "@/components/ui/dTable"; // Import your custom DataTable
+} from "@/Components/ui/card";
+import DataTable from "@/Components/ui/dTable"; // Import your custom DataTable
 import { Eye } from "lucide-react";
 import { Link } from "@inertiajs/react";
 

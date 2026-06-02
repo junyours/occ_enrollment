@@ -1,5 +1,5 @@
 import b3 from "../../../../images/guest/backgrounds/3.jpg";
-import AnimatedSection from "@/components/guest/welcome/animated-section";
+import AnimatedSection from "@/Components/guest/welcome/animated-section";
 
 const programs = [
     {

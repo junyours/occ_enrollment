@@ -1,10 +1,10 @@
 import React from 'react'
 import { useSection } from './useSection';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Label } from '@/Components/ui/label';
+import { Input } from '@/Components/ui/input';
 import { useForm } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { toast } from 'sonner';
 
 function AddingSection() {

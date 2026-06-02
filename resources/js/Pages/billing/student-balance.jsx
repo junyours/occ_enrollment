@@ -1,20 +1,20 @@
-import { DataTable } from "@/components/table/data-table";
+import { DataTable } from "@/Components/table/data-table";
 import {
     Sheet,
     SheetContent,
     SheetDescription,
     SheetHeader,
     SheetTitle,
-} from "@/components/ui/sheet";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from "@/Components/ui/sheet";
+import { Card } from "@/Components/ui/card";
+import { Button } from "@/Components/ui/button";
+import { Input } from "@/Components/ui/input";
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "@/Components/ui/accordion";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -33,7 +33,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/Components/ui/alert-dialog";
 
 export default function StudentBalance() {
     const [selectedStudent, setSelectedStudent] = useState(null);

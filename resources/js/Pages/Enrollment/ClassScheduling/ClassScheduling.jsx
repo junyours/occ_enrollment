@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
-import PreLoader from '@/components/preloader/PreLoader';
+import PreLoader from '@/Components/preloader/PreLoader';
 import React, { useEffect, useState, useRef } from 'react'
 import { formatFullName, identifyDayType } from '@/lib/utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
@@ -11,7 +11,7 @@ import DeletionDialog from './Partials/DeletionDialog';
 import ScheduleToolbar from './Partials/ScheduleToolbar';
 import Room from './Assigned/Room';
 import Instructor from './Assigned/Instructor';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import AddSubjectDialog from './Partials/AddSubjectDialog';
 import { toast } from 'sonner';
 

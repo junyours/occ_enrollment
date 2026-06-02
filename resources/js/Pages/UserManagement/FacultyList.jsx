@@ -1,18 +1,18 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { formatFullName } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/Components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import AddFaculty from './AddFaculty';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { CheckCircle,  Edit3Icon, Plus, Search, X, XCircle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import PaginationPages from '@/components/ui/PaginationPages';
+import { Input } from '@/Components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+import PaginationPages from '@/Components/ui/PaginationPages';
 
 const FacultyList = ({ faculties, filters }) => {
     const { user } = usePage().props.auth;

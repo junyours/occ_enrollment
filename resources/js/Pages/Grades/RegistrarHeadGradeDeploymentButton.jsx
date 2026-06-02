@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/Components/ui/button'
 import { convertToAMPM } from '@/lib/utils'
 import { Clock, Undo2 } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip'
 
 export default function RegistrarHeadGradeDeploymentButton({ deploy, disabledButton, unDeploy, type, status }) {
 

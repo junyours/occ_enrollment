@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { TabsContent } from '@/components/ui/tabs';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Separator } from '@/Components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { TabsContent } from '@/Components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { router, usePage } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
@@ -11,10 +11,10 @@ import { Check, CheckCircle, ChevronLeft, ChevronRight, Circle, Edit, Loader2, P
 import React, { useEffect, useState } from 'react'
 import AddUpdateEvaluatorDialog from './AddUpdateEvaluatorDialog';
 import { formatFullName } from '@/lib/utils';
-import SearchBar from '@/components/ui/SearchBar';
+import SearchBar from '@/Components/ui/SearchBar';
 import axios from 'axios';
-import { Skeleton } from '@/components/ui/skeleton';
-import PaginationPages from '@/components/ui/PaginationPages';
+import { Skeleton } from '@/Components/ui/skeleton';
+import PaginationPages from '@/Components/ui/PaginationPages';
 
 export default function Index({ search }) {
     const [searchKey, setSearchKey] = useState(search || '');

@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table'
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
 import { convertToAMPM } from '@/lib/utils';
 import axios from 'axios'

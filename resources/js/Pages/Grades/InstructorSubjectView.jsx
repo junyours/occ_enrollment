@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
 import React from 'react';
 import Grades from '../InstructorClasses/ClassComponents/Grades';
-import { PageTitle } from '@/components/ui/PageTitle';
+import { PageTitle } from '@/Components/ui/PageTitle';
 import { useQuery } from '@tanstack/react-query';
 
 export default function InstructorSubjectView({

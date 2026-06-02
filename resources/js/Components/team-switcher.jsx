@@ -2,7 +2,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem
-} from "@/components/ui/sidebar";
+} from "@/Components/ui/sidebar";
 import AppLogo from "./AppLogo";
 import { Link } from "@inertiajs/react";
 

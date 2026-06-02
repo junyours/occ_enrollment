@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/Components/ui/card'
 import { usePage } from '@inertiajs/react'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'

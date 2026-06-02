@@ -1,6 +1,6 @@
 import React, {  useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { formatFullName } from '@/lib/utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { AlertCircle, ArrowLeft, BookOpen,  CheckCircle, FileText, Loader2, Rocket, Send, XCircle } from 'lucide-react';
@@ -10,7 +10,7 @@ import { useGradeSubmission } from '../InstructorClasses/ClassComponents/GradePa
 import { useQuery } from '@tanstack/react-query';
 import { computeFinalGrade } from './GradeUtility';
 <<<<<<< HEAD
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/Components/ui/badge';
 =======
 import { Badge } from '@/Components/ui/badge';
 import BackButton from '@/Components/ui/BackButton';

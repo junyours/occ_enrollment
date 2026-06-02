@@ -8,7 +8,7 @@ import {
     SearchDropdownEmpty,
     SearchDropdownItem,
     useSearchDropdown,
-} from '@/components/ui/SearchDropdown';
+} from '@/Components/ui/SearchDropdown';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 

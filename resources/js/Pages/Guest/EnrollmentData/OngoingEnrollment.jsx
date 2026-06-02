@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
-import { PageTitle } from '@/components/ui/PageTitle';
+import { PageTitle } from '@/Components/ui/PageTitle';
 import NoSchoolYear from './NoSchoolYear';
 import axios from 'axios';
 import DepartmentCounts from './DepartmentCounts';

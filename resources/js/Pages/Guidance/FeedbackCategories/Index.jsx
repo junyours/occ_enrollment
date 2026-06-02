@@ -1,12 +1,12 @@
-import PreLoader from "@/components/preloader/PreLoader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PreLoader from "@/Components/preloader/PreLoader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Head, useForm, usePage } from "@inertiajs/react";
 import React, { useEffect, useState } from "react";
-import { PageTitle } from "@/components/ui/PageTitle";
+import { PageTitle } from "@/Components/ui/PageTitle";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button } from "@/components/ui/button";
-import DataTable from "@/components/ui/dTable";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { Button } from "@/Components/ui/button";
+import DataTable from "@/Components/ui/dTable";
+import ConfirmDialog from "@/Components/ui/ConfirmDialog";
 
 const FeedbackCategories = () => {
 

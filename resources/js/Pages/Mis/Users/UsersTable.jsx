@@ -1,7 +1,7 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
 import React from 'react'
-import { Button } from '@/components/ui/button'
-import UserRoleBadge from '@/components/ui/UserRoleBadge'
+import { Button } from '@/Components/ui/button'
+import UserRoleBadge from '@/Components/ui/UserRoleBadge'
 
 function UsersTable({ users, setSelectedUser }) {
     return (

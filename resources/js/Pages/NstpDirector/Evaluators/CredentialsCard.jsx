@@ -1,4 +1,4 @@
-import CopyButton from '@/components/ui/CopyButton';
+import CopyButton from '@/Components/ui/CopyButton';
 import { formatName } from '@/lib/infoUtils';
 import React from 'react';
 

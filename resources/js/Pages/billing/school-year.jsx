@@ -1,5 +1,5 @@
-import { DataTable } from "@/components/table/data-table";
-import { Button } from "@/components/ui/button";
+import { DataTable } from "@/Components/table/data-table";
+import { Button } from "@/Components/ui/button";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -13,22 +13,22 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+} from "@/Components/ui/dialog";
+import { Label } from "@/Components/ui/label";
+import { Input } from "@/Components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
-import InputError from "@/components/InputError";
+import InputError from "@/Components/InputError";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Card } from "@/components/ui/card";
+} from "@/Components/ui/dropdown-menu";
+import { Card } from "@/Components/ui/card";
 
 export default function SchoolYear() {
     const queryClient = useQueryClient();

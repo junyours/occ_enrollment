@@ -2,7 +2,7 @@ import React from 'react'
 
 import { usePage, Link } from '@inertiajs/react';
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
-import { SidebarProvider } from "@/components/ui/sidebar"; // Adjust path if
+import { SidebarProvider } from "@/Components/ui/sidebar"; // Adjust path if
 import {
     Sidebar,
     SidebarContent,
@@ -12,7 +12,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/Components/ui/sidebar"
 
 // Menu items.
 const items = [

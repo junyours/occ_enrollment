@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/Components/ui/badge';
 import { formatName } from '@/lib/infoUtils';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Card } from '@/Components/ui/card';
 import StudentListSkeleton from './StudentListSkeleton';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { toast } from "sonner";

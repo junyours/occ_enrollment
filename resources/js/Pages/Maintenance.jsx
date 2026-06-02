@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/Components/ui/card';
+import { Button } from '@/Components/ui/button';
 import { Wrench, RefreshCw, LogOut } from 'lucide-react';
 import { Head, Link } from '@inertiajs/react';
 

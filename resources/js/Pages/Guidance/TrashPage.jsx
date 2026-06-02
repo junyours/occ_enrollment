@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, usePage, router } from "@inertiajs/react";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent, CardTitle } from "@/Components/ui/card";
+import { Input } from "@/Components/ui/input";
+import { Button } from "@/Components/ui/button";
 import { Search, Trash2, Undo2, FileText, ListTree, ClipboardList } from "lucide-react";
 
 export default function TrashPage({

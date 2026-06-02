@@ -1,9 +1,9 @@
-import { PageTitle } from '@/components/ui/PageTitle';
+import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import SubjectsList from '../Enrollment/SubjectsList';
-import SchoolYearPicker from '@/components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 
 function SubjectsReport() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();

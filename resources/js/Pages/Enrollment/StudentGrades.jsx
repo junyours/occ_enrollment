@@ -3,15 +3,15 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
 
 // Shadcn UI Components
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/Components/ui/card";
+import { Input } from "@/Components/ui/input";
+import { Button } from "@/Components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
+import { Badge } from "@/Components/ui/badge";
 import { Loader2, Search, User, CalendarDays, X, GraduationCap, CheckCircle2, XCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/Components/ui/alert";
 import { computeFinalGrade } from '../Grades/GradeUtility';
-import { Separator } from '@/components/ui/separator';
+import { Separator } from '@/Components/ui/separator';
 
 const semesterDisplayMap = {
     First: <div>1<sup>st</sup> Semester</div>,

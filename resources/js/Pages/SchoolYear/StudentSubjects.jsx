@@ -1,6 +1,6 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/Components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { convertToAMPM, formatFullName } from '@/lib/utils';
 import React, { useEffect, useState } from 'react'
 import TimeTable from '../ScheduleFormats/TimeTable';

@@ -2,16 +2,16 @@ import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import axios from "axios";
 import { Head } from "@inertiajs/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/Components/ui/tabs"
 import TimeTable from "@/Pages/ScheduleFormats/TimeTable";
 import { Check } from "lucide-react";
 import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from "@/lib/utils";
 import TabularSchedule from "@/Pages/ScheduleFormats/TabularSchedule";
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { useSchoolYearStore } from "@/components/useSchoolYearStore";
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Input } from '@/Components/ui/input';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
+import { useSchoolYearStore } from "@/Components/useSchoolYearStore";
 import { useQuery } from "@tanstack/react-query";
 import TimeTableSkeleton from "../TimTableSckeleton";
 

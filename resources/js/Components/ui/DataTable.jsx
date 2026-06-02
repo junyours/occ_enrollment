@@ -16,7 +16,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from "@/Components/ui/table";
 
 import { useState } from "react";
 import { Button } from "./button";

@@ -1,5 +1,5 @@
-import { PageTitle } from '@/components/ui/PageTitle';
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import { PageTitle } from '@/Components/ui/PageTitle';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react'

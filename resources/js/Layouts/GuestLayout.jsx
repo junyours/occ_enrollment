@@ -1,6 +1,6 @@
-import ContactSection from "@/components/guest/web/ContactSection";
-import Footer from "@/components/guest/web/Footer";
-import NavHeader from "@/components/guest/web/NavHeader";
+import ContactSection from "@/Components/guest/web/ContactSection";
+import Footer from "@/Components/guest/web/Footer";
+import NavHeader from "@/Components/guest/web/NavHeader";
 
 export default function GuestLayout({ children }) {
     return (

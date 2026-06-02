@@ -1,10 +1,10 @@
 import React from 'react'
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/Components/ui/card"
 import { FileDown, ImageDown, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/Components/ui/button';
+import { Label } from '@/Components/ui/label';
+import { Switch } from '@/Components/ui/switch';
+import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { usePage } from '@inertiajs/react';
 import html2canvas from 'html2canvas';
 

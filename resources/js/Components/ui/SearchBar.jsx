@@ -1,8 +1,8 @@
 import * as React from "react"
 import { Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Input } from "@/Components/ui/input"
+import { Button } from "@/Components/ui/button"
 
 const SearchBar = React.forwardRef(({ className, value: controlledValue, onChange, onSearch, onClear, ...props }, ref) => {
     // 1. Internal state to hold the value if the parent doesn't provide one

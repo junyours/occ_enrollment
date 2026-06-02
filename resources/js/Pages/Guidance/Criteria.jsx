@@ -1,14 +1,14 @@
-import PreLoader from "@/components/preloader/PreLoader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PreLoader from "@/Components/preloader/PreLoader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Head, usePage } from "@inertiajs/react";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { PageTitle } from "@/components/ui/PageTitle";
+import { PageTitle } from "@/Components/ui/PageTitle";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Button } from "@/components/ui/button";
-import DataTable from "@/components/ui/dTable";
+import { Button } from "@/Components/ui/button";
+import DataTable from "@/Components/ui/dTable";
 import AddCriteria from "./AddCriteria";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/Components/ui/ConfirmDialog";
 
 const Criteria = () => {
     const { user } = usePage().props.auth;

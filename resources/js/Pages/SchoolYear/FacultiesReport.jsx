@@ -1,19 +1,19 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PageTitle } from '@/components/ui/PageTitle';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { PageTitle } from '@/Components/ui/PageTitle';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { FileDown, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import SubjectsList from '../Enrollment/SubjectsList';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/Components/ui/accordion';
 import { convertToAMPM, formatFullName, formatFullNameFML } from '@/lib/utils';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import SchoolYearPicker from '@/components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
-import SearchBar from '@/components/ui/SearchBar';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Card, CardContent, CardFooter } from '@/Components/ui/card';
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import SearchBar from '@/Components/ui/SearchBar';
 export default function FacultiesReport() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
 

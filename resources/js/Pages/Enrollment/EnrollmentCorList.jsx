@@ -1,13 +1,13 @@
-import { Button } from '@/components/ui/button';
-import { PageTitle } from '@/components/ui/PageTitle';
+import { Button } from '@/Components/ui/button';
+import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatFullName } from '@/lib/utils';
 import { Head } from '@inertiajs/react';
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import CorGenerator from '../COR/CorGenerator';
 import { Search, Users, FileText, Loader2, AlertCircle, User, Download, Printer, Edit } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { Card } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
 import { useReactToPrint } from 'react-to-print';
 import html2pdf from 'html2pdf.js';
 import EditCor from '../COR/EditCor';

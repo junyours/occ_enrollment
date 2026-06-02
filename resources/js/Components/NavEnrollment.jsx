@@ -9,7 +9,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/Components/ui/sidebar";
 import { DoorClosed, User, NotebookText } from "lucide-react";
 
 export function NavEnrollment() {

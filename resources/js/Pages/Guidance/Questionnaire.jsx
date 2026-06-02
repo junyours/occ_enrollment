@@ -1,8 +1,8 @@
     import React, { useState } from "react";
     import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-    import { Card, CardHeader, CardContent } from "@/components/ui/card";
-    import { Button } from "@/components/ui/button";
-    import { Input } from "@/components/ui/input";
+    import { Card, CardHeader, CardContent } from "@/Components/ui/card";
+    import { Button } from "@/Components/ui/button";
+    import { Input } from "@/Components/ui/input";
     import { X } from "lucide-react";
     import { Head, router } from "@inertiajs/react";
     import axios from "axios";

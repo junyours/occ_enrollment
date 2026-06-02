@@ -6,8 +6,8 @@ import {
   Card,
   CardHeader,
   CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/Components/ui/card";
+import { Button } from "@/Components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
+} from "@/Components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 
 function StudentQuestionnaire() {

@@ -1,8 +1,8 @@
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/Components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { Textarea } from '@/Components/ui/textarea'
 
 import { useForm } from '@inertiajs/react'
 import React, { useEffect } from 'react'

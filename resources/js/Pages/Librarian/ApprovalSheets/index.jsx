@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Upload, FileText, X, Check, Search, Users } from 'lucide-react';
-import SchoolYearPicker from '@/components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Alert, AlertDescription } from '@/Components/ui/alert';
+import { Badge } from '@/Components/ui/badge';
 import { toast } from 'sonner';
 import { Head } from '@inertiajs/react';
 

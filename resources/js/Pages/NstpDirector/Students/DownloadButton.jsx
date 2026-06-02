@@ -11,9 +11,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+} from "@/Components/ui/alert-dialog";
+import { Button } from "@/Components/ui/button";
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 
 export function DownloadButton({ selectedTab }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();

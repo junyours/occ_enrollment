@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
+import { Card, CardContent } from '@/Components/ui/card'
+import { Input } from '@/Components/ui/input'
+import { Button } from '@/Components/ui/button'
+import { Alert, AlertDescription } from '@/Components/ui/alert'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
 import { MapPin, Users, User, AlertCircle } from 'lucide-react'
 
 import {

@@ -1,5 +1,5 @@
 // components/KPICard.jsx
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
 import { ArrowUp, ArrowDown } from "lucide-react"; // Correct import for Lucide icons
 
 export function KPICard({ title, value, subText, trend, trendPercentage }) {

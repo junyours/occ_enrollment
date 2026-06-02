@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { Lock, Eye, EyeOff, Shield, CheckCircle, AlertCircle, Loader2, KeyRound } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertTitle } from '@/components/ui/alert';
-import AppLogo from '@/components/AppLogo';
-import { TwoModeToggle } from '@/components/two-modes-toggle';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Alert, AlertTitle } from '@/Components/ui/alert';
+import AppLogo from '@/Components/AppLogo';
+import { TwoModeToggle } from '@/Components/two-modes-toggle';
 
 export default function ResetPassword({ token, email }) {
     const { data, setData, post, processing, errors, reset } = useForm({

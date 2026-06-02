@@ -6,8 +6,8 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from '@/Components/ui/dialog';
+import { Button } from '@/Components/ui/button';
 
 const EnhancedDownloadDialog = ({ isDownloading, setIsDownloading }) => {
     return (

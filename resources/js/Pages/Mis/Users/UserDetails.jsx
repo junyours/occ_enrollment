@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useForm } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/Components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Input } from '@/Components/ui/input';
+import { Button } from '@/Components/ui/button';
+import { Label } from '@/Components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { AlertCircle, Edit2, Save, X, User, Shield, Phone } from 'lucide-react';
 import { toast } from 'sonner';
-import UserRoleBadge from '@/components/ui/UserRoleBadge';
+import UserRoleBadge from '@/Components/ui/UserRoleBadge';
 
 export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
     const [isEditing, setIsEditing] = useState(false);

@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui/input'
+import { Input } from '@/Components/ui/input'
 import { cn } from '@/lib/utils'
 import React, { useRef, useEffect } from 'react'
 

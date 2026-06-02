@@ -1,13 +1,13 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, Download, Ellipsis, FileStack, Pencil, Trash } from 'lucide-react';
 import React from 'react'
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 
 function YearLevelSections({
     yearLevel,

@@ -1,6 +1,6 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Card } from '@/Components/ui/card';
 
 export default function StudentListSkeleton() {
     const skeletonRows = Array.from({ length: 10 });

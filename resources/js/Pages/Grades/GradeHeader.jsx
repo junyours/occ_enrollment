@@ -1,5 +1,5 @@
-import AppLogo from '@/components/AppLogo';
-import { Card, CardContent } from '@/components/ui/card'
+import AppLogo from '@/Components/AppLogo';
+import { Card, CardContent } from '@/Components/ui/card'
 import { usePage } from '@inertiajs/react';
 import React from 'react'
 

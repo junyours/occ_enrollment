@@ -1,10 +1,10 @@
 import { Link, router, usePage } from "@inertiajs/react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { CircleUser, LogOut, Menu, User } from "lucide-react";
 import NavBar from "./NavBar";
 import { useState } from "react";
-import AppLogo from "@/components/AppLogo";
-import { Separator } from "@/components/ui/separator";
+import AppLogo from "@/Components/AppLogo";
+import { Separator } from "@/Components/ui/separator";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/Components/ui/dropdown-menu";
 
 export default function NavHeader() {
     const [open, setOpen] = useState(false);

@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/Components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import React, { useEffect, useState } from 'react'
 import { computeFinalGrade } from '../Grades/GradeUtility';
 

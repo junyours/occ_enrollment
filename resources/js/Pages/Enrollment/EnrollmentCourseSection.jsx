@@ -2,19 +2,19 @@ import React, { useEffect, useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { usePage, useForm } from "@inertiajs/react";
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/Components/ui/button"
 import { useToast } from "@/hooks/use-toast";
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/Components/ui/card"
 import { Head } from '@inertiajs/react';
 import axios from "axios";
-import PreLoader from "@/components/preloader/PreLoader";
-import { Separator } from "@/components/ui/separator"
-import { PageTitle } from "@/components/ui/PageTitle";
+import PreLoader from "@/Components/preloader/PreLoader";
+import { Separator } from "@/Components/ui/separator"
+import { PageTitle } from "@/Components/ui/PageTitle";
 import EnhancedDownloadDialog from "./EnhancedDownloadDialog";
 import AddNewSection from "./CourseSectionPartials/AddNewSection";
 import YearLevelSections from "./CourseSectionPartials/YearLevelSections";

@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
 import { useSection } from './useSection';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Label } from '@/Components/ui/label';
 import { Check, Megaphone } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Input } from '@/Components/ui/input';
+import { ToggleGroup, ToggleGroupItem } from '@/Components/ui/toggle-group';
 import { cn, formatFullName } from '@/lib/utils';
 import { detectTwoScheduleConflict } from '@/lib/conflictUtilities';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/Components/ui/command"
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 

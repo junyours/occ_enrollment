@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { router } from '@inertiajs/react';
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { LogIn } from 'lucide-react';
 import {
     Select,
@@ -9,13 +9,13 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+} from '@/Components/ui/select';
+import { Card } from '@/Components/ui/card';
+import { Badge } from '@/Components/ui/badge';
 import UsersTable from './UsersTable';
 import { userRoles } from '@/lib/utils';
-import PaginationPages from '@/components/ui/PaginationPages';
-import SearchBar from '@/components/ui/SearchBar';
+import PaginationPages from '@/Components/ui/PaginationPages';
+import SearchBar from '@/Components/ui/SearchBar';
 
 function Index({ users, filters }) {
     const [search, setSearch] = useState(filters.search || '');

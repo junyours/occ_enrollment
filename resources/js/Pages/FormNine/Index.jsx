@@ -2,14 +2,14 @@ import React, { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useQuery } from '@tanstack/react-query';
 import { formatName } from '@/lib/infoUtils';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
-import StudentSearch from '@/components/StudentSearch';
+import StudentSearch from '@/Components/StudentSearch';
 import { Head } from '@inertiajs/react';
 import Paper from './Paper';
 import PaperContainer from './components/PaperContainer';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/Components/ui/card';
 
 export default function Index() {
     const documentRef = useRef(null);

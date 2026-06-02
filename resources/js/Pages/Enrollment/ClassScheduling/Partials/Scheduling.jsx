@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
+import { ToggleGroup, ToggleGroupItem } from "@/Components/ui/toggle-group"
 import { Megaphone, Check } from 'lucide-react';
 import { formatFullName } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
+import { Input } from '@/Components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Button } from '@/Components/ui/button';
+import { Label } from '@/Components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/Components/ui/command"
 import { cn } from '@/lib/utils';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

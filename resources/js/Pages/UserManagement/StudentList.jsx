@@ -1,21 +1,21 @@
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+} from '@/Components/ui/table';
+import { Button } from '@/Components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { ChevronLeft, ChevronRight, Edit3Icon, Ellipsis, Eye, Plus, Search, X } from 'lucide-react';
-import { PageTitle } from '@/components/ui/PageTitle';
+import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
 import { formatFullName } from '@/lib/utils';
 import AddStudent from './AddStudent';
-import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/Components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import axios from 'axios';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import StudentGrades from '../components/StudentGrades';
-import PaginationPages from '@/components/ui/PaginationPages';
+import PaginationPages from '@/Components/ui/PaginationPages';
 
 export default function StudentList({ students, filters }) {
 

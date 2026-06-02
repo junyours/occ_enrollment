@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { router } from '@inertiajs/react';
 

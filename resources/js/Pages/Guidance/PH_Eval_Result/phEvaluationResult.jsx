@@ -3,8 +3,8 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
 import logo from "/resources/images/OCC_LOGO.png";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/Components/ui/card";
+import { Button } from "@/Components/ui/button";
 
 /* ------------------------- Helpers ------------------------- */
 

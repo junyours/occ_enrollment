@@ -54,7 +54,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/Components/ui/sidebar";
 import { PiStudent } from "react-icons/pi";
 import { MdOutlineMeetingRoom } from "react-icons/md";
 import SchoolYearPicker from "./SchoolYearPicker";

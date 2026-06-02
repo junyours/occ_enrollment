@@ -6,14 +6,14 @@ import {
     SelectValue,
     SelectContent,
     SelectItem,
-} from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from '@/Components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Button } from '@/Components/ui/button';
 import axios from 'axios';
 import { Head, Link } from '@inertiajs/react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import SchoolYearPicker from '@/components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/components/useSchoolYearStore';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, BookOpen, Loader2 } from 'lucide-react';
 import { formatName } from '@/Lib/InfoUtils';

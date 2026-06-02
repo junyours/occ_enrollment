@@ -1,15 +1,15 @@
-import { DataTable } from "@/components/table/data-table";
+import { DataTable } from "@/Components/table/data-table";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import {
+import { Input } from "@@/Componentsui/input";
+import { Card } from "@@/Componentsui/card";
+import { Separator } f@/Componentsnents/ui/separator";
+import { Badge } from "@/co@/Componentsbadge";
+import {@/Components
     Select,
     SelectContent,
     SelectItem,
@@ -23,7 +23,7 @@ export default function AddStudentBalance() {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedStudent, setSelectedStudent] = useState(null);
-
+@/Components
     const [schoolYear, setSchoolYear] = useState("");
     const [semester, setSemester] = useState("");
 

@@ -1,5 +1,5 @@
-import { DataTable } from "@/components/table/data-table";
-import { Card } from "@/components/ui/card";
+import { DataTable } from "@/Components/table/data-table";
+import { Card } from "@/Components/ui/card";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
