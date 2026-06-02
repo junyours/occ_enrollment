@@ -9,12 +9,8 @@ import ProgramHeadGradeVerificationButton from './ProgramHeadGradeVerificationBu
 import { useGradeSubmission } from '../InstructorClasses/ClassComponents/GradePartials/useGradeSubmission';
 import { useQuery } from '@tanstack/react-query';
 import { computeFinalGrade } from './GradeUtility';
-<<<<<<< HEAD
-import { Badge } from '@/Components/ui/badge';
-=======
 import { Badge } from '@/Components/ui/badge';
 import BackButton from '@/Components/ui/BackButton';
->>>>>>> a044d26d14048d13382567c14d969c2c9eaf6554
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
