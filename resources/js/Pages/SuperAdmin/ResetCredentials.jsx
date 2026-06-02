@@ -11,7 +11,7 @@ import { router, usePage, Head, useForm } from '@inertiajs/react';
 import { Search, User as UserIcon, Key, RefreshCw, ShieldAlert, Mail, Calendar } from 'lucide-react';
 import axios from 'axios';
 import UserRoleBadge from '@/Components/ui/UserRoleBadge'; // Using our previous component
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 
 function ResetCredentials() {

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
 import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import {
     Select,
     SelectContent,

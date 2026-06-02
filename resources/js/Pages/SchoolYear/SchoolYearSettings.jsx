@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
 import { Label } from '@/Components/ui/label'
-import { formatDateShort } from '@/lib/utils'
+import { formatDateShort } from '@/Lib/Utils'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 

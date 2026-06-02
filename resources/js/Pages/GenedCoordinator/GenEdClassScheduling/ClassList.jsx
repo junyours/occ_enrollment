@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { convertToAMPM, formatFullName, identifyDayType } from '@/lib/utils';
+import { convertToAMPM, formatFullName, identifyDayType } from '@/Lib/Utils';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import { Pencil } from 'lucide-react';
 import React from 'react'

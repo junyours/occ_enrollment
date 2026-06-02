@@ -9,7 +9,7 @@ import { useReactToPrint } from 'react-to-print';
 import { useQuery } from '@tanstack/react-query';
 import CORSkeleton from './CorSkeleton';
 import { set } from 'react-hook-form';
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 
 function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId }) {
 

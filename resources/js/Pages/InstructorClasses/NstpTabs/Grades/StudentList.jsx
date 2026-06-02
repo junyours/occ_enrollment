@@ -6,9 +6,9 @@ import axios from 'axios';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import GradeInput from '../../ClassComponents/GradeInput';
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
-import { formatName } from '@/lib/infoUtils';
+import { formatName } from '@/Lib/InfoUtils';
 import GradeRemarkBadge from '@/Components/GradeRemarkBadge';
 
 const CardTableHead = ({ children }) => (

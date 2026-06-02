@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatFullName, formatFullNameFML } from '@/lib/utils';
+import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Head, Link, usePage } from '@inertiajs/react';
 import html2canvas from 'html2canvas';
 import { AlertCircle, ArrowRight, BookOpen, Download, Loader2 } from 'lucide-react';

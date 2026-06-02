@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip
 import React from 'react'
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility' 
 import GradeInput from '../GradeInput'
-import { cn } from '@/lib/utils'
+import { cn } from '@/Lib/Utils'
 import GradeRemarkBadge from '@/Components/GradeRemarkBadge'
 
 function GradesStudentList({ grades, status, missingFields, handleGradeChange, setMissingFields, allowMidtermUpload, allowFinalUpload, yearSectionSubjectsId }) {

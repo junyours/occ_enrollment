@@ -7,7 +7,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/Components/ui/card'
-import { convertToAMPM, formatFullName } from '@/lib/utils'
+import { convertToAMPM, formatFullName } from '@/Lib/Utils'
 import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, ArrowRight, Calendar, ChevronRight } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
 import { Link } from '@inertiajs/react'

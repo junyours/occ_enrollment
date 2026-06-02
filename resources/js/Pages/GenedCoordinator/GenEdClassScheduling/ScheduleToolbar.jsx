@@ -1,6 +1,6 @@
 import React from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 import { Card } from '@/Components/ui/card';
 
 function ScheduleToolbar({ scheduleType, setScheduleType, className }) {

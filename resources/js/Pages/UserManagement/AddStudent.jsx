@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { formatPhoneNumber } from '@/lib/utils';
+import { formatPhoneNumber } from '@/Lib/Utils';
 import { useForm } from '@inertiajs/react';
 import { CircleHelp, LoaderCircle } from 'lucide-react';
 import React, { useState } from 'react'

@@ -1,4 +1,4 @@
-import { expandAlternatingDays, expandConsecutiveDays, formatFullName, hasTimeConflict, identifyDayType } from '@/lib/utils';
+import { expandAlternatingDays, expandConsecutiveDays, formatFullName, hasTimeConflict, identifyDayType } from '@/Lib/Utils';
 import React from 'react';
 import { detectTwoScheduleConflict } from '../../lib/conflictUtilities';
 import { PiStudent } from 'react-icons/pi';

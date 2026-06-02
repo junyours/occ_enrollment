@@ -1,7 +1,7 @@
 import { DataTable } from "@/Components/table/data-table";
 import { Card } from "@/Components/ui/card";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { capitalizeFirstLetter } from "@/lib/utils";
+import { capitalizeFirstLetter } from "@/Lib/Utils";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { debounce } from "lodash";

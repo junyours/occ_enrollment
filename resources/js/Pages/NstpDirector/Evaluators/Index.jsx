@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Check, CheckCircle, ChevronLeft, ChevronRight, Circle, Edit, Loader2, Plus, Search, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import AddUpdateEvaluatorDialog from './AddUpdateEvaluatorDialog';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import SearchBar from '@/Components/ui/SearchBar';
 import axios from 'axios';
 import { Skeleton } from '@/Components/ui/skeleton';

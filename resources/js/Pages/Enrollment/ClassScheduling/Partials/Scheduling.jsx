@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/Components/ui/toggle-group"
 import { Megaphone, Check } from 'lucide-react';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Button } from '@/Components/ui/button';
@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Comp
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/Components/ui/command"
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 

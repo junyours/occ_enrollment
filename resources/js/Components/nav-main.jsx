@@ -45,7 +45,7 @@ import {
     FileClock,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/Lib/Utils";
 import { Link } from "@inertiajs/react";
 import {
     SidebarGroup,

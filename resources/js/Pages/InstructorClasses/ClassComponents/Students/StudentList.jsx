@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Badge } from '@/Components/ui/badge';
-import { formatName } from '@/lib/infoUtils';
+import { formatName } from '@/Lib/InfoUtils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Card } from '@/Components/ui/card';
 import StudentListSkeleton from './StudentListSkeleton';

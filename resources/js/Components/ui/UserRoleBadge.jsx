@@ -1,7 +1,7 @@
 import React from 'react'
 import { Badge } from "@/Components/ui/badge"
-import { cn } from '@/lib/utils'
-import { userRoles } from '@/lib/usersUtility'
+import { cn } from '@/Lib/Utils'
+import { userRoles } from '@/Lib/UsersUtility'
 
 const getRoleStyles = (role) => {
     switch (role) {

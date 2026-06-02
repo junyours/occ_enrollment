@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PreLoader from '@/Components/preloader/PreLoader';
-import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from '@/lib/utils';
+import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';

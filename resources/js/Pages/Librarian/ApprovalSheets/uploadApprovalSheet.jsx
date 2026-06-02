@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Badge } from '@/Components/ui/badge';
 import { toast } from 'sonner';
 import { Head, router } from '@inertiajs/react';
-import { cn, formatFullName } from '@/lib/utils';
+import { cn, formatFullName } from '@/Lib/Utils';
 import { set } from 'react-hook-form';
 
 const yearMap = {

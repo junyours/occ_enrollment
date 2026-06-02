@@ -1,5 +1,5 @@
 import OCC_LOGO from '../../../images/OCC_LOGO.png'
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import CorStudentSubjects from './CorStudentSubjects';
 import CorStudentInfo from './CorStudentInfo';
 import CorFees from './CorFees';

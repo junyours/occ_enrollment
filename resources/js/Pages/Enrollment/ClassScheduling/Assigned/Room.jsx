@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table'
-import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities';
-import { convertToAMPM } from '@/lib/utils';
+import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
+import { convertToAMPM } from '@/Lib/Utils';
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 

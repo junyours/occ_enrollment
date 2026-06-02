@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/Components/ui/input";
 import { Search, Loader2, User, XCircle, AlertCircle } from "lucide-react";
 import axios from "axios";
-import { formatName } from "@/lib/infoUtils";
+import { formatName } from "@/Lib/InfoUtils";
 
 // Debounce Hook
 function useDebounce(value, delay) {

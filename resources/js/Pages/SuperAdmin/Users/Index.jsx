@@ -13,7 +13,7 @@ import {
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import UsersTable from './UsersTable';
-import { userRoles } from '@/lib/utils';
+import { userRoles } from '@/Lib/Utils';
 import PaginationPages from '@/Components/ui/PaginationPages';
 import SearchBar from '@/Components/ui/SearchBar';
 

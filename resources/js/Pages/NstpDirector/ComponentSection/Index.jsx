@@ -10,7 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { useSection } from './useSection';
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { convertToAMPM, formatFullName } from '@/lib/utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import Scheduling from './Scheduling';
 import RoomSchedules from './RoomSchedules';
 import InstructorSchedules from './InstructorSchedules';

@@ -1,7 +1,7 @@
 import { Button } from '@/Components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
 import { Table, TableBody, TableCell, TableRow } from '@/Components/ui/table'
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import React, { useState } from 'react'
 import { toast } from 'sonner';
 

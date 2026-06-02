@@ -1,14 +1,14 @@
 import PreLoader from '@/Components/preloader/PreLoader';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM, formatFullNameFML } from '@/lib/utils';
+import { convertToAMPM, formatFullNameFML } from '@/Lib/Utils';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
 import { CirclePlus, Loader2, Search, Trash2, TriangleAlert, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { detectTwoScheduleConflict } from '@/lib/ConflictUtilities';
+import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import TimeTable from '../ScheduleFormats/TimeTable';
 import { Button } from '@/Components/ui/button';

@@ -9,9 +9,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Separator } from '@/Components/ui/separator';
 import { AlertTriangle, Settings, Users, ShieldCheck, Info } from 'lucide-react';
-import { userRoles } from '@/lib/usersUtility';
+import { userRoles } from '@/Lib/UsersUtility';
 import UserRoleBadge from '@/Components/ui/UserRoleBadge'; // The component we built
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 
 export default function Index({ settings, errors }) {
     const { data, setData, processing } = useForm({

@@ -1,7 +1,7 @@
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card'
-import { convertToAMPM } from '@/lib/utils'
+import { convertToAMPM } from '@/Lib/Utils'
 import { Link } from '@inertiajs/react'
 import { BookOpen, ChevronRight, ClipboardList, Clock, List, MapPin } from 'lucide-react'
 import React from 'react'

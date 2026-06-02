@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
 import PreLoader from '@/Components/preloader/PreLoader';
 import React, { useEffect, useState, useRef } from 'react'
-import { formatFullName, identifyDayType } from '@/lib/utils';
+import { formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Head, usePage, useForm } from '@inertiajs/react';
 import { detectTwoScheduleConflict } from '../../../lib/conflictUtilities';
 import ClassList from './Partials/ClassList';

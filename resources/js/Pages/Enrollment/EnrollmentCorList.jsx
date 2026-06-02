@@ -1,7 +1,7 @@
 import { Button } from '@/Components/ui/button';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import CorGenerator from '../COR/CorGenerator';

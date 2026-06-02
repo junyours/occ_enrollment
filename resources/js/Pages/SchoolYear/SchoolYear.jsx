@@ -3,7 +3,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatDateShort } from '@/lib/utils';
+import { formatDateShort } from '@/Lib/Utils';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import {

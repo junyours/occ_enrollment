@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
 import React from 'react';
 import { Badge } from './ui/badge';

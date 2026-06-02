@@ -4,7 +4,7 @@ import { Input } from '@/Components/ui/input';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Head, router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, ArrowBigRight, BookOpen, BookOpenCheck, Loader2, Trash, Users } from 'lucide-react';

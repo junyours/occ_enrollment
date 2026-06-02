@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/Lib/Utils';
 
 export default function CopyButton({ text, size = "sm", className, ...props }) {
     const [copied, setCopied] = useState(false);

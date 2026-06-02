@@ -14,7 +14,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UserDetails from './UserDetails';
 import UsersTable from './UsersTable';
 import AddUserDialog from './AddUserDialog';
-import { userRoles } from '@/lib/utils';
+import { userRoles } from '@/Lib/Utils';
 import PaginationPages from '@/Components/ui/PaginationPages';
 import SearchBar from '@/Components/ui/SearchBar';
 

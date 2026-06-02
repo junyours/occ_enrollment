@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/Components/ui/tabs"
 import TimeTable from "@/Pages/ScheduleFormats/TimeTable";
 import { Check } from "lucide-react";
-import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from "@/lib/utils";
+import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from "@/Lib/Utils";
 import TabularSchedule from "@/Pages/ScheduleFormats/TabularSchedule";
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Input } from '@/Components/ui/input';

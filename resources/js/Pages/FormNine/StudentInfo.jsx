@@ -1,6 +1,6 @@
 import React from 'react';
 import FormField from './components/FormField';
-import { formatName } from '@/lib/infoUtils';
+import { formatName } from '@/Lib/InfoUtils';
 
 export default function StudentInfo({ info }) {
     const { information, parent } = info;

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/Components/ui/button'
-import { convertToAMPM } from '@/lib/utils'
+import { convertToAMPM } from '@/Lib/Utils'
 import { Clock, SendHorizonal} from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
 import { Label } from '@/Components/ui/label'

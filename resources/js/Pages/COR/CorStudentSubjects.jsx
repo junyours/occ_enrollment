@@ -1,4 +1,4 @@
-import { convertToAMPM, formatFullName } from '@/lib/utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import React from 'react'
 
 function CorStudentSubjects({ data, showSeal = false, settings = {} }) {

@@ -1,5 +1,5 @@
 import CopyButton from '@/Components/ui/CopyButton';
-import { formatName } from '@/lib/infoUtils';
+import { formatName } from '@/Lib/InfoUtils';
 import React from 'react';
 
 export default function CredentialsCard({ data, credentials }) {

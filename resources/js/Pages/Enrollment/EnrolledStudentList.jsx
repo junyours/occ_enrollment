@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { Head, Link, router } from '@inertiajs/react';
-import { formatFullName, formatFullNameFML } from '@/lib/utils';
+import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import {

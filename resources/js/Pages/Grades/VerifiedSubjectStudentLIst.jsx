@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { formatFullName, formatFullNameFML } from '@/lib/utils';
+import { formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { AlertCircle, ArrowLeft, BookOpen, CheckCircle, FileText, Loader2, Printer, Rocket, Send, XCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';

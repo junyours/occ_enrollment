@@ -9,7 +9,7 @@ import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';

@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Badge } from '@/Components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import AddFaculty from './AddFaculty';

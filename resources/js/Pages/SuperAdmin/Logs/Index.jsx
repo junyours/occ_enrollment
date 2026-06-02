@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PaginationPages from '@/Components/ui/PaginationPages';
-import { formatName } from '@/lib/infoUtils';
+import { formatName } from '@/Lib/InfoUtils';
 
 import {
     Table,
@@ -18,7 +18,7 @@ import {
     CardContent,
 } from "@/Components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { userRoles, formatRoleName } from '@/lib/usersUtility';
+import { userRoles, formatRoleName } from '@/Lib/UsersUtility';
 import SearchBar from '@/Components/ui/SearchBar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog';
 import { Button } from '@/Components/ui/button';

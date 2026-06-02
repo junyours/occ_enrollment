@@ -6,7 +6,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import { FileDown, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react'

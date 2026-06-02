@@ -4,7 +4,7 @@ import { Button } from "@/Components/ui/button";
 import { CFloatingInput } from "@/Components/ui/CFloatingInput";
 import { Field, FieldGroup } from "@/Components/ui/field";
 import { useForm, usePage } from "@inertiajs/react";
-import { isValidEmail } from "@/lib/utils";
+import { isValidEmail } from "@/Lib/Utils";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";

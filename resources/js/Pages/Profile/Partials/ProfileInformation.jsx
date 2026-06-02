@@ -9,7 +9,7 @@ import {
     Hash,
     ShieldAlert
 } from 'lucide-react';
-import { formatDate, formatPhoneNumber } from '@/lib/utils';
+import { formatDate, formatPhoneNumber } from '@/Lib/Utils';
 
 export default function ProfileInformation({ userInfo }) {
     // Generate full name and initials for the header Avatar

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Head } from '@inertiajs/react';
-import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/lib/utils';
+import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Switch } from '@/Components/ui/switch';

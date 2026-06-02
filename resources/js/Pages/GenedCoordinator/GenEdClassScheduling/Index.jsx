@@ -10,7 +10,7 @@ import Scheduling from './Scheduling';
 import useScheduleStore from './useClassScheduleStore';
 import InstructorSchedules from './InstructorSchedules';
 import RoomSchedules from './RoomSchedules';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 
 export default function Index({ course, yearlevel, section }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();

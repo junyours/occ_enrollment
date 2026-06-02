@@ -3,7 +3,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM } from '@/lib/utils';
+import { convertToAMPM } from '@/Lib/Utils';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useState } from 'react'

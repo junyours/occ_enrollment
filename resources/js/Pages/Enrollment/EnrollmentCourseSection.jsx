@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { usePage, useForm } from "@inertiajs/react";
-import { cn } from "@/lib/utils"
+import { cn } from "@/Lib/Utils"
 import { Button } from "@/Components/ui/button"
 import { useToast } from "@/hooks/use-toast";
 import {

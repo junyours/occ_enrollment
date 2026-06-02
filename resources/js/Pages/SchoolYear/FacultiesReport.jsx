@@ -8,7 +8,7 @@ import { FileDown, Search } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import SubjectsList from '../Enrollment/SubjectsList';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/Components/ui/accordion';
-import { convertToAMPM, formatFullName, formatFullNameFML } from '@/lib/utils';
+import { convertToAMPM, formatFullName, formatFullNameFML } from '@/Lib/Utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Card, CardContent, CardFooter } from '@/Components/ui/card';
 import SchoolYearPicker from '@/Components/SchoolYearPicker';

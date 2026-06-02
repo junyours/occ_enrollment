@@ -9,7 +9,7 @@ import {
     CheckCircle,
     XCircle
 } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/Lib/Utils';
 
 export default function AccountSettings({ userInfo, handleDataExport }) {
     return (

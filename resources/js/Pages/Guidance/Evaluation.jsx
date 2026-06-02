@@ -22,7 +22,7 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { formatDateShort } from "@/lib/utils";
+import { formatDateShort } from "@/Lib/Utils";
 import { Pencil, Loader2, Eye, LayoutGrid, List, Trash2 } from "lucide-react";
 
 export default function Evaluation({ schoolYears: initialSchoolYears }) {

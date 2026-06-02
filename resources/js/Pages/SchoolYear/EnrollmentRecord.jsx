@@ -4,7 +4,7 @@ import { Input } from '@/Components/ui/input';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import { FileDown } from 'lucide-react';
 import { useEffect, useState } from 'react';

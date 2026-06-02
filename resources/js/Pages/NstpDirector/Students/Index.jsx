@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import React, { useEffect, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
-import { formatFullName } from '@/lib/utils'
+import { formatFullName } from '@/Lib/Utils'
 import { Separator } from '@radix-ui/react-context-menu'
 import axios from 'axios'
 import { DownloadButton } from './DownloadButton'

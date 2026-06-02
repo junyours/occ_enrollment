@@ -3,7 +3,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM, formatFullName } from '@/lib/utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useState } from 'react'

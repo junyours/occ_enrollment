@@ -13,8 +13,8 @@ import {
     getCities,
     getBarangays,
     getZipCode,
-} from '@/lib/philippinesAddressData/addressesFinder'
-import { formatPhoneNumber } from '@/lib/utils'
+} from '@/Lib/PhilippinesAddressData/addressesFinder'
+import { formatPhoneNumber } from '@/Lib/Utils'
 import { router } from '@inertiajs/react'
 import { toast } from 'sonner'
 

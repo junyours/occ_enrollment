@@ -10,7 +10,7 @@ import TimeTable from "@/Pages/ScheduleFormats/TimeTable";
 import { Switch } from "@/Components/ui/switch";
 import { Label } from "@/Components/ui/label";
 import { Check, FileDown, ImageDown, Loader2 } from "lucide-react";
-import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from "@/lib/utils";
+import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from "@/Lib/Utils";
 import TabularSchedule from "@/Pages/ScheduleFormats/TabularSchedule";
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Input } from '@/Components/ui/input';

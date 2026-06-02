@@ -8,7 +8,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 import AddStudent from './AddStudent';
 import { Input } from '@/Components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';

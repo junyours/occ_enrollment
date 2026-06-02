@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { convertToAMPM, formatFullName } from '@/lib/utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios, { Axios } from 'axios';

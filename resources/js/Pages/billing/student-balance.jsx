@@ -22,7 +22,7 @@ import { useMemo, useState } from "react";
 import { debounce } from "lodash";
 import { router } from "@inertiajs/react";
 import { Plus } from "lucide-react";
-import { capitalizeFirstLetter, cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cn } from "@/Lib/Utils";
 import {
     AlertDialog,
     AlertDialogAction,

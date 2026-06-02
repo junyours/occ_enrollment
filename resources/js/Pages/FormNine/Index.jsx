@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useQuery } from '@tanstack/react-query';
-import { formatName } from '@/lib/infoUtils';
+import { formatName } from '@/Lib/InfoUtils';
 import { Button } from '@/Components/ui/button';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';

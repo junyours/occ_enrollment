@@ -3,7 +3,7 @@ import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import { Card, CardContent, CardHeader, CardTitle, } from "@/Components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/Components/ui/table"
 import { AlarmClockPlus, LoaderCircle, Pencil, Trash } from 'lucide-react';
-import { convertToAMPM, formatFullName } from '@/lib/utils';
+import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { usePage } from '@inertiajs/react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import { router } from '@inertiajs/react'

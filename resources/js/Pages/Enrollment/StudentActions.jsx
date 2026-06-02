@@ -7,7 +7,7 @@ import {
     DialogFooter
 } from '@/Components/ui/dialog';
 import { Button } from '@/Components/ui/button';
-import { formatFullName } from '@/lib/utils';
+import { formatFullName } from '@/Lib/Utils';
 
 function StudentActions({ show, setShowModal, onConfirm, student }) {
 

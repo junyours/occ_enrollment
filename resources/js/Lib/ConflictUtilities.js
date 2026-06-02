@@ -1,4 +1,4 @@
-import { expandAlternatingDays, expandConsecutiveDays, hasTimeConflict24Hours, identifyDayType } from "@/lib/utils"
+import { expandAlternatingDays, expandConsecutiveDays, hasTimeConflict24Hours, identifyDayType } from "@/Lib/Utils"
 
 
 export function singleAndSingle(firstSchedule, secondSchedule) {
