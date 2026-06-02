@@ -930,18 +930,23 @@ class SchoolYearController extends Controller
                 if ($subject->secondarySchedule) {
                     $secondaryRow = $row + 1;
 
-                    $sheet->setCellValue("C{$secondaryRow}", $subject->secondarySchedule->day);
-                    $sheet->setCellValue("D{$secondaryRow}", "{$this->convertToAMPM($subject->secondarySchedule->start_time)} - {$this->convertToAMPM($subject->secondarySchedule->end_time)}");
-                    $sheet->setCellValue("E{$secondaryRow}", $this->calculateHours($subject->secondarySchedule->start_time, $subject->secondarySchedule->end_time));
+                    // Align merged cells vertically center
+
+                    $sheet->setCellValue("D{$secondaryRow}", $subject->secondarySchedule->day);
+                    $sheet->setCellValue("E{$secondaryRow}", "{$this->convertToAMPM($subject->secondarySchedule->start_time)} - {$this->convertToAMPM($subject->secondarySchedule->end_time)}");
+                    $sheet->setCellValue("F{$secondaryRow}", $this->calculateHours($subject->secondarySchedule->start_time, $subject->secondarySchedule->end_time));
 
                     // Merge Subject and Credit Units across both rows
                     $sheet->mergeCells("B{$row}:B{$secondaryRow}");
-                    $sheet->mergeCells("F{$row}:F{$secondaryRow}");
+                    $sheet->mergeCells("C{$row}:C{$secondaryRow}");
+                    $sheet->mergeCells("G{$row}:G{$secondaryRow}");
 
                     // Align merged cells vertically center
                     $sheet->getStyle("B{$row}:B{$secondaryRow}")
                         ->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
-                    $sheet->getStyle("F{$row}:F{$secondaryRow}")
+                    $sheet->getStyle("C{$row}:C{$secondaryRow}")
+                        ->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+                    $sheet->getStyle("G{$row}:G{$secondaryRow}")
                         ->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
 
                     $row = $secondaryRow + 1; // move pointer past the secondary row
