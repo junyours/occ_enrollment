@@ -3,12 +3,15 @@
 use App\Http\Controllers\SchoolYear\SchoolYearController;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware(['auth', 'maintenance', 'role:registrar,billing'])->group(function () {
+    Route::get('/enrollment-record/{schoolYearId}', [SchoolYearController::class, 'recordStudentList'])->name('enrollment-record.students');
+});
+
 Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::get('/school-year', [SchoolYearController::class, 'view'])->name('school-year');
 
     Route::post('/api/school-year', [SchoolYearController::class, 'addSchoolYear'])->name('add.school-year');
     Route::patch('/api/school-year/{id}', [SchoolYearController::class, 'editSchoolYear'])->name('edit.school-year');
-    Route::post('/enrollment-record/{schoolYearId}', [SchoolYearController::class, 'recordStudentList'])->name('enrollment-record.students');
     Route::post('/promotional-report/{schoolYearId}', [SchoolYearController::class, 'promotionalReportStudentList'])->name('promotional-report.students');
 
     Route::get('/subjects-report', [SchoolYearController::class, 'subjectsReport'])->name('subjects-report');

@@ -608,7 +608,7 @@ class SchoolYearController extends Controller
     public function enrollmentRecordView()
     {
         $user = Auth::user();
-        if ($user->user_role == 'registrar') {
+        if ($user->user_role == 'registrar' || $user->user_role == 'billing') {
             return Inertia::render('SchoolYear/EnrollmentRecord');
         } else if ($user->user_role == 'student') {
             $info = UserInformation::where('user_id', $user->id)->first();
@@ -622,6 +622,8 @@ class SchoolYearController extends Controller
 
     public function recordStudentList($schoolYearId, Request $request)
     {
+        $search = $request->query('search', '');
+
         return response()->json(
             EnrolledStudent::select(
                 'first_name',
@@ -633,10 +635,11 @@ class SchoolYearController extends Controller
                 'date_enrolled',
                 'section'
             )
-                ->when($request->search, function ($query, $search) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('first_name', 'like', '%' . $search . '%')
-                            ->orWhere('last_name', 'like', '%' . $search . '%');
+                ->when(!empty($search), function ($query) use ($search) {
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('users.user_id_no', 'like', '%' . $search . '%')
+                            ->orWhere('user_information.first_name', 'like', '%' . $search . '%')
+                            ->orWhere('user_information.last_name', 'like', '%' . $search . '%');
                     });
                 })
                 ->withCount('Subjects as total_subjects')

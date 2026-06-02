@@ -707,6 +707,11 @@ export function NavMain() {
                             route: "billing.transaction.history",
                             icon: FileClock,
                         },
+                        {
+                            name: "Enrollment Record",
+                            route: "enrollment-record",
+                            icon: Library,
+                        },
                     ],
                 },
             );
