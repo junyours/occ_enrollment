@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import StudentInfo from './StudentInfo';
-import CollegiateRecords from './Components/CollegiateRecords';
+import CollegiateRecords from './components/CollegiateRecords';
 import SYGrades from './SYGrades';
-import Header from './Components/Header';
+import Header from './components/Header';
 import { cn } from '@/Lib/Utils';
 
 // 1. Used React.forwardRef so we can measure the Header perfectly

@@ -8,7 +8,7 @@ import axios from 'axios';
 import StudentSearch from '@/Components/StudentSearch';
 import { Head } from '@inertiajs/react';
 import Paper from './Paper';
-import PaperContainer from './Components/PaperContainer';
+import PaperContainer from './components/PaperContainer';
 import { Card } from '@/Components/ui/card';
 
 export default function Index() {

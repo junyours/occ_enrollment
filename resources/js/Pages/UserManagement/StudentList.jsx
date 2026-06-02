@@ -14,7 +14,7 @@ import { Input } from '@/Components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import axios from 'axios';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import StudentGrades from '../Components/StudentGrades';
+import StudentGrades from '../components/StudentGrades';
 import PaginationPages from '@/Components/ui/PaginationPages';
 
 export default function StudentList({ students, filters }) {

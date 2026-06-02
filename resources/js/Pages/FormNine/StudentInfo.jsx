@@ -1,5 +1,5 @@
 import React from 'react';
-import FormField from './Components/FormField';
+import FormField from './components/FormField';
 import { formatName } from '@/Lib/InfoUtils';
 
 export default function StudentInfo({ info }) {
