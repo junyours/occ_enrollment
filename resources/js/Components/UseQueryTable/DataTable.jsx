@@ -1,7 +1,7 @@
 // components/DataTable.jsx
 import React from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
+import { Skeleton } from "@/Components/ui/skeleton";
 
 export default function DataTable({ columns, data, isLoading, isFetching }) {
     const skeletonRowCount = data?.length > 0 ? data.length : 5;
