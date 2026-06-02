@@ -868,7 +868,8 @@ class SchoolYearController extends Controller
                         'subject:id,descriptive_title,credit_units',
                         'room:id,room_name',
                         'secondarySchedule.room:id,room_name',
-                        'yearSection:id,school_year_id'
+                        'yearSection',
+                        'yearSection.Course:id,course_name_abbreviation',
                     ])
                         ->whereHas('yearSection', function ($query) use ($schoolYearId) {
                             $query->where('school_year_id', $schoolYearId);
@@ -888,17 +889,19 @@ class SchoolYearController extends Controller
 
         $sheet->setCellValue('A1', 'Name');
         $sheet->setCellValue('B1', 'Subject');
-        $sheet->setCellValue('C1', 'Day');
-        $sheet->setCellValue('D1', 'Time');
-        $sheet->setCellValue('E1', 'Hours');
-        $sheet->setCellValue('F1', 'Units');
+        $sheet->setCellValue('C1', 'Year & Section');
+        $sheet->setCellValue('D1', 'Day');
+        $sheet->setCellValue('E1', 'Time');
+        $sheet->setCellValue('F1', 'Hours');
+        $sheet->setCellValue('G1', 'Units');
 
         $sheet->getColumnDimension('A')->setWidth(25);
         $sheet->getColumnDimension('B')->setWidth(55);
-        $sheet->getColumnDimension('C')->setWidth(25);
+        $sheet->getColumnDimension('C')->setWidth(20);
         $sheet->getColumnDimension('D')->setWidth(25);
-        $sheet->getColumnDimension('E')->setWidth(10);
+        $sheet->getColumnDimension('E')->setWidth(25);
         $sheet->getColumnDimension('F')->setWidth(10);
+        $sheet->getColumnDimension('G')->setWidth(10);
 
         $row = 2;
         $number = 1;
@@ -915,10 +918,11 @@ class SchoolYearController extends Controller
             foreach ($faculty->schedules as $subject) {
                 $sheet->setCellValue("A{$row}", $firstRow ? "{$number}. {$fullName}" : '');
                 $sheet->setCellValue("B{$row}", optional($subject->subject)->descriptive_title);
-                $sheet->setCellValue("C{$row}", $subject->day == 'TBA' ? '' : $subject->day);
-                $sheet->setCellValue("D{$row}", $subject->start_time == 'TBA' ? '' : "{$this->convertToAMPM($subject->start_time)} - {$this->convertToAMPM($subject->end_time)}");
-                $sheet->setCellValue("E{$row}", $this->calculateHours($subject->start_time, $subject->end_time));
-                $sheet->setCellValue("F{$row}", optional($subject->subject)->credit_units);
+                $sheet->setCellValue("C{$row}", $subject->yearSection->Course->course_name_abbreviation . ' - ' . $subject->yearSection->year_level_id . $subject->yearSection->section);
+                $sheet->setCellValue("D{$row}", $subject->day == 'TBA' ? '' : $subject->day);
+                $sheet->setCellValue("E{$row}", $subject->start_time == 'TBA' ? '' : "{$this->convertToAMPM($subject->start_time)} - {$this->convertToAMPM($subject->end_time)}");
+                $sheet->setCellValue("F{$row}", $this->calculateHours($subject->start_time, $subject->end_time));
+                $sheet->setCellValue("G{$row}", optional($subject->subject)->credit_units);
 
                 $firstRow = false;
 
