@@ -3,7 +3,7 @@
 use App\Http\Controllers\InstructorClasses\ClassController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,student'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,student,registrar'])->group(function () {
     Route::get('/classes', [ClassController::class, 'view'])->name('classes');
     Route::post('/api/get-faculty-classes/{schoolYearId}', [ClassController::class, 'getFacultyClasses'])->name('get.faculty.classes');
 
