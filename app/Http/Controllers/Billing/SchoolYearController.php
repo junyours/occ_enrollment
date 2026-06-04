@@ -24,6 +24,7 @@ class SchoolYearController extends Controller
                     $q->where("school_year_name", "like", "%{$search}%");
                 });
             })
+            ->orderByDesc('school_year_name')
             ->paginate(50);
 
         return response()->json($school_years);

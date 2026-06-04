@@ -16,19 +16,31 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/Components/ui/select";
-import { Trash2 } from "lucide-react";
+import { Trash2, Check, ChevronsUpDown } from "lucide-react";
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/Components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/Components/ui/popover";
+import { cn } from "@/Lib/Utils";
 
 export default function AddStudentBalance() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedStudent, setSelectedStudent] = useState(null);
-
     const [schoolYear, setSchoolYear] = useState("");
     const [semester, setSemester] = useState("");
-
     const [billingAccountId, setBillingAccountId] = useState(null);
-
+    const [openSchoolYear, setOpenSchoolYear] = useState(false);
     const [billingItems, setBillingItems] = useState([
         {
             id: null,
@@ -40,7 +52,6 @@ export default function AddStudentBalance() {
             remaining: 0,
         },
     ]);
-
     const [saving, setSaving] = useState(false);
     const [initialized, setInitialized] = useState(false);
 
@@ -374,9 +385,7 @@ export default function AddStudentBalance() {
     return (
         <div className="space-y-6">
             <Card className="p-5">
-                <h1 className="text-xl font-semibold">
-                    Add Student Balance
-                </h1>
+                <h1 className="text-xl font-semibold">Add Student Balance</h1>
             </Card>
 
             <div className="flex gap-6">
@@ -405,9 +414,7 @@ export default function AddStudentBalance() {
                                 </h2>
 
                                 <Badge variant="secondary">
-                                    {saving
-                                        ? "Saving..."
-                                        : "Auto Saved"}
+                                    {saving ? "Saving..." : "Auto Saved"}
                                 </Badge>
                             </div>
 
@@ -423,30 +430,69 @@ export default function AddStudentBalance() {
                             </p>
                         </div>
 
-                        <Select
-                            value={schoolYear}
-                            onValueChange={setSchoolYear}
+                        <Popover
+                            open={openSchoolYear}
+                            onOpenChange={setOpenSchoolYear}
                         >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select School Year" />
-                            </SelectTrigger>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openSchoolYear}
+                                    className="w-full justify-between"
+                                >
+                                    {schoolYear
+                                        ? schoolYears?.data?.find(
+                                              (sy) =>
+                                                  String(sy.id) === schoolYear,
+                                          )?.school_year_name
+                                        : "Select School Year"}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
 
-                            <SelectContent>
-                                {schoolYears?.data?.map((sy) => (
-                                    <SelectItem
-                                        key={sy.id}
-                                        value={String(sy.id)}
-                                    >
-                                        {sy.school_year_name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                            <PopoverContent className="p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search school year..." />
 
-                        <Select
-                            value={semester}
-                            onValueChange={setSemester}
-                        >
+                                    <CommandList>
+                                        <CommandEmpty>
+                                            No school year found.
+                                        </CommandEmpty>
+
+                                        <CommandGroup>
+                                            {schoolYears?.data?.map((sy) => (
+                                                <CommandItem
+                                                    key={sy.id}
+                                                    value={sy.school_year_name}
+                                                    onSelect={() => {
+                                                        setSchoolYear(
+                                                            String(sy.id),
+                                                        );
+                                                        setOpenSchoolYear(
+                                                            false,
+                                                        );
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            schoolYear ===
+                                                                String(sy.id)
+                                                                ? "opacity-100"
+                                                                : "opacity-0",
+                                                        )}
+                                                    />
+                                                    {sy.school_year_name}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+
+                        <Select value={semester} onValueChange={setSemester}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select Semester" />
                             </SelectTrigger>
@@ -465,9 +511,7 @@ export default function AddStudentBalance() {
 
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-semibold">
-                                    Billing Items
-                                </h3>
+                                <h3 className="font-semibold">Billing Items</h3>
 
                                 <Button
                                     variant="outline"
@@ -530,9 +574,7 @@ export default function AddStudentBalance() {
                                             variant="ghost"
                                             size="icon"
                                             disabled={item.locked}
-                                            onClick={() =>
-                                                removeItem(index)
-                                            }
+                                            onClick={() => removeItem(index)}
                                         >
                                             <Trash2 />
                                         </Button>
@@ -543,8 +585,7 @@ export default function AddStudentBalance() {
                                             <Badge
                                                 variant="secondary"
                                                 className={
-                                                    item.status ===
-                                                    "paid"
+                                                    item.status === "paid"
                                                         ? "bg-green-100 text-green-700"
                                                         : "bg-yellow-100 text-yellow-700"
                                                 }
@@ -593,6 +634,4 @@ export default function AddStudentBalance() {
     );
 }
 
-AddStudentBalance.layout = (page) => (
-    <AuthenticatedLayout children={page} />
-);
+AddStudentBalance.layout = (page) => <AuthenticatedLayout children={page} />;
