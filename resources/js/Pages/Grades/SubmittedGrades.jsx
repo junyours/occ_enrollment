@@ -17,6 +17,7 @@ import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, BookOpen, Loader2 } from 'lucide-react';
 import { formatName } from '@/Lib/InfoUtils';
+import { Input } from '@/Components/ui/input';
 
 export default function SubmittedGrades({ departmentId }) {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
@@ -57,10 +58,10 @@ export default function SubmittedGrades({ departmentId }) {
                     <CardContent className="space-y-2 mt-2">
                         {/* Search input */}
                         <div className="mb-2">
-                            <input
+                            <Input
                                 type="text"
                                 placeholder="Search faculty..."
-                                className="w-full border rounded px-2 py-1"
+                                className="w-full"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
