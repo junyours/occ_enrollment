@@ -5,8 +5,6 @@ import { Badge } from './ui/badge';
 
 export default function GradeRemarkBadge({ midterm, final, className, ...props }) {
 
-    if(final == '5.0') console.log(midterm)
-
     // both midterm and final had no data
     if ((midterm === '' || midterm === null) && (final === '' || final === null)) {
         return null;

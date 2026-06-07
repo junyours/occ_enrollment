@@ -7,7 +7,8 @@ import Students from './NstpTabs/Students'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { Card, CardContent } from '@/Components/ui/card'
 
-export default function OpenNstpClass({ id, componentName, sectionName, gradeSubmissionStatus, studentsList, schoolYear }) {
+export default function OpenNstpClass({ id, componentName, sectionName, gradeSubmissionStatus, studentsList, schoolYear, faculty }) {
+    
     const section = `${componentName.toUpperCase()}-${sectionName}`
 
     return (
@@ -29,7 +30,16 @@ export default function OpenNstpClass({ id, componentName, sectionName, gradeSub
                     </Card>
                 </TabsContent>
                 <TabsContent value="grades">
-                    <GradesIndex id={id} allowMidtermUpload={schoolYear.allow_upload_midterm} allowFinalUpload={schoolYear.allow_upload_final} />
+                    <GradesIndex
+                        id={id}
+                        allowMidtermUpload={schoolYear.allow_upload_midterm}
+                        allowFinalUpload={schoolYear.allow_upload_final}
+                        gradeSubmissionStatus={gradeSubmissionStatus}
+                        faculty={faculty}
+                        componentName={componentName}
+                        sectionName={sectionName}
+                        schoolYear={schoolYear}
+                    />
                 </TabsContent>
             </Tabs>
         </div>

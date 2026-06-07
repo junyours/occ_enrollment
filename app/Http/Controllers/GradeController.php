@@ -634,6 +634,16 @@ class GradeController extends Controller
         return response()->json($programHead);
     }
 
+    public function nstpDirectorName()
+    {
+        $nstpDirector = User::select('first_name', 'middle_name', 'last_name')
+            ->where('user_role', '=', 'nstp_director')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->first();
+
+        return response()->json($nstpDirector);
+    }
+
     public function gradesSubjectsList()
     {
         return Inertia::render('Grades/InstructorSubejctsList');

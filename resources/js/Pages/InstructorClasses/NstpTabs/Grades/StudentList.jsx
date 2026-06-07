@@ -59,7 +59,7 @@ const INPUT_BASE_CLASS = "w-16 text-center h-6 py-0 print:w-10 no-print rounded-
 // 2. Create a reusable component for the Grade logic
 const GradeCellContent = ({ status, grade, allowUpload, isMissing, onGradeChange, index, field }) => {
     const isLocked = ['submitted', 'deployed', 'verified'].includes(status);
-    const inputClassName = cn(INPUT_BASE_CLASS, isMissing ? 'border-red-500' : '');
+    const inputClassName = cn(INPUT_BASE_CLASS, isMissing ? 'border-red-500 bg-red-500/20' : '');
 
     // If locked, just show the grade text
     if (isLocked) {
@@ -80,29 +80,27 @@ const GradeCellContent = ({ status, grade, allowUpload, isMissing, onGradeChange
         />
     );
 
+    if (!allowUpload) {
+        return (
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div className="inline-block">{InputComponent}</div>
+                </TooltipTrigger>
+                <TooltipContent>Not allowed to upload grades</TooltipContent>
+            </Tooltip>
+        )
+    }
+
     return (
         <>
-            {!allowUpload ? (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="inline-block">{InputComponent}</div>
-                    </TooltipTrigger>
-                    <TooltipContent>Not allowed to upload grades</TooltipContent>
-                </Tooltip>
-            ) : (
-                <div className="inline-block">{InputComponent}</div>
-            )}
+            <div className="inline-block">{InputComponent}</div>
             {/* Print-only fallback */}
             <div className="hidden print:block">{grade}</div>
         </>
     );
 };
 
-export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }) {
-
-    const [missingFields, setMissingFields] = useState({});
-    const [localGrades, setLocalGrades] = useState({});
-
+export default function StudentList({ id, allowMidtermUpload, allowFinalUpload, localGrades, setLocalGrades, missingFields, setMissingFields, gradeSubmissionLoading, gradeSubmissionStatus }) {
     const getStudentNstpGrades = async () => {
         try {
             const response = await axios.post(route('nstp.students-grades', { id }));
@@ -148,6 +146,31 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
     const timeoutRefs = useRef({});
 
     const updateGrade = (studentId, field, value) => {
+        if (value) {
+            setMissingFields(prev => {
+                if (!prev[studentId]) return prev;
+
+                const missingKey = field.includes('midterm') ? 'midterm' : 'final';
+
+                // 3. Set that specific missing flag to false
+                return {
+                    ...prev,
+                    [studentId]: {
+                        ...prev[studentId],
+                        [missingKey]: false
+                    }
+                };
+            });
+        } else if (value == '') {
+            setMissingFields(prev => ({
+                ...prev,
+                [studentId]: {
+                    ...prev[studentId],
+                    [field.includes('midterm') ? 'midterm' : 'final']: true
+                }
+            }));
+        }
+
         const previousValue = localGrades[studentId]?.[field];
 
         setLocalGrades(prev => ({
@@ -161,6 +184,7 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
         const key = `${studentId}-${field}`;
 
         clearTimeout(timeoutRefs.current[key]);
+
 
         timeoutRefs.current[key] = setTimeout(async () => {
             try {
@@ -188,7 +212,7 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
                     'Failed to update grade'
                 );
             }
-        }, 1500);
+        }, 1400);
     };
 
     const displayGrades = useMemo(() => {
@@ -204,8 +228,10 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
         });
     }, [data, localGrades]);
 
+    const [activeRow, setActiveRow] = useState(null);
+
     if (isError) return <>Error loading grades.</>;
-    if (isLoading || !data) return <Skeleton />;
+    if (isLoading || !data || gradeSubmissionLoading) return <Skeleton />;
 
     return (
         <div>
@@ -214,7 +240,19 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
                     const finalGrade = computeFinalGrade(student.midterm_grade, student.final_grade);
 
                     return (
-                        <TableRow key={student.user_id_no} className="p-0 print:p-0">
+                        <TableRow
+                            key={student.user_id_no}
+                            className={cn(
+                                'p-0 print:p-0',
+                                activeRow === student.user_id_no && 'bg-muted/50'
+                            )}
+                            onFocus={() => setActiveRow(student.user_id_no)}
+                            onBlur={(e) => {
+                                if (!e.currentTarget.contains(e.relatedTarget)) {
+                                    setActiveRow(null);
+                                }
+                            }}
+                        >
                             <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>{index + 1}.</TableCell>
                             <TableCell className={TABLE_CELL_CLASS}>{student.user_id_no}</TableCell>
                             <TableCell className={TABLE_CELL_CLASS}>{formatName(student, { format: 'LFM' })}</TableCell>
@@ -222,10 +260,10 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
                             {/* Midterm Column */}
                             <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>
                                 <GradeCellContent
-                                    status={student.midterm_status}
+                                    status={gradeSubmissionStatus.midterm_status}
                                     grade={student.midterm_grade}
                                     allowUpload={allowMidtermUpload}
-                                    isMissing={missingFields[index]?.midterm}
+                                    isMissing={missingFields[student.id]?.midterm}
                                     index={index}
                                     field="midterm_grade"
                                     onGradeChange={(value) => updateGrade(student.id, 'midterm_grade', value)}
@@ -235,10 +273,10 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload }
                             {/* Final Column */}
                             <TableCell className={cn('text-center', TABLE_CELL_CLASS)}>
                                 <GradeCellContent
-                                    status={student.final_status}
+                                    status={gradeSubmissionStatus.final_status}
                                     grade={student.final_grade}
                                     allowUpload={allowFinalUpload}
-                                    isMissing={missingFields[index]?.final}
+                                    isMissing={missingFields[student.id]?.final}
                                     index={index}
                                     field="final_grade"
                                     onGradeChange={(value) => updateGrade(student.id, 'final_grade', value)}

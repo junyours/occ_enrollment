@@ -308,7 +308,7 @@ function Grades({
 
     const handleSubmit = (type) => {
         if (!validateGradesBeforeSubmit(type)) return;
-        setSubmitting(true)
+        setSubmitting(type)
         const routeName =
             type === "final"
                 ? "grade-submission.submit-final-grade"
@@ -342,7 +342,7 @@ function Grades({
     };
 
     const handleCancel = (type) => {
-        setSubmitting(true)
+        setSubmitting(type)
 
         const routeName =
             type === "final"
@@ -355,7 +355,7 @@ function Grades({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success("Submitted successfully");
+                    toast.warning("Submission canceled");
                 },
                 onError: (errors) => {
                     if (errors && errors.grades) {
@@ -377,7 +377,7 @@ function Grades({
     }
 
     const handleRequestEdit = (type) => {
-        setSubmitting(true)
+        setSubmitting(type)
 
         const routeName =
             type === "final"
@@ -427,7 +427,7 @@ function Grades({
     }, [data])
 
     const handleCancelRequestEdit = (type) => {
-        setSubmitting(true)
+        setSubmitting(type)
 
         const routeName =
             type === "final"
@@ -556,14 +556,14 @@ function Grades({
             {!isLoading && (
                 <div className='fixed bottom-0 z-50 flex gap-4 w-full max-w-6xl h-28 px-4'>
                     {/* Midterm (will appear on the right) */}
-                    <Card className='rounded-none no-print w-96 mb-4'>
+                    <Card className='no-print w-96 mb-4'>
                         <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
                             {/* Rejection message for midterm */}
                             <p className='underline w-max'>Midterm grade</p>
 
                             <GradeRequestEditAction
                                 gradeSubmissionStatus={data.midterm_status}
-                                isDisabled={submitting}
+                                isDisabled={submitting === 'midterm'}
                                 handleRequestEdit={handleRequestEdit}
                                 type='midterm'
                                 requestStatus={midtermRequestStatus}
@@ -595,7 +595,7 @@ function Grades({
                                 </div>
                                 <InstructorGradeSubmitionButton
                                     handleSubmit={handleSubmit}
-                                    disabledButton={!schoolYear.allow_upload_midterm || submitting}
+                                    disabledButton={!schoolYear.allow_upload_midterm || submitting === 'midterm'}
                                     handleCancel={handleCancel}
                                     type='midterm'
                                     status={{
@@ -611,14 +611,14 @@ function Grades({
                     </Card>
 
                     {/* Final (will appear on the left) */}
-                    <Card className='rounded-none no-print w-96 mb-4'>
+                    <Card className='no-print w-96 mb-4'>
                         <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
                             {/* Rejection message for midterm */}
                             <p className='underline w-max'>Final grade</p>
 
                             <GradeRequestEditAction
                                 gradeSubmissionStatus={data.final_status}
-                                isDisabled={submitting}
+                                isDisabled={submitting === 'final'}
                                 handleRequestEdit={handleRequestEdit}
                                 type='final'
                                 requestStatus={finalRequestStatus}
@@ -650,7 +650,7 @@ function Grades({
                                 </div>
                                 <InstructorGradeSubmitionButton
                                     handleSubmit={handleSubmit}
-                                    disabledButton={!schoolYear.allow_upload_final || submitting}
+                                    disabledButton={!schoolYear.allow_upload_final || submitting === 'final'}
                                     handleCancel={handleCancel}
                                     type='final'
                                     status={{

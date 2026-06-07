@@ -46,7 +46,7 @@ export default function GradeInput({
                 // Send the perfectly formatted number back to the parent
                 onValueChange(rounded.toFixed(1))
             }
-        }, 1400)
+        }, 1500)
     }
 
     function hasExactlyTwoDecimals(value) {

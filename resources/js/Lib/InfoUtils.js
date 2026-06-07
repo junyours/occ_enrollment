@@ -1,15 +1,27 @@
 /**
- * @param {Object} user - { first_name, middle_name, last_name }
- * @param {Object} options - { format: 'FMI' | 'LFM' | 'FULL', casing: 'capitalize' | 'upper' | 'lower' }
+ * @param {Object|null} user - { first_name, middle_name, last_name }
+ * @param {Object} options - { format: 'FMI' | 'LFM' | 'FULL', casing: 'capitalize' | 'upper' | 'lower', defaultValue: string }
  */
-export const formatName = (user = {}, options = {}) => {
-    const { first_name, middle_name, last_name } = user;
-    const { format = 'FMI', casing = 'capitalize' } = options;
+export const formatName = (user, options = {}) => {
+    // 1. Guard against null! Fallback to an empty object if user is null/undefined
+    const safeUser = user || {};
+    const { first_name, middle_name, last_name } = safeUser;
 
-    // Clean and normalize inputs (handles "JOHN" or "john")
+    const {
+        format = 'FMI',
+        casing = 'capitalize',
+        defaultValue = 'Unknown'
+    } = options;
+
+    // Clean and normalize inputs
     const f = (first_name || '').trim();
     const m = (middle_name || '').trim();
     const l = (last_name || '').trim();
+
+    // Return the default value if both first and last name are missing
+    if (!f && !l) {
+        return defaultValue;
+    }
 
     const mi = m ? `${m.charAt(0).toUpperCase()}.` : '';
 

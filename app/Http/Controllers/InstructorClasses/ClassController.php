@@ -132,7 +132,7 @@ class ClassController extends Controller
         }
 
         $section = NstpSection::where('nstp_sections.id', '=', $nstpSection->nstp_section_id)
-            ->with('Component')
+            ->with(['Component', 'schedule'])
             ->first();
 
         $gradeSubmissionStatus = NstpGradeSubmission::where('nstp_section_id', '=', $nstpSection->id)->first();
@@ -142,6 +142,11 @@ class ClassController extends Controller
                 'nstp_section_id' => $nstpSection->id
             ]);
         }
+
+        $faculty = User::where('users.id', '=', $section->schedule->faculty_id)
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->select('first_name', 'middle_name', 'last_name')
+            ->first();
 
         $students = NstpSection::where('nstp_sections.id', '=', $nstpSection->id)
             ->select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'gender', 'midterm_grade', 'final_grade')
@@ -153,7 +158,6 @@ class ClassController extends Controller
             ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
             ->orderBy('last_name', 'ASC')
             ->get();
-
 
         $schoolYear = SchoolYear::where('school_years.id', '=', $section->school_year_id)
             ->select(
@@ -173,7 +177,21 @@ class ClassController extends Controller
             'gradeSubmissionStatus' => $gradeSubmissionStatus,
             'studentsList' => $students,
             'schoolYear' => $schoolYear,
+            'faculty' => $faculty,
         ]);
+    }
+    
+    public function nstpSectionGradeSubmissionStatus(int $id)
+    {
+        $gradeSubmissionStatus = NstpGradeSubmission::where('nstp_section_id', $id)->first();
+
+        if (!$gradeSubmissionStatus) {
+            $gradeSubmissionStatus = NstpGradeSubmission::create([
+                'nstp_section_id' => $id,
+            ]);
+        }
+
+        return response()->json($gradeSubmissionStatus);
     }
 
     public function nstpStudents($id)
@@ -281,6 +299,56 @@ class ClassController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
+    }
+
+    public function submitNstpStudentGrades($period, $nstpSectionId)
+    {
+        $gradeSubmission = NstpGradeSubmission::where('nstp_section_id', '=', $nstpSectionId)->first();
+
+        if (!$gradeSubmission) {
+            return response()->json([
+                'message' => 'Grade submission record not found.',
+            ], 404);
+        }
+
+        if ($period == 'midterm') {
+            $gradeSubmission->update([
+                'midterm_status' => 'submitted',
+                'midterm_submitted_at' => now(),
+                'midterm_rejection_message' => null,
+            ]);
+        } else if ($period == 'final') {
+            $gradeSubmission->update([
+                'final_status' => 'submitted',
+                'final_submitted_at' => now(),
+                'final_rejection_message' => null,
+            ]);
+        }
+    }
+
+    public function cancelSubmission($period, $nstpSectionId)
+    {
+        $gradeSubmission = NstpGradeSubmission::where('nstp_section_id', '=', $nstpSectionId)->first();
+
+        if (!$gradeSubmission) {
+            return response()->json([
+                'message' => 'Grade submission record not found.',
+            ], 404);
+        }
+
+        if ($period == 'midterm') {
+            $gradeSubmission->update([
+                'midterm_status' => 'draft',
+                'midterm_submitted_at' => null,
+                'midterm_rejection_message' => null,
+            ]);
+        } else if ($period == 'final') {
+            $gradeSubmission->update([
+                'final_status' => 'draft',
+                'final_submitted_at' => null,
+                'final_rejection_message' => null,
+            ]);
+        }
     }
 
     public function getStudents($id)
@@ -447,6 +515,27 @@ class ClassController extends Controller
     }
 
     public function submitFinalGrade($yearSectionSubjectsId)
+    {
+        $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
+            ->where(function ($query) {
+                $query->orWhereNull('final_grade');
+            })->first();
+
+        if ($noGrades) {
+            return back()->withErrors([
+                'grades' => 'Some students have missing grades.',
+            ]);
+        }
+
+        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+            ->update([
+                'final_status' => 'submitted',
+                'final_submitted_at' => now(),
+                'final_rejection_message' => null,
+            ]);
+    }
+
+    public function submitNstpSectionGrade($yearSectionSubjectsId)
     {
         $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
             ->where(function ($query) {

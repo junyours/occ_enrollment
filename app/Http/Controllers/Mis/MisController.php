@@ -145,7 +145,7 @@ class MisController extends Controller
             'user_id_no' => ['required', 'unique:users,user_id_no,' . $id],
             'user_role' => [
                 'required',
-                'in:faculty,student,program_head,evaluator,registrar,mis,president,announcement_admin,guidance,vpaa'
+                'in:faculty,student,program_head,evaluator,registrar,mis,president,announcement_admin,guidance,vpaa,nstp_director,gened_coordinator,librarian,ojt_coordinator,research_coordinator,billing,cashier'
             ],
 
             // Conditionally required ONLY if info already exists
