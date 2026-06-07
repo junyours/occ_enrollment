@@ -70,7 +70,7 @@ const GradeCellContent = ({ status, grade, allowUpload, isMissing, onGradeChange
     const InputComponent = (
         <GradeInput
             value={grade}
-            className={inputClassName}
+            className={`${inputClassName}`}
             disabled={!allowUpload}
             min={1}
             max={5}
@@ -93,7 +93,7 @@ const GradeCellContent = ({ status, grade, allowUpload, isMissing, onGradeChange
 
     return (
         <>
-            <div className="inline-block">{InputComponent}</div>
+            <div className="inline-block print:hidden">{InputComponent}</div>
             {/* Print-only fallback */}
             <div className="hidden print:block">{grade}</div>
         </>
