@@ -304,31 +304,27 @@ class EnrollmentDashboardController extends Controller
             ->whereDate('end_date', '>=', $today)
             ->first();
 
-        $schoolYear = null;
-        $status = null;
-        $preparation = false;
-
         // Determine the status and set the school year accordingly
         if ($enrollmentOngoing) {
-            // If enrollment is ongoing, set preparation to false
-            $status = 'ongoing';
-            $schoolYear = $enrollmentOngoing;
-            $preparation = false;
-        } elseif ($enrollmentPreparation) {
-            // If enrollment is in preparation, set status to preparing
-            $status = 'preparing';
-            $schoolYear = $enrollmentPreparation;
-            $preparation = true;
-        } else {
-            // No enrollment preparation or ongoing, set status to false
-            $status = false;
+            return [
+                'status' => 'ongoing',
+                'preparation' => false,
+                'school_year' => $enrollmentOngoing
+            ];
         }
-
-        // Return status, preparation, and school year
+        // If enrollment is in preparation, set status to preparing
+        if ($enrollmentPreparation) {
+            return [
+                'status' => 'preparing',
+                'preparation' => true,
+                'school_year' => $enrollmentPreparation
+            ];
+        }
+        // No enrollment preparation or ongoing, set status to false
         return [
-            'status' => $status,
-            'preparation' => $preparation,
-            'school_year' => $schoolYear
+            'status' => false,
+            'preparation' => false,
+            'school_year' => null
         ];
     }
 }
