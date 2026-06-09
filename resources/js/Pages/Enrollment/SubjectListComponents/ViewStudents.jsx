@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/Components/ui/dialog';
 import UseQueryTable from '@/Components/UseQueryTable/Index';
 import CopyButton from '@/Components/ui/CopyButton';
-import { formatName } from '@/Lib/infoUtils';
+import { formatName } from '@/Lib/InfoUtils';
 
 export default function ViewStudents({ subject, setSubject, schoolYearId }) {
 
@@ -35,7 +35,7 @@ export default function ViewStudents({ subject, setSubject, schoolYearId }) {
             className: 'w-[150px] text-center',
             render: (row) => (
                 <div>{row.year_level_id}{row.section}</div>
-            )-=0
+            )
         },
         {
             header: 'Instructor',
