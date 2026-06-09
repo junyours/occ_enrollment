@@ -54,7 +54,7 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                                                                         className={cn(
                                                                             "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
                                                                             "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                                            missingFields[index]?.midterm ? 'border-red-500' : ''
+                                                                            missingFields[index]?.midterm ? 'border-red-500 bg-red-500/20' : ''
                                                                         )}
                                                                         disabled
                                                                     />
@@ -69,7 +69,7 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                                                             className={cn(
                                                                 "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
                                                                 "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                                missingFields[index]?.midterm ? 'border-red-500' : ''
+                                                                missingFields[index]?.midterm ? 'border-red-500 bg-red-500/20' : ''
                                                             )}
                                                             disabled={!allowMidtermUpload}
                                                             min={1}
@@ -110,7 +110,7 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                                                                         className={cn(
                                                                             "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
                                                                             "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                                            missingFields[index]?.final ? 'border-red-500' : ''
+                                                                            missingFields[index]?.final ? 'border-red-500 bg-red-500/20' : ''
                                                                         )}
                                                                         disabled
                                                                     />
@@ -128,7 +128,7 @@ function GradesStudentList({ grades, status, missingFields, handleGradeChange, s
                                                             className={cn(
                                                                 "w-16 text-center h-6 py-0 print:w-10 no-print rounded-none border-t-0 border-x-0 border-b border-gray-400 shadow-none",
                                                                 "focus:border-b-2 focus:outline-none focus-visible:ring-0 duration-200 ease-in-out",
-                                                                missingFields[index]?.final ? 'border-red-500' : ''
+                                                                missingFields[index]?.final ? 'border-red-500 bg-red-500/20' : ''
                                                             )}
                                                             disabled={!allowFinalUpload}
                                                             min={1}

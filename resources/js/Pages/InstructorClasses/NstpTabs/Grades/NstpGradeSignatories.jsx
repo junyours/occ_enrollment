@@ -44,7 +44,7 @@ export default function NstpGradeSignatories({ faculty }) {
                                 {formatName(nstpDirector, { casing: 'upper' })}
                             </p>
                         </div>
-                        <div>Program Head</div>
+                        <div>Nstp Director</div>
                     </div>
 
                     <div className="text-center">
