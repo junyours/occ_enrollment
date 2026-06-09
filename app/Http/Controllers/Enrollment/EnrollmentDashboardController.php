@@ -33,10 +33,10 @@ class EnrollmentDashboardController extends Controller
             ->first();
 
         $schoolYearId = $request->schoolYearId;
-        $schoolYearDetails = SchoolYear::findOrFail($schoolYearId)->with('Semester')->first();
+        $schoolYearDetails = SchoolYear::where('id', '=', $schoolYearId)->with('Semester')->first();
 
         $coursesReports =  [];
-
+    
         if ($user->user_role == "program_head" || $user->user_role == "evaluator") {
             $coursesReports =
                 Faculty::where('faculty_id', $user->id)
