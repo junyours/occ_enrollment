@@ -1,11 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Guidance\GuidanceController;
-use App\Http\Controllers\Guidance\LanguageController;
 use App\Http\Controllers\Guidance\FeedbackCategoryController;
 use App\Http\Controllers\Guidance\FeedbackKeywordController;
+use App\Http\Controllers\Guidance\GuidanceController;
+use App\Http\Controllers\Guidance\LanguageController;
+use App\Http\Controllers\Guidance\ProgramHeadController;
+use App\Http\Controllers\Guidance\StudentController;
 use App\Http\Controllers\Guidance\UnknownFeedbackKeywordController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'maintenance', 'Guidance'])->group(function () {
     Route::get('/guidance/dashboard', [GuidanceController::class, 'index'])->name('guidance.dashboard');
@@ -42,7 +44,7 @@ Route::middleware(['auth', 'maintenance', 'Guidance'])->group(function () {
 
     Route::get('/faculty/evaluation-results/bulk-download', [GuidanceController::class, 'bulkDownloadFacultyEvaluations'])
     ->name('guidance.faculty.evaluation-results.bulk-download');
-    
+
     Route::get('/faculty', [GuidanceController::class, 'facultyList'])->name('guidance.faculty.index');
     Route::get('/faculty/{id}/subjects', [GuidanceController::class, 'showSubjects'])->name('guidance.faculty.subjects');
     Route::get('/guidance/faculty/{facultyId}/subject/{studentSubjectId}/evaluation', [GuidanceController::class, 'facultyEvaluationResult'])->name('guidance.faculty.subject.evaluation');
@@ -151,32 +153,36 @@ Route::middleware(['auth', 'maintenance', 'Guidance'])->group(function () {
         [UnknownFeedbackKeywordController::class, 'destroy']
     )->name('unknown-keywords.destroy');
 
+
+
 Route::middleware(['auth', 'maintenance', 'student'])->group(function () {
     // Student Evaluation Questions
-    Route::get('/student_evalaution', [GuidanceController::class, 'stud_questionnaire'])->name('student.evaluation');
-    Route::get('/student_eval_question', [GuidanceController::class, 'stud_eval_questionnaire'])->name('student.eval_question');
-    Route::get('/student_eval_question/{id}', [GuidanceController::class, 'stud_eval_questionnaire'])
+    Route::get('/student_evalaution', [StudentController::class, 'stud_questionnaire'])->name('student.evaluation');
+    Route::get('/student_eval_question', [StudentController::class, 'stud_eval_questionnaire'])->name('student.eval_question');
+    Route::get('/student_eval_question/{id}', [StudentController::class, 'stud_eval_questionnaire'])
         ->name('student.eval_question');
-    Route::get('/student/evaluation/preview/{evaluationId}/{studentSubjectId}', [GuidanceController::class, 'previewEvaluation'])->name('student.eval_question_preview');
-    Route::post('/student/evaluation/submit', [GuidanceController::class, 'submit'])
+    Route::get('/student/evaluation/preview/{evaluationId}/{studentSubjectId}', [StudentController::class, 'previewEvaluation'])->name('student.eval_question_preview');
+    Route::post('/student/evaluation/submit', [StudentController::class, 'submit'])
         ->name('student.evaluation.submit');
-    Route::get('/student/evaluation/draft/{evaluation}/{studentSubject}', [GuidanceController::class, 'loadDraft']);
-    Route::post('/draft/save', [GuidanceController::class, 'saveDraft'])->name('student.evaluation.draft.save');
-    Route::delete('/draft/{evaluation}/{studentSubject}', [GuidanceController::class, 'deleteDraft']);
+    Route::get('/student/evaluation/draft/{evaluation}/{studentSubject}', [StudentController::class, 'loadDraft']);
+    Route::post('/draft/save', [StudentController::class, 'saveDraft'])->name('student.evaluation.draft.save');
+    Route::delete('/draft/{evaluation}/{studentSubject}', [StudentController::class, 'deleteDraft']);
 });
+
+//-=-----------------------------Program Head -------------------------------------------------------
 
 
 
 Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
-    Route::get('/program-head/facresult', [GuidanceController::class, 'phFacultyReport'])->name('ph.result');
+    Route::get('/program-head/facresult', [ProgramHeadController::class, 'phFacultyReport'])->name('ph.result');
     // Route::get('/faculty-result/', [GuidanceController::class, 'phFacultyReport'])->name('faculty-report');
-    Route::get('/program-head/faculty-list/{schoolYearId}', [GuidanceController::class, 'facultyReport'])
+    Route::get('/program-head/faculty-list/{schoolYearId}', [ProgramHeadController::class, 'facultyReport'])
         ->name('ph.faculty.list');
-    Route::get('/program-head/faculty-subjects/{facultyId}/{schoolYearId}', [GuidanceController::class, 'phfacultySubjects'])
+    Route::get('/program-head/faculty-subjects/{facultyId}/{schoolYearId}', [ProgramHeadController::class, 'phfacultySubjects'])
         ->name('ph.faculty.subjects');
     Route::get(
         '/program-head/faculty-evaluation/{facultyId}/{studentSubjectId}/{schoolYearId}',
-        [GuidanceController::class, 'phEvaluationResult']
+        [ProgramHeadController::class, 'phEvaluationResult']
     )->name('ph.faculty.evaluation');
 });
 
