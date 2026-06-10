@@ -43,9 +43,9 @@ export default function SYGrades({ data, className }) {
                             <tr key={index} className='border-b border-gray-400'>
                                 <td className='text-xs  pl-8 py-0.5'>{subject.subject_code}</td>
                                 <td className='text-xs'>{subject.descriptive_title}</td>
-                                <td className='text-xs text-center'>{subject.grade}</td>
+                                <td className={`text-xs text-center ${subject.grade > 3 ? 'text-red-500' : ''}`}>{subject.grade}</td>
                                 <td className='text-xs text-center' />
-                                <td className='text-xs text-center'>{subject.credit_units}</td>
+                                <td className={`text-xs text-center ${subject.grade > 3 ? 'text-red-500' : ''}`}>{subject.grade > 3 ? '0' : subject.credit_units}</td>
                             </tr>
                         )
                     })}

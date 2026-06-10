@@ -96,7 +96,8 @@ export default function Paper({ data, className }) {
         (sum, record) =>
             sum +
             record.subjects.reduce(
-                (subSum, subject) => subSum + subject.credit_units,
+                (subSum, subject) =>
+                    subject.grade > 3 ? subSum : subSum + subject.credit_units,
                 0
             ),
         0
