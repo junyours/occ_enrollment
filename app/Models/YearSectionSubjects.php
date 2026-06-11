@@ -26,6 +26,12 @@ class YearSectionSubjects extends Model
         // 'updated_at'
     ];
 
+
+    public function Students()
+    {
+        return $this->hasMany(StudentSubject::class, 'year_section_subjects_id');
+    }
+
     public function studentSubject()
     {
         return $this->hasMany(StudentSubject::class, 'year_section_subjects_id');

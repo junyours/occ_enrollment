@@ -65,6 +65,7 @@ class EnrollmentClassSchedulingController extends Controller
                 'Subject',
                 'SecondarySchedule.Room'
             ])
+            ->withCount('Students')
             ->get();
 
         return response()->json([

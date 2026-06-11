@@ -64,6 +64,7 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                     end_time: cls.end_time,
                     descriptive_title: cls.subject?.descriptive_title || '',
                     credit_units: cls.subject?.credit_units || '',
+                    students_count: cls.students_count,
                     // first_name: cls.instructor?.instructor_info?.first_name || '',
                     // last_name: cls.instructor?.instructor_info?.last_name || '',
                     // room_name: cls.room?.room_name || '',
@@ -425,6 +426,7 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                             {/* <TableHead>Class Code</TableHead> */}
                                             <TableHead className="w-28">Subject Code</TableHead>
                                             <TableHead>Descriptive Title</TableHead>
+                                            <TableHead className="text-center">Students</TableHead>
                                             <TableHead className="w-36">Day</TableHead>
                                             <TableHead className="w-40">Time</TableHead>
                                             {/* <TableHead className="w-14">Room</TableHead> */}
@@ -440,6 +442,7 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                                     <TableRow>
                                                         <TableCell>{classInfo.subject_code}</TableCell>
                                                         <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.descriptive_title}</TableCell>
+                                                        <TableCell className='text-center'>{classInfo.students_count}</TableCell>
                                                         <TableCell>{classInfo.day == 'TBA' ? '-' : classInfo.day}</TableCell>
                                                         <TableCell>
                                                             <div className='flex flex-col'>
