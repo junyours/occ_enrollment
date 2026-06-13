@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 export default function BackButton() {
     return (
         <Card
-            className='cursor-pointer hover:bg-gray-100 w-min'
+            className='cursor-pointer w-min'
             onClick={() => window.history.back()}
         >
             <CardContent className='flex items-center gap-2 px-4 py-2'>

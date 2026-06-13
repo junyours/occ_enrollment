@@ -646,6 +646,16 @@ export function NavMain() {
                     ],
                 },
                 {
+                    label: "Grades",
+                    items: [
+                        {
+                            name: "Submitted Grades",
+                            route: "submitted-grades",
+                            icon: FileText,
+                        },
+                    ],
+                },
+                {
                     label: "Others",
                     items: [
                         {

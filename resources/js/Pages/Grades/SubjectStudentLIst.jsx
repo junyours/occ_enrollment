@@ -1,9 +1,9 @@
-import React, {  useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { formatFullName } from '@/Lib/Utils';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { AlertCircle, ArrowLeft, BookOpen,  CheckCircle, FileText, Loader2, Rocket, Send, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, BookOpen, CheckCircle, FileText, Loader2, Rocket, Send, XCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import ProgramHeadGradeVerificationButton from './ProgramHeadGradeVerificationButton';
 import { useGradeSubmission } from '../InstructorClasses/ClassComponents/GradePartials/useGradeSubmission';
@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { computeFinalGrade } from './GradeUtility';
 import { Badge } from '@/Components/ui/badge';
 import BackButton from '@/Components/ui/BackButton';
+import { formatName } from '@/Lib/InfoUtils';
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -136,7 +137,7 @@ function SubjectStudentLIst({ faculty, subject }) {
                     <BackButton />
                     <Card className='w-max'>
                         <CardContent className='px-4 py-2'>
-                            <h1>{faculty.name.toUpperCase()}</h1>
+                            <h1>{formatName(faculty, { casing: 'upper' })}</h1>
                         </CardContent>
                     </Card>
                     <Card className='w-max'>

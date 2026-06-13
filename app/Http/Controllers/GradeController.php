@@ -6,11 +6,14 @@ use App\Models\Course;
 use App\Models\Faculty;
 use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
+use App\Models\NstpGradeSubmission;
+use App\Models\NstpSection;
 use App\Models\SchoolYear;
 use App\Models\Semester;
 use App\Models\StudentSubject;
 use App\Models\Subject;
 use App\Models\User;
+use App\Models\UserInformation;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
@@ -22,17 +25,13 @@ class GradeController extends Controller
 {
     public function viewSubmittedGrades()
     {
-
-        $schoolYears = SchoolYear::select('school_years.id', 'start_year', 'end_year', 'semester_id', 'semester_name', 'is_current',)
-            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->orderBy('school_years.start_date', 'DESC')
-            ->orderBy('school_years.end_date', 'DESC')
-            ->orderBy('school_years.semester_id', 'DESC')
-            ->get();
-
         $user = Auth::user();
 
-        $departmentId = Faculty::where('faculty_id', '=', $user->id)->first()->department_id;
+        if ($user->user_role === 'nstp_director') {
+            return Inertia::render('Grades/Nstp/SubmittedGrades');
+        } else {
+            $departmentId = Faculty::where('faculty_id', '=', $user->id)->first()->department_id;
+        }
 
         return Inertia::render('Grades/SubmittedGrades', [
             'departmentId' => $departmentId,
@@ -99,11 +98,97 @@ class GradeController extends Controller
         return response()->json($instructors, 200);
     }
 
-    public function viewFacultySubjects($schoolYear, $semester, $facultyId)
+    public function getNstpFacultyListSubmittedGrades(Request $request)
+    {
+        $facultyList = User::select(
+            'nstp_section_schedules.faculty_id',
+            'users.user_id_no',
+            'user_information.first_name',
+            'user_information.middle_name',
+            'user_information.last_name',
+            DB::raw('
+                SUM(
+                    (nstp_grade_submissions.midterm_status = "submitted")
+                    + (nstp_grade_submissions.final_status = "submitted")
+                    ) AS submitted_count
+            '),
+            DB::raw('
+                SUM(nstp_grade_submissions.midterm_status IN ("verified", "deployed")) AS midterm_verified_count,
+                SUM(nstp_grade_submissions.final_status IN ("verified", "deployed")) AS final_verified_count
+            ')
+        )
+            ->where('nstp_sections.school_year_id', $request->schoolYearId)
+            ->join('nstp_section_schedules', 'users.id', '=', 'nstp_section_schedules.faculty_id')
+            ->join('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->leftJoin('nstp_grade_submissions', 'nstp_sections.id', '=', 'nstp_grade_submissions.nstp_section_id')
+            ->groupBy(
+                'nstp_section_schedules.faculty_id',
+                'users.id',
+                'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name'
+            )
+            ->orderBy('last_name', 'ASC')
+            ->withCount([
+                'NstpSectionSchedule as subjects_count' => function ($q) use ($request) {
+                    $q->whereHas('NstpSection', function ($qs) use ($request) {
+                        $qs->where('school_year_id', $request->schoolYearId);
+                    });
+                }
+            ])
+            ->get();
+
+        return response()->json($facultyList);
+    }
+
+    public function getNstpFacultySubmittedSubjects($schoolYearId, $facultyId)
+    {
+        $subjects = NstpSection::select(
+            'component_name',
+            'section',
+            'midterm_submitted_at',
+            'midterm_verified_at',
+            'midterm_status',
+            'final_submitted_at',
+            'final_verified_at',
+            'final_status',
+        )
+            ->selectRaw(
+                "SHA2(nstp_sections.id, 256) as hashed_nstp_section_id"
+            )
+            ->where('nstp_sections.school_year_id', '=', $schoolYearId)
+            ->where('nstp_section_schedules.faculty_id', '=', $facultyId)
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->join('nstp_section_schedules', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+            ->join('nstp_grade_submissions', 'nstp_sections.id', '=', 'nstp_grade_submissions.nstp_section_id')
+            ->get();
+
+        return response()->json($subjects);
+    }
+
+    public function viewFacultySubjects($schoolYear, $semester, $facultyId, Request $request)
     {
         $years = explode('-', $schoolYear);
 
+        if (!$years) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'School year not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
         $semesterInfo = Semester::where('semester_name', '=', $semester)->first();
+
+        if (!$semesterInfo) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'Semester not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
 
         $schoolYear = SchoolYear::where('start_year', '=', $years[0])
             ->select('school_years.id', 'start_year', 'end_year', 'semester_name')
@@ -112,11 +197,22 @@ class GradeController extends Controller
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
 
+        if (!$schoolYear) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'School year not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
         $faculty = User::where('user_id_no', '=', $facultyId)
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->select(
                 'users.id',
                 'users.user_id_no',
+                'user_information.first_name',
+                'user_information.middle_name',
+                'user_information.last_name',
                 DB::raw(
                     "CONCAT(
                     first_name, ' ',
@@ -126,6 +222,23 @@ class GradeController extends Controller
                 )
             )
             ->first();
+
+        if (!$faculty) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'Faculty not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $user = Auth::user();
+
+        if ($user->user_role === 'nstp_director') {
+            return Inertia::render('Grades/Nstp/FacultySubjects', [
+                'schoolYear' => $schoolYear,
+                'faculty' => $faculty,
+            ]);
+        }
 
         return Inertia::render('Grades/FacultySubjects', [
             'schoolYear' => $schoolYear,
@@ -170,38 +283,255 @@ class GradeController extends Controller
         return response()->json($subjects, 200);
     }
 
-    public function viewSubjectStudents($schoolYear, $semester, $facultyId, $yearSectionSubjectsId)
+    public function viewSubjectStudents($schoolYear, $semester, $facultyId, $sectionSubjectId, Request $request)
     {
+        $years = explode('-', $schoolYear);
+
+        if (!$years) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'School year not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $semesterInfo = Semester::where('semester_name', '=', $semester)->first();
+
+        if (!$semesterInfo) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'Semester not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $schoolYear = SchoolYear::where('start_year', '=', $years[0])
+            ->select('school_years.id', 'start_year', 'end_year', 'semester_name')
+            ->where('end_year', '=', $years[1])
+            ->where('semester_id', '=', $semesterInfo->id)
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->first();
+
+        if (!$schoolYear) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'School year not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $userRole = Auth::user()->user_role;
+
+        $faculty = User::where('user_id_no', '=', $facultyId)
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->first();
+
+        if (!$faculty) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+                'title' => 'Faculty not found',
+                'message' => 'Did you change the URL? Please contact admin if not.',
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        if ($userRole == 'nstp_director') {
+            $nstpSection = NstpSection::whereRaw("SHA2(nstp_sections.id, 256) = ?", [$sectionSubjectId])
+                ->select('nstp_sections.*', 'nstp_components.component_name')
+                ->join('nstp_section_schedules', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+                ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+                ->first();
+
+            if (!$nstpSection) {
+                return Inertia::render('Errors/ErrorPage', [
+                    'status' => 404,
+                    'title' => 'Section not found',
+                    'message' => 'Did you change the URL? Please contact admin if not.',
+                ])->toResponse($request)->setStatusCode(404);
+            }
+
+            return Inertia::render('Grades/Nstp/SectionStudents', [
+                'nstpSection' => $nstpSection,
+                'faculty' => $faculty,
+            ]);
+        }
+
         $subject = YearSectionSubjects::select('course_name_abbreviation', 'section', 'year_level_id', 'year_section_subjects.id', 'descriptive_title', 'submitted_at', 'verified_at', 'is_submitted', 'is_verified', 'is_rejected', 'is_deployed', 'deployed_at')
-            ->whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$yearSectionSubjectsId])
+            ->whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$sectionSubjectId])
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
             ->join('course', 'course.id', '=', 'year_section.course_id')
             ->join('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
             ->first();
 
-        $faculty = User::where('user_id_no', '=', $facultyId)
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->select(
-                DB::raw(
-                    "CONCAT(
-                    first_name, ' ',
-                    IF(middle_name IS NOT NULL AND middle_name != '', CONCAT(middle_name, ' '), ''),
-                    last_name
-                    ) AS name"
-                )
-            )
+
+        return Inertia::render('Grades/SubjectStudentLIst', [
+            'faculty' => $faculty,
+            'subject' => $subject,
+        ]);
+    }
+
+    public function nstpVerifyGrades($period, $sectionId)
+    {
+        // 1. Validate period early
+        if (!in_array($period, ['midterm', 'final'])) {
+            return;
+        }
+
+        $submission = NstpGradeSubmission::where('nstp_section_id', '=', $sectionId)->first();
+        if (!$submission) {
+            return;
+        }
+
+        $nstpSection = NstpSection::where('nstp_sections.id', '=', $sectionId)
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
             ->first();
 
-        return Inertia::render(
-            'Grades/SubjectStudentLIst',
+        $userInfo = UserInformation::where('user_id', '=', Auth::id())->first();
+
+        $name = format_name(
             [
-                'subject' => $subject,
-                'faculty' => $faculty,
+                'first_name'  => $userInfo->first_name,
+                'middle_name' => $userInfo->middle_name,
+                'last_name'   => $userInfo->last_name,
+            ],
+            ['format' => 'LFM']
+        );
+
+        // Dynamically update (matches your other methods now!)
+        $submission->update([
+            "{$period}_status"      => 'verified',
+            "{$period}_verified_at" => now()
+        ]);
+
+        log_activity(
+            "nstp_{$period}_grades_verified",
+            $submission,
+            "{$name} verified {$period} grades for NSTP " . strtoupper($nstpSection->component_name) . "-{$nstpSection->section}",
+            ['period' => $period, 'section_id' => $sectionId]
+        );
+    }
+
+    public function nstpUnverifyGrades($period, $sectionId)
+    {
+        if (!in_array($period, ['midterm', 'final'])) {
+            return;
+        }
+
+        $submission = NstpGradeSubmission::where('nstp_section_id', $sectionId)->first();
+        if (!$submission) {
+            return;
+        }
+
+        $nstpSection = NstpSection::where('nstp_sections.id', $sectionId)
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->first();
+
+        $userInfo = UserInformation::where('user_id', Auth::id())->first();
+
+        $name = format_name(
+            [
+                'first_name'  => $userInfo->first_name,
+                'middle_name' => $userInfo->middle_name,
+                'last_name'   => $userInfo->last_name,
+            ],
+            ['format' => 'LFM']
+        );
+
+        $submission->update([
+            "{$period}_status"      => 'submitted',
+            "{$period}_verified_at" => null
+        ]);
+
+        log_activity(
+            "nstp_{$period}_grades_unverified",
+            $submission,
+            "{$name} unverified {$period} grades for NSTP " . strtoupper($nstpSection->component_name) . "-{$nstpSection->section}",
+            ['period' => $period, 'section_id' => $sectionId]
+        );
+    }
+
+    public function nstpRejectGrades($period, $sectionId, Request $request)
+    {
+        if (!in_array($period, ['midterm', 'final'])) {
+            return;
+        }
+
+        $submission = NstpGradeSubmission::where('nstp_section_id', $sectionId)->first();
+        if (!$submission) {
+            return;
+        }
+
+        $nstpSection = NstpSection::where('nstp_sections.id', $sectionId)
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->first();
+
+        $userInfo = UserInformation::where('user_id', Auth::id())->first();
+
+        $name = format_name(
+            [
+                'first_name'  => $userInfo->first_name,
+                'middle_name' => $userInfo->middle_name,
+                'last_name'   => $userInfo->last_name,
+            ],
+            ['format' => 'LFM']
+        );
+
+        $submission->update([
+            "{$period}_status"            => 'rejected',
+            "{$period}_rejection_message" => $request->message
+        ]);
+
+        log_activity(
+            "nstp_{$period}_grades_rejected",
+            $submission,
+            "{$name} rejected {$period} grades for NSTP " . strtoupper($nstpSection->component_name) . "-{$nstpSection->section} with message \"{$request->message}\"",
+            [
+                'period'     => $period,
+                'section_id' => $sectionId,
+                'reason'     => $request->message
             ]
         );
     }
 
+    public function nstpUnrejectGrades($period, $sectionId)
+    {
+        if (!in_array($period, ['midterm', 'final'])) {
+            return;
+        }
+
+        $submission = NstpGradeSubmission::where('nstp_section_id', $sectionId)->first();
+        if (!$submission) {
+            return;
+        }
+
+        $nstpSection = NstpSection::where('nstp_sections.id', $sectionId)
+            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
+            ->first();
+
+        $userInfo = UserInformation::where('user_id', Auth::id())->first();
+
+        $name = format_name(
+            [
+                'first_name'  => $userInfo->first_name,
+                'middle_name' => $userInfo->middle_name,
+                'last_name'   => $userInfo->last_name,
+            ],
+            ['format' => 'LFM']
+        );
+
+        $submission->update([
+            "{$period}_status"            => 'submitted',
+            "{$period}_rejection_message" => null
+        ]);
+
+        log_activity(
+            "nstp_{$period}_grades_unrejected",
+            $submission,
+            "{$name} unrejected {$period} grades for NSTP " . strtoupper($nstpSection->component_name) . "-{$nstpSection->section}",
+            ['period' => $period, 'section_id' => $sectionId]
+        );
+    }
+    
     public function viewFacultySubjectStudents(Request $request)
     {
         $students = StudentSubject::select(

@@ -1,32 +1,23 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import React, { useEffect, useState } from 'react';
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from '@/Components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Button } from '@/Components/ui/button';
-import axios from 'axios';
-import { Head, Link } from '@inertiajs/react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
-import SchoolYearPicker from '@/Components/SchoolYearPicker';
-import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
-import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, BookOpen, Loader2 } from 'lucide-react';
-import { formatName } from '@/Lib/InfoUtils';
+import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import { Head, Link } from '@inertiajs/react';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { AlertCircle, BookOpen, Loader2 } from 'lucide-react';
+import React, { useState } from 'react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
+import { formatName } from '@/Lib/InfoUtils';
+import { Button } from '@/Components/ui/button';
 
-export default function SubmittedGrades({ departmentId }) {
+export default function SubmittedGrades() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
     const [search, setSearch] = useState('');
 
     const getFacultiesSubmittedGrades = async () => {
-        const response = await axios.post(route('faculty-list.submitted-grades'), {
+        const response = await axios.post(route('nstp.faculty-list.submitted-grades'), {
             schoolYearId: selectedSchoolYearEntry.id,
-            departmentId: departmentId
         });
         return response.data;
     };
@@ -50,11 +41,7 @@ export default function SubmittedGrades({ departmentId }) {
         <div className="space-y-4">
             <Head title='Submitted Grades' />
             <div className='flex flex-row gap-4'>
-                <SchoolYearPicker layout='vertical' />
-                <Card className="w-full">
-                    <CardHeader>
-                        {/* <CardTitle className='text-xl'>Faculty List</CardTitle> */}
-                    </CardHeader>
+                <Card className="w-full pt-4">
                     <CardContent className="space-y-2 mt-2">
                         {/* Search input */}
                         <div className="mb-2">
@@ -112,23 +99,23 @@ export default function SubmittedGrades({ departmentId }) {
                                                             <div className='flex flex-col gap-1 text-sm'>
                                                                 <div className='flex items-center justify-between'>
                                                                     <span className='text-muted-foreground'>Midterm:</span>
-                                                                    <span className={`font-medium ${faculty.midterm_valid_count === faculty.subjects_count
+                                                                    <span className={`font-medium ${faculty.midterm_verified_count === faculty.subjects_count
                                                                         ? 'text-emerald-600'
                                                                         : 'text-amber-500'
                                                                         }`}>
-                                                                        {faculty.midterm_valid_count}
+                                                                        {faculty.midterm_verified_count}
                                                                     </span>
                                                                 </div>
-                                                                <div className='border-b'/>
+                                                                <div className='border-b' />
                                                                 <div className='flex items-center justify-between'>
                                                                     <span className='text-muted-foreground'>Final:</span>
-                                                                    <span className={`font-medium ${faculty.final_valid_count === faculty.subjects_count
+                                                                    <span className={`font-medium ${faculty.final_verified_count === faculty.subjects_count
                                                                         ? 'text-emerald-600'
                                                                         : 'text-amber-500'
                                                                         }`}>
-                                                                        {faculty.final_valid_count}
+                                                                        {faculty.final_verified_count}
                                                                     </span>
-                                                                </div>  
+                                                                </div>
                                                             </div>
                                                         </TableCell>
                                                         <TableCell className='w-24 text-left text-2xl'>/{faculty.subjects_count}</TableCell>
@@ -165,7 +152,7 @@ export default function SubmittedGrades({ departmentId }) {
                 </Card>
             </div>
         </div>
-    );
+    )
 }
 
-SubmittedGrades.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+SubmittedGrades.layout = page => <AuthenticatedLayout children={page} />

@@ -2,7 +2,7 @@ import React from 'react'
 import { useState } from 'react'
 import InstructorGradeSubmitionButton from '../../ClassComponents/GradePartials/InstructorGradeSubmitionButton';
 import { toast } from 'sonner';
-import { CheckCircle, ChevronDown, ChevronUp, FileText, Rocket, Send, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, ChevronDown, ChevronUp, FileText, Rocket, Send, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import axios from 'axios';
 
@@ -29,6 +29,7 @@ function StatusLabel({ label }) {
 
 export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowFinalUpload, localGrades, setMissingFields, gradeSubmissionStatus, refetchGradeSubmissionStatus }) {
     const [submitting, setSubmitting] = useState(false);
+    const [expandedRejection, setExpandedRejection] = useState({ midterm: false, final: false });
 
     const validateGradesBeforeSubmit = (type) => {
         const missing = {};
@@ -75,8 +76,8 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
             return;
 
         } finally {
-            setSubmitting(false);
             await refetchGradeSubmissionStatus();
+            setSubmitting(false);
         }
     };
 
@@ -95,8 +96,8 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
         } catch (error) {
             toast.error(error.response?.data?.message ?? 'Something went wrong.');
         } finally {
-            setSubmitting(false);
             await refetchGradeSubmissionStatus();
+            setSubmitting(false);
         }
     }
 

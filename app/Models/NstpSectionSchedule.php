@@ -39,4 +39,9 @@ class NstpSectionSchedule extends Model
             'nstp_section_schedule_id'
         );
     }
+
+    public function NstpSection()
+    {
+        return $this->belongsTo(NstpSection::class, 'nstp_section_id');
+    }
 }

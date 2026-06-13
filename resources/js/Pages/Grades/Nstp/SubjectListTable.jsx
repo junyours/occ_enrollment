@@ -5,8 +5,7 @@ import { convertToAMPM } from '@/Lib/Utils';
 import { AlertCircle, BookOpen, Eye, Loader2 } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
-function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoading, isError }) {
-
+function SubjectListTable({ subjects, schoolYear, facultyId, isLoading, isError }) {
     // Helper function - extract to utils file
     const convertToAMPM = (time) => {
         if (!time) return '';
@@ -29,38 +28,42 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
     };
 
     // Status badge component
-    const StatusBadge = ({ status }) => {
+    const StatusBadge = ({ status, label }) => {
         const statusConfig = {
             deployed: { label: 'Deployed', className: 'bg-green-600' },
-            verified: { label: 'Ready to Deploy', className: 'bg-blue-600' },
+            verified: { label: 'Verified', className: 'bg-blue-600' },
             rejected: { label: 'Rejected', className: 'bg-red-600' },
-            submitted: { label: 'Submitted', className: 'bg-gray-500' }
+            submitted: { label: 'Ready to Verify', className: 'bg-yellow-500' }
         };
 
         const config = statusConfig[status];
 
-        if (!config) {
-            return <span className="text-gray-400">—</span>;
-        }
-
         return (
-            <span className={`inline-block px-2 py-1 text-sm font-medium text-white rounded ${config.className}`}>
-                {config.label}
-            </span>
+            <div className="mb-3 last:mb-0">
+                <div className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</div>
+                {config ? (
+                    <span className={`inline-block px-2 py-1 text-sm font-medium text-white rounded ${config.className}`}>
+                        {config.label}
+                    </span>
+                ) : (
+                    <div className="text-gray-400">—</div>
+                )}
+            </div>
         );
     };
 
     // DateTime display component
-    const DateTimeCell = ({ datetime }) => {
+    const DateTimeCell = ({ datetime, label }) => {
         const { date, time } = formatDateTime(datetime);
         return (
-            <div>
+            <div className="mb-3 last:mb-0">
+                <div className="text-xs font-semibold text-gray-500 uppercase mb-1">{label}</div>
                 <div>{date}</div>
                 {time && <div className="text-sm text-gray-600">{time}</div>}
             </div>
         );
     };
-
+    
 
     return (
         <Card>
@@ -91,18 +94,17 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                             <TableRow>
                                 <TableHead>#</TableHead>
                                 <TableHead>SUBJECT</TableHead>
+                                <TableHead className='text-center'>SECTION</TableHead>
                                 <TableHead>PERIOD</TableHead>
                                 <TableHead>SUBMITTED</TableHead>
                                 <TableHead>VERIFIED</TableHead>
-                                <TableHead>DEPLOYED</TableHead>
                                 <TableHead>STATUS</TableHead>
-                                <TableHead></TableHead>
+                                <TableHead>ACTION</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-
                             {subjects.map((subject, index) => (
-                                <>
+                                <React.Fragment key={index}>
                                     {/* Midterm Row */}
                                     <TableRow key={`${subject.id}-midterm`}>
                                         <TableCell rowSpan={2} className="align-middle">
@@ -110,7 +112,11 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                                         </TableCell>
 
                                         <TableCell rowSpan={2} className="align-middle">
-                                            {subject.descriptive_title}
+                                            {subject.component_name.toUpperCase()}
+                                        </TableCell>
+
+                                        <TableCell rowSpan={2} className="align-middle text-center">
+                                            {subject.section}
                                         </TableCell>
 
                                         <TableCell>
@@ -118,11 +124,11 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                                         </TableCell>
 
                                         <TableCell>
-                                            <DateTimeCell datetime={subject.midterm_verified_at} />
+                                            <DateTimeCell datetime={subject.midterm_submitted_at} />
                                         </TableCell>
 
                                         <TableCell>
-                                            <DateTimeCell datetime={subject.midterm_deployed_at} />
+                                            <DateTimeCell datetime={subject.midterm_verified_at} />
                                         </TableCell>
 
                                         <TableCell>
@@ -130,11 +136,11 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                                         </TableCell>
 
                                         <TableCell rowSpan={2} className="align-middle">
-                                            <Link href={route('nstp.faculty-subject-students', {
+                                            <Link href={route('faculty.subject.students', {
                                                 schoolYear: `${schoolYear.start_year}-${schoolYear.end_year}`,
                                                 semester: schoolYear.semester_name,
                                                 facultyId: facultyId,
-                                                yearSectionSubjectsId: subject.hashed_year_section_subject_id
+                                                sectionSubjectId: subject.hashed_nstp_section_id
                                             })}>
                                                 <Eye className="text-blue-700 cursor-pointer hover:text-blue-900" />
                                             </Link>
@@ -148,26 +154,25 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                                         </TableCell>
 
                                         <TableCell>
-                                            <DateTimeCell datetime={subject.final_verified_at} />
+                                            <DateTimeCell datetime={subject.final_submitted_at} />
                                         </TableCell>
 
                                         <TableCell>
-                                            <DateTimeCell datetime={subject.final_deployed_at} />
+                                            <DateTimeCell datetime={subject.final_verified_at} />
                                         </TableCell>
 
                                         <TableCell>
                                             <StatusBadge status={subject.final_status} />
                                         </TableCell>
                                     </TableRow>
-                                </>
+                                </React.Fragment>
                             ))}
                         </TableBody>
                     </Table>
                 )}
-
             </CardContent>
         </Card>
     )
 }
 
-export default FacultyVerifiedSubjectListCard
+export default SubjectListTable

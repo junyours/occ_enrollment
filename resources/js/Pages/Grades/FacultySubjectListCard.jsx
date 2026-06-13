@@ -139,7 +139,7 @@ function FacultySubjectListCard({ subjects, schoolYear, facultyId, isLoading, is
                                                 schoolYear: `${schoolYear.start_year}-${schoolYear.end_year}`,
                                                 semester: schoolYear.semester_name,
                                                 facultyId: facultyId,
-                                                yearSectionSubjectsId: subject.hashed_year_section_subject_id
+                                                sectionSubjectId: subject.hashed_year_section_subject_id
                                             })}>
                                                 <Eye className="text-blue-700 cursor-pointer hover:text-blue-900" />
                                             </Link>

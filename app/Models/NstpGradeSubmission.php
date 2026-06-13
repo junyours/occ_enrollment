@@ -13,7 +13,7 @@ class NstpGradeSubmission extends Model
 
     protected $fillable = [
         'nstp_section_id',
-        
+
         'midterm_status',
         'midterm_submitted_at',
         'midterm_verified_at',
@@ -30,4 +30,16 @@ class NstpGradeSubmission extends Model
         'created_at',
         'updated_at',
     ];
+
+    // Inside NstpGradeSubmission.php
+    public function nstpSection()
+    {
+        return $this->belongsTo(NstpSection::class, 'nstp_section_id');
+    }
+
+    // Inside NstpSection.php
+    public function schedules()
+    {
+        return $this->hasMany(NstpSectionSchedule::class, 'nstp_section_id');
+    }
 }

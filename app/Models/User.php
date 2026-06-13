@@ -8,10 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\YearSectionSubjects;
+use Illuminate\Database\Eloquent\Concerns\HasRelationships;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, HasRelationships;
 
     protected $fillable = [
         'user_id_no',
@@ -103,5 +104,19 @@ class User extends Authenticatable
     public function billingAccounts()
     {
         return $this->hasMany(BillingAccount::class, 'student_id');
+    }
+
+
+    public function NstpSectionSchedule()
+    {
+        return $this->hasMany(NstpSectionSchedule::class, 'faculty_id');
+    }
+
+    public function gradeSubmissions()
+    {
+        return $this->hasManyDeep(
+            NstpGradeSubmission::class,
+            [NstpSectionSchedule::class, NstpSection::class]
+        );
     }
 }

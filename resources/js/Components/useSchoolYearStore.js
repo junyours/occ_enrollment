@@ -14,7 +14,7 @@ export const useSchoolYearsQuery = () => {
         queryKey: ['schoolYears'],
         queryFn: fetchSchoolYears,
         staleTime: 60 * 60 * 1000,
-        gcTime: 65 * 60 * 1000,
+        gcTime: 65 * 60 * 1000,w
     });
 };
 

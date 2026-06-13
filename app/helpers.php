@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Auth;
+
 if (!function_exists('format_name')) {
     function format_name(array $user = [], array $options = []): string
     {
@@ -38,5 +41,21 @@ if (!function_exists('format_name')) {
         return collect(explode(' ', strtolower($fullName)))
             ->map(fn($word) => ucfirst($word))
             ->implode(' ');
+    }
+}
+
+if (!function_exists('log_activity')) {
+    function log_activity(string $action, $subject, string $description, array $properties = [])
+    {
+        return ActivityLog::create([
+            'user_id'      => Auth::id(),
+            'action'       => $action,
+            'subject_type' => get_class($subject),
+            'subject_id'   => $subject->id,
+            'description'  => $description,
+            'properties'   => $properties,
+            'ip_address'   => request()->ip(),
+            'user_agent'   => request()->userAgent(),
+        ]);
     }
 }

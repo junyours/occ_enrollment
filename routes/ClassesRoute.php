@@ -44,15 +44,18 @@ Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,s
     Route::get('/classes/nstp-classroom/{id}', [ClassController::class, 'viewNstpClass'])->name('classes.classroom.yearsection');
     Route::post('/nstp-students/{id}', [ClassController::class, 'nstpStudents'])->name('nstp.students');
 
-    Route::get('/nstp-section/grade-submission-status/{id}', [ClassController::class, 'nstpSectionGradeSubmissionStatus'])->name('nstp-section.grade-submission-status');
 
-    Route::post('/nstp-students-grades/{id}', [ClassController::class, 'nstpStudentsGrades'])->name('nstp.students-grades');
     Route::patch('/nstp-student-update-grade/{field}/{id}', [ClassController::class, 'nstpStudentUpdateGrade'])->name('nstp.student-update-grade');
 
     Route::post('/nstp-grades/submit-grades/{period}/{nstpSectionId}', [ClassController::class, 'submitNstpStudentGrades'])->name('nstp-grades.submit-grades');
     Route::post('/nstp-grades/cancel-submission/{period}/{nstpSectionId}', [ClassController::class, 'cancelSubmission'])->name('nstp-grades.cancel-submission');
 
     Route::post('/nstp-class/grade-submission-details/{id}', [ClassController::class, 'nstpGradeSubmissionDetails'])->name('nstp-class.grade-submission-details');
+});
+
+Route::middleware(['auth', 'maintenance', 'role:evaluator,faculty,registrar,nstp_director'])->group(function () {
+    Route::post('/nstp-students-grades/{id}', [ClassController::class, 'nstpStudentsGrades'])->name('nstp.students-grades');
+    Route::get('/nstp-section/grade-submission-status/{id}', [ClassController::class, 'nstpSectionGradeSubmissionStatus'])->name('nstp-section.grade-submission-status');
 });
 
 Route::middleware(['auth', 'maintenance', 'student'])->group(function () {

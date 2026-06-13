@@ -193,7 +193,7 @@ function Grades({
                     updatedGrades.map(({ name, ...rest }) => rest)
                 )
             }
-            
+
             setGrades(updatedGrades);
 
             e.target.value = ''
