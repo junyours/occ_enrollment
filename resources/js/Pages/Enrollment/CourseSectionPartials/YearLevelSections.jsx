@@ -4,10 +4,22 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRight, Download, Ellipsis, FileStack, Pencil, Trash } from 'lucide-react';
-import React from 'react'
+import React, { useState } from 'react'
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
+
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/Components/ui/alert-dialog";
 
 function YearLevelSections({
     yearLevel,
@@ -34,14 +46,18 @@ function YearLevelSections({
 
     const { toast } = useToast()
 
+    const [selectedSection, setSelectedSection] = useState(null);
+
     const deleteSection = (id) => {
         post(route('delete.section', { id: id }), {
-            onSuccess: () => {
+            onSuccess: async () => {
                 toast({
                     description: "Section deleted successfully.",
                     variant: "success",
                 });
-                getEnrollmentCourseSection();
+
+                await getEnrollmentCourseSection();
+                setSelectedSection(null);
             },
             onError: (errors) => {
                 if (errors.curriculum_id) {
@@ -300,14 +316,44 @@ function YearLevelSections({
                                                         >
                                                             Edit <Pencil className="text-green-500" />
                                                         </Button>
-                                                        <Button
-                                                            disabled={!!section.student_count}
-                                                            variant='outline'
-                                                            className='flex justify-start'
-                                                            onClick={() => deleteSection(section.id)}
-                                                        >
-                                                            Delete <Trash className="text-red-500" />
-                                                        </Button>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button
+                                                                    disabled={!!section.student_count}
+                                                                    variant="outline"
+                                                                    className="flex justify-start"
+                                                                    onClick={() => setSelectedSection(section.id)}
+                                                                >
+                                                                    Delete <Trash className="text-red-500" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>
+                                                                        Delete this section?
+                                                                    </AlertDialogTitle>
+
+                                                                    <AlertDialogDescription>
+                                                                        This action cannot be undone. This will permanently delete
+                                                                        the section and its related data.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>
+                                                                        Cancel
+                                                                    </AlertDialogCancel>
+
+                                                                    <AlertDialogAction
+                                                                        className="bg-red-500 hover:bg-red-600"
+                                                                        onClick={() => deleteSection(selectedSection)}
+                                                                    >
+                                                                        Delete
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
                                                     </>
                                                 )}
                                             </PopoverContent>

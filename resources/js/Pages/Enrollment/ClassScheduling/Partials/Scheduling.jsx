@@ -362,6 +362,9 @@ function Scheduling({
                                                 <SelectItem value="2">
                                                     2hrs
                                                 </SelectItem>
+                                                <SelectItem value="2.5">
+                                                    2hrs  30m
+                                                </SelectItem>
                                                 <SelectItem value="3">
                                                     3hrs
                                                 </SelectItem>
