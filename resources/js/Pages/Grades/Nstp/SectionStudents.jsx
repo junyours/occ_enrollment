@@ -276,11 +276,19 @@ export default function SectionStudents({ nstpSection, faculty }) {
                             <TableCell>{formatName(student, { format: 'LFM' })}</TableCell>
 
                             <TableCell className={cn('text-center')}>
-                                <div>{student.midterm_grade ? Number(student.midterm_grade).toFixed(1) : ''}</div>
+                                <div>
+                                    {student.midterm_grade !== null && student.midterm_grade !== undefined
+                                        ? Number(student.midterm_grade).toFixed(1)
+                                        : ''}
+                                </div>
                             </TableCell>
 
                             <TableCell className={cn('text-center')}>
-                                <div>{student.final_grade ? Number(student.final_grade).toFixed(1) : ''}</div>
+                                <div>
+                                    {student.final_grade !== null && student.final_grade !== undefined
+                                        ? Number(student.final_grade).toFixed(1)
+                                        : ''}
+                                </div>
                             </TableCell>
 
                             <TableCell className={cn('text-center')}>
