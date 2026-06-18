@@ -5,13 +5,17 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Mail\FacultyCredentialsMail;
 use App\Mail\StudentCredentialsMail;
+use App\Models\EnrolledStudent;
 use App\Models\Faculty;
 use App\Models\SchoolYear;
 use App\Models\User;
 use App\Models\UserInformation;
+use App\Models\UserParents;
+use App\Models\UserPresentAddress;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -153,6 +157,72 @@ class UserController extends Controller
             ]),
             default => abort(403),
         };
+    }
+
+    public function viewNotEnrolledList(Request $request)
+    {
+        return Inertia::render('UserManagement/NotEnrolled/Index');
+    }
+
+    public function getNotEnrolledList(Request $request)
+    {
+
+        $search = $request->query('search', '');
+
+        return User::whereDoesntHave('Enrollments')
+            ->select(
+                'users.id',
+                'users.user_id_no',
+                'user_information.first_name',
+                'user_information.last_name',
+                'user_information.middle_name',
+                'user_information.contact_number',
+                'users.email',
+            )
+            ->where('user_role', 'student')
+            ->whereRaw("CAST(SUBSTRING_INDEX(user_id_no, '-', 1) AS UNSIGNED) >= ?", [2025])
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->when(!empty($search), function ($query) use ($search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('users.user_id_no', 'like', '%' . $search . '%')
+                        ->orWhere('user_information.first_name', 'like', '%' . $search . '%')
+                        ->orWhere('user_information.last_name', 'like', '%' . $search . '%');
+                });
+            })
+            ->paginate(10);
+    }
+
+    public function destroyNotEnrolledStudent(Request $request)
+    {
+        $request->validate([
+            'studentId' => 'required|exists:users,id'
+        ]);
+
+        $studentId = $request->studentId;
+
+        $hasRecord = EnrolledStudent::where('student_id', $studentId)
+            ->exists();
+
+        if ($hasRecord) {
+            return response()->json([
+                'message' => 'Student has enrollment record!'
+            ], 422);
+        }
+
+        DB::transaction(function () use ($studentId) {
+
+            UserInformation::where('user_id', $studentId)->delete();
+
+            UserPresentAddress::where('user_id', $studentId)->delete();
+
+            UserParents::where('user_id', $studentId)->delete();
+
+            User::where('id', $studentId)->delete();
+        });
+
+        return response()->json([
+            'message' => 'Student deleted successfully'
+        ]);
     }
 
     public function studentInfo($id)

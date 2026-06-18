@@ -43,6 +43,7 @@ import {
     School,
     Shapes,
     FileClock,
+    UserX,
 } from "lucide-react";
 
 import { cn } from "@/Lib/Utils";
@@ -168,6 +169,11 @@ export function NavMain() {
                             name: "Student List",
                             route: "student-list",
                             icon: PiStudent,
+                        },
+                        {
+                            name: "Not Enrolled List",
+                            route: "not-enrolled-list",
+                            icon: UserX,
                         },
                     ],
                 },

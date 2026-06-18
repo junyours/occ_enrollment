@@ -11,7 +11,7 @@ export default function DataTable({ columns, data, isLoading, isFetching }) {
 
     return (
         <div className="rounded-md border">
-            <Table className="table-fixed w-full">
+            <Table className="w-full">
                 <TableHeader>
                     <TableRow>
                         {columns.map((col, index) => (
