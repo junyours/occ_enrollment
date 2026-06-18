@@ -73,7 +73,7 @@ function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId })
     const userRole = user.user_role;
 
     const departmentId = data?.year_section?.course?.department_id;
-    const showSeal = departmentId == 1 && (userRole !== 'program_head' && userRole !== 'registrar');
+    const showSeal = departmentId == 1 && (userRole !== 'program_head' && userRole !== 'registrar' && user.id !== 14);
 
     const [markingAsPrinted, setMarkingAsPrinted] = useState(false);
 
