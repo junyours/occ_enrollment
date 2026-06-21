@@ -10,10 +10,12 @@ import { Head } from '@inertiajs/react';
 import Paper from './Paper';
 import PaperContainer from './components/PaperContainer';
 import { Card } from '@/Components/ui/card';
+import AddRecordDialog from './AddRecordDialog';
 
 export default function Index() {
     const documentRef = useRef(null);
     const [selectedStudent, setSelectedStudent] = useState(null);
+    const [addingRecord, setAddingRecord] = useState(false);
 
     const fetchStudentRecord = async () => {
         const { data } = await axios.get(route('permanent-record-student', { id: selectedStudent?.id }));
@@ -30,7 +32,7 @@ export default function Index() {
     const handlePrint = useReactToPrint({
         contentRef: documentRef,
         content: () => documentRef.current,
-        documentTitle: `Form 9 - ${data ? formatName(data.info.information) : 'Student Record'}`,
+        documentTitle: `Form 9 - ${data ? formatName(data.info.information, { format: 'LFM' }) : 'Student Record'}`,
         removeAfterPrint: true,
     });
 
@@ -51,8 +53,17 @@ export default function Index() {
             </style>
             <div className="flex flex-col ">
                 <Card className="flex items-center justify-between p-4 rounded-t-lg border border-b-0 shadow-sm rounded-b-none">
-                    <div className="flex-1 max-w-sm">
+                    <div className="flex-1 flex gap-4 max-w-xl">
                         <StudentSearch onSelect={setSelectedStudent} />
+                        {selectedStudent && (
+                            <Button
+                                onClick={() => setAddingRecord(true)}
+                                className="px-6 font-semibold"
+                                variant='secondary'
+                            >
+                                Add Student Records
+                            </Button>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
@@ -81,6 +92,7 @@ export default function Index() {
                     </PaperContainer>
                 </Card>
             </div>
+            <AddRecordDialog student={selectedStudent} open={addingRecord} onClose={setAddingRecord} />
         </div>
     );
 }

@@ -77,7 +77,7 @@ function CorGenerator({ data, showSeal }) {
             <div className="fixed top-6 right-6 z-50 print:hidden">
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant="outline" className="shadow-sm flex items-center gap-2 bg-white">
+                        <Button variant="outline" className="shadow-sm flex items-center gap-2">
                             <Settings2 className="w-4 h-4" />
                             Customize View
                         </Button>
@@ -90,7 +90,6 @@ function CorGenerator({ data, showSeal }) {
                                 <h3 className="font-semibold leading-none tracking-tight">Table Settings</h3>
                                 <p className="text-sm text-muted-foreground mt-1.5">Toggle column visibility for printing.</p>
                             </div>
-
 
                             <Separator />
 
