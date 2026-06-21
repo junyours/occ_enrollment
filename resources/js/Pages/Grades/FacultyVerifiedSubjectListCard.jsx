@@ -130,7 +130,7 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                                         </TableCell>
 
                                         <TableCell rowSpan={2} className="align-middle">
-                                            <Link href={route('nstp.faculty-subject-students', {
+                                            <Link href={route('verified.faculty.subject.students', {
                                                 schoolYear: `${schoolYear.start_year}-${schoolYear.end_year}`,
                                                 semester: schoolYear.semester_name,
                                                 facultyId: facultyId,
