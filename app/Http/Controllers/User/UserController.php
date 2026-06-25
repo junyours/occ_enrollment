@@ -263,9 +263,11 @@ class UserController extends Controller
             'email_address',
             'present_address',
             'zip_code',
+            'department_id'
         )
             ->where('user_id_no', '=', $id)
             ->join('user_information', 'users.id', 'user_information.user_id')
+            ->join('faculty', 'users.id', 'faculty.faculty_id')
             ->first();
 
         return response()->json($student, 200);
@@ -646,6 +648,11 @@ class UserController extends Controller
                 'email_address' => $request->email_address,
                 'present_address' => $request->present_address,
                 'zip_code' => $request->zip_code,
+            ]);
+
+        Faculty::where('faculty_id', '=', $request->id)
+            ->update([
+                'department_id' => $request->department_id,
             ]);
     }
 

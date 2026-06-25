@@ -56,7 +56,7 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
         email_address: editing ? faculty.email_address : '',
         present_address: editing ? faculty.present_address : '',
         zip_code: editing ? faculty.zip_code : '',
-        department_id: 0,
+        department_id: editing ? faculty.department_id : 0,
     });
 
     const handleChange = (e) => {
