@@ -44,11 +44,34 @@ export default function SYGrades({ data, className }) {
 
                         return (
                             <tr key={index} className='border-b border-gray-400'>
-                                <td className='text-xs  pl-8 py-0.5'>{subject.subject_code}</td>
-                                <td className='text-xs'>{subject.descriptive_title}</td>
-                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500' : ''}`}>{subject.grade}</td>
-                                <td className='text-xs text-center' />
-                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500' : ''}`}>{!noGrade ? dropOrfail ? '0' : subject.credit_units : ''}</td>
+                                <td className='text-xs  pl-8 py-0.5'>
+                                    <input
+                                        id={`subject_code${subject.subject_code}`}
+                                        name={`subject_code${subject.subject_code}`}
+                                        defaultValue={subject.subject_code}
+                                        type="text"
+                                        className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full'
+                                    />
+                                </td>
+                                <td className='py-0 h-2'>
+                                    <input
+                                        id={`descriptive_title_${subject.descriptive_title}`}
+                                        name={`descriptive_title_${subject.descriptive_title}`}
+                                        defaultValue={subject.descriptive_title}
+                                        type="text"
+                                        className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full'
+                                    />
+                                </td>
+                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>{subject.grade}</td>
+                                <td className='text-xs text-center'>
+                                    <input
+                                        id={`re-exam${subject.descriptive_title}`}
+                                        defaultValue={'-'}
+                                        type="text"
+                                        className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full text-center'
+                                    />
+                                </td>
+                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>{!noGrade ? dropOrfail ? '0' : subject.credit_units : ''}</td>
                             </tr>
                         )
                     })}

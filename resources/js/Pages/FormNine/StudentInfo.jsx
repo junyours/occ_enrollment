@@ -34,8 +34,14 @@ export default function StudentInfo({ info }) {
                 <div className='flex flex-col'>
                     <FormField label="Gender:" value={information.gender ? information.gender.toUpperCase() : ''} />
                     <FormField label="Civil Status:" value={information.civil_status ? information.civil_status.toUpperCase() : ''} />
-                    <FormField label="Father's Name:" value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }) != "Unknown" ? formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }).toUpperCase() : ''} />
-                    <FormField label="Mother's Name:" value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }) != "Unknown"  ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toUpperCase() : ''} />
+                    <FormField
+                        label="Father's Name:"
+                        value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name })}
+                    />
+                    <FormField
+                        label="Mother's Name:"
+                        value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toUpperCase() : ''}
+                    />
                 </div>
             </div>
 
