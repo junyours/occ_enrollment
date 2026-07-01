@@ -7,60 +7,170 @@ import { ToggleGroup, ToggleGroupItem } from '@/Components/ui/toggle-group'
 import { Separator } from '@/Components/ui/separator'
 import { Button } from '@/Components/ui/button'
 import { formatName } from '@/Lib/InfoUtils'
-import { Trash } from 'lucide-react'
+import { Plus, Trash } from 'lucide-react'
 import RequiredLabel from '@/Components/ui/RequiredLabel'
 import { useForm } from '@inertiajs/react'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query';
 
-export default function AddRecordDialog({ student, open, onClose }) {
-    const [recordType, setRecordType] = useState('old');
-    const [schoolYear, setSchoolYear] = useState("");
-    const [semester, setSemester] = useState("1st");
-    const [school, setSchool] = useState("Opol Community College");
+export default function AddRecordDialog({ student, open, onClose, refetch }) {
+    const [submitting, setSubmitting] = useState(false);
+    const queryClient = useQueryClient(); // Initialize it
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, setError, errors, reset } = useForm({
         recordType: "old",
         schoolYear: "",
-        school: "",
+        school: "Opol Community College",
         program: "",
         major: "",
-        semester: "",
+        semester: "first",
     })
 
     const handleFormOnChange = (e) => {
+        if (submitting) return
         const { name, value } = e.target;
 
-        console.log({
-            name,
-            value
-        });
-
         setData(name, value);
+
+        if (!value && name !== 'major') {
+            setError(name, true)
+        } else {
+            setError(name, false)
+        }
     }
 
     // Initialize subjects with one empty row
     const [subjects, setSubjects] = useState([
-        { id: crypto.randomUUID(), code: '', title: '', grade: '', units: '' }
+        { id: crypto.randomUUID(), code: '', title: '', grade: '', units: '', re_exam: '' }
     ]);
+
+    // State to track errors in the dynamic subjects array
+    const [subjectErrors, setSubjectErrors] = useState([]);
 
     // Handle adding a new blank row
     const handleAddSubject = () => {
+        if (submitting) return
         setSubjects([
             ...subjects,
-            { id: crypto.randomUUID(), code: '', title: '', grade: '', units: '' }
+            { id: crypto.randomUUID(), code: '', title: '', grade: '', units: '', re_exam: '' }
         ]);
     };
 
     // Handle removing a specific row
     const handleRemoveSubject = (id) => {
+        if (submitting) return
         setSubjects(subjects.filter(subject => subject.id !== id));
+        // Also clear out errors associated with this length mismatch by resetting error state
+        setSubjectErrors([]);
     };
 
     // Handle updating a specific input in a specific row
     const handleSubjectChange = (id, field, value) => {
+        if (submitting) return
         setSubjects(subjects.map(subject =>
             subject.id === id ? { ...subject, [field]: value } : subject
         ));
+
+        // Clear the error for this specific field as the user types
+        const subjectIndex = subjects.findIndex(s => s.id === id);
+        if (subjectErrors[subjectIndex]?.[field]) {
+            const newSubjectErrors = [...subjectErrors];
+            newSubjectErrors[subjectIndex] = { ...newSubjectErrors[subjectIndex], [field]: false };
+            setSubjectErrors(newSubjectErrors);
+        }
     };
+
+    const validate = () => {
+        let hasError = false;
+
+        if (!data.school) {
+            setError('school', true)
+            hasError = true
+        }
+
+        if (!data.schoolYear) {
+            setError('schoolYear', 'School year is required.');
+            hasError = true;
+        } else {
+            const yearPattern = /^\d{4}-\d{4}$/;
+
+            if (!yearPattern.test(data.schoolYear)) {
+                setError('schoolYear', 'Format must be YYYY-YYYY (e.g., 2021-2022).');
+                hasError = true;
+            } else {
+                const [startYear, endYear] = data.schoolYear.split('-');
+
+                if (parseInt(endYear, 10) !== parseInt(startYear, 10) + 1) {
+                    setError('schoolYear', 'Years must be consecutive (e.g., 2021-2022).');
+                    hasError = true;
+                }
+            }
+        }
+
+        if (!data.program) {
+            setError('program', true)
+            hasError = true
+        }
+
+        // Validate subjects (excluding re_exam)
+        const newSubjectErrors = [];
+        subjects.forEach((subject, index) => {
+            const rowErrors = {};
+            if (!subject.code) rowErrors.code = true;
+            if (!subject.title) rowErrors.title = true;
+            if (!subject.grade) rowErrors.grade = true;
+            if (!subject.units) rowErrors.units = true;
+
+            if (Object.keys(rowErrors).length > 0) {
+                newSubjectErrors[index] = rowErrors;
+                hasError = true;
+            }
+        });
+
+        setSubjectErrors(newSubjectErrors);
+
+        return hasError
+    }
+
+    const handleSubmit = async () => {
+        if (submitting) return;
+        if (validate()) return;
+        setSubmitting(true);
+
+        const payload = {
+            ...data,
+            student_id: student.id,
+            subjects: subjects.map(({ id, ...rest }) => rest)
+        };
+
+        try {
+            await axios.post('/permanent-record/add-record', payload, {
+                headers: { 'Accept': 'application/json' }
+            });
+
+            // Tell React Query to automatically refetch any query using this key
+            await queryClient.invalidateQueries({ queryKey: ['studentRecord', student.id] });
+            
+            toast.success('Record added successfully!');
+
+            onClose(false);
+            reset();
+            setSubjects([{ id: crypto.randomUUID(), code: '', title: '', grade: '', units: '', re_exam: '' }]);
+            setSubjectErrors([]);
+
+        } catch (error) {
+            toast.error('Failed to add record.');
+
+            if (error.response && error.response.status === 422) {
+                const backendErrors = error.response.data.errors;
+                for (const field in backendErrors) {
+                    setError(field, backendErrors[field][0]);
+                }
+            }
+        } finally {
+            setSubmitting(false);
+        }
+    }
 
     return (
         <AlertDialog open={open}>
@@ -75,7 +185,6 @@ export default function AddRecordDialog({ student, open, onClose }) {
                 <Separator />
 
                 <div className="flex flex-col gap-6 py-2">
-
                     {/* Row 1: Record Type */}
                     <div className="flex flex-col gap-2">
                         <RequiredLabel label="Record Type" />
@@ -89,8 +198,10 @@ export default function AddRecordDialog({ student, open, onClose }) {
 
                                 if (value === 'old') {
                                     setData('school', 'Opol Community College')
+                                    setError('school', false)
                                 } else {
                                     setData('school', '')
+                                    setError('school', true)
                                 }
                                 setData('recordType', value)
                             }}
@@ -114,36 +225,39 @@ export default function AddRecordDialog({ student, open, onClose }) {
                             value={data.school}
                             onChange={handleFormOnChange}
                             readOnly={data.recordType === 'old'}
-                            className={data.recordType === 'old' ? 'bg-muted text-muted-foreground focus-visible:ring-0' : ''}
+                            className={`${data.recordType === 'old' ? 'bg-muted text-muted-foreground focus-visible:ring-0' : ''} ${errors.school ? 'border-red-500' : ''}`}
                         />
                     </div>
 
                     {/* Row 3: School Year and Semester (Side-by-side) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-2">
-                            <RequiredLabel htmlFor="schoolYear" label="School Year">School Year</RequiredLabel>
+                            <div className="flex items-center gap-2">
+                                <RequiredLabel htmlFor="schoolYear" label="School Year">School Year</RequiredLabel>
+                                {errors.schoolYear && <p className="text-red-500 text-xs">{errors.schoolYear}</p>}
+                            </div>
                             <Input
                                 id="schoolYear"
+                                name="schoolYear"
                                 placeholder="e.g., 2023-2024"
-                                value={schoolYear}
-                                onChange={(e) => setSchoolYear(e.target.value)}
+                                value={data.schoolYear}
+                                onChange={handleFormOnChange}
+                                className={`${errors.schoolYear ? 'border-red-500' : ''}`}
                             />
                         </div>
 
                         <div className="flex flex-col gap-2">
                             <RequiredLabel label="Semester" />
                             <ToggleGroup
+                                name="semester"
                                 variant="outline"
                                 type="single"
-                                value={semester}
+                                value={data.semester}
                                 className="justify-start"
-                                onValueChange={(value) => {
-                                    if (!value) return; // Prevent unselecting
-                                    setSemester(value);
-                                }}
+                                onValueChange={(value) => setData('semester', value)}
                             >
-                                <ToggleGroupItem value="1st">1st</ToggleGroupItem>
-                                <ToggleGroupItem value="2nd">2nd</ToggleGroupItem>
+                                <ToggleGroupItem value="first">1st</ToggleGroupItem>
+                                <ToggleGroupItem value="second">2nd</ToggleGroupItem>
                                 <ToggleGroupItem value="summer">Summer</ToggleGroupItem>
                             </ToggleGroup>
                         </div>
@@ -159,20 +273,24 @@ export default function AddRecordDialog({ student, open, onClose }) {
                                 placeholder=""
                                 value={data.program}
                                 onChange={handleFormOnChange}
+                                className={`${errors.program ? 'border-red-500' : ''}`}
                             />
                         </div>
 
                         <div className="flex flex-col gap-2">
-                            <RequiredLabel label="Major" />
+                            <Label>Major</Label>
                             <Input
                                 id="major"
                                 name="major"
                                 placeholder=""
                                 value={data.major}
                                 onChange={handleFormOnChange}
+                                className={`${errors.major ? 'border-red-500' : ''}`}
                             />
                         </div>
                     </div>
+
+                    <Separator />
 
                     {/* Row 5: Subjects */}
                     <div className="flex flex-col gap-3">
@@ -181,19 +299,24 @@ export default function AddRecordDialog({ student, open, onClose }) {
                             <Table>
                                 <TableHeader className="bg-muted/50">
                                     <TableRow>
+                                        <TableHead className="w-8"></TableHead>
                                         <TableHead className="w-[140px]">Subject Code</TableHead>
                                         <TableHead>Descriptive Title</TableHead>
                                         <TableHead className="w-[100px] text-center">Grade</TableHead>
+                                        <TableHead className="w-[120px] text-center">Re-</TableHead>
                                         <TableHead className="w-[100px] text-center">Units</TableHead>
                                         <TableHead className="w-[50px]"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {subjects.map((subject) => (
+                                    {subjects.map((subject, index) => (
                                         <TableRow key={subject.id}>
+                                            <TableCell className='text-end'>
+                                                {index + 1}.
+                                            </TableCell>
                                             <TableCell className="p-2">
                                                 <Input
-                                                    className="h-9 w-full text-center"
+                                                    className={`h-9 w-full text-center ${subjectErrors[index]?.code ? 'border-red-500' : ''}`}
                                                     placeholder="Code"
                                                     value={subject.code}
                                                     onChange={(e) => handleSubjectChange(subject.id, 'code', e.target.value)}
@@ -201,7 +324,7 @@ export default function AddRecordDialog({ student, open, onClose }) {
                                             </TableCell>
                                             <TableCell className="p-2">
                                                 <Input
-                                                    className="h-9 w-full"
+                                                    className={`h-9 w-full ${subjectErrors[index]?.title ? 'border-red-500' : ''}`}
                                                     placeholder="Subject Title"
                                                     value={subject.title}
                                                     onChange={(e) => handleSubjectChange(subject.id, 'title', e.target.value)}
@@ -209,8 +332,8 @@ export default function AddRecordDialog({ student, open, onClose }) {
                                             </TableCell>
                                             <TableCell className="p-2">
                                                 <Input
-                                                    className="h-9 w-full text-center"
-                                                    placeholder="0.0"
+                                                    className={`h-9 w-full text-center ${subjectErrors[index]?.grade ? 'border-red-500' : ''}`}
+                                                    placeholder=""
                                                     value={subject.grade}
                                                     onChange={(e) => handleSubjectChange(subject.id, 'grade', e.target.value)}
                                                 />
@@ -218,8 +341,16 @@ export default function AddRecordDialog({ student, open, onClose }) {
                                             <TableCell className="p-2">
                                                 <Input
                                                     className="h-9 w-full text-center"
-                                                    placeholder="0"
-                                                    type="number"
+                                                    placeholder=""
+                                                    type="text"
+                                                    value={subject.re_exam}
+                                                    onChange={(e) => handleSubjectChange(subject.id, 're_exam', e.target.value)}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="p-2">
+                                                <Input
+                                                    className={`h-9 w-full text-center ${subjectErrors[index]?.units ? 'border-red-500' : ''}`}
+                                                    placeholder=""
                                                     value={subject.units}
                                                     onChange={(e) => handleSubjectChange(subject.id, 'units', e.target.value)}
                                                 />
@@ -232,7 +363,7 @@ export default function AddRecordDialog({ student, open, onClose }) {
                                                         className="h-8 w-8 p-0"
                                                         onClick={() => handleRemoveSubject(subject.id)}
                                                     >
-                                                        <Trash />
+                                                        <Trash className="h-4 w-4" />
                                                     </Button>
                                                 )}
                                             </TableCell>
@@ -248,16 +379,14 @@ export default function AddRecordDialog({ student, open, onClose }) {
                             className="w-full border-dashed"
                             onClick={handleAddSubject}
                         >
-                            + Add Subject
+                            <Plus className="mr-2 h-4 w-4" /> Add Subject
                         </Button>
                     </div>
                 </div>
 
-                <AlertDialogFooter>
+                <AlertDialogFooter className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-4">
                     <AlertDialogCancel onClick={() => onClose(false)}>Close</AlertDialogCancel>
-                    <AlertDialogAction
-                        onClick={() => console.log({ recordType, schoolYear, semester, school, subjects })}
-                    >
+                    <AlertDialogAction disabled={submitting} onClick={handleSubmit}>
                         Submit
                     </AlertDialogAction>
                 </AlertDialogFooter>

@@ -19,7 +19,7 @@ export default function SYGrades({ data, className }) {
         <div className={`space-y-1 break-inside-avoid-page ${className || ''}`}>
             <div className='grid grid-cols-[170px_1fr] gap-2 pl-8'>
                 <div className='flex flex-col'>
-                    <FormField label="Term:" value={data.semester} labelWidth="80px" />
+                    <FormField label="Term:" value={data.semester} labelWidth="100px" />
                     <FormField label="School Year:" value={data.schoolyear} labelWidth="80px" />
                 </div>
                 <div className='flex flex-col'>
@@ -71,7 +71,9 @@ export default function SYGrades({ data, className }) {
                                         className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full text-center'
                                     />
                                 </td>
-                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>{!noGrade ? dropOrfail ? '0' : subject.credit_units : ''}</td>
+                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>
+                                    {!noGrade ? dropOrfail ? '0' : parseFloat(subject.credit_units) : ''}
+                                </td>
                             </tr>
                         )
                     })}

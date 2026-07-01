@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicRecord;
 use App\Models\EnrolledStudent;
 use App\Models\StudentGrade;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use function Laravel\Prompts\select;
 
@@ -19,7 +21,7 @@ class FormNineController extends Controller
 
     public function studentGrades($id)
     {
-        $info =  User::where('id', $id)
+        $info = User::where('id', $id)
             ->with([
                 'Information' => function ($query) {
                     $query->select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'gender', 'birthday', 'civil_status', 'contact_number', 'present_address as address');
@@ -29,7 +31,7 @@ class FormNineController extends Controller
             ->select('id', 'user_id_no')
             ->first();
 
-        // 1. Get and transform current enrollment records
+        // 1. Get and transform current enrollment records (Existing)
         $enrollmentRecord = EnrolledStudent::where('student_id', $id)
             ->with([
                 'Subjects.YearSectionSubjects.Subject',
@@ -43,26 +45,19 @@ class FormNineController extends Controller
             ->get();
 
         $transformedData = $enrollmentRecord->map(function ($record) {
-            // Safely extract School Year and Semester
             $schoolYear = $record->YearSection?->SchoolYear;
             $semesterName = $schoolYear?->Semester?->semester_name ?? 'N/A';
             $schoolYearString = $schoolYear ? "{$schoolYear->start_year}-{$schoolYear->end_year}" : 'N/A';
-
-            // Extract Program/Course Name
             $programName = $record->YearSection?->Course?->course_name ?? 'N/A';
 
-            // Map the nested subjects and calculate the average grade
             $subjects = $record->Subjects->map(function ($enrolledSubject) {
                 $subjectDetails = $enrolledSubject->YearSectionSubjects?->Subject;
-
                 $midterm = $enrolledSubject->midterm_grade;
                 $final = $enrolledSubject->final_grade;
                 $finalComputedGrade = null;
 
-                // Only calculate if both grades exist
                 if (!is_null($midterm) && !is_null($final)) {
                     $average = ($midterm + $final) / 2;
-
                     if ($average >= 3.0 && $average <= 3.09) {
                         $averageFormat = 3.0;
                     } elseif ($average >= 4.0) {
@@ -70,7 +65,6 @@ class FormNineController extends Controller
                     } else {
                         $averageFormat = $average;
                     }
-
                     $finalComputedGrade = number_format($averageFormat, 1);
                 }
 
@@ -82,7 +76,6 @@ class FormNineController extends Controller
                 ];
             })->values()->toArray();
 
-            // Return the new flattened structure
             return [
                 'semester'   => $semesterName,
                 'schoolyear' => $schoolYearString,
@@ -90,20 +83,15 @@ class FormNineController extends Controller
                 'school'     => 'Opol Community College',
                 'subjects'   => $subjects,
             ];
-        })->values()->toArray(); // Convert this collection to a clean array
+        })->values()->toArray();
 
-
-        // 2. Get and transform old grading records
+        // 2. Get and transform old grading records (Existing)
         $oldData = StudentGrade::where('id_no', $info->user_id_no)->get();
 
         $transformedOldData = $oldData->groupBy(function ($grade) {
-            // Group the flat records by a unique combination of year, semester, and program
             return $grade->school_year . '|' . $grade->semester . '|' . $grade->program;
         })->map(function ($group) {
-            // Extract the common data from the first item in the group
             $firstItem = $group->first();
-
-            // Map the individual subjects for this specific group
             $subjects = $group->map(function ($item) {
                 return [
                     'subject_code'      => $item->subject_code,
@@ -113,7 +101,6 @@ class FormNineController extends Controller
                 ];
             })->values()->toArray();
 
-            // Return the structured format
             return [
                 'semester'   => ucfirst($firstItem->semester),
                 'schoolyear' => $firstItem->school_year,
@@ -121,16 +108,126 @@ class FormNineController extends Controller
                 'school'     => 'Opol Community College',
                 'subjects'   => $subjects,
             ];
-        })->values()->toArray(); // Convert to a clean array
+        })->values()->toArray();
 
-        // 3. Merge the old data and the current enrollment data together
-        $combinedData = array_merge($transformedOldData, $transformedData);
+        // 3. Get and transform the NEW Academic Records
+        // Make sure to import App\Models\AcademicRecord at the top of your controller
+        $academicRecords = \App\Models\AcademicRecord::where('student_id', $id)
+            ->with('subjects') // Eager load the subjects relationship
+            ->get();
+
+        $transformedAcademicRecords = $academicRecords->map(function ($record) {
+            // Format the semester to match existing outputs (e.g., 'First', 'Second', 'Summer')
+            $formattedSemester = ucfirst($record->semester);
+
+            $subjects = $record->subjects->map(function ($subject) {
+                return [
+                    'subject_code'      => $subject->subject_code,
+                    'descriptive_title' => $subject->descriptive_title,
+                    'grade'             => $subject->grade,
+                    'credit_units'      => $subject->units, // Note: your schema called it 'units', but we output 'credit_units' to match the other arrays
+                ];
+            })->values()->toArray();
+
+            return [
+                'semester'   => $formattedSemester,
+                'schoolyear' => $record->school_year,
+                'program'    => $record->program . ($record->major ? " MAJOR IN {$record->major}" : ''),
+                'school'     => $record->school_name,
+                'subjects'   => $subjects,
+            ];
+        })->values()->toArray();
+
+
+        // 4. Merge ALL data together: Old Data + Enrollment Data + Academic Records
+        $combinedData = array_merge($transformedOldData, $transformedData, $transformedAcademicRecords);
+
+        // 5. Sort chronologically by School Year, then by Semester
+        $sortedCombinedData = collect($combinedData)->sort(function ($a, $b) {
+            // Define standard weights for semesters to ensure correct chronological order
+            $semesterWeights = [
+                'First'  => 1,
+                '1st' => 1,
+                'Second' => 2,
+                '2nd' => 2,
+                'Summer' => 3
+            ];
+
+            // 1. Compare School Years (e.g., "2022-2023" vs "2023-2024")
+            $yearComparison = strcmp($a['schoolyear'], $b['schoolyear']);
+
+            // 2. If the School Years are exactly the same, compare the Semesters
+            if ($yearComparison === 0) {
+                // Standardize strings so 'first' or 'First' or '1st' resolve correctly
+                $semA = $semesterWeights[ucfirst(strtolower($a['semester']))] ?? 4;
+                $semB = $semesterWeights[ucfirst(strtolower($b['semester']))] ?? 4;
+
+                return $semA <=> $semB;
+            }
+
+            return $yearComparison;
+        })->values()->toArray(); // Reset array keys after sorting
 
         return response()->json([
-            'info' => $info,
-            'enrollmentRecord' => $combinedData,
-            'SIS' => $enrollmentRecord,
-            'OLD' => $oldData
+            'info'             => $info,
+            'enrollmentRecord' => $sortedCombinedData, // Use the new sorted array here
+            'SIS'              => $enrollmentRecord,
+            'OLD'              => $oldData,
+            'ACADEMIC_RECORDS' => $academicRecords
         ]);
+    }
+
+    public function addRecord(Request $request)
+    {
+        // 1. Validate the incoming payload
+        $validated = $request->validate([
+            'student_id' => 'required|integer|exists:users,id', // Make sure the student exists
+            'recordType' => 'required|in:old,transferee',
+            'school'     => 'required|string|max:255',
+            'schoolYear' => 'required|string|max:20',
+            'semester'   => 'required|in:first,second,summer',
+            'program'    => 'required|string|max:255',
+            'major'      => 'nullable|string|max:255',
+
+            // Validate the nested subjects array
+            'subjects'             => 'required|array|min:1',
+            'subjects.*.code'      => 'required|string|max:50',
+            'subjects.*.title'     => 'required|string|max:255',
+            'subjects.*.grade'     => 'required|string|max:10',
+            'subjects.*.units'     => 'required|numeric',
+            'subjects.*.re_exam'   => 'nullable|string|max:10',
+        ]);
+
+        // 2. Wrap database operations in a transaction
+        DB::transaction(function () use ($validated) {
+
+            // Map frontend keys to the parent database columns
+            $record = AcademicRecord::create([
+                'student_id'  => $validated['student_id'],
+                'record_type' => $validated['recordType'],
+                'school_name' => $validated['school'],
+                'school_year' => $validated['schoolYear'],
+                'semester'    => $validated['semester'],
+                'program'     => $validated['program'],
+                'major'       => $validated['major'] ?? null,
+            ]);
+
+            // Map frontend subject keys to the child database columns
+            $subjectsData = collect($validated['subjects'])->map(function ($subject) {
+                return [
+                    'subject_code'      => $subject['code'],
+                    'descriptive_title' => $subject['title'],
+                    'grade'             => $subject['grade'],
+                    're_exam'           => $subject['re_exam'] ?? null,
+                    'units'             => $subject['units'],
+                ];
+            });
+
+            // 3. Save the associated subjects using the relationship
+            $record->subjects()->createMany($subjectsData);
+        });
+
+        // 4. Return the response back to Inertia
+        return back()->with('success', 'Academic record and subjects added successfully.');
     }
 }

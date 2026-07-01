@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/Components/ui/skeleton";
 
 export default function DataTable({ columns, data, isLoading, isFetching }) {
-    const skeletonRowCount = data?.length > 0 ? data.length : 5;
+    const skeletonRowCount = data?.length > 0 ? data.length : 10;
 
     // Array of different widths to simulate varying text lengths
     const skeletonWidths = ['w-3/4', 'w-full', 'w-5/6', 'w-2/3', 'w-4/5', 'w-[90%]'];

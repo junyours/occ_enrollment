@@ -22,7 +22,7 @@ export default function Index() {
         return data;
     };
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isFetching } = useQuery({
         queryKey: ['studentRecord', selectedStudent?.id],
         queryFn: fetchStudentRecord,
         enabled: !!selectedStudent?.id,
@@ -36,7 +36,6 @@ export default function Index() {
         removeAfterPrint: true,
     });
 
-    
     return (
         <div>
             <Head title='Permanent Record' />
@@ -78,7 +77,7 @@ export default function Index() {
                 <Card className="relative flex-1 flex flex-col rounded-b-lg max-h-[calc(100vh-10rem)] min-h-[calc(100vh-10rem)] overflow-auto rounded-t-none text-black">
                     <PaperContainer>
                         <div ref={documentRef} className="px-12 py-4 print:p-0 print:bg-white">
-                            {isLoading ? (
+                            {(isLoading || isFetching) ? (
                                 <div className="flex flex-col items-center justify-center py-32 text-slate-500">
                                     <div className="animate-pulse font-medium">Loading record...</div>
                                 </div>
