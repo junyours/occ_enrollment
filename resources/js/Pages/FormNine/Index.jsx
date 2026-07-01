@@ -36,6 +36,7 @@ export default function Index() {
         removeAfterPrint: true,
     });
 
+    
     return (
         <div>
             <Head title='Permanent Record' />
@@ -92,7 +93,9 @@ export default function Index() {
                     </PaperContainer>
                 </Card>
             </div>
-            <AddRecordDialog student={selectedStudent} open={addingRecord} onClose={setAddingRecord} />
+            {addingRecord && (
+                <AddRecordDialog student={selectedStudent} open={addingRecord} onClose={setAddingRecord} />
+            )}
         </div>
     );
 }

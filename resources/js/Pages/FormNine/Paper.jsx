@@ -115,7 +115,7 @@ export default function Paper({ data, className }) {
                     {/* 1. Put Student Info in its own row */}
                     <tr>
                         <td className="p-0 border-0">
-                            <StudentInfo info={data.info} />
+                            <StudentInfo info={data.info} lastRecord={data.enrollmentRecord[data.enrollmentRecord.length - 1]} />
                         </td>
                     </tr>
 

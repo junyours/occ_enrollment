@@ -2,7 +2,7 @@ import React from 'react';
 import FormField from './components/FormField';
 import { formatName } from '@/Lib/InfoUtils';
 
-export default function StudentInfo({ info }) {
+export default function StudentInfo({ info, lastRecord }) {
     const { information, parent } = info;
 
     return (
@@ -15,7 +15,8 @@ export default function StudentInfo({ info }) {
             {/* Section 1: Personal Details */}
             <div className='grid grid-cols-[1fr_260px] gap-x-4 pl-8'>
                 <div className='flex flex-col'>
-                    <FormField label="Name:" value={formatName(information) ? formatName(information).toUpperCase() : ''} />
+                    <FormField label="ID Number:" value={info.user_id_no || ''} />
+                    <FormField label="Name:" value={formatName(information) ? formatName(information, { format: 'FULL' }).toUpperCase() : ''} />
                     <FormField
                         label="Date of Birth:"
                         value={
@@ -28,7 +29,7 @@ export default function StudentInfo({ info }) {
                                 : ''
                         }
                     />
-                    <FormField label=" Place of Birth:" value={null} /> 
+                    <FormField label=" Place of Birth:" value={null} />
                     <FormField label="Home Address:" value={information.address ? information.address.toUpperCase() : ''} />
                 </div>
                 <div className='flex flex-col'>
@@ -36,11 +37,11 @@ export default function StudentInfo({ info }) {
                     <FormField label="Civil Status:" value={information.civil_status ? information.civil_status.toUpperCase() : ''} />
                     <FormField
                         label="Father's Name:"
-                        value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name })}
+                        value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }, {format: 'capitalize'}).toUpperCase() : ''}
                     />
                     <FormField
                         label="Mother's Name:"
-                        value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toUpperCase() : ''}
+                        value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }, {format: 'capitalize'}).toUpperCase() : ''}
                     />
                 </div>
             </div>
@@ -67,23 +68,13 @@ export default function StudentInfo({ info }) {
                 <div className='flex flex-col space-y-1'>
                     {/* Elementary */}
                     <div className='grid grid-cols-[1fr_140px] items-end gap-12'>
-                        <div className='flex items-end gap-2'>
-                            <span className={`text-xs whitespace-nowrap`} style={{ width: '100px' }}>
-                                Elementary:
-                            </span>
-                            <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-left bg-transparent' />
-                        </div>
+                        <FormField label="Elementary:" />
                         <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' />
                     </div>
 
                     {/* Secondary */}
                     <div className='grid grid-cols-[1fr_140px] items-end gap-12'>
-                        <div className='flex items-end gap-2'>
-                            <span className={`text-xs whitespace-nowrap`} style={{ width: '100px' }}>
-                                Secondary:
-                            </span>
-                            <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-left bg-transparent' />
-                        </div>
+                        <FormField label="Secondary:" />
                         <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' />
                     </div>
                 </div>
@@ -92,17 +83,11 @@ export default function StudentInfo({ info }) {
             {/* Section 3: Degree Details */}
             <div className='w-full border-t-[2px] border-black pl-8 mt-2'>
                 <div className='flex flex-col w-full'>
-                    <div className='flex items-end gap-2 mt-0.5'>
-                        <span className={`text-xs whitespace-nowrap`} style={{ width: '190px' }}>
-                            Candidate for the Degree:
-                        </span>
-                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-left bg-transparent' />
+                    <div className='w-full'>
+                        <FormField label="Candidate for the Degree:" labelWidth='147px' value={lastRecord?.program || ''} />
                     </div>
-                    <div className='flex items-end gap-2 mt-0.5'>
-                        <span className={`text-xs whitespace-nowrap`} style={{ width: '190px' }}>
-                            Date of Graduation:
-                        </span>
-                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-left bg-transparent' />
+                    <div className='w-full'>
+                        <FormField label="Date of Graduation:" labelWidth='147px' />
                     </div>
                 </div>
             </div>
