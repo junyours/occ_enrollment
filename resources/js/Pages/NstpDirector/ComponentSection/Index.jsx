@@ -2,7 +2,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CirclePlus, CircleX, Pencil, Trash, UserPlus } from 'lucide-react';
+import { AlertCircle, ArrowRightToLineIcon, BookOpen, CircleCheck, CirclePlus, CircleX, FileDown, Pencil, Trash, UserPlus } from 'lucide-react';
 import SectionSkeleton from './SectionSkeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -71,6 +71,8 @@ export default function Index({ component }) {
         section: false,
         max_students: false,
     });
+
+    const [downloading, setDownloading] = useState(false);
 
     const submitSectionInfo = async () => {
         if (!editingSectionMaxStudnet.section) return toast.error('Fill in the section name.');
@@ -200,13 +202,73 @@ export default function Index({ component }) {
         );
     }
 
+
+    const handleDownloadExcel = async () => {
+        setDownloading(true);
+
+        try {
+            const response = await axios.post(
+                route('nstp-director.component.component.student-list.download-students', {
+                    component,
+                }), {
+                schoolYearId: selectedSchoolYearEntry.id
+            }, {
+                responseType: 'blob',
+            }
+            );
+
+            // Extract the filename from the Content-Disposition header
+            const contentDisposition = response.headers['content-disposition'];
+            let fileName = `Students.xlsx`; // Fallback name
+
+            if (contentDisposition) {
+                const fileNameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (fileNameMatch && fileNameMatch.length === 2) {
+                    fileName = fileNameMatch[1];
+                }
+            }
+
+            // Create a URL for the blob
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+
+            // Create a temporary anchor element and trigger the download
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Set the dynamically extracted file name
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up the DOM and URL object
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error("Error downloading file:", error);
+            alert("Failed to download the file.");
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     if (enrollingStudent) return <NstpEnrollment data={data} setErollingStudent={setErollingStudent} component={component} />
 
     return (
         <div className='space-y-4'>
             <Card>
-                <CardHeader className="mb-2">
+                <CardHeader className="mb-2 flex flex-col sm:flex-row sm:justify-between sm:items-center">
                     <CardTitle className="text-2xl">{component.toUpperCase()} Sections</CardTitle>
+
+                    <Button
+                        onClick={handleDownloadExcel}
+                        disabled={downloading}
+                        className="bg-green-600 hover:bg-green-500"
+                        variant=""
+                    >
+                        <FileDown />
+                        Excel
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     {!selectedSchoolYearEntry?.id ? (

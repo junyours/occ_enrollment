@@ -24,6 +24,7 @@ Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function
     Route::post('/nstp-director/section/{component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
     Route::post('/nstp-director/section/{component}/{section}/move-student', [ComponentController::class, 'moveStudent'])->name('nstp-director.component.sections.student-list.move-student');
 
+    Route::post('/nstp-director/section/{component}/component/download-students', [ComponentController::class, 'downloadStudents'])->name('nstp-director.component.component.student-list.download-students');
     Route::post('/nstp-director/section/{component}/{section}/download-students', [ComponentController::class, 'downloadSectionStudents'])->name('nstp-director.component.sections.student-list.download-students');
 
 
