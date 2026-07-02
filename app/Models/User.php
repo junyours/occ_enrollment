@@ -21,6 +21,7 @@ class User extends Authenticatable
         'password_change',
         'email',
         'first_login_at',
+        'serial_number',
         'active'
     ];
 

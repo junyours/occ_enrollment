@@ -58,4 +58,6 @@ Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function
 
     Route::get('/serial-numbering', [ComponentController::class, 'serialNumbering'])->name('nstp-director.serial-numbering');
     Route::post('/serial-numbering/serial-change', [ComponentController::class, 'serialChange'])->name('nstp-director.serial-numbering.serial-change');
+    Route::post('/serial-numbering/bulk-upload', [ComponentController::class, 'bulkUpload'])->name('nstp-director.serial-numbering.bulk-upload');
+
 });

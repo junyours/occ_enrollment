@@ -24,7 +24,7 @@ import UseQueryTable from '@/Components/UseQueryTable/Index';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatName } from '@/Lib/InfoUtils';
 import React, { useState, useRef } from 'react';
-import { Pencil, Check, X, Download, Upload, Loader2 } from 'lucide-react';
+import { Pencil, Check, X, Download, Upload, Loader2, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from 'sonner';
@@ -157,6 +157,7 @@ export default function Index() {
     const [parsedData, setParsedData] = useState([]);
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [uploadErrors, setUploadErrors] = useState([]); // NEW: State to hold backend conflict errors
 
     const downloadExcel = () => {
         const worksheet = XLSX.utils.json_to_sheet([]);
@@ -179,12 +180,14 @@ export default function Index() {
 
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
-        XLSX.writeFile(workbook, 'students_template.xlsx');
+        XLSX.writeFile(workbook, 'serial_number_students_template.xlsx');
     };
 
     const handleFileUpload = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
+
+        setUploadErrors([]); // Reset errors on new file select
 
         const reader = new FileReader();
         reader.onload = (evt) => {
@@ -214,6 +217,8 @@ export default function Index() {
 
     const confirmUpload = async () => {
         setIsUploading(true);
+        setUploadErrors([]);
+
         try {
             await axios.post(route('nstp-director.serial-numbering.bulk-upload'), {
                 students: parsedData
@@ -227,7 +232,14 @@ export default function Index() {
             setIsAlertOpen(false);
             setParsedData([]);
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Error uploading file data');
+            // Check if backend returned a 422 with our errors array
+            if (error.response?.status === 422 && error.response?.data?.errors) {
+                setUploadErrors(error.response.data.errors);
+                toast.error('Validation failed. Please fix the conflicts shown.');
+            } else {
+                toast.error(error.response?.data?.message || 'Error uploading file data');
+                setIsAlertOpen(false); // Only close modal if it's a critical server error
+            }
             console.error("Upload error:", error);
         } finally {
             setIsUploading(false);
@@ -237,10 +249,7 @@ export default function Index() {
     return (
         <div className="space-y-4">
             <div className="flex gap-2 self-end">
-                <Button
-                    variant="outline"
-                    onClick={downloadExcel}
-                >
+                <Button variant="outline" onClick={downloadExcel}>
                     <Download className="w-4 h-4 mr-2" />
                     Download Template
                 </Button>
@@ -254,10 +263,7 @@ export default function Index() {
                     className="hidden"
                 />
 
-                <Button
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                >
+                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="w-4 h-4 mr-2" />
                     Upload Students
                 </Button>
@@ -277,62 +283,90 @@ export default function Index() {
                 </CardContent>
             </Card>
 
-            {/* Upload Preview Alert Dialog */}
+            {/* Upload Preview & Error Alert Dialog */}
             <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
                 <AlertDialogContent className="max-w-3xl">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Upload Data</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {uploadErrors.length > 0 ? 'Upload Failed' : 'Confirm Upload Data'}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            You are about to upload {parsedData.length} student records. Please review the preview below before confirming.
+                            {uploadErrors.length > 0
+                                ? 'We found conflicts in your file. No data was saved. Please review the errors below.'
+                                : `You are about to upload ${parsedData.length} student records. Please review the preview below before confirming.`
+                            }
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 
-                    <div className="max-h-[50vh] overflow-auto border rounded-md">
-                        <Table>
-                            <TableHeader className="bg-muted sticky top-0 shadow-sm">
-                                <TableRow>
-                                    <TableHead>Student ID</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Serial Number</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {parsedData.slice(0, 50).map((row, idx) => (
-                                    <TableRow key={idx}>
-                                        <TableCell>{row['Student ID']}</TableCell>
-                                        <TableCell>{row['Name']}</TableCell>
-                                        <TableCell>{row['Serial Number']}</TableCell>
-                                    </TableRow>
+                    {/* Show Errors if they exist, otherwise show Table Preview */}
+                    {uploadErrors.length > 0 ? (
+                        <div className="max-h-[50vh] overflow-auto border border-red-200 bg-red-50 rounded-md p-4">
+                            <h4 className="flex items-center gap-2 text-sm font-semibold text-red-800 mb-3">
+                                <AlertCircle className="w-4 h-4" />
+                                Fix the following rows in your Excel file:
+                            </h4>
+                            <ul className="space-y-1 text-sm text-red-700 list-disc pl-5">
+                                {uploadErrors.map((err, idx) => (
+                                    <li key={idx}>{err}</li>
                                 ))}
-                                {parsedData.length > 50 && (
+                            </ul>
+                        </div>
+                    ) : (
+                        <div className="max-h-[50vh] overflow-auto border rounded-md">
+                            <Table>
+                                <TableHeader className="bg-muted sticky top-0 shadow-sm z-10">
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center text-muted-foreground italic">
-                                            ...and {parsedData.length - 50} more rows
-                                        </TableCell>
+                                        <TableHead>Student ID</TableHead>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Serial Number</TableHead>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {parsedData.slice(0, 50).map((row, idx) => (
+                                        <TableRow key={idx}>
+                                            <TableCell>{row['Student ID']}</TableCell>
+                                            <TableCell>{row['Name']}</TableCell>
+                                            <TableCell>{row['Serial Number']}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {parsedData.length > 50 && (
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="text-center text-muted-foreground italic">
+                                                ...and {parsedData.length - 50} more rows
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
 
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isUploading}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={(e) => {
-                                e.preventDefault();
-                                confirmUpload();
-                            }}
-                            disabled={isUploading}
-                        >
-                            {isUploading ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Uploading...
-                                </>
-                            ) : (
-                                'Confirm Upload'
-                            )}
-                        </AlertDialogAction>
+                        {uploadErrors.length > 0 ? (
+                            <AlertDialogCancel onClick={() => setUploadErrors([])}>
+                                Close & Fix File
+                            </AlertDialogCancel>
+                        ) : (
+                            <>
+                                <AlertDialogCancel disabled={isUploading}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        confirmUpload();
+                                    }}
+                                    disabled={isUploading}
+                                >
+                                    {isUploading ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Uploading...
+                                        </>
+                                    ) : (
+                                        'Confirm Upload'
+                                    )}
+                                </AlertDialogAction>
+                            </>
+                        )}
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

@@ -1374,4 +1374,75 @@ class ComponentController extends Controller
 
         return response()->json(['message' => 'User ID number updated successfully']);
     }
+
+    public function bulkUpload(Request $request)
+    {
+        $request->validate([
+            'students' => 'required|array',
+        ]);
+
+        $students = $request->input('students', []);
+        $errors = [];
+
+        // 1. Gather all IDs and Serials for fast batch querying
+        $studentIds = collect($students)->pluck('Student ID')->filter()->toArray();
+        $serialNumbers = collect($students)->pluck('Serial Number')->filter()->toArray();
+
+        $existingUsers = User::whereIn('user_id_no', $studentIds)->get()->keyBy('user_id_no');
+        $existingSerials = User::whereIn('serial_number', $serialNumbers)->get()->keyBy('serial_number');
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($students as $index => $row) {
+                $rowNum = $index + 2; // Offset for Excel header row
+                $studentId = $row['Student ID'] ?? null;
+                $serialNum = $row['Serial Number'] ?? null;
+
+                if (!$studentId) {
+                    $errors[] = "Row {$rowNum}: Student ID is missing.";
+                    continue;
+                }
+
+                $user = $existingUsers->get($studentId);
+
+                if (!$user) {
+                    $errors[] = "Row {$rowNum}: Student ID '{$studentId}' not found in the system.";
+                    continue;
+                }
+
+                if ($serialNum) {
+                    $conflictUser = $existingSerials->get($serialNum);
+                    // Check if serial is taken by a DIFFERENT user
+                    if ($conflictUser && $conflictUser->id !== $user->id) {
+                        $errors[] = "Row {$rowNum}: Serial Number '{$serialNum}' is already assigned to ID {$conflictUser->user_id_no}.";
+                        continue;
+                    }
+                }
+
+                // Update user
+                $user->serial_number = $serialNum;
+                $user->save();
+            }
+
+            // 2. If any errors were found, abort the whole transaction
+            if (count($errors) > 0) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Upload failed due to validation errors.',
+                    'errors' => collect($errors)->take(30) // Cap at 30 errors so the UI doesn't freeze
+                ], 422);
+            }
+
+            // 3. If everything is perfect, save it
+            DB::commit();
+            return response()->json(['message' => 'Successfully uploaded serial numbers.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Server error occurred.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
