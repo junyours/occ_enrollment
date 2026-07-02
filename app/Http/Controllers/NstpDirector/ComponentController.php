@@ -297,6 +297,108 @@ class ComponentController extends Controller
         return response()->json($students);
     }
 
+    public function downloadSectionStudents($component, $section, Request $request)
+    {
+        $schoolYear = SchoolYear::where('id', '=', $request->schoolYearId)->with('semester')->first();
+
+        // Get component ID
+        $componentId = NstpComponent::where('component_name', $component)->value('id');
+
+        // Fetch students
+        $students = NstpSection::select(
+            'serial_number',
+            'last_name',
+            'first_name',
+            'middle_name',
+            'course_name_abbreviation', // Selected Course abbreviation
+            'gender',
+            'birthday',
+            'present_address',
+            'contact_number',
+            'users.email', // Added email to the select query
+            'year_section.section as year_section_name',
+            'year_level_id'
+        )
+            ->where('nstp_sections.section', $section)
+            ->where('nstp_component_id', $componentId)
+            ->where('nstp_sections.school_year_id', $request->schoolYearId)
+            ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
+            ->join('student_subject_nstp_schedule', 'nstp_section_schedules.id', '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
+            ->join('student_subjects', 'student_subjects.id', '=', 'student_subject_nstp_schedule.student_subject_id')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->join('user_information', 'user_information.user_id', '=', 'users.id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->orderBy('last_name', 'asc')
+            ->get();
+
+        // Initialize Spreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set Headers
+        $sheet->setCellValue('A1', 'Serial Number');
+        $sheet->setCellValue('B1', 'Surname');
+        $sheet->setCellValue('C1', 'First Name');
+        $sheet->setCellValue('D1', 'Middle Name');
+        $sheet->setCellValue('E1', 'Course/Program');
+        $sheet->setCellValue('F1', 'Birthdate');
+        $sheet->setCellValue('G1', 'Address');
+        $sheet->setCellValue('H1', 'TELEPHONE/MOBILE NO.');
+        $sheet->setCellValue('I1', 'Email Address');
+
+        // Make the header row bold
+        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
+
+        // Set Column Widths
+        $sheet->getColumnDimension('A')->setWidth(20);
+        $sheet->getColumnDimension('B')->setWidth(20);
+        $sheet->getColumnDimension('C')->setWidth(20);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(20);
+        $sheet->getColumnDimension('G')->setWidth(50);
+        $sheet->getColumnDimension('H')->setWidth(20);
+        $sheet->getColumnDimension('I')->setWidth(40);
+
+        // Populate Data
+        $row = 2;
+        foreach ($students as $student) {
+            $sheet->setCellValue('A' . $row, $student->serial_number); // Changed from id to serial_number
+            $sheet->setCellValue('B' . $row, $student->last_name);
+            $sheet->setCellValue('C' . $row, $student->first_name);
+            $sheet->setCellValue('D' . $row, $student->middle_name);
+
+            // Combined course abbreviation with year and section (e.g. BSIT 3-A)
+            $courseText = $student->course_name_abbreviation;
+            $sheet->setCellValue('E' . $row, $courseText);
+
+            // Format the birthday to "July 1, 2003"
+            $formattedBirthday = $student->birthday
+                ? \Carbon\Carbon::parse($student->birthday)->format('F j, Y')
+                : ''; // fallback to empty string if birthday is null
+            $sheet->setCellValue('F' . $row, $formattedBirthday);
+
+            $sheet->setCellValue('G' . $row, $student->present_address);
+            $sheet->setCellValue('H' . $row, $student->contact_number);
+            $sheet->setCellValue('I' . $row, $student->email); // Maps to users.email
+
+            $row++;
+        }
+
+        // Prepare File for Download
+        $filename = $schoolYear->start_year . '-' . $schoolYear->end_year . '_' . $schoolYear->semester->semester_name . '_' . strtoupper($component) . "_{$section}_Students.xlsx";
+        $tempPath = tempnam(sys_get_temp_dir(), 'students_');
+
+        // Save and Write
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempPath);
+
+        // Return Download Response and clean up temp file
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
+    }
+
     public function removeSection(Request $request)
     {
         $request->validate([

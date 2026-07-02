@@ -21,8 +21,11 @@ Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function
     Route::get('/nstp-director/section/{component}/{section}', [ComponentController::class, 'viewSectionStudents'])->name('nstp-director.component.sections.student-list');
     Route::post('/nstp-director/section/{component}/{section}', [ComponentController::class, 'getSectionSudents'])->name('nstp-director.component.sections.student-list');
 
-    Route::post('/nstp-director/section/component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
-    Route::post('/nstp-director/section/component}/{section}/move-student', [ComponentController::class, 'moveStudent'])->name('nstp-director.component.sections.student-list.move-student');
+    Route::post('/nstp-director/section/{component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
+    Route::post('/nstp-director/section/{component}/{section}/move-student', [ComponentController::class, 'moveStudent'])->name('nstp-director.component.sections.student-list.move-student');
+
+    Route::post('/nstp-director/section/{component}/{section}/download-students', [ComponentController::class, 'downloadSectionStudents'])->name('nstp-director.component.sections.student-list.download-students');
+
 
     Route::post('/nstp-director/change-section-info', [ComponentController::class, 'changeSectionInfo'])->name('nstp-director.change-section-info');
 

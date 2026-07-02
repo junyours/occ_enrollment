@@ -2,7 +2,6 @@ import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescript
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
-import { PageTitle } from '@/Components/ui/PageTitle'
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
@@ -11,11 +10,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
-import axios, { Axios } from 'axios';
+import axios from 'axios';
 import { AlertCircle, AlertTriangle, BookOpen, FileDown, MoveRightIcon, Trash, UserMinus } from 'lucide-react';
 import React, { useMemo, useState } from 'react'
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
 
 const TableHeadTemplate = ({ children }) => {
     return (
@@ -62,6 +60,7 @@ const SkeletonLoading = () => {
 };
 
 export default function Index({ component, section }) {
+    const [downloading, setDownloading] = useState(false);
 
     const { selectedSchoolYearEntry } = useSchoolYearStore();
 
@@ -193,31 +192,54 @@ export default function Index({ component, section }) {
     const handlePrevPage = () => setCurrentPage(p => Math.max(p - 1, 1));
     const handleNextPage = () => setCurrentPage(p => Math.min(p + 1, totalPages));
 
-    const handleDownloadExcel = () => {
-        if (!filteredData || filteredData.length === 0) return;
+    const handleDownloadExcel = async () => {
+        setDownloading(true);
 
-        const exportData = filteredData.map((student, index) => ({
-            No: index + 1,
-            ID: student.user_id_no,
-            Name: formatFullName(student),
-            Section: `${student.course_name_abbreviation}-${student.year_level_id}${student.section}`,
-        }));
+        try {
+            const response = await axios.post(
+                route('nstp-director.component.sections.student-list.download-students', {
+                    component,
+                    section
+                }), {
+                schoolYearId: selectedSchoolYearEntry.id
+            }, {
+                responseType: 'blob',
+            }
+            );
 
-        const ws = XLSX.utils.json_to_sheet(exportData);
+            // Extract the filename from the Content-Disposition header
+            const contentDisposition = response.headers['content-disposition'];
+            let fileName = `Students-${section}.xlsx`; // Fallback name
 
-        // Approximate widths in Excel (characters, not pixels)
-        ws['!cols'] = [
-            { wch: 6 },
-            { wch: 14 },
-            { wch: 30 },
-            { wch: 15 },
-        ];
+            if (contentDisposition) {
+                const fileNameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                if (fileNameMatch && fileNameMatch.length === 2) {
+                    fileName = fileNameMatch[1];
+                }
+            }
 
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Students');
+            // Create a URL for the blob
+            const url = window.URL.createObjectURL(new Blob([response.data]));
 
-        const name = `${component.toUpperCase()}_Section_${section}.xlsx`;
-        XLSX.writeFile(wb, name);
+            // Create a temporary anchor element and trigger the download
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Set the dynamically extracted file name
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up the DOM and URL object
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error("Error downloading file:", error);
+            alert("Failed to download the file.");
+        } finally {
+            setDownloading(false);
+        }
     };
 
     return (
@@ -250,6 +272,7 @@ export default function Index({ component, section }) {
 
                         <Button
                             onClick={handleDownloadExcel}
+                            disabled={downloading}
                             className="bg-green-600 hover:bg-green-500"
                             variant=""
                         >
