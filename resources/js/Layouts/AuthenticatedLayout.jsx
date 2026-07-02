@@ -7,12 +7,12 @@ import {
     SidebarProvider,
 } from "@/Components/ui/sidebar"
 
-import { usePage } from "@inertiajs/react"
+import { Head, usePage } from "@inertiajs/react"
 import { Button } from "@/Components/ui/button";
 import axios from "axios";
 import { useState } from "react";
 
-export default function AuthenticatedLayout({ children }) {
+export default function AuthenticatedLayout({ children, title }) {
 
     const { impersonating } = usePage().props.auth;
     const [loading, setLoading] = useState(false)
@@ -46,6 +46,7 @@ export default function AuthenticatedLayout({ children }) {
                 </header>
                 <div className="flex-grow p-4 overflow-auto">
                     <div className="container mx-auto max-w-6xl">
+                        <Head title={title} />
                         {children}
                     </div>
                 </div>

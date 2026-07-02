@@ -3,7 +3,7 @@
 use App\Http\Controllers\NstpDirector\ComponentController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function () {
     Route::get('/nstp-director/dashboard', [ComponentController::class, 'viewDashboard'])->name('nstp-director.dashboard');
     Route::post('/nstp-director/dashboard', [ComponentController::class, 'getDashboardData'])->name('nstp-director.dashboard');
 
@@ -51,4 +51,7 @@ Route::middleware(['auth', 'maintenance', 'NstpDirector'])->group(function () {
     Route::post('/nstp-director/create-nstp-evaluator', [ComponentController::class, 'createEvaluator'])->name('nstp-director.create-nstp-evaluator');
     Route::post('/nstp-director/update-nstp-evaluator', [ComponentController::class, 'updateEvaluator'])->name('nstp-director.update-nstp-evaluator');
     Route::post('/nstp-director/toggle-active', [ComponentController::class, 'toggleActive'])->name('nstp-director.toggle-active');
+
+    Route::get('/serial-numbering', [ComponentController::class, 'serialNumbering'])->name('nstp-director.serial-numbering');
+    Route::post('/serial-numbering/serial-change', [ComponentController::class, 'serialChange'])->name('nstp-director.serial-numbering.serial-change');
 });

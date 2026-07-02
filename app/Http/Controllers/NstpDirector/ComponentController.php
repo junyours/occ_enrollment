@@ -1090,7 +1090,7 @@ class ComponentController extends Controller
             ],
         ]);
     }
-    
+
     public function updateEvaluator(Request $request)
     {
         $evaluatorId = $request->id;
@@ -1152,5 +1152,24 @@ class ComponentController extends Controller
         $user->save();
 
         return response()->json(['message' => 'Success']);
+    }
+
+    public function serialNumbering()
+    {
+        return Inertia::render('NstpDirector/SerialNumbering/Index');
+    }
+
+    public function serialChange(Request $request)
+    {
+        if (User::where('serial_number', $request->serialNumber)->where('id', '!=', $request->id)->exists()) {
+            return response()->json(['message' => 'Serial number already exists'], 422);
+        }
+
+        User::where('id', '=', $request->id)
+            ->update([
+                'serial_number' => $request->serialNumber,
+            ]);
+
+        return response()->json(['message' => 'User ID number updated successfully']);
     }
 }

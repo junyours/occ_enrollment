@@ -665,6 +665,11 @@ export function NavMain() {
                     label: "Others",
                     items: [
                         {
+                            name: "Serial Numbering",
+                            route: "nstp-director.serial-numbering",
+                            icon: Users2,
+                        },
+                        {
                             name: "Evaluators",
                             route: "nstp-director.nstp-evaluators",
                             icon: Users2,

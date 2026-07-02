@@ -159,6 +159,35 @@ class UserController extends Controller
         };
     }
 
+    public function getStudents(Request $request)
+    {
+        $students = User::select(
+            'users.id',
+            'user_id_no',
+            'email_address',
+            'contact_number',
+            'serial_number',
+            'user_information.first_name',
+            'user_information.middle_name',
+            'user_information.last_name',
+        )->when($request->search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('user_id_no', 'like', '%' . $search . '%')
+                    ->orWhere('serial_number', 'like', '%' . $search . '%');
+            });
+        })
+            ->leftJoin('user_information', 'user_information.user_id', '=', 'users.id')
+            ->where('users.user_role', '=', 'student')
+            ->orderBy('user_id_no', 'desc')
+            ->paginate(10) // paginate with 10 students per page
+            ->withQueryString(); // preserve query params like ?page=
+
+        return response()->json($students, 200);
+    }
+
     public function viewNotEnrolledList(Request $request)
     {
         return Inertia::render('UserManagement/NotEnrolled/Index');
