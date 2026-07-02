@@ -1,15 +1,34 @@
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/Components/ui/alert-dialog';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/Components/ui/table";
 import CopyButton from '@/Components/ui/CopyButton';
 import UseQueryTable from '@/Components/UseQueryTable/Index';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatName } from '@/Lib/InfoUtils';
-import React, { useState } from 'react';
-import { Pencil, Check, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Pencil, Check, X, Download, Upload, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 const SerialNumberCell = ({ row }) => {
     const queryClient = useQueryClient();
@@ -24,11 +43,11 @@ const SerialNumberCell = ({ row }) => {
                 id: row.id,
                 serialNumber: serialNumber
             });
-            // FIX: Match the queryKeyPrefix from your UseQueryTable exactly
             await queryClient.invalidateQueries({
                 queryKey: ['nstp-director-serial-numbering.student-list']
             });
             setIsEditing(false);
+            toast.success('Serial number updated successfully');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Error saving serial number');
             console.error("Error saving serial number:", error);
@@ -80,7 +99,6 @@ const SerialNumberCell = ({ row }) => {
     }
 
     return (
-        // Removed 'justify-between' from the top div
         <div className="flex items-center group gap-2 h-8">
             <div className="flex items-center gap-2">
                 {row.serial_number ? (
@@ -132,8 +150,119 @@ const columns = [
 ]
 
 export default function Index() {
+    const queryClient = useQueryClient();
+    const fileInputRef = useRef(null);
+
+    // Upload State
+    const [parsedData, setParsedData] = useState([]);
+    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const downloadExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet([]);
+
+        XLSX.utils.sheet_add_json(
+            worksheet,
+            [],
+            {
+                header: ['Student ID', 'Name', 'Serial Number'],
+                skipHeader: false,
+                origin: 'A1',
+            }
+        );
+
+        worksheet['!cols'] = [
+            { wch: 20 }, // Student ID
+            { wch: 30 }, // Name
+            { wch: 20 }, // Serial Number
+        ];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Template');
+        XLSX.writeFile(workbook, 'students_template.xlsx');
+    };
+
+    const handleFileUpload = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            try {
+                const bstr = evt.target.result;
+                const wb = XLSX.read(bstr, { type: 'binary' });
+                const wsname = wb.SheetNames[0];
+                const ws = wb.Sheets[wsname];
+                const data = XLSX.utils.sheet_to_json(ws);
+
+                if (data.length === 0) {
+                    toast.error("The uploaded file is empty.");
+                    return;
+                }
+
+                setParsedData(data);
+                setIsAlertOpen(true);
+            } catch (error) {
+                toast.error("Failed to read the file. Please ensure it's a valid Excel file.");
+            }
+        };
+        reader.readAsBinaryString(file);
+
+        // Reset input so the same file can be selected again if needed
+        e.target.value = null;
+    };
+
+    const confirmUpload = async () => {
+        setIsUploading(true);
+        try {
+            await axios.post(route('nstp-director.serial-numbering.bulk-upload'), {
+                students: parsedData
+            });
+
+            await queryClient.invalidateQueries({
+                queryKey: ['nstp-director-serial-numbering.student-list']
+            });
+
+            toast.success(`Successfully uploaded ${parsedData.length} records.`);
+            setIsAlertOpen(false);
+            setParsedData([]);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Error uploading file data');
+            console.error("Upload error:", error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
-        <div>
+        <div className="space-y-4">
+            <div className="flex gap-2 self-end">
+                <Button
+                    variant="outline"
+                    onClick={downloadExcel}
+                >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Template
+                </Button>
+
+                {/* Hidden File Input */}
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".xlsx, .xls, .csv"
+                    className="hidden"
+                />
+
+                <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Students
+                </Button>
+            </div>
+
             <Card>
                 <CardContent className='pt-4'>
                     <UseQueryTable
@@ -147,6 +276,66 @@ export default function Index() {
                     />
                 </CardContent>
             </Card>
+
+            {/* Upload Preview Alert Dialog */}
+            <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+                <AlertDialogContent className="max-w-3xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Upload Data</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You are about to upload {parsedData.length} student records. Please review the preview below before confirming.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <div className="max-h-[50vh] overflow-auto border rounded-md">
+                        <Table>
+                            <TableHeader className="bg-muted sticky top-0 shadow-sm">
+                                <TableRow>
+                                    <TableHead>Student ID</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Serial Number</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {parsedData.slice(0, 50).map((row, idx) => (
+                                    <TableRow key={idx}>
+                                        <TableCell>{row['Student ID']}</TableCell>
+                                        <TableCell>{row['Name']}</TableCell>
+                                        <TableCell>{row['Serial Number']}</TableCell>
+                                    </TableRow>
+                                ))}
+                                {parsedData.length > 50 && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-center text-muted-foreground italic">
+                                            ...and {parsedData.length - 50} more rows
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isUploading}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                confirmUpload();
+                            }}
+                            disabled={isUploading}
+                        >
+                            {isUploading ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                'Confirm Upload'
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

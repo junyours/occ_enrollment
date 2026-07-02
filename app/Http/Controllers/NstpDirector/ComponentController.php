@@ -1363,7 +1363,7 @@ class ComponentController extends Controller
 
     public function serialChange(Request $request)
     {
-        if (User::where('serial_number', $request->serialNumber)->where('id', '!=', $request->id)->exists()) {
+        if (User::where('serial_number', $request->serialNumber)->where('id', '!=', $request->id)->exists()  && $request->serialNumber != "") {
             return response()->json(['message' => 'Serial number already exists'], 422);
         }
 
