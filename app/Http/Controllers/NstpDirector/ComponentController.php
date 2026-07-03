@@ -306,6 +306,7 @@ class ComponentController extends Controller
 
         // Fetch students
         $students = NstpSection::select(
+            'user_id_no',
             'serial_number',
             'last_name',
             'first_name',
@@ -339,17 +340,18 @@ class ComponentController extends Controller
 
         // Set Headers
         $sheet->setCellValue('A1', 'Serial Number');
-        $sheet->setCellValue('B1', 'Surname');
-        $sheet->setCellValue('C1', 'First Name');
-        $sheet->setCellValue('D1', 'Middle Name');
-        $sheet->setCellValue('E1', 'Course/Program');
-        $sheet->setCellValue('F1', 'Birthdate');
-        $sheet->setCellValue('G1', 'Address');
-        $sheet->setCellValue('H1', 'TELEPHONE/MOBILE NO.');
-        $sheet->setCellValue('I1', 'Email Address');
+        $sheet->setCellValue('B1', 'ID Number');
+        $sheet->setCellValue('C1', 'Surname');
+        $sheet->setCellValue('D1', 'First Name');
+        $sheet->setCellValue('E1', 'Middle Name');
+        $sheet->setCellValue('F1', 'Course/Program');
+        $sheet->setCellValue('G1', 'Birthdate');
+        $sheet->setCellValue('H1', 'Address');
+        $sheet->setCellValue('I1', 'TELEPHONE/MOBILE NO.');
+        $sheet->setCellValue('J1', 'Email Address');
 
         // Make the header row bold
-        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
 
         // Set Column Widths
         $sheet->getColumnDimension('A')->setWidth(20);
@@ -358,31 +360,33 @@ class ComponentController extends Controller
         $sheet->getColumnDimension('D')->setWidth(20);
         $sheet->getColumnDimension('E')->setWidth(20);
         $sheet->getColumnDimension('F')->setWidth(20);
-        $sheet->getColumnDimension('G')->setWidth(50);
-        $sheet->getColumnDimension('H')->setWidth(20);
-        $sheet->getColumnDimension('I')->setWidth(40);
+        $sheet->getColumnDimension('G')->setWidth(20);
+        $sheet->getColumnDimension('H')->setWidth(50);
+        $sheet->getColumnDimension('I')->setWidth(20);
+        $sheet->getColumnDimension('J')->setWidth(40);
 
         // Populate Data
         $row = 2;
         foreach ($students as $student) {
             $sheet->setCellValue('A' . $row, $student->serial_number); // Changed from id to serial_number
-            $sheet->setCellValue('B' . $row, $student->last_name);
-            $sheet->setCellValue('C' . $row, $student->first_name);
-            $sheet->setCellValue('D' . $row, $student->middle_name);
+            $sheet->setCellValue('B' . $row, $student->user_id_no);
+            $sheet->setCellValue('C' . $row, $student->last_name);
+            $sheet->setCellValue('D' . $row, $student->first_name);
+            $sheet->setCellValue('E' . $row, $student->middle_name);
 
             // Combined course abbreviation with year and section (e.g. BSIT 3-A)
             $courseText = $student->course_name_abbreviation;
-            $sheet->setCellValue('E' . $row, $courseText);
+            $sheet->setCellValue('F' . $row, $courseText);
 
             // Format the birthday to "July 1, 2003"
             $formattedBirthday = $student->birthday
                 ? \Carbon\Carbon::parse($student->birthday)->format('F j, Y')
                 : ''; // fallback to empty string if birthday is null
-            $sheet->setCellValue('F' . $row, $formattedBirthday);
+            $sheet->setCellValue('G' . $row, $formattedBirthday);
 
-            $sheet->setCellValue('G' . $row, $student->present_address);
-            $sheet->setCellValue('H' . $row, $student->contact_number);
-            $sheet->setCellValue('I' . $row, $student->email); // Maps to users.email
+            $sheet->setCellValue('H' . $row, $student->present_address);
+            $sheet->setCellValue('I' . $row, $student->contact_number);
+            $sheet->setCellValue('J' . $row, $student->email); // Maps to users.email
 
             $row++;
         }
@@ -407,6 +411,7 @@ class ComponentController extends Controller
 
         // Fetch students
         $students = NstpSection::select(
+            'user_id_no',
             'serial_number',
             'last_name',
             'first_name',
@@ -439,17 +444,18 @@ class ComponentController extends Controller
 
         // Set Headers
         $sheet->setCellValue('A1', 'Serial Number');
-        $sheet->setCellValue('B1', 'Surname');
-        $sheet->setCellValue('C1', 'First Name');
-        $sheet->setCellValue('D1', 'Middle Name');
-        $sheet->setCellValue('E1', 'Course/Program');
-        $sheet->setCellValue('F1', 'Birthdate');
-        $sheet->setCellValue('G1', 'Address');
-        $sheet->setCellValue('H1', 'TELEPHONE/MOBILE NO.');
-        $sheet->setCellValue('I1', 'Email Address');
+        $sheet->setCellValue('B1', 'ID Number');
+        $sheet->setCellValue('C1', 'Surname');
+        $sheet->setCellValue('D1', 'First Name');
+        $sheet->setCellValue('E1', 'Middle Name');
+        $sheet->setCellValue('F1', 'Course/Program');
+        $sheet->setCellValue('G1', 'Birthdate');
+        $sheet->setCellValue('H1', 'Address');
+        $sheet->setCellValue('I1', 'TELEPHONE/MOBILE NO.');
+        $sheet->setCellValue('J1', 'Email Address');
 
         // Make the header row bold
-        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
 
         // Set Column Widths
         $sheet->getColumnDimension('A')->setWidth(20);
@@ -458,31 +464,33 @@ class ComponentController extends Controller
         $sheet->getColumnDimension('D')->setWidth(20);
         $sheet->getColumnDimension('E')->setWidth(20);
         $sheet->getColumnDimension('F')->setWidth(20);
-        $sheet->getColumnDimension('G')->setWidth(50);
-        $sheet->getColumnDimension('H')->setWidth(20);
-        $sheet->getColumnDimension('I')->setWidth(40);
+        $sheet->getColumnDimension('G')->setWidth(20);
+        $sheet->getColumnDimension('H')->setWidth(50);
+        $sheet->getColumnDimension('I')->setWidth(20);
+        $sheet->getColumnDimension('J')->setWidth(40);
 
         // Populate Data
         $row = 2;
         foreach ($students as $student) {
             $sheet->setCellValue('A' . $row, $student->serial_number); // Changed from id to serial_number
-            $sheet->setCellValue('B' . $row, $student->last_name);
-            $sheet->setCellValue('C' . $row, $student->first_name);
-            $sheet->setCellValue('D' . $row, $student->middle_name);
+            $sheet->setCellValue('B' . $row, $student->user_id_no); // Changed from id to serial_number
+            $sheet->setCellValue('C' . $row, $student->last_name);
+            $sheet->setCellValue('D' . $row, $student->first_name);
+            $sheet->setCellValue('E' . $row, $student->middle_name);
 
             // Combined course abbreviation with year and section (e.g. BSIT 3-A)
             $courseText = $student->course_name_abbreviation;
-            $sheet->setCellValue('E' . $row, $courseText);
+            $sheet->setCellValue('F' . $row, $courseText);
 
             // Format the birthday to "July 1, 2003"
             $formattedBirthday = $student->birthday
                 ? \Carbon\Carbon::parse($student->birthday)->format('F j, Y')
                 : ''; // fallback to empty string if birthday is null
-            $sheet->setCellValue('F' . $row, $formattedBirthday);
+            $sheet->setCellValue('G' . $row, $formattedBirthday);
 
-            $sheet->setCellValue('G' . $row, $student->present_address);
-            $sheet->setCellValue('H' . $row, $student->contact_number);
-            $sheet->setCellValue('I' . $row, $student->email); // Maps to users.email
+            $sheet->setCellValue('H' . $row, $student->present_address);
+            $sheet->setCellValue('I' . $row, $student->contact_number);
+            $sheet->setCellValue('J' . $row, $student->email); // Maps to users.email
 
             $row++;
         }
