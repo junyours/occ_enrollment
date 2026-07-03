@@ -15,6 +15,7 @@ import useScheduleStore from './useClassScheduleStore';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { toast } from 'sonner';
 import { router } from '@inertiajs/react';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -223,7 +224,7 @@ export default function Scheduling({
         if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please resolve!");
 
         setSubmitting(true);
-        
+
         await router.post(route("gened-coordinator.update.class"), selectedSubject, {
             onSuccess: () => {
                 toast.success("Class updated successfully.");
@@ -237,8 +238,31 @@ export default function Scheduling({
                 setSubmitting(false);
             }
         });
-
     };
+
+    const dayOnchange = (day) => {
+        collectConflictSchedules({ day: day, start_time: selectedSubject.start_time, end_time: selectedSubject.end_time, id: selectedSubject.id })
+        setSelectedSubjectField('day', day)
+    }
+
+    const changeDayType = (type) => {
+        let day
+        switch (type) {
+            case 'Single':
+                day = "Monday"
+                break;
+            case 'Consecutive':
+                day = "Mon-Fri"
+                break;
+            case 'Alternating':
+                day = "Mon,Tue,Wed,Thu,Fri"
+                break;
+        }
+        dayOnchange(day)
+        setDayType(type)
+    }
+
+
 
     return (
         <Card className={`${(mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) ? ' border-red-600 ' : 'border-green-500'}`}>
@@ -256,6 +280,27 @@ export default function Scheduling({
                                 <div className='flex gap-2'>
                                     <div className='flex justify-between w-full'>
                                         <Label htmlFor="text-end">Day</Label>
+                                        {/* {schoolYear.semester_id == 3 && */}
+                                        <RadioGroup
+                                            disabled={selectedSubject.day == 'TBA'}
+                                            value={dayType}
+                                            defaultValue={dayType}
+                                            onValueChange={(value) => changeDayType(value)}
+                                            className="flex">
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="Single" id="r1" />
+                                                <Label htmlFor="r1">Single</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="Consecutive" id="r2" />
+                                                <Label htmlFor="r2">Consecutive</Label>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <RadioGroupItem value="Alternating" id="r3" />
+                                                <Label htmlFor="r3">Alternating</Label>
+                                            </div>
+                                        </RadioGroup>
+                                        {/* } */}
                                     </div>
                                     <Megaphone className='self-center text-transparent' />
                                 </div>
@@ -284,6 +329,81 @@ export default function Scheduling({
                                             </SelectContent>
                                         </Select>
                                     )}
+
+                                    {(dayType === "Consecutive" && selectedSubject.day != "TBA") && (() => {
+                                        const [start, end] = selectedSubject.day.split("-");
+                                        const startDay = dayNumber[start];
+                                        const endDay = dayNumber[end];
+
+                                        return (
+                                            <div className="relative flex items-center w-full gap-1">
+                                                {/* Start Day Select */}
+                                                <Select value={start} onValueChange={(value) => dayOnchange(`${value}-${end}`)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a day" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {days.map((day) => (
+                                                            <SelectItem key={day} value={day} disabled={dayNumber[day] >= endDay}>
+                                                                {dayAccToCom[day]}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+
+                                                <span className="text-2xl">-</span>
+
+                                                {/* End Day Select */}
+                                                <Select value={end} onValueChange={(value) => dayOnchange(`${start}-${value}`)}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a day" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {days.map((day) => (
+                                                            <SelectItem key={day} value={day} disabled={dayNumber[day] <= startDay}>
+                                                                {dayAccToCom[day]}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {(dayType === 'Alternating' && selectedSubject.day != "TBA") && (() => {
+                                        const dayChangeAlternating = (value) => {
+                                            const daysValue = value
+                                                .filter(day => day) // Remove empty strings or falsy values
+                                                .sort((a, b) => days.indexOf(a) - days.indexOf(b)) // Sort based on daysOrder
+                                                .join(","); // Join without spaces
+                                            dayOnchange(daysValue)
+                                        }
+
+                                        return (
+                                            <ToggleGroup
+                                                onValueChange={(value) => {
+                                                    if (value.length <= 1) return
+                                                    dayChangeAlternating(value)
+                                                }}
+                                                value={selectedSubject.day.split(',').map(day => day.trim())}
+                                                type="multiple"
+                                                variant="outline"
+                                                className="w-full flex justify-start"
+                                            >
+                                                {days.map((day) => (
+                                                    <ToggleGroupItem
+                                                        key={day}
+                                                        value={day}
+                                                        aria-label="Toggle bold"
+                                                        className=" w-14 data-[state=on]:bg-[hsl(var(--toggle-active-bg))] data-[state=on]:text-[hsl(var(--toggle-active-text))]"
+                                                    >
+                                                        {day}
+                                                    </ToggleGroupItem>
+                                                ))}
+                                            </ToggleGroup>
+                                        )
+                                    })()}
+
                                     {selectedSubject.day == "TBA" &&
                                         <Select disabled={true} readOnly={true} value={selectedSubject.day}>
                                             <SelectTrigger>
