@@ -166,7 +166,7 @@ export default function Index() {
             worksheet,
             [],
             {
-                header: ['Student ID', 'Name', 'Serial Number'],
+                header: ['Student ID', 'Last Name', 'First Name', 'Serial Number'],
                 skipHeader: false,
                 origin: 'A1',
             }
@@ -174,7 +174,8 @@ export default function Index() {
 
         worksheet['!cols'] = [
             { wch: 20 }, // Student ID
-            { wch: 30 }, // Name
+            { wch: 15 }, // Last Name
+            { wch: 15 }, // First Name
             { wch: 20 }, // Serial Number
         ];
 
@@ -317,6 +318,7 @@ export default function Index() {
                                 <TableHeader className="bg-muted sticky top-0 shadow-sm z-10">
                                     <TableRow>
                                         <TableHead>Student ID</TableHead>
+                                        <TableHead>Last Name</TableHead>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Serial Number</TableHead>
                                     </TableRow>
@@ -325,7 +327,8 @@ export default function Index() {
                                     {parsedData.slice(0, 50).map((row, idx) => (
                                         <TableRow key={idx}>
                                             <TableCell>{row['Student ID']}</TableCell>
-                                            <TableCell>{row['Name']}</TableCell>
+                                            <TableCell>{row['Last Name']}</TableCell>
+                                            <TableCell>{row['First Name']}</TableCell>
                                             <TableCell>{row['Serial Number']}</TableCell>
                                         </TableRow>
                                     ))}

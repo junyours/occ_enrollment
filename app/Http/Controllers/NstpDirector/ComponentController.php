@@ -370,7 +370,7 @@ class ComponentController extends Controller
         $sheet->getColumnDimension('H')->setWidth(50);
         $sheet->getColumnDimension('I')->setWidth(20);
         $sheet->getColumnDimension('J')->setWidth(40);
-        $sheet->getColumnDimension('K')->setWidth(10);  
+        $sheet->getColumnDimension('K')->setWidth(10);
         $sheet->getColumnDimension('L')->setWidth(10);
 
         // Populate Data
@@ -450,7 +450,8 @@ class ComponentController extends Controller
         return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 
-    public function downloadStudents($component, Request $request){
+    public function downloadStudents($component, Request $request)
+    {
         $schoolYear = SchoolYear::where('id', '=', $request->schoolYearId)->with('semester')->first();
 
         // Get component ID
@@ -466,7 +467,7 @@ class ComponentController extends Controller
             'course_name_abbreviation', // Selected Course abbreviation
             'gender',
             'birthday',
-            'present_address',  
+            'present_address',
             'contact_number',
             'users.email', // Added email to the select query
             'year_section.section as year_section_name',
@@ -1484,57 +1485,107 @@ class ComponentController extends Controller
         $students = $request->input('students', []);
         $errors = [];
 
-        // 1. Gather all IDs and Serials for fast batch querying
+        // 1. Gather all identifiers for fast batch querying
         $studentIds = collect($students)->pluck('Student ID')->filter()->toArray();
         $serialNumbers = collect($students)->pluck('Serial Number')->filter()->toArray();
 
-        $existingUsers = User::whereIn('user_id_no', $studentIds)->get()->keyBy('user_id_no');
+        // Gather names for rows that are missing an ID
+        $studentsWithoutId = collect($students)->filter(function ($row) {
+            return empty($row['Student ID']) && !empty($row['Last Name']) && !empty($row['First Name']);
+        });
+        $lastNames = $studentsWithoutId->pluck('Last Name')->unique()->toArray();
+        $firstNames = $studentsWithoutId->pluck('First Name')->unique()->toArray();
+
+        // 2. Fetch existing records
+        $existingUsersById = User::whereIn('user_id_no', $studentIds)->get()->keyBy('user_id_no');
         $existingSerials = User::whereIn('serial_number', $serialNumbers)->get()->keyBy('serial_number');
+
+        // Fetch potential users by Name using the user_information table
+        // *Replace 'userInformation' with your exact relationship method name if it differs*
+        $existingUsersByName = collect();
+        if (!empty($lastNames) && !empty($firstNames)) {
+            $existingUsersByName = User::with('userInformation')
+                ->whereHas('userInformation', function ($query) use ($lastNames, $firstNames) {
+                    $query->whereIn('last_name', $lastNames)
+                        ->whereIn('first_name', $firstNames);
+                })->get();
+        }
 
         DB::beginTransaction();
 
         try {
             foreach ($students as $index => $row) {
                 $rowNum = $index + 2; // Offset for Excel header row
+
                 $studentId = $row['Student ID'] ?? null;
+                $lastName  = $row['Last Name'] ?? null;
+                $firstName = $row['First Name'] ?? null;
                 $serialNum = $row['Serial Number'] ?? null;
 
-                if (!$studentId) {
-                    $errors[] = "Row {$rowNum}: Student ID is missing.";
-                    continue;
-                }
+                $user = null;
 
-                $user = $existingUsers->get($studentId);
-
-                if (!$user) {
-                    $errors[] = "Row {$rowNum}: Student ID '{$studentId}' not found in the system.";
-                    continue;
-                }
-
-                if ($serialNum) {
-                    $conflictUser = $existingSerials->get($serialNum);
-                    // Check if serial is taken by a DIFFERENT user
-                    if ($conflictUser && $conflictUser->id !== $user->id) {
-                        $errors[] = "Row {$rowNum}: Serial Number '{$serialNum}' is already assigned to ID {$conflictUser->user_id_no}.";
+                // 3. Find the user (by ID, then fallback to Name)
+                if ($studentId) {
+                    $user = $existingUsersById->get($studentId);
+                    if (!$user) {
+                        $errors[] = "Row {$rowNum}: Student ID '{$studentId}' not found in the system.";
                         continue;
                     }
+                } elseif ($lastName && $firstName) {
+                    // Find matching user by name (case-insensitive)
+                    $matchedUsers = $existingUsersByName->filter(function ($u) use ($lastName, $firstName) {
+                        $info = $u->userInformation;
+                        if (!$info) return false;
+
+                        return strtolower(trim($info->last_name)) === strtolower(trim($lastName)) &&
+                            strtolower(trim($info->first_name)) === strtolower(trim($firstName));
+                    });
+
+                    if ($matchedUsers->isEmpty()) {
+                        $errors[] = "Row {$rowNum}: Student '{$firstName} {$lastName}' not found in the system.";
+                        continue;
+                    }
+
+                    // If multiple students share the exact same name, we can't safely assign it
+                    if ($matchedUsers->count() > 1) {
+                        $errors[] = "Row {$rowNum}: Multiple students found with the name '{$firstName} {$lastName}'. Please provide a Student ID to be specific.";
+                        continue;
+                    }
+
+                    $user = $matchedUsers->first();
+                } else {
+                    $errors[] = "Row {$rowNum}: Must provide either Student ID, or BOTH Last Name and First Name.";
+                    continue;
                 }
 
-                // Update user
+                // 4. Check Serial Number Conflict
+                if ($serialNum) {
+                    $conflictUser = $existingSerials->get($serialNum);
+                    if ($conflictUser && $conflictUser->id !== $user->id) {
+                        // Safely get the names through the relationship
+                        $conflictFirstName = $conflictUser->userInformation?->first_name ?? 'Unknown';
+                        $conflictLastName  = $conflictUser->userInformation?->last_name ?? 'Unknown';
+
+                        $errors[] = "Row {$rowNum}: Serial Number '{$serialNum}' is already assigned to {$conflictFirstName} {$conflictLastName} (ID: {$conflictUser->user_id_no}).";
+                        continue;
+                    }
+                }       
+
+                // 5. Stage user update
                 $user->serial_number = $serialNum;
                 $user->save();
             }
 
-            // 2. If any errors were found, abort the whole transaction
+            // 6. Abort transaction if ANY errors exist
             if (count($errors) > 0) {
                 DB::rollBack();
                 return response()->json([
                     'message' => 'Upload failed due to validation errors.',
-                    'errors' => collect($errors)->take(30) // Cap at 30 errors so the UI doesn't freeze
+                    'errors' => collect($errors)->take(30)
                 ], 422);
             }
 
-            // 3. If everything is perfect, save it
+            // 7. Success
             DB::commit();
             return response()->json(['message' => 'Successfully uploaded serial numbers.']);
         } catch (\Exception $e) {
