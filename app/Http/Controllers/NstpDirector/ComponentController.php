@@ -348,16 +348,17 @@ class ComponentController extends Controller
         $sheet->setCellValue('C1', 'Surname');
         $sheet->setCellValue('D1', 'First Name');
         $sheet->setCellValue('E1', 'Middle Name');
-        $sheet->setCellValue('F1', 'Course/Program');
-        $sheet->setCellValue('G1', 'Birthdate');
-        $sheet->setCellValue('H1', 'Address');
-        $sheet->setCellValue('I1', 'TELEPHONE/MOBILE NO.');
-        $sheet->setCellValue('J1', 'Email Address');
-        $sheet->setCellValue('K1', 'Final Grade');
-        $sheet->setCellValue('L1', 'Remarks');
+        $sheet->setCellValue('F1', 'Gender');
+        $sheet->setCellValue('G1', 'Course/Program');
+        $sheet->setCellValue('H1', 'Birthdate');
+        $sheet->setCellValue('I1', 'Address');
+        $sheet->setCellValue('J1', 'TELEPHONE/MOBILE NO.');
+        $sheet->setCellValue('K1', 'Email Address');
+        $sheet->setCellValue('L1', 'Final Grade');
+        $sheet->setCellValue('M1', 'Remarks');
 
         // Make the header row bold
-        $sheet->getStyle('A1:L1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:M1')->getFont()->setBold(true);
 
         // Set Column Widths
         $sheet->getColumnDimension('A')->setWidth(20);
@@ -367,11 +368,12 @@ class ComponentController extends Controller
         $sheet->getColumnDimension('E')->setWidth(20);
         $sheet->getColumnDimension('F')->setWidth(20);
         $sheet->getColumnDimension('G')->setWidth(20);
-        $sheet->getColumnDimension('H')->setWidth(50);
-        $sheet->getColumnDimension('I')->setWidth(20);
-        $sheet->getColumnDimension('J')->setWidth(40);
-        $sheet->getColumnDimension('K')->setWidth(10);
-        $sheet->getColumnDimension('L')->setWidth(10);
+        $sheet->getColumnDimension('H')->setWidth(20);
+        $sheet->getColumnDimension('I')->setWidth(50);
+        $sheet->getColumnDimension('J')->setWidth(25);
+        $sheet->getColumnDimension('K')->setWidth(40);
+        $sheet->getColumnDimension('L')->setWidth(15);
+        $sheet->getColumnDimension('M')->setWidth(12);
 
         // Populate Data
         $row = 2;
@@ -381,35 +383,36 @@ class ComponentController extends Controller
             $sheet->setCellValue('C' . $row, $student->last_name);
             $sheet->setCellValue('D' . $row, $student->first_name);
             $sheet->setCellValue('E' . $row, $student->middle_name);
+            $sheet->setCellValue('F' . $row, $student->gender);
 
             // Combined course abbreviation with year and section (e.g. BSIT 3-A)
             $courseText = $student->course_name_abbreviation;
-            $sheet->setCellValue('F' . $row, $courseText);
+            $sheet->setCellValue('G' . $row, $courseText);
 
             // Format the birthday to "July 1, 2003"
             $formattedBirthday = $student->birthday
                 ? \Carbon\Carbon::parse($student->birthday)->format('F j, Y')
                 : ''; // fallback to empty string if birthday is null
-            $sheet->setCellValue('G' . $row, $formattedBirthday);
+            $sheet->setCellValue('H' . $row, $formattedBirthday);
 
-            $sheet->setCellValue('H' . $row, $student->present_address);
-            $sheet->setCellValue('I' . $row, $student->contact_number);
-            $sheet->setCellValue('J' . $row, $student->email); // Maps to users.email
+            $sheet->setCellValue('I' . $row, $student->present_address);
+            $sheet->setCellValue('J' . $row, $student->contact_number);
+            $sheet->setCellValue('K' . $row, $student->email); // Maps to users.email
 
             $midterm = $student->midterm_grade;
             $final   = $student->final_grade;
 
             if ($midterm === null || $final === null) {
                 // No grade yet → leave cell empty or mark as "N/A"
-                $sheet->setCellValue("K{$row}", '');
                 $sheet->setCellValue("L{$row}", '');
+                $sheet->setCellValue("M{$row}", '');
             } else if ($midterm == 0 || $final == 0) {
                 // Force the "0.0" to be stored as Text
-                $sheet->setCellValueExplicit("K{$row}", number_format(0, 1), DataType::TYPE_STRING);
-                $sheet->setCellValue("L{$row}", 'DROPPED');
+                $sheet->setCellValueExplicit("L{$row}", number_format(0, 1), DataType::TYPE_STRING);
+                $sheet->setCellValue("M{$row}", 'DROPPED');
 
                 // Make both the Grade (K) and Status (L) red for DROPPED
-                $sheet->getStyle("K{$row}:L{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
+                $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
             } else {
                 $average = ($midterm + $final) / 2;
 
@@ -422,16 +425,16 @@ class ComponentController extends Controller
                 }
 
                 // Force the formatted grade (e.g., "2.0") to be stored strictly as Text
-                $sheet->setCellValueExplicit("K{$row}", number_format($averageFormat, 1), DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit("L{$row}", number_format($averageFormat, 1), DataType::TYPE_STRING);
 
                 // Column L: PASSED / FAILED
                 if ($averageFormat >= 3.1) {
-                    $sheet->setCellValue("L{$row}", 'FAILED');
+                    $sheet->setCellValue("M{$row}", 'FAILED');
 
                     // Make both the Grade (K) and Status (L) red for FAILED
-                    $sheet->getStyle("K{$row}:L{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
+                    $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
                 } else {
-                    $sheet->setCellValue("L{$row}", 'PASSED');
+                    $sheet->setCellValue("M{$row}", 'PASSED');
                 }
             }
 
@@ -473,7 +476,8 @@ class ComponentController extends Controller
             'year_section.section as year_section_name',
             'year_level_id',
             'midterm_grade',
-            'final_grade'
+            'final_grade',
+            'gender'
         )
             ->where('nstp_component_id', $componentId)
             ->where('nstp_sections.school_year_id', $request->schoolYearId)
@@ -498,16 +502,17 @@ class ComponentController extends Controller
         $sheet->setCellValue('C1', 'Surname');
         $sheet->setCellValue('D1', 'First Name');
         $sheet->setCellValue('E1', 'Middle Name');
-        $sheet->setCellValue('F1', 'Course/Program');
-        $sheet->setCellValue('G1', 'Birthdate');
-        $sheet->setCellValue('H1', 'Address');
-        $sheet->setCellValue('I1', 'TELEPHONE/MOBILE NO.');
-        $sheet->setCellValue('J1', 'Email Address');
-        $sheet->setCellValue('K1', 'Final Grade');
-        $sheet->setCellValue('L1', 'Remarks');
+        $sheet->setCellValue('F1', 'Gender');
+        $sheet->setCellValue('G1', 'Course/Program');
+        $sheet->setCellValue('H1', 'Birthdate');
+        $sheet->setCellValue('I1', 'Address');
+        $sheet->setCellValue('J1', 'TELEPHONE/MOBILE NO.');
+        $sheet->setCellValue('K1', 'Email Address');
+        $sheet->setCellValue('L1', 'Final Grade');
+        $sheet->setCellValue('M1', 'Remarks');
 
         // Make the header row bold
-        $sheet->getStyle('A1:L1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:M1')->getFont()->setBold(true);
 
         // Set Column Widths
         $sheet->getColumnDimension('A')->setWidth(20);
@@ -517,11 +522,12 @@ class ComponentController extends Controller
         $sheet->getColumnDimension('E')->setWidth(20);
         $sheet->getColumnDimension('F')->setWidth(20);
         $sheet->getColumnDimension('G')->setWidth(20);
-        $sheet->getColumnDimension('H')->setWidth(50);
-        $sheet->getColumnDimension('I')->setWidth(20);
-        $sheet->getColumnDimension('J')->setWidth(40);
-        $sheet->getColumnDimension('K')->setWidth(12);
-        $sheet->getColumnDimension('L')->setWidth(10);
+        $sheet->getColumnDimension('H')->setWidth(20);
+        $sheet->getColumnDimension('I')->setWidth(50);
+        $sheet->getColumnDimension('J')->setWidth(25);
+        $sheet->getColumnDimension('K')->setWidth(40);
+        $sheet->getColumnDimension('L')->setWidth(15);
+        $sheet->getColumnDimension('M')->setWidth(12);
 
         // Populate Data
         $row = 2;
@@ -531,35 +537,36 @@ class ComponentController extends Controller
             $sheet->setCellValue('C' . $row, $student->last_name);
             $sheet->setCellValue('D' . $row, $student->first_name);
             $sheet->setCellValue('E' . $row, $student->middle_name);
+            $sheet->setCellValue('F' . $row, $student->gender);
 
             // Combined course abbreviation with year and section (e.g. BSIT 3-A)
             $courseText = $student->course_name_abbreviation;
-            $sheet->setCellValue('F' . $row, $courseText);
+            $sheet->setCellValue('G' . $row, $courseText);
 
             // Format the birthday to "July 1, 2003"
             $formattedBirthday = $student->birthday
                 ? \Carbon\Carbon::parse($student->birthday)->format('F j, Y')
                 : ''; // fallback to empty string if birthday is null
-            $sheet->setCellValue('G' . $row, $formattedBirthday);
+            $sheet->setCellValue('H' . $row, $formattedBirthday);
 
-            $sheet->setCellValue('H' . $row, $student->present_address);
-            $sheet->setCellValue('I' . $row, $student->contact_number);
-            $sheet->setCellValue('J' . $row, $student->email);
+            $sheet->setCellValue('I' . $row, $student->present_address);
+            $sheet->setCellValue('J' . $row, $student->contact_number);
+            $sheet->setCellValue('K' . $row, $student->email);
 
             $midterm = $student->midterm_grade;
             $final   = $student->final_grade;
 
             if ($midterm === null || $final === null) {
                 // No grade yet → leave cell empty or mark as "N/A"
-                $sheet->setCellValue("K{$row}", '');
                 $sheet->setCellValue("L{$row}", '');
+                $sheet->setCellValue("M{$row}", '');
             } else if ($midterm == 0 || $final == 0) {
                 // Force the "0.0" to be stored as Text
-                $sheet->setCellValueExplicit("K{$row}", number_format(0, 1), DataType::TYPE_STRING);
-                $sheet->setCellValue("L{$row}", 'DROPPED');
+                $sheet->setCellValueExplicit("L{$row}", number_format(0, 1), DataType::TYPE_STRING);
+                $sheet->setCellValue("M{$row}", 'DROPPED');
 
                 // Make both the Grade (K) and Status (L) red for DROPPED
-                $sheet->getStyle("K{$row}:L{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
+                $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
             } else {
                 $average = ($midterm + $final) / 2;
 
@@ -572,16 +579,16 @@ class ComponentController extends Controller
                 }
 
                 // Force the formatted grade (e.g., "2.0") to be stored strictly as Text
-                $sheet->setCellValueExplicit("K{$row}", number_format($averageFormat, 1), DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit("L{$row}", number_format($averageFormat, 1), DataType::TYPE_STRING);
 
                 // Column L: PASSED / FAILED
                 if ($averageFormat >= 3.1) {
-                    $sheet->setCellValue("L{$row}", 'FAILED');
+                    $sheet->setCellValue("M{$row}", 'FAILED');
 
                     // Make both the Grade (K) and Status (L) red for FAILED
-                    $sheet->getStyle("K{$row}:L{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
+                    $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
                 } else {
-                    $sheet->setCellValue("L{$row}", 'PASSED');
+                    $sheet->setCellValue("M{$row}", 'PASSED');
                 }
             }
 
