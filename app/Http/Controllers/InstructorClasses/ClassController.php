@@ -13,6 +13,7 @@ use App\Models\NstpSection;
 use App\Models\NstpSectionSchedule;
 use App\Models\SchoolYear;
 use App\Models\StudentAnswer;
+use App\Models\StudentGrade;
 use App\Models\StudentSubject;
 use App\Models\StudentSubjectNstpSchedule;
 use App\Models\Subject;
@@ -758,9 +759,9 @@ class ClassController extends Controller
 
     public function getStudentEnrollmentRecord()
     {
-        $studentId = Auth::id();
+        $student = Auth::user();
 
-        $answers = StudentAnswer::where('student_id', '=', $studentId)
+        $answers = StudentAnswer::where('student_id', '=', $student->id)
             ->select('student_id', 'student_subject_id')
             ->groupBy('student_id', 'student_subject_id')
             ->get();
@@ -780,10 +781,9 @@ class ClassController extends Controller
             ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
             ->join('school_years', 'school_years.id', '=', 'year_section.school_year_id')
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
-            ->where('student_id', '=', $studentId)
+            ->where('student_id', '=', $student->id)
             ->with([
                 'Subjects' => function ($query) use ($answeredSubjectIds) {
-                    // Handle empty array case
                     $hasAnswers = !empty($answeredSubjectIds);
                     $idsString = $hasAnswers ? implode(',', array_map('intval', $answeredSubjectIds)) : '0';
 
@@ -799,7 +799,7 @@ class ClassController extends Controller
                         'subject_code',
                         'descriptive_title',
 
-                        // MIDTERM GRADE: Shows if standard is evaluated & deployed, OR if it's NSTP and deployed
+                        // MIDTERM GRADE (Kept exactly as you had it)
                         DB::raw("IF(
                                     (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed'))
                                     OR (year_section.school_year_id < 3)
@@ -808,7 +808,7 @@ class ClassController extends Controller
                                     NULL
                                 ) as midterm_grade"),
 
-                        // FINAL GRADE: Shows if standard is evaluated & deployed, OR if it's NSTP and deployed
+                        // FINAL GRADE (Kept exactly as you had it)
                         DB::raw("IF(
                                     (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed'))
                                     OR (year_section.school_year_id < 3)
@@ -817,7 +817,10 @@ class ClassController extends Controller
                                     NULL
                                 ) as final_grade"),
 
-                        // EVALUATED STATUS: Automatically 1 (true) for NSTP since it doesn't require evaluation
+                        // NEW: Added a null 'grade' column so it matches the old record structure
+                        DB::raw("NULL as grade"),
+
+                        // EVALUATED STATUS
                         DB::raw("IF(
                                     student_subjects.id IN (" . $idsString . ")
                                     OR year_section.school_year_id < 3
@@ -832,7 +835,6 @@ class ClassController extends Controller
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
                         ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
                         ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
-
                         ->leftJoin('student_subject_nstp_schedule', 'student_subject_nstp_schedule.student_subject_id', '=', 'student_subjects.id')
                         ->leftJoin('nstp_section_schedules', 'nstp_section_schedules.id',   '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
                         ->leftJoin('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
@@ -840,7 +842,6 @@ class ClassController extends Controller
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                         ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                         ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
-
                         ->leftJoin('users as user_nstp_faculty', 'user_nstp_faculty.id', '=', 'nstp_section_schedules.faculty_id')
                         ->leftJoin('user_information as user_nstp_faculty_information', 'user_nstp_faculty.id', '=', 'user_nstp_faculty_information.user_id')
                         ->get();
@@ -849,13 +850,68 @@ class ClassController extends Controller
             ->orderBy('id', 'DESC')
             ->get();
 
-        if (!$record) {
+        $oldData = StudentGrade::where('id_no', $student->user_id_no)->get();
+
+        if ($record->isEmpty() && $oldData->isEmpty()) {
             return response()->json([
                 'error' => 'You have no enrollment record.',
             ], 403);
         }
 
-        return response()->json(['record' => $record], 200);
+        // Group the old data by school year, semester, and year level
+        $groupedOldData = $oldData->groupBy(function ($item) {
+            return $item->school_year . '|' . $item->semester . '|' . $item->year_level;
+        });
+
+        $formattedOldData = [];
+
+        // Loop through grouped data and format it
+        foreach ($groupedOldData as $groupKey => $subjects) {
+            $firstItem = $subjects->first();
+
+            $years = explode('-', $firstItem->school_year);
+            $startYear = isset($years[0]) ? (int)$years[0] : null;
+            $endYear = isset($years[1]) ? (int)$years[1] : null;
+
+            $formattedYearLevel = ucwords(strtolower($firstItem->year_level));
+            if (!str_contains($formattedYearLevel, 'Year')) {
+                $formattedYearLevel .= ' Year';
+            }
+
+            $formattedOldData[] = [
+                'id' => 'old_' . $firstItem->id,
+                'year_level_name' => $formattedYearLevel,
+                'section' => 'N/A',
+                'semester_name' => ucfirst(strtolower($firstItem->semester)),
+                'start_year' => $startYear,
+                'end_year' => $endYear,
+                'subjects' => $subjects->map(function ($sub) use ($firstItem) {
+                    return [
+                        'id' => $sub->id,
+                        'enrolled_students_id' => 'old_' . $firstItem->id,
+                        'first_name' => null,
+                        'last_name' => null,
+                        'middle_name' => null,
+                        'nstp_faculty_first_name' => null,
+                        'nstp_faculty_last_name' => null,
+                        'nstp_faculty_middle_name' => null,
+                        'subject_code' => $sub->subject_code,
+                        'descriptive_title' => $sub->subject,
+                        'midterm_grade' => null, // Left null since old records don't have this
+                        'final_grade' => null,   // Left null since old records don't have this
+                        'grade' => $sub->grade,  // Added the grade specifically here
+                        'evaluated' => 1,
+                        'remarks' => null,
+                        'year_section_subjects_id' => null,
+                    ];
+                })->values()->toArray(),
+            ];
+        }
+
+        // Merge the active records with the formatted old records
+        $mergedRecords = array_merge($record->toArray(), $formattedOldData);
+
+        return response()->json(['record' => $mergedRecords], 200);
     }
 
     public function requestEditMidtermSubmission($yearSectionSubjectsId)

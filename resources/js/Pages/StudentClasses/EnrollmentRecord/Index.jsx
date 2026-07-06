@@ -114,9 +114,9 @@ function EnrollmentRecord({ need_fill_up }) {
                                                                 ) : (
                                                                     <>
                                                                         {record.subjects.map(classInfo => {
-                                                                            const finalGrade = computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
-                                                                            const isDropped = classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0;
-                                                                            const isPassed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade <= 3;
+                                                                            const finalGrade = classInfo.grade ? classInfo.grade : computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+                                                                            const isDropped = (classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0) || classInfo.grade == 0.0;
+                                                                            const isPassed = !isDropped && (classInfo.midterm_grade || classInfo.grade) && (classInfo.final_grade  || classInfo.grade) && (finalGrade <= 3 || classInfo.grade <= 3);
                                                                             const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
                                                                             return (
                                                                                 <TableRow key={classInfo.id}>
