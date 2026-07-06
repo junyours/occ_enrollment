@@ -612,7 +612,7 @@ class SchoolYearController extends Controller
             return Inertia::render('SchoolYear/EnrollmentRecord');
         } else if ($user->user_role == 'student') {
             $info = UserInformation::where('user_id', $user->id)->first();
-            return Inertia::render('StudentClasses/EnrollmentRecord', [
+            return Inertia::render('StudentClasses/EnrollmentRecord/Index', [
                 'need_fill_up' =>  $info->civil_status ? false : true
             ]);
         } else {

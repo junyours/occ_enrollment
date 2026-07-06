@@ -100,24 +100,26 @@ function EnrollmentRecord({ need_fill_up }) {
                         records.map(record => (
                             <div className='relative mb-4' key={record.id} >
                                 <div className="absolute top-0 right-0 z-10">
-                                    <div className="absolute top-0 right-0 z-10">
-                                        <Button
-                                            variant="ghost"
-                                            className='rounded-none text-blue-500 hover:text-blue-500'
-                                            onClick={() => downloadImage(record.id)}
-                                            disabled={downloadingId === record.id}
-                                        >
-                                            {downloadingId === record.id ? (
-                                                <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Downloading...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    Download <Download className="ml-1" />
-                                                </>
-                                            )}
-                                        </Button>
+                                    <div className="flex flex-col sm:flex-row items-center justify-between w-full max-w-full gap-4 sm:gap-4 mt-4">
+
+                                        {/* Title Container: min-w-0 prevents it from pushing the screen wider */}
+                                        <div className="w-full sm:w-auto min-w-0">
+                                            <PageTitle className='text-center sm:text-left !m-0 break-words'>
+                                                ENROLLMENT RECORD
+                                            </PageTitle>
+                                        </div>
+
+                                        {/* Button Container: flex-shrink-0 prevents it from overlapping */}
+                                        {records?.length > 0 && (
+                                            <Button
+                                                onClick={() => setDownloadMode(!downloadMode)}
+                                                variant={downloadMode ? "destructive" : "default"}
+                                                className="flex items-center justify-center gap-2 w-full sm:w-auto flex-shrink-0"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                {downloadMode ? 'Exit Download Mode' : 'Download Mode'}
+                                            </Button>
+                                        )}
                                     </div>
 
                                 </div>
@@ -172,7 +174,6 @@ function EnrollmentRecord({ need_fill_up }) {
                                                                             {classInfo.evaluated ? (
                                                                                 <>
                                                                                     {/* <TableCell>
-                                                                                    {classInfo.midterm_grade === 0.0 ? (
                                                                                         <span className="text-red-500 font-medium">DROPPED</span>
                                                                                     ) : classInfo.midterm_grade ? (
                                                                                         classInfo.midterm_grade?.toFixed(1)

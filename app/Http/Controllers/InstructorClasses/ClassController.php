@@ -180,7 +180,7 @@ class ClassController extends Controller
             'faculty' => $faculty,
         ]);
     }
-    
+
     public function nstpSectionGradeSubmissionStatus(int $id)
     {
         $gradeSubmissionStatus = NstpGradeSubmission::where('nstp_section_id', $id)->first();
@@ -790,40 +790,59 @@ class ClassController extends Controller
                     $query->select([
                         'student_subjects.id',
                         'enrolled_students_id',
-                        'first_name',
-                        'last_name',
-                        'middle_name',
+                        'user_information.first_name',
+                        'user_information.last_name',
+                        'user_information.middle_name',
+                        'user_nstp_faculty_information.first_name as nstp_faculty_first_name',
+                        'user_nstp_faculty_information.last_name as nstp_faculty_last_name',
+                        'user_nstp_faculty_information.middle_name as nstp_faculty_middle_name',
                         'subject_code',
                         'descriptive_title',
+
+                        // MIDTERM GRADE: Shows if standard is evaluated & deployed, OR if it's NSTP and deployed
                         DB::raw("IF(
-                (student_subjects.id IN (" . $idsString . ") 
-                AND (grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed'))
-                OR (year_section.school_year_id < 3), 
-                midterm_grade, 
-                NULL
-            ) as midterm_grade"),
+                                    (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed'))
+                                    OR (year_section.school_year_id < 3)
+                                    OR (LOWER(subjects.type) = 'nstp' AND nstp_grade_submissions.midterm_status = 'deployed'), 
+                                    midterm_grade, 
+                                    NULL
+                                ) as midterm_grade"),
+
+                        // FINAL GRADE: Shows if standard is evaluated & deployed, OR if it's NSTP and deployed
                         DB::raw("IF(
-                (student_subjects.id IN (" . $idsString . ") 
-                AND (grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed'))
-                OR (year_section.school_year_id < 3), 
-                final_grade, 
-                NULL
-            ) as final_grade"),
+                                    (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed'))
+                                    OR (year_section.school_year_id < 3)
+                                    OR (LOWER(subjects.type) = 'nstp' AND nstp_grade_submissions.final_status = 'deployed'), 
+                                    final_grade, 
+                                    NULL
+                                ) as final_grade"),
+
+                        // EVALUATED STATUS: Automatically 1 (true) for NSTP since it doesn't require evaluation
                         DB::raw("IF(
-                student_subjects.id IN (" . $idsString . ")
-                OR year_section.school_year_id < 3, 
-                1, 
-                0
-            ) as evaluated"),
+                                    student_subjects.id IN (" . $idsString . ")
+                                    OR year_section.school_year_id < 3
+                                    OR LOWER(subjects.type) = 'nstp', 
+                                    1, 
+                                    0
+                                ) as evaluated"),
+
                         'remarks',
                         'student_subjects.year_section_subjects_id',
                     ])
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
                         ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
                         ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
+
+                        ->leftJoin('student_subject_nstp_schedule', 'student_subject_nstp_schedule.student_subject_id', '=', 'student_subjects.id')
+                        ->leftJoin('nstp_section_schedules', 'nstp_section_schedules.id',   '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
+                        ->leftJoin('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
+                        ->leftJoin('nstp_grade_submissions', 'nstp_sections.id', '=', 'nstp_grade_submissions.nstp_section_id')
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                         ->leftJoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                         ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+
+                        ->leftJoin('users as user_nstp_faculty', 'user_nstp_faculty.id', '=', 'nstp_section_schedules.faculty_id')
+                        ->leftJoin('user_information as user_nstp_faculty_information', 'user_nstp_faculty.id', '=', 'user_nstp_faculty_information.user_id')
                         ->get();
                 }
             ])

@@ -4,15 +4,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useState } from 'react'
 import TimeTable from '../ScheduleFormats/TimeTable';
 import MobileViewClasses from './MobileViewClasses';
 import html2canvas from 'html2canvas';
 import { Button } from '@/Components/ui/button';
-import { AlertCircle, ArrowRight, BookOpen, ImageDown, Loader2 } from 'lucide-react';
+import { AlertCircle, BookOpen, ImageDown, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import EnrollmentSchedule from './EnrollmentSchedule';
 
 const DAY_ORDER = {
     Monday: 1,
@@ -25,15 +26,14 @@ const DAY_ORDER = {
     TBA: 99,
 };
 
-
 const ViewClasses = ({ currentSchoolYear }) => {
     const [scheduleType, setScheduleType] = useState('tabular');
 
     if (!currentSchoolYear) {
         return (
-            <div className="flex items-center justify-center rounded-md shadow-sm">
+            <section className="flex items-center justify-center rounded-md shadow-sm p-8 text-muted-foreground">
                 Current School Year not set yet
-            </div>
+            </section>
         );
     }
 
@@ -73,7 +73,6 @@ const ViewClasses = ({ currentSchoolYear }) => {
 
     const downloadImage = async () => {
         try {
-            // Small delay to let the UI update and show the spinner
             await new Promise(resolve => setTimeout(resolve, 100));
 
             const filename = `classes.png`;
@@ -102,67 +101,64 @@ const ViewClasses = ({ currentSchoolYear }) => {
 
     const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 
-
     return (
-        <div className='space-y-4'>
+        <main className='space-y-6'>
             <Head title="Classes" />
             <PageTitle align="center" className='text-lg md:text-xl lg:text-2xl px-4'>
                 {currentSchoolYear.start_year}-{currentSchoolYear.end_year} {currentSchoolYear.semester_name} Semester
             </PageTitle>
+
             {classes?.length > 0 && (
-                <div className='flex flex-col sm:flex-row gap-4 items-center'>
+                <header className='flex flex-col sm:flex-row gap-4 items-center'>
                     <Card className='w-min'>
                         <CardContent className="p-2">
-                            <div className="flex gap-2 w-min">
+                            <nav className="flex gap-2 w-min">
                                 <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
                                     <TabsList className="grid max-w-max grid-cols-2">
                                         <TabsTrigger className="w-28" value="tabular">List</TabsTrigger>
                                         <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
                                     </TabsList>
                                 </Tabs>
-                            </div>
+                            </nav>
                         </CardContent>
                     </Card>
 
                     <Button
                         size='lg'
-                        className={`bg-blue-700 hover:bg-blue-600 ${scheduleType == 'timetable' ? '' : 'hidden'}`}
+                        className={`${scheduleType == 'timetable' ? '' : 'hidden'}`}
                         onClick={downloadImage}
                     >
                         Download
-                        <ImageDown />
+                        <ImageDown className="ml-2 w-4 h-4" />
                     </Button>
-                </div>
+                </header>
             )}
 
             {scheduleType == 'tabular' ? (
                 <>
                     {/* Desktop Table View */}
-                    <Card className="mx-2 md:mx-0 hidden md:block">
+                    <Card className="mx-2 md:mx-0 hidden md:block border-border">
                         <CardHeader>
                             <CardTitle className="text-2xl">Class List</CardTitle>
                         </CardHeader>
                         <CardContent>
-
-
                             {isLoading ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                <article className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                                     <Loader2 className="w-8 h-8 animate-spin mb-3" />
                                     <p className="text-sm">Loading classes...</p>
-                                </div>
+                                </article>
                             ) : isError ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-destructive">
+                                <article className="flex flex-col items-center justify-center py-12 text-destructive">
                                     <AlertCircle className="w-8 h-8 mb-3" />
                                     <p className="text-sm font-medium">Failed to load classes</p>
                                     <p className="text-xs text-muted-foreground mt-1">{error.response?.data?.error ?? 'Please try again later'}</p>
-
-                                </div>
+                                </article>
                             ) : classes?.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                                <article className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                                     <BookOpen className="w-12 h-12 mb-3 opacity-30" />
                                     <p className="text-sm font-medium">No classes</p>
                                     <p className="text-xs mt-1">Check back later or contact administration</p>
-                                </div>
+                                </article>
                             ) : (
                                 <Table>
                                     <TableHeader>
@@ -177,7 +173,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                     <TableBody>
                                         {isError ? (
                                             <TableRow>
-                                                <TableCell colSpan={5} className="text-center text-red-600">
+                                                <TableCell colSpan={5} className="text-center text-destructive">
                                                     {error.response?.data?.error ?? 'Unable to load classes.'}
                                                 </TableCell>
                                             </TableRow>
@@ -186,8 +182,6 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                 {classes.map((classInfo) => {
                                                     const isPrimaryToday = classInfo.day === today;
                                                     const isSecondaryToday = classInfo.secondary_schedule?.day === today;
-
-                                                    // A purely visual highlight: subtle glow, tinted background, and a left accent bar
                                                     const highlightClass = "bg-primary/[0.04] dark:bg-primary/[0.08] relative after:absolute after:left-0 after:top-1 after:bottom-1 after:w-1 after:bg-primary after:rounded-r-full after:shadow-[2px_0_10px_rgba(var(--primary),0.4)]";
 
                                                     return (
@@ -195,8 +189,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                             {/* Primary schedule row */}
                                                             <TableRow className={`${isPrimaryToday ? highlightClass : "hover:bg-muted/40"}`}>
                                                                 <TableCell className="font-medium">
-                                                                    <div className="flex items-center gap-3">
-                                                                        {/* A pulsing indicator dot */}
+                                                                    <span className="flex items-center gap-3">
                                                                         {isPrimaryToday && (
                                                                             <span className="relative flex h-2 w-2">
                                                                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
@@ -208,22 +201,12 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                                                 ? 'NSTP - Select Component'
                                                                                 : classInfo.descriptive_title} {classInfo.component_name ? `| ${classInfo.component_name.toUpperCase()}` : ''}
                                                                         </span>
-                                                                    </div>
+                                                                    </span>
                                                                 </TableCell>
 
                                                                 {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
                                                                     <TableCell colSpan={4}>
-                                                                        <p className='font-semibold'>Visit nstp office for scheduling</p>
-                                                                        {/* <div className="flex gap-2">
-                                                                            {['rotc', 'cwts', 'lts'].map((component) => (
-                                                                                <Link key={component} href={route('nstp-enrollment', { component, id: classInfo.student_subject_id })} className="flex-1 group">
-                                                                                    <Button variant="outline" size="sm" className="w-full h-8 text-[10px] font-bold tracking-widest hover:bg-primary hover:text-primary-foreground transition-all">
-                                                                                        {component.toUpperCase()}
-                                                                                        <ArrowRight className="h-4 w-4 opacity-70 transition-transform group-hover:translate-x-1" />
-                                                                                    </Button>
-                                                                                </Link>
-                                                                            ))}
-                                                                        </div> */}
+                                                                        <span className='font-semibold'>Visit nstp office for scheduling</span>
                                                                     </TableCell>
                                                                 ) : (
                                                                     <>
@@ -238,7 +221,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                                                 {classInfo.room_name || 'TBA'}
                                                                             </span>
                                                                         </TableCell>
-                                                                        <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} className="border-l border-border/50">
+                                                                        <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} className="border-l border-border">
                                                                             {classInfo.first_name ? formatFullName(classInfo) : '-'}
                                                                         </TableCell>
                                                                     </>
@@ -249,20 +232,19 @@ const ViewClasses = ({ currentSchoolYear }) => {
                                                             {classInfo.secondary_schedule && (
                                                                 <TableRow className={`${isSecondaryToday ? highlightClass : ""}`}>
                                                                     <TableCell className="font-medium">
-                                                                        <div className="flex items-center gap-3">
+                                                                        <span className="flex items-center gap-3">
                                                                             {isSecondaryToday && (
                                                                                 <span className="relative flex h-2 w-2">
                                                                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                                                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                                                                                 </span>
                                                                             )}
-                                                                            <div className="flex flex-col">
+                                                                            <span className="flex flex-col">
                                                                                 <span className={isSecondaryToday ? "text-primary font-bold" : ""}>
-                                                                                    {classInfo.descriptive_title} <span className="text-[10px] font-extralight italic uppercase opacity-60">2nd Schedule</span>
+                                                                                    {classInfo.descriptive_title} <span className="text-[10px] font-extralight italic uppercase text-muted-foreground ml-1">2nd Schedule</span>
                                                                                 </span>
-
-                                                                            </div>
-                                                                        </div>
+                                                                            </span>
+                                                                        </span>
                                                                     </TableCell>
                                                                     <TableCell className={isSecondaryToday ? "text-primary font-bold" : ""}>
                                                                         {classInfo.secondary_schedule.day}
@@ -289,25 +271,24 @@ const ViewClasses = ({ currentSchoolYear }) => {
                     </Card>
 
                     {/* Mobile Card View */}
-                    <div className='sm:hidden'>
+                    <aside className='sm:hidden'>
                         <MobileViewClasses classes={classes} isLoading={isLoading} isError={isError} error={error} />
-                    </div>
+                    </aside>
                 </>
             ) : (
-                <div className='max-w-[calc(100vw-2rem)] min-w-[calc(100vw-2rem)]
-                                    max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)]
-                                    sm:w-auto sm:min-w-0 sm:max-w-none
-                                    sm:h-auto sm:min-h-0 sm:max-h-none
-                                    overflow-x-auto sm:p-0'
-                >
-                    <Card id='classes' className='w-[1200px] sm:w-auto pt-6'>
+                <section className='max-w-[calc(100vw-2rem)] min-w-[calc(100vw-2rem)] max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)] sm:w-auto sm:min-w-0 sm:max-w-none sm:h-auto sm:min-h-0 sm:max-h-none overflow-x-auto sm:p-0'>
+                    <Card id='classes' className='w-[1200px] sm:w-auto pt-6 border-border'>
                         <CardContent>
                             <TimeTable data={classes} />
                         </CardContent>
                     </Card>
-                </div>
+                </section>
             )}
-        </div >
+
+            {/* Recreated Enrollment Schedule using native Shadcn styling */}
+            <EnrollmentSchedule />
+
+        </main>
     );
 };
 
