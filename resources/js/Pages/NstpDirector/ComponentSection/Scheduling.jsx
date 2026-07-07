@@ -71,120 +71,9 @@ function Scheduling({ refetch }) {
     const loadingRoomSchedules = useSection(state => state.loadingRoomSchedules);
     const loadingInstructorSchedules = useSection(state => state.loadingInstructorSchedules);
 
-
-    const collectConflictSchedules = (editingSchedule) => {
-
-        if (editingSchedule.day == 'TBA' || editingSchedule.start_time == 'TBA') return
-
-        const mainSchedConflicts = [];
-        const secondSchedConflicts = [];
-
-        sections.forEach((cls) => {
-
-            const secSched = {
-                id: cls.id,
-                start_time: cls.schedule.start_time,
-                end_time: cls.schedule.end_time,
-                day: cls.schedule.day
-            }
-
-            if (detectTwoScheduleConflict(editingSchedule, secSched) && secSched.id != editingSchedule.id) {
-                mainSchedConflicts.push(cls.id);
-            }
-        });
-
-        setMainScheduleConflictList(mainSchedConflicts)
-        setSecondScheduleConflictList(secondSchedConflicts)
-    };
-
-    const meridiemChange = (value) => {
-
-        if (!value) return;
-
-        const [, min] = selectedSection.start_time.split(':');
-
-        let start;
-        let end;
-
-        switch (value) {
-            case 'AM':
-                setSelectedSectionField('start_time', `07:${min}`);
-                setSelectedSectionField('end_time', `${String(Number(7) + Number(classHour)).padStart(2, '0')}:${min}`);
-                start = `07:${min}`
-                end = `${String(Number(7) + Number(classHour)).padStart(2, '0')}:${min}`
-                break;
-            default:
-                setSelectedSectionField('start_time', `12:${min}`);
-                setSelectedSectionField('end_time', `${String(Number(12) + Number(classHour)).padStart(2, '0')}:${min}`);
-                start = `12:${min}`
-                end = `${String(Number(12) + Number(classHour)).padStart(2, '0')}:${min}`
-                break;
-        };
-
-        setMeridiem(value);
-
-        const editingSchedule = {
-            start_time: start,
-            end_time: end,
-            day: selectedSection.day,
-            id: selectedSection.id,
-        };
-
-        collectConflictSchedules(editingSchedule);
-    }
-
-    const startTimeChange = (value, type) => {
-        if (!value) return
-        const [sHour, sMin] = selectedSection.start_time.split(':');
-        const [eHour, eMin] = selectedSection.end_time.split(':');
-        let startTime
-        let endTime
-
-        switch (type) {
-            case 'hour':
-                setSelectedSectionField('start_time', `${value}:${sMin}`);
-                setSelectedSectionField('end_time', `${String(Number(value) + Number(classHour)).padStart(2, '0')}:${eMin}`);
-                startTime = `${value}:${sMin}`
-                endTime = `${String(Number(value) + Number(classHour)).padStart(2, '0')}:${eMin}`
-                break;
-            case 'min':
-                setSelectedSectionField('start_time', `${sHour}:${value}`);
-                setSelectedSectionField('end_time', `${eHour}:${value}`);
-                startTime = `${sHour}:${value}`
-                endTime = `${eHour}:${value}`
-                break;
-        }
-
-        const editingSchedule = {
-            start_time: startTime,
-            end_time: endTime,
-            day: selectedSection.day,
-            id: selectedSection.id,
-        }
-
-        collectConflictSchedules(editingSchedule)
-    };
-
-    const classHourChange = (value) => {
-        setClassHour(value);
-
-        const [hour, min] = selectedSection.start_time.split(':');
-        const newHour = Number(hour) + Number(value);
-        const newEndTime = `${String(newHour).padStart(2, '0')}:${min}`
-
-        setSelectedSectionField('end_time', newEndTime);
-
-        collectConflictSchedules({
-            start_time: selectedSection.start_time,
-            end_time: newEndTime,
-            day: selectedSection.day,
-            id: selectedSection.id,
-        })
-    };
-
     const handleSubmit = async () => {
         clearErrors();
-
+        
         let errors = {};
 
         if (selectedSection.faculty_id == '') {
@@ -219,7 +108,158 @@ function Scheduling({ refetch }) {
                 setSubmitting(false);
             }
         });
+    };
 
+    const collectConflictSchedules = (editingSchedule) => {
+        if (editingSchedule.day == 'TBA' || editingSchedule.start_time == 'TBA') return
+
+        const mainSchedConflicts = [];
+        const secondSchedConflicts = [];
+
+        sections.forEach((cls) => {
+
+            const secSched = {
+                id: cls.id,
+                start_time: cls.schedule.start_time,
+                end_time: cls.schedule.end_time,
+                day: cls.schedule.day
+            }
+
+            if (detectTwoScheduleConflict(editingSchedule, secSched) && secSched.id != editingSchedule.id) {
+                mainSchedConflicts.push(cls.id);
+            }
+        });
+
+        setMainScheduleConflictList(mainSchedConflicts)
+        setSecondScheduleConflictList(secondSchedConflicts)
+    };
+
+    const startTimeChange = (value, type) => {
+        if (!value) return;
+
+        const [sHour, sMin] = selectedSection.start_time.split(':');
+        let startTime;
+        let endTime;
+
+        // 1. First, handle the meridiem separately or build the new startTime
+        if (type === 'meridiem') {
+            const { start, end } = meridiemChange(value);
+            startTime = start;
+            endTime = end;
+        } else {
+            // Construct the new startTime based on what changed
+            if (type === 'hour') {
+                startTime = `${String(value).padStart(2, '0')}:${sMin}`;
+            } else if (type === 'min') {
+                startTime = `${sHour}:${String(value).padStart(2, '0')}`;
+            }
+
+            // 2. Extract hours and minutes from the class duration (classHour)
+            const duration = Number(classHour || 0); // fallback to 0 if undefined
+            const addedHours = Math.floor(duration);
+            // Changed to * 60 so 1.5 equates to 30 mins
+            const addedMins = Math.round((duration - addedHours) * 60);
+
+            // 3. Add the duration to the newly formed startTime
+            const [newStartHour, newStartMin] = startTime.split(':').map(Number);
+
+            let totalMins = newStartMin + addedMins;
+            let newEndHour = newStartHour + addedHours + Math.floor(totalMins / 60);
+            let newEndMin = totalMins % 60;
+
+            newEndHour = newEndHour % 24; // Optional: wraps around at midnight
+
+            // Format the calculated end time
+            endTime = `${String(newEndHour).padStart(2, '0')}:${String(newEndMin).padStart(2, '0')}`;
+
+            // Update state
+            setSelectedSectionField('start_time', startTime);
+            setSelectedSectionField('end_time', endTime);
+        }
+
+        if (selectedSection.day == 'TBA' || startTime == 'TBA') return;
+
+        const editingSchedule = {
+            start_time: startTime,
+            end_time: endTime,
+            day: selectedSection.day,
+            id: selectedSection.id,
+        };
+
+        collectConflictSchedules(editingSchedule);
+    };
+
+    const meridiemChange = (value) => {
+        if (!value) return;
+
+        const [, startMinStr] = selectedSection.start_time.split(':');
+        const startMin = Number(startMinStr);
+
+        // 1. Determine the base starting hour based on AM/PM
+        let startHour = value === 'AM' ? 7 : 12;
+
+        // 2. Construct the exact start string
+        const start = `${String(startHour).padStart(2, '0')}:${startMinStr}`;
+
+        // 3. Extract hours and minutes from the class duration
+        const duration = Number(classHour || 0);
+        const addedHours = Math.floor(duration);
+        // Changed to * 60 so 1.5 equates to 30 mins
+        const addedMins = Math.round((duration - addedHours) * 60);
+
+        // 4. Add duration to the start time
+        let totalMins = startMin + addedMins;
+        let endHour = startHour + addedHours + Math.floor(totalMins / 60);
+        let endMin = totalMins % 60;
+
+        endHour = endHour % 24; // Optional wrap around
+
+        // 5. Construct the exact end string
+        const end = `${String(endHour).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+
+        // 6. Update all state exactly once
+        setSelectedSectionField('start_time', start);
+        setSelectedSectionField('end_time', end);
+        setMeridiem(value);
+
+        return { start, end };
+    };
+
+    const classHourChange = (value) => {
+        setClassHour(value);
+
+        // 1. Extract added hours and minutes from the value (e.g., 1.5 -> 1 hr, 30 mins)
+        const numericValue = Number(value);
+        const addedHours = Math.floor(numericValue);
+        // Changed to * 60 so 1.5 equates to 30 mins
+        const addedMins = Math.round((numericValue - addedHours) * 60);
+
+        // 2. Extract hours and minutes from the current start_time
+        const [startHour, startMin] = selectedSection.start_time.split(':').map(Number);
+
+        // 3. Add the times together
+        let totalMins = startMin + addedMins;
+
+        // Add base hours, added hours, and any extra hours if minutes exceed 59
+        let newHour = startHour + addedHours + Math.floor(totalMins / 60);
+        let newMin = totalMins % 60; // Keep only the remaining minutes
+
+        // Ensure the hour wraps around properly if it goes past midnight (optional, but good practice)
+        newHour = newHour % 24;
+
+        // 4. Format back to a proper "HH:mm" string
+        const newEndTime = `${String(newHour).padStart(2, '0')}:${String(newMin).padStart(2, '0')}`;
+
+        setSelectedSectionField('end_time', newEndTime);
+
+        const editingSchedule = {
+            start_time: selectedSection.start_time,
+            end_time: newEndTime,
+            day: selectedSection.day,
+            id: selectedSection.id,
+        };
+
+        collectConflictSchedules(editingSchedule);
     };
 
     if (!editingSection) return <></>
@@ -399,8 +439,14 @@ function Scheduling({ refetch }) {
                                                 <SelectItem value="1">
                                                     1hr
                                                 </SelectItem>
+                                                <SelectItem value="1.5">
+                                                    1hr 30m
+                                                </SelectItem>
                                                 <SelectItem value="2">
                                                     2hrs
+                                                </SelectItem>
+                                                <SelectItem value="2.5">
+                                                    2hrs  30m
                                                 </SelectItem>
                                                 <SelectItem value="3">
                                                     3hrs
@@ -413,6 +459,21 @@ function Scheduling({ refetch }) {
                                                 </SelectItem>
                                                 <SelectItem value="6">
                                                     6hrs
+                                                </SelectItem>
+                                                <SelectItem value="7">
+                                                    7hrs
+                                                </SelectItem>
+                                                <SelectItem value="8">
+                                                    8hrs
+                                                </SelectItem>
+                                                <SelectItem value="9">
+                                                    9hrs
+                                                </SelectItem>
+                                                <SelectItem value="10">
+                                                    10hrs
+                                                </SelectItem>
+                                                <SelectItem value="11">
+                                                    11hrs
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>

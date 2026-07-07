@@ -13,7 +13,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatFullName } from '@/Lib/Utils';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { AlertCircle, BookOpen, Loader2, ZoomIn, ZoomOut, RotateCcw, Download, EyeOff, Eye, ArrowRight } from 'lucide-react';
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/Components/ui/badge';
 import FillUpPrompt from '../CollectStudentData/FillUpPrompt';
@@ -21,6 +21,7 @@ import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
 import AppLogo from '@/Components/AppLogo';
 import html2canvas from 'html2canvas';
 import { formatName } from '@/Lib/InfoUtils';
+import html2pdf from 'html2pdf.js';
 
 function WatermarkBackground() {
     const logos = Array.from({ length: 80 });
@@ -120,43 +121,7 @@ export default function DownloadMode({ records }) {
         setHiddenRecords(hiddenRecords.filter(recordId => recordId !== id));
     };
 
-    const handleDownload = async () => {
-        setIsDownloading(true);
 
-        try {
-            await new Promise(resolve => setTimeout(resolve, 150));
-
-            const element = printRef.current;
-
-            if (element) {
-                const style = document.createElement("style");
-                document.head.appendChild(style);
-                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
-                style.sheet?.insertRule('td div > svg { display: none !important; }');
-
-                const canvas = await html2canvas(element, {
-                    scale: 5,
-                    useCORS: true,
-                    backgroundColor: '#ffffff'
-                });
-
-                const imageUrl = canvas.toDataURL("image/png");
-
-                const filename = `Student_Grades_${user?.name?.replace(/\s+/g, '_') || 'Document'}.png`;
-
-                const link = document.createElement("a");
-                link.href = imageUrl;
-                link.download = filename;
-                link.click();
-
-                style.remove();
-            }
-        } catch (err) {
-            console.error('Error downloading image:', err);
-        } finally {
-            setIsDownloading(false);
-        }
-    };
 
     const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.1, 2));
     const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
@@ -196,6 +161,88 @@ export default function DownloadMode({ records }) {
 
     const visibleRecords = records.filter(record => !hiddenRecords.includes(record.id));
     const hiddenRecordsList = records.filter(record => hiddenRecords.includes(record.id));
+
+    const handleDownloadPdf = useCallback(async () => {
+        setIsDownloading(true);
+
+        try {
+            // Increased from 150ms to 300ms to ensure the DOM fully repaints the 1200px layout
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const element = document.getElementById("record-to-print");
+            if (element) {
+                const style = document.createElement("style");
+                document.head.appendChild(style);
+                style.sheet?.insertRule(
+                    "body > div:last-child img { display: inline-block; }"
+                );
+
+                const options = {
+                    filename: `Enrollment_Record_${user?.name?.replace(/\s+/g, "_") || "Document"}.pdf`,
+                    html2canvas: {
+                        scale: 2, // Reduced from 5 to prevent silent canvas memory failures
+                        useCORS: true,
+                        scrollY: 0,
+                        windowWidth: 1200
+                    },
+                    jsPDF: {
+                        unit: "mm",
+                        format: "a4",
+                        orientation: "portrait",
+                    },
+                };
+
+                await html2pdf()
+                    .from(element)
+                    .set(options)
+                    .save();
+
+                style.remove();
+            }
+        } catch (err) {
+            console.error("Error downloading PDF:", err);
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [records, user]);
+
+    const handleDownload = async () => {
+        setIsDownloading(true);
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 150));
+
+            const element = printRef.current;
+
+            if (element) {
+                const style = document.createElement("style");
+                document.head.appendChild(style);
+                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
+                style.sheet?.insertRule('td div > svg { display: none !important; }');
+
+                const canvas = await html2canvas(element, {
+                    scale: 5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const imageUrl = canvas.toDataURL("image/png");
+
+                const filename = `Student_Grades_${user?.name?.replace(/\s+/g, '_') || 'Document'}.png`;
+
+                const link = document.createElement("a");
+                link.href = imageUrl;
+                link.download = filename;
+                link.click();
+
+                style.remove();
+            }
+        } catch (err) {
+            console.error('Error downloading image:', err);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
     return (
         <div className="flex flex-col items-center w-full">
@@ -273,11 +320,18 @@ export default function DownloadMode({ records }) {
                 style={{ touchAction: 'pan-x pan-y' }}
             >
                 <div
+                    id='record-to-print'
                     ref={printRef}
                     className={`relative pb-12 ${isDownloading ? 'px-8 text-black bg-white' : ''}`}
                     style={
                         isDownloading
-                            ? { width: '1200px', position: 'absolute', left: '-9999px' }
+                            ? {
+                                width: '1200px',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                zIndex: -50 // Keeps it in the viewport bounds but hidden behind the DOM flow
+                            }
                             : {
                                 zoom: zoomLevel,
                                 transform: `scale(${zoomLevel})`,
@@ -302,17 +356,17 @@ export default function DownloadMode({ records }) {
                                     <CardTitle className="text-2xl">
                                         <div className='w-full flex justify-between gap-2 items-center'>
                                             <div className='flex gap-1'>
-                                            {!isDownloading && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-muted-foreground hover:text-foreground"
-                                                    onClick={() => handleHide(record.id)}
-                                                >
-                                                    <EyeOff className="w-4 h-4 mr-2" />
-                                                    Hide
-                                                </Button>
-                                            )}
+                                                {!isDownloading && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-muted-foreground hover:text-foreground"
+                                                        onClick={() => handleHide(record.id)}
+                                                    >
+                                                        <EyeOff className="w-4 h-4 mr-2" />
+                                                        Hide
+                                                    </Button>
+                                                )}
                                                 <div className='self-start'>{record.year_level_name} |</div>
                                                 <div className='self-end'>{record.start_year}-{record.end_year} {record.semester_name} Semester</div>
                                             </div>
@@ -326,8 +380,12 @@ export default function DownloadMode({ records }) {
                                                 <TableHead className={`w-52 ${isDownloading ? 'text-black' : ''}`}>Instructor</TableHead>
                                                 <TableHead className={`w-44 ${isDownloading ? 'text-black' : ''}`}>Subject Code</TableHead>
                                                 <TableHead className={`w-96 ${isDownloading ? 'text-black' : ''}`}>Descriptive Title</TableHead>
-                                                <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Midterm</TableHead>
-                                                <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Final Term</TableHead>
+                                                {!isDownloading && (
+                                                    <>
+                                                        <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Midterm</TableHead>
+                                                        <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Final Term</TableHead>
+                                                    </>
+                                                )}
                                                 <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Grade</TableHead>
                                                 <TableHead className={`w-28 ${isDownloading ? 'text-black' : ''}`}>Remarks</TableHead>
                                             </TableRow>
@@ -352,24 +410,28 @@ export default function DownloadMode({ records }) {
                                                                 <TableCell className='truncate'>{classInfo.descriptive_title}</TableCell>
                                                                 {classInfo.evaluated ? (
                                                                     <>
-                                                                        <TableCell>
-                                                                            {classInfo.midterm_grade === 0.0 ? (
-                                                                                <span className="text-red-500 font-medium">DROPPED</span>
-                                                                            ) : classInfo.midterm_grade ? (
-                                                                                classInfo.midterm_grade?.toFixed(1)
-                                                                            ) : (
-                                                                                '-'
-                                                                            )}
-                                                                        </TableCell>
-                                                                        <TableCell>
-                                                                            {classInfo.final_grade == 0.0 ? (
-                                                                                <span className="text-red-500 font-medium">DROPPED</span>
-                                                                            ) : classInfo.final_grade ? (
-                                                                                classInfo.final_grade?.toFixed(1)
-                                                                            ) : (
-                                                                                '-'
-                                                                            )}
-                                                                        </TableCell>
+                                                                        {!isDownloading && (
+                                                                            <>
+                                                                                <TableCell>
+                                                                                    {classInfo.midterm_grade === 0.0 ? (
+                                                                                        <span className="text-red-500 font-medium">DROPPED</span>
+                                                                                    ) : classInfo.midterm_grade ? (
+                                                                                        classInfo.midterm_grade?.toFixed(1)
+                                                                                    ) : (
+                                                                                        '-'
+                                                                                    )}
+                                                                                </TableCell>
+                                                                                <TableCell>
+                                                                                    {classInfo.final_grade == 0.0 ? (
+                                                                                        <span className="text-red-500 font-medium">DROPPED</span>
+                                                                                    ) : classInfo.final_grade ? (
+                                                                                        classInfo.final_grade?.toFixed(1)
+                                                                                    ) : (
+                                                                                        '-'
+                                                                                    )}
+                                                                                </TableCell>
+                                                                            </>
+                                                                        )}
                                                                         <TableCell>
                                                                             {finalGrade || '-'}
                                                                         </TableCell>
@@ -416,7 +478,7 @@ export default function DownloadMode({ records }) {
 
                         <div className="w-full mt-8 pt-4 pb-8 flex flex-col items-center justify-center space-y-1">
                             <p className="italic text-sm font-medium text-gray-700">
-                                This is a system-generated document.
+                                This is a system-generated document and only for evaluation purpose only.
                             </p>
                             <p className="text-xs text-gray-500">
                                 Generated on: {new Date().toLocaleString('en-PH', {

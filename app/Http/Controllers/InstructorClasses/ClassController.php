@@ -850,8 +850,35 @@ class ClassController extends Controller
             ->orderBy('id', 'DESC')
             ->get();
 
-        $oldData = StudentGrade::where('id_no', $student->user_id_no)->get();
+        $semesterWeights = [
+            'First' => 1,
+            '1st' => 1,
+            'Second' => 2,
+            '2nd' => 2,
+            'Summer' => 3,
+        ];
 
+        $oldData = StudentGrade::where('id_no', $student->user_id_no)
+            ->get()
+            ->sort(function ($a, $b) use ($semesterWeights) {
+                // Compare school year (latest first)
+                $yearA = (int) explode('-', $a->school_year)[0];
+                $yearB = (int) explode('-', $b->school_year)[0];
+
+                $yearComparison = $yearB <=> $yearA;
+
+                if ($yearComparison === 0) {
+                    $semA = $semesterWeights[$a->semester] ?? 99;
+                    $semB = $semesterWeights[$b->semester] ?? 99;
+
+                    // Latest semester first: Summer > Second > First
+                    return $semB <=> $semA;
+                }
+
+                return $yearComparison;
+            })
+            ->values();
+            
         if ($record->isEmpty() && $oldData->isEmpty()) {
             return response()->json([
                 'error' => 'You have no enrollment record.',
@@ -911,7 +938,33 @@ class ClassController extends Controller
         // Merge the active records with the formatted old records
         $mergedRecords = array_merge($record->toArray(), $formattedOldData);
 
-        return response()->json(['record' => $mergedRecords], 200);
+        $sortedCombinedData = collect($mergedRecords)->sort(function ($a, $b) {
+            $semesterWeights = [
+                'First' => 1,
+                '1st' => 1,
+                'Second' => 2,
+                '2nd' => 2,
+                'Summer' => 3,
+            ];
+
+            // Descending School Year
+            $yearComparison = strcmp(
+                $b['start_year'] . '-' . $b['end_year'],
+                $a['start_year'] . '-' . $a['end_year']
+            );
+
+            if ($yearComparison === 0) {
+                $semA = $semesterWeights[ucfirst(strtolower($a['semester_name']))] ?? 4;
+                $semB = $semesterWeights[ucfirst(strtolower($b['semester_name']))] ?? 4;
+
+                // Descending Semester
+                return $semB <=> $semA;
+            }
+
+            return $yearComparison;
+        })->values()->toArray();
+
+        return response()->json(['record' => $sortedCombinedData], 200);
     }
 
     public function requestEditMidtermSubmission($yearSectionSubjectsId)
