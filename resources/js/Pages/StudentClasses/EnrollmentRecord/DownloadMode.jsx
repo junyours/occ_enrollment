@@ -1,6 +1,5 @@
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { PageTitle } from '@/Components/ui/PageTitle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import {
     AlertDialog,
@@ -9,32 +8,17 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/Components/ui/alert-dialog";
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatFullName } from '@/Lib/Utils';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { AlertCircle, BookOpen, Loader2, ZoomIn, ZoomOut, RotateCcw, Download, EyeOff, Eye, ArrowRight } from 'lucide-react';
-import React, { useState, useRef, useCallback } from 'react'
-import { useQuery } from '@tanstack/react-query';
+import { Link, usePage } from '@inertiajs/react';
+import { Loader2, ZoomIn, ZoomOut, RotateCcw, EyeOff, Eye, ArrowRight } from 'lucide-react';
+import React, { useState, useRef } from 'react'
 import { Badge } from '@/Components/ui/badge';
-import FillUpPrompt from '../CollectStudentData/FillUpPrompt';
 import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
 import AppLogo from '@/Components/AppLogo';
 import html2canvas from 'html2canvas';
 import { formatName } from '@/Lib/InfoUtils';
-import html2pdf from 'html2pdf.js';
-
-function WatermarkBackground() {
-    const logos = Array.from({ length: 80 });
-    return (
-        <div className="absolute inset-0 z-0 flex flex-wrap justify-center items-center gap-24 overflow-hidden pointer-events-none opacity-[0.07]">
-            {logos.map((_, i) => (
-                <div key={i} className="transform gap-20">
-                    <AppLogo size="xl" className="object-fill grayscale" />
-                </div>
-            ))}
-        </div>
-    );
-}
+import { jsPDF } from 'jspdf';
+import { MdFileDownload } from 'react-icons/md';
 
 function Header({ studentName, studentId }) {
     return (
@@ -81,17 +65,17 @@ function Header({ studentName, studentId }) {
             </div>
 
             {(studentName || studentId) && (
-                <div className="w-full px-12 mt-8 text-black flex flex-col gap-2">
+                <div className="w-full px-12 mt-8 text-black flex flex-col gap-2 bg-transparent">
                     {studentName && (
                         <div className="flex items-end gap-2">
-                            <div className="col-span-2 font-bold w-36 uppercase tracking-widest text-sm">Name:</div>
-                            <div className="col-span-3 col-start-3 border-b-2 border-gray-900 pl-2 w-96 font-black text-lg uppercase">{studentName}</div>
+                            <div className="col-span-2 font-bold w-24 tracking-widest text-sm">Name:</div>
+                            <div className="col-span-3 font-semibold col-start-3 border-b-2 border-gray-900 pl-2 w-96 text-md">{studentName}</div>
                         </div>
                     )}
                     {studentId && (
                         <div className="flex items-end gap-2">
-                            <div className="col-span-2 font-bold w-36 uppercase tracking-widest text-sm">Student ID No.:</div>
-                            <div className="col-span-3 col-start-3 border-b-2 border-gray-900 pl-2 w-96 font-black text-lg uppercase">{studentId}</div>
+                            <div className="col-span-2 font-bold w-24 tracking-widest text-sm">ID Number.:</div>
+                            <div className="col-span-3 font-semibold col-start-3 border-b-2 border-gray-900 pl-2 w-96 text-md">{studentId}</div>
                         </div>
                     )}
                 </div>
@@ -162,83 +146,99 @@ export default function DownloadMode({ records }) {
     const visibleRecords = records.filter(record => !hiddenRecords.includes(record.id));
     const hiddenRecordsList = records.filter(record => hiddenRecords.includes(record.id));
 
-    const handleDownloadPdf = useCallback(async () => {
-        setIsDownloading(true);
-
-        try {
-            // Increased from 150ms to 300ms to ensure the DOM fully repaints the 1200px layout
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            const element = document.getElementById("record-to-print");
-            if (element) {
-                const style = document.createElement("style");
-                document.head.appendChild(style);
-                style.sheet?.insertRule(
-                    "body > div:last-child img { display: inline-block; }"
-                );
-
-                const options = {
-                    filename: `Enrollment_Record_${user?.name?.replace(/\s+/g, "_") || "Document"}.pdf`,
-                    html2canvas: {
-                        scale: 2, // Reduced from 5 to prevent silent canvas memory failures
-                        useCORS: true,
-                        scrollY: 0,
-                        windowWidth: 1200
-                    },
-                    jsPDF: {
-                        unit: "mm",
-                        format: "a4",
-                        orientation: "portrait",
-                    },
-                };
-
-                await html2pdf()
-                    .from(element)
-                    .set(options)
-                    .save();
-
-                style.remove();
-            }
-        } catch (err) {
-            console.error("Error downloading PDF:", err);
-        } finally {
-            setIsDownloading(false);
-        }
-    }, [records, user]);
-
     const handleDownload = async () => {
         setIsDownloading(true);
 
         try {
             await new Promise(resolve => setTimeout(resolve, 150));
 
-            const element = printRef.current;
+            const style = document.createElement("style");
+            document.head.appendChild(style);
+            style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
+            style.sheet?.insertRule('td div > svg { display: none !important; }');
 
-            if (element) {
-                const style = document.createElement("style");
-                document.head.appendChild(style);
-                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
-                style.sheet?.insertRule('td div > svg { display: none !important; }');
+            const headerEl = document.getElementById('pdf-header');
+            const footerEl = document.getElementById('pdf-footer');
+            const watermarkEl = document.getElementById('pdf-watermark');
 
-                const canvas = await html2canvas(element, {
-                    scale: 5,
-                    useCORS: true,
-                    backgroundColor: '#ffffff'
-                });
+            // Grab all the individual cards instead of the giant wrapper
+            const cardElements = document.querySelectorAll('.print-record-card');
 
-                const imageUrl = canvas.toDataURL("image/png");
+            const canvasOptions = { scale: 2, useCORS: true, backgroundColor: '#ffffff' };
 
-                const filename = `Student_Grades_${user?.name?.replace(/\s+/g, '_') || 'Document'}.png`;
+            const headerCanvas = await html2canvas(headerEl, canvasOptions);
+            const footerCanvas = await html2canvas(footerEl, canvasOptions);
+            const watermarkCanvas = await html2canvas(watermarkEl, { scale: 4, useCORS: true, backgroundColor: null });
 
-                const link = document.createElement("a");
-                link.href = imageUrl;
-                link.download = filename;
-                link.click();
+            const headerImg = headerCanvas.toDataURL("image/jpeg", 0.95);
+            const footerImg = footerCanvas.toDataURL("image/jpeg", 0.95);
+            const watermarkImg = watermarkCanvas.toDataURL("image/png");
 
-                style.remove();
+            const pdfWidth = 210;
+            const pdfHeight = 297;
+
+            const hHeight = (headerCanvas.height * pdfWidth) / headerCanvas.width;
+            const fHeight = (footerCanvas.height * pdfWidth) / footerCanvas.width;
+
+            const PAGE_MARGIN = 10;
+            const GAP = 8;
+
+            const topBlocked = PAGE_MARGIN + hHeight + GAP;
+            const bottomBlocked = PAGE_MARGIN + fHeight + GAP;
+
+            const wmWidth = 150;
+            const wmHeight = (watermarkCanvas.height * wmWidth) / watermarkCanvas.width;
+            const wmX = (pdfWidth - wmWidth) / 2;
+            const wmY = (pdfHeight - wmHeight) / 2;
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            // 1. Helper to stamp the solid background elements (Header/Footer)
+            const drawBackground = () => {
+                pdf.addImage(headerImg, 'JPEG', 0, PAGE_MARGIN, pdfWidth, hHeight);
+                pdf.addImage(footerImg, 'JPEG', 0, pdfHeight - PAGE_MARGIN - fHeight, pdfWidth, fHeight);
+            };
+
+            // 2. Helper to stamp the transparent watermark ON TOP of everything
+            const drawWatermark = () => {
+                pdf.addImage(watermarkImg, 'PNG', wmX, wmY, wmWidth, wmHeight);
+            };
+
+            // Initialize Page 1 Background
+            drawBackground();
+            let currentY = topBlocked;
+
+            // Loop through each card one by one
+            for (let i = 0; i < cardElements.length; i++) {
+                const cardCanvas = await html2canvas(cardElements[i], canvasOptions);
+                const cardImg = cardCanvas.toDataURL("image/jpeg", 0.85); // Kept as JPEG for tiny file size
+                const cardHeight = (cardCanvas.height * pdfWidth) / cardCanvas.width;
+
+                // Check if this card bleeds off the page
+                if (currentY + cardHeight > pdfHeight - bottomBlocked) {
+                    // The page is full! Stamp the watermark over this finished page BEFORE adding a new one
+                    drawWatermark();
+
+                    pdf.addPage();
+                    drawBackground();
+                    currentY = topBlocked;
+                }
+
+                // Stamp the solid white JPEG card
+                pdf.addImage(cardImg, 'JPEG', 0, currentY, pdfWidth, cardHeight);
+
+                currentY += cardHeight + (GAP / 2);
             }
+
+            // The loop is finished. Stamp the watermark on the very last page!
+            drawWatermark();
+
+            const filename = `Student_Grades_${user?.name?.replace(/\s+/g, '_') || 'Document'}.pdf`;
+            pdf.save(filename);
+
+            style.remove();
         } catch (err) {
-            console.error('Error downloading image:', err);
+            console.error('Error downloading document:', err);
         } finally {
             setIsDownloading(false);
         }
@@ -295,8 +295,8 @@ export default function DownloadMode({ records }) {
                     onClick={handleDownload}
                     disabled={isDownloading || visibleRecords.length === 0}
                 >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download as Image
+                    <MdFileDownload className="w-4 h-4 mr-2" />
+                    Download as PDF
                 </Button>
 
                 <div className="flex items-center gap-2">
@@ -322,7 +322,7 @@ export default function DownloadMode({ records }) {
                 <div
                     id='record-to-print'
                     ref={printRef}
-                    className={`relative pb-12 ${isDownloading ? 'px-8 text-black bg-white' : ''}`}
+                    className={`relative pb-12 ${isDownloading ? 'mx-4 text-black bg-white' : ''}`}
                     style={
                         isDownloading
                             ? {
@@ -340,156 +340,190 @@ export default function DownloadMode({ records }) {
                             }
                     }
                 >
-                    {isDownloading && <WatermarkBackground />}
+                    {isDownloading && (
+                        <div className="absolute top-0 left-0 -z-50 pointer-events-none p-10 opacity-[0.08]" id="pdf-watermark">
+                            <AppLogo size="4xl" className="object-fill grayscale" />
+                        </div>
+                    )}
 
                     <div className="relative z-10 space-y-4">
-                        {isDownloading && (
-                            <Header studentName={name} studentId={user?.user_id_no} />
-                        )}
-                        {visibleRecords.map(record => (
-                            <Card
-                                key={record.id}
-                                id={`${record.id}-record`}
-                                className={`md:mx-0 w-full w-[1150px] shadow-none ${isDownloading ? 'bg-transparent text-black border-transparent' : 'border-border'}`}
-                            >
-                                <CardHeader>
-                                    <CardTitle className="text-2xl">
-                                        <div className='w-full flex justify-between gap-2 items-center'>
-                                            <div className='flex gap-1'>
-                                                {!isDownloading && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-muted-foreground hover:text-foreground"
-                                                        onClick={() => handleHide(record.id)}
-                                                    >
-                                                        <EyeOff className="w-4 h-4 mr-2" />
-                                                        Hide
-                                                    </Button>
-                                                )}
-                                                <div className='self-start'>{record.year_level_name} |</div>
-                                                <div className='self-end'>{record.start_year}-{record.end_year} {record.semester_name} Semester</div>
+                        <div id="pdf-header" className="bg-white">
+                            {isDownloading && (
+                                <Header studentName={name} studentId={user?.user_id_no} />
+                            )}
+                        </div>
+
+                        {/* 2. MAIN CONTENT SECTION (Watermark placed inside) */}
+                        <div id="pdf-content" className={`relative space-y-2 ${isDownloading && 'bg-white'}`}>
+                            {visibleRecords.map(record => (
+                                <Card
+                                    key={record.id}
+                                    id={`${record.id}-record`}
+                                    className={`print-record-card md:mx-0 w-full shadow-none ${isDownloading ? 'bg-transparent text-black border-transparent p-0 w-full px-12' : 'border-border'}`}
+                                >
+                                    <CardHeader className={`${isDownloading ? 'p-0' : ''}`}>
+                                        <CardTitle className="text-2xl">
+                                            <div className='w-full flex justify-between gap-2 items-center'>
+                                                <div className='sm:flex gap-1'>
+                                                    {!isDownloading && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-muted-foreground hover:text-foreground"
+                                                            onClick={() => handleHide(record.id)}
+                                                        >
+                                                            <EyeOff className="w-4 h-4 mr-2" />
+                                                            Hide
+                                                        </Button>
+                                                    )}
+                                                    <div className='flex flex-col sm:flex-row sm:gap-2'>
+                                                        <div>{record.year_level_name}</div>
+                                                        <div className='hidden sm:block'>|</div>
+                                                        <div className='flex gap-1'>{record.start_year}-{record.end_year} {record.semester_name} <span className='hidden sm:block'>Semester</span></div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className={isDownloading ? 'border-gray-900/20 hover:bg-transparent' : ''}>
-                                                <TableHead className={`w-52 ${isDownloading ? 'text-black' : ''}`}>Instructor</TableHead>
-                                                <TableHead className={`w-44 ${isDownloading ? 'text-black' : ''}`}>Subject Code</TableHead>
-                                                <TableHead className={`w-96 ${isDownloading ? 'text-black' : ''}`}>Descriptive Title</TableHead>
-                                                {!isDownloading && (
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className={`${isDownloading ? 'p-0' : ''}`}>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow className={isDownloading ? 'border-gray-900/20 hover:bg-transparent' : ''}>
+                                                    {isDownloading && (
+                                                        <>
+                                                            <TableHead className={`w-52 ${isDownloading ? 'text-black' : ''}`}>Instructor</TableHead>
+                                                            <TableHead className={`w-44 ${isDownloading ? 'text-black' : ''}`}>Subject Code</TableHead>
+                                                        </>
+                                                    )}
+                                                    <TableHead className={`w-96 ${isDownloading ? 'text-black' : ''}`}>Descriptive Title</TableHead>
+                                                    {!isDownloading && (
+                                                        <>
+                                                            {/* <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Midterm</TableHead> */}
+                                                            {/* <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Final Term</TableHead> */}
+                                                        </>
+                                                    )}
+                                                    <TableHead className={`w-18 text-center ${isDownloading ? 'text-black' : ''}`}>Grade</TableHead>
+                                                    <TableHead className={`w-24 text-center ${isDownloading ? 'text-black' : ''}`}>Remarks</TableHead>
+                                                    <TableHead className={`w-16 text-center ${isDownloading ? 'text-black' : ''}`}>Credit</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {error ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={5} className='text-center'>{error}</TableCell>
+                                                    </TableRow>
+                                                ) : (
                                                     <>
-                                                        <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Midterm</TableHead>
-                                                        <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Final Term</TableHead>
+                                                        {record.subjects.map(classInfo => {
+                                                            const finalGrade = classInfo.grade ? classInfo.grade : computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+                                                            const isDropped = (classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0) || classInfo.grade == 0.0;
+                                                            const isPassed = !isDropped && (classInfo.midterm_grade || classInfo.grade) && (classInfo.final_grade || classInfo.grade) && (finalGrade <= 3 || classInfo.grade <= 3);
+                                                            const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
+
+                                                            const instructor = classInfo.first_name ? formatFullName(classInfo) : classInfo.nstp_faculty_first_name ? formatFullName({ first_name: classInfo.nstp_faculty_first_name, last_name: classInfo.nstp_faculty_last_name, middle_name: classInfo.nstp_faculty_middle_name }) : '-'
+
+                                                            const dropOrfail = finalGrade > 3 || finalGrade == 0;
+                                                            const noGrade = finalGrade == null;
+
+                                                            return (
+                                                                <TableRow key={classInfo.id} className={isDownloading ? 'border-gray-900/20 hover:bg-transparent' : ''}>
+                                                                    {isDownloading && (
+                                                                        <>
+                                                                            <TableCell>{instructor}</TableCell>
+                                                                            <TableCell>{classInfo.subject_code}</TableCell>
+                                                                        </>
+                                                                    )}
+                                                                    <TableCell className='truncate'>{classInfo.descriptive_title}</TableCell>
+                                                                    {classInfo.evaluated ? (
+                                                                        <>
+                                                                            {!isDownloading && (
+                                                                                <>
+                                                                                    {/* <TableCell>
+                                                                                        {classInfo.midterm_grade === 0.0 ? (
+                                                                                            <span className="text-red-500 font-medium">DROPPED</span>
+                                                                                        ) : classInfo.midterm_grade ? (
+                                                                                            classInfo.midterm_grade?.toFixed(1)
+                                                                                        ) : (
+                                                                                            '-'
+                                                                                        )}
+                                                                                    </TableCell>
+                                                                                    <TableCell>
+                                                                                        {classInfo.final_grade == 0.0 ? (
+                                                                                            <span className="text-red-500 font-medium">DROPPED</span>
+                                                                                        ) : classInfo.final_grade ? (
+                                                                                            classInfo.final_grade?.toFixed(1)
+                                                                                        ) : (
+                                                                                            '-'
+                                                                                        )}
+                                                                                    </TableCell> */}
+                                                                                </>
+                                                                            )}
+                                                                            <TableCell className='text-center'>
+                                                                                {finalGrade || '-'}
+                                                                            </TableCell>
+                                                                            <TableCell className='text-center'>
+                                                                                {isDropped ? (
+                                                                                    <Badge variant="outline" className="border-amber-200 text-amber-800 bg-amber-50">
+                                                                                        DROPPED
+                                                                                    </Badge>
+                                                                                ) : isPassed ? (
+                                                                                    <Badge variant="outline" className="border-green-200 text-green-800 bg-green-50">
+                                                                                        PASSED
+                                                                                    </Badge>
+                                                                                ) : isFailed ? (
+                                                                                    <Badge variant="destructive">
+                                                                                        FAILED
+                                                                                    </Badge>
+                                                                                ) : (
+                                                                                    <span className="text-muted-foreground">-</span>
+                                                                                )}
+                                                                            </TableCell>
+                                                                            <TableCell className='text-center'>
+                                                                                {!noGrade ? dropOrfail ? '0' : parseFloat(classInfo.credit_units) : ''}
+                                                                            </TableCell>
+                                                                        </>
+                                                                    ) : (
+                                                                        <TableCell colSpan='4' className='text-center '>
+                                                                            <div className='flex flex-row items-center gap-3 justify-end'>
+                                                                                <Link href={route('student.evaluation')}>
+                                                                                    <Button variant='link' className='p-0 h-min'>
+                                                                                        <span className='font-medium'>Evaluation Required</span>
+                                                                                        {!isDownloading && <ArrowRight className="ml-1 w-4 h-4" />}
+                                                                                    </Button>
+                                                                                </Link>
+                                                                            </div>
+                                                                        </TableCell>
+                                                                    )}
+                                                                </TableRow>
+                                                            )
+                                                        })}
                                                     </>
                                                 )}
-                                                <TableHead className={`w-18 ${isDownloading ? 'text-black' : ''}`}>Grade</TableHead>
-                                                <TableHead className={`w-28 ${isDownloading ? 'text-black' : ''}`}>Remarks</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {error ? (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} className='text-center'>{error}</TableCell>
-                                                </TableRow>
-                                            ) : (
-                                                <>
-                                                    {record.subjects.map(classInfo => {
-                                                        const finalGrade = classInfo.grade ? classInfo.grade : computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
-                                                        const isDropped = (classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0) || classInfo.grade == 0.0;
-                                                        const isPassed = !isDropped && (classInfo.midterm_grade || classInfo.grade) && (classInfo.final_grade || classInfo.grade) && (finalGrade <= 3 || classInfo.grade <= 3);
-                                                        const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
-
-                                                        return (
-                                                            <TableRow key={classInfo.id} className={isDownloading ? 'border-gray-900/20 hover:bg-transparent' : ''}>
-                                                                <TableCell>{classInfo.first_name ? formatFullName(classInfo) : classInfo.nstp_faculty_first_name ? formatFullName({ first_name: classInfo.nstp_faculty_first_name, last_name: classInfo.nstp_faculty_last_name, middle_name: classInfo.nstp_faculty_middle_name }) : '-'}</TableCell>
-                                                                <TableCell>{classInfo.subject_code}</TableCell>
-                                                                <TableCell className='truncate'>{classInfo.descriptive_title}</TableCell>
-                                                                {classInfo.evaluated ? (
-                                                                    <>
-                                                                        {!isDownloading && (
-                                                                            <>
-                                                                                <TableCell>
-                                                                                    {classInfo.midterm_grade === 0.0 ? (
-                                                                                        <span className="text-red-500 font-medium">DROPPED</span>
-                                                                                    ) : classInfo.midterm_grade ? (
-                                                                                        classInfo.midterm_grade?.toFixed(1)
-                                                                                    ) : (
-                                                                                        '-'
-                                                                                    )}
-                                                                                </TableCell>
-                                                                                <TableCell>
-                                                                                    {classInfo.final_grade == 0.0 ? (
-                                                                                        <span className="text-red-500 font-medium">DROPPED</span>
-                                                                                    ) : classInfo.final_grade ? (
-                                                                                        classInfo.final_grade?.toFixed(1)
-                                                                                    ) : (
-                                                                                        '-'
-                                                                                    )}
-                                                                                </TableCell>
-                                                                            </>
-                                                                        )}
-                                                                        <TableCell>
-                                                                            {finalGrade || '-'}
-                                                                        </TableCell>
-                                                                        <TableCell>
-                                                                            {isDropped ? (
-                                                                                <Badge variant="outline" className="border-amber-200 text-amber-800 bg-amber-50">
-                                                                                    DROPPED
-                                                                                </Badge>
-                                                                            ) : isPassed ? (
-                                                                                <Badge variant="outline" className="border-green-200 text-green-800 bg-green-50">
-                                                                                    PASSED
-                                                                                </Badge>
-                                                                            ) : isFailed ? (
-                                                                                <Badge variant="destructive">
-                                                                                    FAILED
-                                                                                </Badge>
-                                                                            ) : (
-                                                                                <span className="text-muted-foreground">-</span>
-                                                                            )}
-                                                                        </TableCell>
-                                                                    </>
-                                                                ) : (
-                                                                    <TableCell colSpan='4' className='text-center '>
-                                                                        <div className='flex flex-row items-center gap-3 justify-end'>
-                                                                            <Link href={route('student.evaluation')}>
-                                                                                <Button variant='link' className='p-0 h-min'>
-                                                                                    <span className='font-medium'>Evaluation Required</span>
-                                                                                    {!isDownloading && <ArrowRight className="ml-1 w-4 h-4" />}
-                                                                                </Button>
-                                                                            </Link>
-                                                                        </div>
-                                                                    </TableCell>
-                                                                )}
-                                                            </TableRow>
-                                                        )
-                                                    })}
-                                                </>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        ))}
-
-                        <div className="w-full mt-8 pt-4 pb-8 flex flex-col items-center justify-center space-y-1">
-                            <p className="italic text-sm font-medium text-gray-700">
-                                This is a system-generated document and only for evaluation purpose only.
-                            </p>
-                            <p className="text-xs text-gray-500">
-                                Generated on: {new Date().toLocaleString('en-PH', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                            </p>
+                                            </TableBody>
+                                        </Table>
+                                    </CardContent>
+                                </Card>
+                            ))}
                         </div>
+
+                        {/* 3. FOOTER SECTION */}
+                        {isDownloading && (
+                            <div id="pdf-footer" className="w-full pt-6 pb-8 flex flex-col items-center justify-center space-y-1 bg-white">
+                                <p className="italic text-sm font-medium text-gray-700">
+                                    This is a system-generated document intended for evaluation purposes only.
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    Generated on: {new Date().toLocaleString('en-PH', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        hour12: true,
+                                    })}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

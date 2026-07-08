@@ -798,6 +798,7 @@ class ClassController extends Controller
                         'user_nstp_faculty_information.middle_name as nstp_faculty_middle_name',
                         'subject_code',
                         'descriptive_title',
+                        'credit_units',
 
                         // MIDTERM GRADE (Kept exactly as you had it)
                         DB::raw("IF(
@@ -859,6 +860,7 @@ class ClassController extends Controller
         ];
 
         $oldData = StudentGrade::where('id_no', $student->user_id_no)
+            ->select('student_grades.*', 'units as credit_units')
             ->get()
             ->sort(function ($a, $b) use ($semesterWeights) {
                 // Compare school year (latest first)
@@ -878,7 +880,7 @@ class ClassController extends Controller
                 return $yearComparison;
             })
             ->values();
-            
+
         if ($record->isEmpty() && $oldData->isEmpty()) {
             return response()->json([
                 'error' => 'You have no enrollment record.',
@@ -930,6 +932,7 @@ class ClassController extends Controller
                         'evaluated' => 1,
                         'remarks' => null,
                         'year_section_subjects_id' => null,
+                        'credit_units' => $sub->credit_units,
                     ];
                 })->values()->toArray(),
             ];
