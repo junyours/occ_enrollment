@@ -111,6 +111,18 @@ export default function Paper({ data, className }) {
             ref={wrapperRef}
             className={cn(`relative w-[210mm] mx-auto bg-white shadow-lg p-8`, className)}
         >
+            <style type="text/css" media="print">
+                {`
+                                @page { 
+                                    size: A4; 
+                                    margin: 0mm; /* Removes default browser margins */
+                                }
+                                body { 
+                                    -webkit-print-color-adjust: exact; 
+                                    print-color-adjust: exact; 
+                                }
+                            `}
+            </style>
             {/* Added relative and z-10 so it sits above the absolute signature */}
             <table ref={tableRef} className="w-full border-collapse relative z-10">
                 <THead ref={theadRef} />

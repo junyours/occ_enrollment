@@ -23,9 +23,10 @@ export default function Index() {
     };
 
     const { data, isLoading, isFetching } = useQuery({
-        queryKey: ['studentRecord', selectedStudent?.id],
+        queryKey: ['permanent-record-student', selectedStudent?.id],
         queryFn: fetchStudentRecord,
         enabled: !!selectedStudent?.id,
+        staleTime: 1000 * 60 * 5,
     });
 
     // --- React-To-Print Setup ---
@@ -39,30 +40,27 @@ export default function Index() {
     return (
         <div>
             <Head title='Permanent Record' />
-            <style type="text/css" media="print">
-                {`
-                    @page { 
-                        size: A4; 
-                        margin: 0mm; /* Removes default browser margins */
-                    }
-                    body { 
-                        -webkit-print-color-adjust: exact; 
-                        print-color-adjust: exact; 
-                    }
-                `}
-            </style>
             <div className="flex flex-col ">
-                <Card className="flex items-center justify-between p-4 rounded-t-lg border border-b-0 shadow-sm rounded-b-none">
-                    <div className="flex-1 flex gap-4 max-w-xl">
-                        <StudentSearch onSelect={setSelectedStudent} />
+                <Card className="flex items-center justify-between p-4 rounded-t-lg border border-b-0 shadow-sm rounded-b-none gap-16">
+                    <div className="flex-1 flex gap-4">
+                        <StudentSearch onSelect={setSelectedStudent} className='max-w-96'/>
                         {selectedStudent && (
-                            <Button
-                                onClick={() => setAddingRecord(true)}
-                                className="px-6 font-semibold"
-                                variant='secondary'
-                            >
-                                Add Student Records
-                            </Button>
+                            <>
+                                <Button
+                                    onClick={() => setAddingRecord(true)}
+                                    className="px-6 font-semibold"
+                                    variant='secondary'
+                                >
+                                    Add Student Records
+                                </Button>
+                                <Button
+                                    onClick={() => setAddingRecord(true)}
+                                    className="px-6 font-semibold"
+                                    variant='secondary'
+                                >
+                                    Add Student Info
+                                </Button>
+                            </>
                         )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -77,7 +75,7 @@ export default function Index() {
                 <Card className="relative flex-1 flex flex-col rounded-b-lg max-h-[calc(100vh-10rem)] min-h-[calc(100vh-10rem)] overflow-auto rounded-t-none text-black">
                     <PaperContainer>
                         <div ref={documentRef} className="px-12 py-4 print:p-0 print:bg-white">
-                            {(isLoading || isFetching) ? (
+                            {(isLoading) ? (
                                 <div className="flex flex-col items-center justify-center py-32 text-slate-500">
                                     <div className="animate-pulse font-medium">Loading record...</div>
                                 </div>
@@ -93,7 +91,7 @@ export default function Index() {
                 </Card>
             </div>
             {addingRecord && (
-                <AddRecordDialog student={selectedStudent} open={addingRecord} onClose={setAddingRecord} />
+                <AddRecordDialog student={selectedStudent} open={addi   ngRecord} onClose={setAddingRecord} />
             )}
         </div>
     );
