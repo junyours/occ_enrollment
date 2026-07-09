@@ -39,8 +39,8 @@ function EnrollmentRecord({ need_fill_up }) {
         handleResize(); // Check immediately on mount
         
         // Optional: Auto-switch when resizing the browser window
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        // window.addEventListener('resize', handleResize);
+        // return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     const getStudentEnrollmentRecord = async () => {
