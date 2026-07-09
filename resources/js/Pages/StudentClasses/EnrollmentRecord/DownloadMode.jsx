@@ -23,6 +23,11 @@ import { MdFileDownload } from 'react-icons/md';
 function Header({ studentName, studentId }) {
     return (
         <div className="flex flex-col justify-center items-center pt-14 pb-4 px-4 w-full">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Merriweather:wght@400;700;900&display=swap');
+            `}} />
+
             <div className="flex items-center space-x-2">
                 <AppLogo
                     size="md"
@@ -32,21 +37,21 @@ function Header({ studentName, studentId }) {
                 <div className="flex flex-col items-center text-center text-black">
                     <h1
                         className="text-xl font-black tracking-wide h-6"
-                        style={{ fontFamily: "'Arial Black', Arial, sans-serif" }}
+                        style={{ fontFamily: "'Inter', 'Arial Black', Arial, sans-serif", fontWeight: 900 }}
                     >
                         OPOL COMMUNITY COLLEGE
                     </h1>
 
                     <p
                         className="text-[1rem] font-bold h-[1.1rem]"
-                        style={{ fontFamily: "'Times New Roman', Times, serif" }}
+                        style={{ fontFamily: "'Merriweather', 'Times New Roman', Times, serif" }}
                     >
-                        Opol, Misamis Oriental
+                        Opol, Misamis Oriental                                                                 
                     </p>
 
                     <p
                         className="text-[.7rem] font-medium"
-                        style={{ fontFamily: "Arial, sans-serif" }}
+                        style={{ fontFamily: "'Inter', Arial, sans-serif" }}
                     >
                         • opolcommunitycollege@yahoo.com <span className="ml-3">•</span> www.occ.edu.ph
                     </p>
@@ -54,7 +59,7 @@ function Header({ studentName, studentId }) {
                     <div className='w-full px-10'>
                         <h2
                             className="text-lg font-black tracking-wide h-6"
-                            style={{ fontFamily: "'Arial Black', Arial, sans-serif" }}
+                            style={{ fontFamily: "'Inter', 'Arial Black', Arial, sans-serif", fontWeight: 900 }}
                         >
                             OFFICE OF THE REGISTRAR
                         </h2>
@@ -68,14 +73,14 @@ function Header({ studentName, studentId }) {
                 <div className="w-full px-12 mt-8 text-black flex flex-col gap-2 bg-transparent">
                     {studentName && (
                         <div className="flex items-end gap-2">
-                            <div className="col-span-2 font-bold w-24 tracking-widest text-sm">Name:</div>
-                            <div className="col-span-3 font-semibold col-start-3 border-b-2 border-gray-900 pl-2 w-96 text-md">{studentName}</div>
+                            <div className="col-span-2 font-bold w-28 tracking-widest text-sm" style={{ fontFamily: "'Inter', Arial, sans-serif" }}>Name:</div>
+                            <div className="col-span-3 font-semibold col-start-3 border-b-2 border-gray-900 pl-2 w-96 text-md" style={{ fontFamily: "'Inter', Arial, sans-serif" }}>{studentName}</div>
                         </div>
                     )}
                     {studentId && (
                         <div className="flex items-end gap-2">
-                            <div className="col-span-2 font-bold w-24 tracking-widest text-sm">ID Number.:</div>
-                            <div className="col-span-3 font-semibold col-start-3 border-b-2 border-gray-900 pl-2 w-96 text-md">{studentId}</div>
+                            <div className="col-span-2 font-bold w-28 tracking-widest text-sm" style={{ fontFamily: "'Inter', Arial, sans-serif" }}>ID Number.:</div>
+                            <div className="col-span-3 font-semibold col-start-3 border-b-2 border-gray-900 pl-2 w-96 text-md" style={{ fontFamily: "'Inter', Arial, sans-serif" }}>{studentId}</div>
                         </div>
                     )}
                 </div>
@@ -104,8 +109,6 @@ export default function DownloadMode({ records }) {
     const handleShow = (id) => {
         setHiddenRecords(hiddenRecords.filter(recordId => recordId !== id));
     };
-
-
 
     const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.1, 2));
     const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
@@ -150,6 +153,7 @@ export default function DownloadMode({ records }) {
         setIsDownloading(true);
 
         try {
+            await document.fonts.ready;
             await new Promise(resolve => setTimeout(resolve, 150));
 
             const style = document.createElement("style");
@@ -205,7 +209,7 @@ export default function DownloadMode({ records }) {
             };
 
             // Initialize Page 1 Background
-            drawBackground();
+            drawBackground();9
             let currentY = topBlocked;
 
             // Loop through each card one by one
