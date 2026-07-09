@@ -11,18 +11,20 @@ import Paper from './Paper';
 import PaperContainer from './components/PaperContainer';
 import { Card } from '@/Components/ui/card';
 import AddRecordDialog from './AddRecordDialog';
+import AddStudentInfo from './AddStudentInfo';
 
 export default function Index() {
     const documentRef = useRef(null);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [addingRecord, setAddingRecord] = useState(false);
+    const [addingInfo, setAddingInfo] = useState(false);
 
     const fetchStudentRecord = async () => {
         const { data } = await axios.get(route('permanent-record-student', { id: selectedStudent?.id }));
         return data;
     };
 
-    const { data, isLoading, isFetching } = useQuery({
+    const { data, isLoading } = useQuery({
         queryKey: ['permanent-record-student', selectedStudent?.id],
         queryFn: fetchStudentRecord,
         enabled: !!selectedStudent?.id,
@@ -54,7 +56,7 @@ export default function Index() {
                                     Add Student Records
                                 </Button>
                                 <Button
-                                    onClick={() => setAddingRecord(true)}
+                                    onClick={() => setAddingInfo(true)}
                                     className="px-6 font-semibold"
                                     variant='secondary'
                                 >
@@ -91,7 +93,10 @@ export default function Index() {
                 </Card>
             </div>
             {addingRecord && (
-                <AddRecordDialog student={selectedStudent} open={addi   ngRecord} onClose={setAddingRecord} />
+                <AddRecordDialog student={selectedStudent} open={addingRecord} onClose={setAddingRecord} />
+            )}
+            {addingInfo && (
+                <AddStudentInfo student={selectedStudent} open={addingInfo} onClose={setAddingInfo} />
             )}
         </div>
     );

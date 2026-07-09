@@ -13,7 +13,7 @@ import { useForm } from '@inertiajs/react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query';
 
-export default function AddRecordDialog({ student, open, onClose, refetch }) {
+export default function AddRecordDialog({ student, open, onClose }) {
     const [submitting, setSubmitting] = useState(false);
     const queryClient = useQueryClient(); // Initialize it
 

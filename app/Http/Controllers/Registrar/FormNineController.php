@@ -5,8 +5,12 @@ namespace App\Http\Controllers\Registrar;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicRecord;
 use App\Models\EnrolledStudent;
+use App\Models\PreliminaryEducation;
 use App\Models\StudentGrade;
 use App\Models\User;
+use App\Models\UserInformation;
+use App\Models\UserParents;
+use App\Models\UserPresentAddress;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -229,5 +233,142 @@ class FormNineController extends Controller
 
         // 4. Return the response back to Inertia
         return back()->with('success', 'Academic record and subjects added successfully.');
+    }
+
+    public function addInfo(Request $request, $userId)
+    {
+        // Optional but recommended: Validate the incoming request here
+        /*
+        $request->validate([
+            'gender' => 'required|string',
+            'regionCode' => 'required|string',
+            // ... other validations
+        ]);
+        */
+
+        DB::beginTransaction();
+
+        try {
+            // 1. Format the combined Present Address
+            // array_filter removes empty values (e.g., if 'street' was left blank)
+            $addressParts = array_filter([
+                $request->street,
+                $request->barangay,
+                $request->city,
+                $request->province,
+                $request->region
+            ]);
+
+            // Joins the available parts with a comma and space
+            $combinedAddress = implode(', ', $addressParts);
+
+            // 2. Save User Information
+            UserInformation::updateOrCreate(
+                ['user_id' => $userId],
+                [
+                    'gender' => $request->gender,
+                    'civil_status' => $request->civil_status,
+                    'birthday' => $request->birthday,
+                    'contact_number' => $request->contact_number,
+                    'present_address' => $combinedAddress,
+                    'zip_code' => $request->zipCode,
+                    // Note: first_name, last_name, etc., should be handled here if passed in the form, 
+                    // otherwise they remain unchanged if they already exist.
+                ]
+            );
+
+            // 3. Save Detailed Present Address
+            UserPresentAddress::updateOrCreate(
+                ['user_id' => $userId],
+                [
+                    'street' => $request->street,
+                    'barangay' => $request->barangay,
+                    'barangay_code' => $request->barangayCode,
+                    'city' => $request->city,
+                    'city_code' => $request->cityCode,
+                    'province' => $request->province,
+                    'province_code' => $request->provinceCode,
+                    'region' => $request->region,
+                    'region_code' => $request->regionCode,
+                    'zip_code' => $request->zipCode,
+                ]
+            );
+
+            // 4. Save Parents Information
+            UserParents::updateOrCreate(
+                ['user_id' => $userId],
+                $request->only([
+                    'father_first_name',
+                    'father_last_name',
+                    'father_middle_name',
+                    'father_suffix',
+                    // father_contact_number is in your model, ensure you add it to your React form if needed
+                    'mother_first_name',
+                    'mother_maiden_last_name',
+                    'mother_middle_name',
+                    'mother_suffix',
+                    // mother_contact_number is in your model as well
+                ])
+            );
+
+            // 5. Save Preliminary Education
+            PreliminaryEducation::updateOrCreate(
+                ['user_id' => $userId],
+                $request->only([
+                    'elementary_name',
+                    'elementary_address',
+                    'elementary_year',
+                    'secondary_name',
+                    'secondary_address',
+                    'secondary_year',
+                ])
+            );
+
+            // Commit the transaction if everything is successful
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Student information added successfully.'
+            ], 200);
+        } catch (\Exception $e) {
+            // Rollback all database changes if an error occurs
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save student information.',
+                'error' => $e->getMessage() // You can remove this in production for security
+            ], 500);
+        }
+    }
+
+    public function getInfo($userId)
+    {
+        // 'with' eagerly loads the relationships we defined in the User model
+        $student = User::with([
+            'information',
+            'presentAddress',
+            'parents',
+            'preliminaryEducation'
+        ])->find($userId);
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student not found.'
+            ], 404);
+        }
+
+        // Return the data structured exactly how the React component expects to read it
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'information' => $student->information,
+                'address'     => $student->presentAddress,
+                'parents'     => $student->parents,
+                'education'   => $student->preliminaryEducation,
+            ]
+        ], 200);
     }
 }

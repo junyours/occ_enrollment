@@ -120,4 +120,20 @@ class User extends Authenticatable
             [NstpSectionSchedule::class, NstpSection::class]
         );
     }
+
+    public function presentAddress()
+    {
+        // Make sure the class name matches what you provided earlier
+        return $this->hasOne(UserPresentAddress::class, 'user_id');
+    }
+
+    public function parents()
+    {
+        return $this->hasOne(UserParents::class, 'user_id');
+    }
+
+    public function preliminaryEducation()
+    {
+        return $this->hasOne(PreliminaryEducation::class, 'user_id');
+    }
 }
