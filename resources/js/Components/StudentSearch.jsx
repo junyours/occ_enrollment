@@ -20,7 +20,7 @@ function useDebounce(value, delay) {
     return debouncedValue;
 }
 
-export default function StudentSearch({ onSelect }) {
+export default function StudentSearch({ onSelect, props }) {
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
@@ -42,8 +42,7 @@ export default function StudentSearch({ onSelect }) {
 
         document.addEventListener("mousedown", handleClickOutside);
 
-        return () =>
-            document.removeEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     // TanStack Query
@@ -108,7 +107,7 @@ export default function StudentSearch({ onSelect }) {
     };
 
     return (
-        <div ref={wrapperRef} className="relative w-full max-w-md">
+        <div ref={wrapperRef} className="relative w-full" {...props}>
             <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <Search className="h-4 w-4 text-muted-foreground" />

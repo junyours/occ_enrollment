@@ -49,6 +49,6 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::patch('/set-faculty-role', [UserController::class, 'updateRole']);
 });
 
-Route::middleware(['auth', 'maintenance', 'role:registrar'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:registrar,evaluator,program_head'])->group(function () {
     Route::post('/search-student', [UserController::class, 'searchStudent'])->name('search-student');
 });

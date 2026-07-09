@@ -7,6 +7,7 @@ use App\Models\EnrolledStudent;
 use App\Models\Faculty;
 use App\Models\Room;
 use App\Models\SchoolYear;
+use App\Models\StudentGrade;
 use App\Models\Subject;
 use App\Models\SubjectSecondarySchedule;
 use App\Models\User;
@@ -460,19 +461,147 @@ class EnrollmentClassSchedulingController extends Controller
         $search = trim($request->id_no);
 
         $student = User::where('user_role', 'student')
-            ->where('user_id_no', 'LIKE', "%{$search}%") // match anywhere
-            ->with([
-                'information',
-                'Enrollments.Subjects.YearSectionSubjects.Subject',
-                'Enrollments.YearSection.SchoolYear.Semester',
-            ])
-            ->first();
+            ->where('user_id_no', 'LIKE', "%{$search}%")->first();
 
         if (!$student) {
             return response()->json([]);
         }
 
-        return $student;
+        $info = User::where('id', $student->id)
+            ->with([
+                'Information' => function ($query) {
+                    $query->select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'gender', 'birthday', 'civil_status', 'contact_number', 'present_address as address');
+                },
+                'Parent',
+            ])
+            ->select('id', 'user_id_no')
+            ->first();
+
+        // 1. Get and transform current enrollment records (Existing)
+        $enrollmentRecord = EnrolledStudent::where('student_id', $student->id)
+            ->with([
+                'Subjects.YearSectionSubjects.Subject',
+                'YearSection',
+                'YearSection.SchoolYear.Semester',
+                'YearSection.Course',
+            ])
+            ->select('enrolled_students.id', 'student_id', 'year_section_id')
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->whereNot('year_section.school_year_id', '=', 1)
+            ->get();
+
+        $transformedData = $enrollmentRecord->map(function ($record) {
+            $schoolYear = $record->YearSection?->SchoolYear;
+            $semesterName = $schoolYear?->Semester?->semester_name ?? 'N/A';
+            $schoolYearString = $schoolYear ? "{$schoolYear->start_year}-{$schoolYear->end_year}" : 'N/A';
+            $programName = $record->YearSection?->Course?->course_name ?? 'N/A';
+
+            $subjects = $record->Subjects->map(function ($enrolledSubject) {
+                $subjectDetails = $enrolledSubject->YearSectionSubjects?->Subject;
+                $midterm = $enrolledSubject->midterm_grade;
+                $final = $enrolledSubject->final_grade;
+
+                $finalComputedGrade = computeFinalGrade($midterm, $final);
+
+                return [
+                    'subject_code'      => $subjectDetails?->subject_code,
+                    'descriptive_title' => $subjectDetails?->descriptive_title,
+                    'grade'             => $finalComputedGrade,
+                    'credit_units'      => $subjectDetails?->credit_units,
+                ];
+            })->values()->toArray();
+
+            return [
+                'semester'   => $semesterName,
+                'schoolyear' => $schoolYearString,
+                'program'    => $programName,
+                'school'     => 'Opol Community College',
+                'subjects'   => $subjects,
+            ];
+        })->values()->toArray();
+
+        // 2. Get and transform old grading records (Existing)
+        $oldData = StudentGrade::where('id_no', $info->user_id_no)->get();
+
+        $transformedOldData = $oldData->groupBy(function ($grade) {
+            return $grade->school_year . '|' . $grade->semester . '|' . $grade->program;
+        })->map(function ($group) {
+            $firstItem = $group->first();
+            $subjects = $group->map(function ($item) {
+                return [
+                    'subject_code'      => $item->subject_code,
+                    'descriptive_title' => $item->subject,
+                    'grade'             => $item->grade,
+                    'credit_units'      => $item->units,
+                ];
+            })->values()->toArray();
+
+            return [
+                'semester'   => ucfirst($firstItem->semester),
+                'schoolyear' => $firstItem->school_year,
+                'program'    => $firstItem->program . ($firstItem->major ? " MAJOR IN {$firstItem->major}" : ''),
+                'school'     => 'Opol Community College',
+                'subjects'   => $subjects,
+            ];
+        })->values()->toArray();
+
+        // 3. Get and transform the NEW Academic Records
+        // Make sure to import App\Models\AcademicRecord at the top of your controller
+        $academicRecords = \App\Models\AcademicRecord::where('student_id', $student->id)
+            ->with('subjects') // Eager load the subjects relationship
+            ->get();
+
+        $transformedAcademicRecords = $academicRecords->map(function ($record) {
+            // Format the semester to match existing outputs (e.g., 'First', 'Second', 'Summer')
+            $formattedSemester = ucfirst($record->semester);
+
+            $subjects = $record->subjects->map(function ($subject) {
+                return [
+                    'subject_code'      => $subject->subject_code,
+                    'descriptive_title' => $subject->descriptive_title,
+                    'grade'             => $subject->grade,
+                    'credit_units'      => $subject->units, // Note: your schema called it 'units', but we output 'credit_units' to match the other arrays
+                ];
+            })->values()->toArray();
+
+            return [
+                'semester'   => $formattedSemester,
+                'schoolyear' => $record->school_year,
+                'program'    => $record->program . ($record->major ? " MAJOR IN {$record->major}" : ''),
+                'school'     => $record->school_name,
+                'subjects'   => $subjects,
+            ];
+        })->values()->toArray();
+
+
+        // 4. Merge ALL data together: Old Data + Enrollment Data + Academic Records
+        $combinedData = array_merge($transformedOldData, $transformedData, $transformedAcademicRecords);
+
+        // 5. Sort chronologically by School Year, then by Semester
+        $sortedCombinedData = collect($combinedData)->sort(function ($a, $b) {
+            $semesterWeights = [
+                'First'  => 3,
+                '1st'    => 3,
+                'Second' => 2,
+                '2nd'    => 2,
+                'Summer' => 1,
+            ];
+
+            // Descending School Year
+            $yearComparison = strcmp($b['schoolyear'], $a['schoolyear']);
+
+            // If same School Year, sort semesters ascending
+            if ($yearComparison === 0) {
+                $semA = $semesterWeights[ucfirst(strtolower($a['semester']))] ?? 4;
+                $semB = $semesterWeights[ucfirst(strtolower($b['semester']))] ?? 4;
+
+                return $semA <=> $semB;
+            }
+
+            return $yearComparison;
+        })->values(); // Reset array keys after sorting
+
+        return response()->json(['records' => $sortedCombinedData]);
     }
 
     public function searchSubjects(Request $request)

@@ -50,7 +50,7 @@ export default function CopyButton({ text, size = "sm", className, ...props }) {
                 ) : (
                     <Copy
                         size={currentSize.icon}
-                        className="text-gray-500"
+                        className=""
                     />
                 )}
             </div>

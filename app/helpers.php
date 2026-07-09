@@ -59,3 +59,20 @@ if (!function_exists('log_activity')) {
         ]);
     }
 }
+
+if (!function_exists('computeFinalGrade')) {
+    function computeFinalGrade($midterm, $final){
+        if (!is_null($midterm) && !is_null($final)) {
+            $average = ($midterm + $final) / 2;
+            
+            if ($average >= 3.0 && $average <= 3.09) {
+                $averageFormat = 3.0;
+            } elseif ($average >= 4.0) {
+                $averageFormat = 5.0;
+            } else {
+                $averageFormat = $average;
+            }
+            return number_format($averageFormat, 1);
+        }
+    }
+}
