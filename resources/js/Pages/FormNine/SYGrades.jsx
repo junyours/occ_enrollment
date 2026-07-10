@@ -62,17 +62,26 @@ export default function SYGrades({ data, className }) {
                                         className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full'
                                     />
                                 </td>
-                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>{subject.grade}</td>
+                                <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>
+                                    <input
+                                        defaultValue={subject.grade}
+                                        type="text"
+                                        className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full text-center'
+                                    />
+                                </td>
                                 <td className='text-xs text-center'>
                                     <input
-                                        id={`re-exam${subject.descriptive_title}`}
                                         defaultValue={'-'}
                                         type="text"
                                         className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full text-center'
                                     />
                                 </td>
                                 <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>
-                                    {!noGrade ? dropOrfail ? '0' : parseFloat(subject.credit_units) : ''}
+                                    <input
+                                        defaultValue={!noGrade ? dropOrfail ? '0' : parseFloat(subject.credit_units) : ''}
+                                        type="text"
+                                        className='flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full text-center'
+                                    />
                                 </td>
                             </tr>
                         )

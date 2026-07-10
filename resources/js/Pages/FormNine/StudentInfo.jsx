@@ -4,8 +4,6 @@ import { formatName } from '@/Lib/InfoUtils';
 
 export default function StudentInfo({ info, lastRecord }) {
     const { information, parent, preliminary_education } = info;
-    console.log(preliminary_education);
-
 
     return (
         <div className='w-full max-w-4xl mx-auto font-sans text-black font-semibold'>
