@@ -1,106 +1,67 @@
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Download, Ellipsis, FileStack, Pencil, Trash } from 'lucide-react';
-import React, { useState } from 'react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
+import { Badge } from "@/Components/ui/badge";
+import { Progress } from "@/Components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
-
+import { cn } from "@/Lib/Utils";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
+    Users, BookOpen, UserPlus, FileStack, Pencil,
+    Trash, Download, MoreVertical, FolderOpen, Search, ArrowUpDown
+} from 'lucide-react';
+import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/Components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 
 function YearLevelSections({
-    yearLevel,
-    editing,
-    data,
-    sectionOnChange,
-    errors,
-    maxStudentsOnChange,
-    setEditing,
-    reset,
-    forSchoolYear = false,
-    courseId,
-    setData,
-    submitEdit,
-    post,
-    getEnrollmentCourseSection,
-    setIsDownloading,
-    schoolYearId,
-    schoolYear,
-    allowEnrollment
+    yearLevel, editing, data, sectionOnChange, errors, maxStudentsOnChange,
+    setEditing, reset, clearErrors, forSchoolYear = false, courseId, setData,
+    submitEdit, post, getEnrollmentCourseSection, setIsDownloading,
+    schoolYearId, schoolYear, allowEnrollment
 }) {
     const user = usePage().props.auth.user;
     const userRole = user.user_role;
-
-    const { toast } = useToast()
+    const { toast } = useToast();
 
     const [selectedSection, setSelectedSection] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortOrder, setSortOrder] = useState("name-asc");
 
     const deleteSection = (id) => {
         post(route('delete.section', { id: id }), {
             onSuccess: async () => {
-                toast({
-                    description: "Section deleted successfully.",
-                    variant: "success",
-                });
-
+                toast({ description: "Section deleted successfully.", variant: "success" });
                 await getEnrollmentCourseSection();
                 setSelectedSection(null);
             },
             onError: (errors) => {
-                if (errors.curriculum_id) {
-                    toast({
-                        description: errors.curriculum_id,
-                        variant: "destructive",
-                    });
-                }
+                if (errors.curriculum_id) toast({ description: errors.curriculum_id, variant: "destructive" });
             },
             preserveScroll: true,
         });
     };
 
     const handleDownload = async (yearlevel, section) => {
-        setIsDownloading(true); // open your modal
-
+        setIsDownloading(true);
         try {
             const response = await axios.get(
-                route('download.section.students', {
-                    schoolYearId,
-                    courseId,
-                    yearlevel,
-                    section,
-                }),
-                {
-                    responseType: 'blob',
-                }
+                route('download.section.students', { schoolYearId, courseId, yearlevel, section }),
+                { responseType: 'blob' }
             );
-
             const contentDisposition = response.headers['content-disposition'];
             let filename = 'students.xlsx';
-
             if (contentDisposition) {
                 const match = contentDisposition.match(/filename="?([^"]+)"?/);
-                if (match) {
-                    filename = match[1];
-                }
+                if (match) filename = match[1];
             }
-
-            const blob = new Blob([response.data], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            });
-
+            const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -109,270 +70,331 @@ function YearLevelSections({
             a.click();
             a.remove();
         } catch (err) {
-            toast({
-                description: "Failed to download file.",
-                variant: "destructive",
-            });
+            toast({ description: "Failed to download file.", variant: "destructive" });
         } finally {
-            setTimeout(() => setIsDownloading(false), 500); // close modal
+            setTimeout(() => setIsDownloading(false), 500);
         }
     };
 
+    const filteredAndSortedSections = useMemo(() => {
+        let result = yearLevel.year_section.filter(sec =>
+            sec.section.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        result.sort((a, b) => {
+            if (sortOrder === "name-asc") return a.section.localeCompare(b.section);
+            if (sortOrder === "students-desc") return b.student_count - a.student_count;
+            if (sortOrder === "capacity-desc") {
+                return (b.student_count / b.max_students) - (a.student_count / a.max_students);
+            }
+            return 0;
+        });
+        return result;
+    }, [yearLevel.year_section, searchTerm, sortOrder]);
+
+    const getCapacityDetails = (enrolled, max) => {
+        const percentage = Math.min((enrolled / max) * 100, 100);
+        const overcap = enrolled > max;
+
+        let colorClass = "bg-green-500";
+        let badgeText = "Available";
+        let badgeVariant = "secondary";
+
+        if (overcap) {
+            colorClass = "bg-purple-500";
+            badgeText = "Over Capacity";
+            badgeVariant = "destructive";
+        } else if (percentage === 100) {
+            colorClass = "bg-red-500";
+            badgeText = "Full";
+            badgeVariant = "destructive";
+        } else if (percentage >= 80) {
+            colorClass = "bg-yellow-500";
+            badgeText = "Nearly Full";
+            badgeVariant = "outline";
+        }
+
+        return { percentage, colorClass, badgeText, badgeVariant };
+    };
+
+    if (yearLevel.year_section.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center p-8 text-center bg-muted/10 rounded-lg">
+                <FolderOpen className="h-12 w-12 text-muted-foreground/50 mb-3" />
+                <h4 className="text-lg font-medium text-foreground">No Sections Yet</h4>
+                <p className="text-sm text-muted-foreground mb-4">Create your first section for this year level to start enrolling students.</p>
+                {/* Note: The main card header already has an Add Section button for authorized users */}
+            </div>
+        );
+    }
+
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="w-min">Section</TableHead>
-                    <TableHead className="w-max">Students</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {yearLevel.year_section.map((section, index) => (
-                    <TableRow key={index}>
-                        {(editing && data.id == section.id) ? (
-                            <>
-                                <TableCell>
-                                    <Input
-                                        onChange={sectionOnChange}
-                                        className={`${errors.section && "border-red-500"} w-14`}
-                                        value={data.section}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <Input
-                                        value={data.max_students}
-                                        onChange={maxStudentsOnChange}
-                                        className={`${errors.max_students && "border-red-500"} w-14`}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    <div className="w-full flex gap-2 justify-end">
-                                        <Button variant='outline' onClick={() => {
-                                            setEditing(false);
-                                            reset();
-                                            clearErrors();
-                                        }}>
-                                            Cancel
-                                        </Button>
-                                        <Button onClick={submitEdit} disabled={!data.section || !data.max_students}>Done</Button>
+        <TooltipProvider delayDuration={300}>
+            <div className="space-y-4 p-4 sm:p-0">
+                {/* Desktop Table View */}
+                <div className="hidden md:block rounded-md border bg-background">
+                    <Table>
+                        <TableHeader className="bg-muted/50">
+                            <TableRow>
+                                <TableHead className="w-[120px] font-semibold">Section</TableHead>
+                                <TableHead className="font-semibold">Capacity</TableHead>
+                                <TableHead className="text-right font-semibold">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredAndSortedSections.map((section) => {
+                                const isRowEditing = editing && data.id === section.id;
+                                const { percentage, colorClass, badgeText, badgeVariant } = getCapacityDetails(section.student_count, section.max_students);
+
+                                if (isRowEditing) {
+                                    return (
+                                        <TableRow key={section.id} className="bg-muted/30">
+                                            <TableCell>
+                                                <Input onChange={sectionOnChange} name="section" className={cn("w-20", errors.section && "border-red-500")} value={data.section} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm text-muted-foreground">Max:</span>
+                                                    <Input name="max_students" value={data.max_students} onChange={maxStudentsOnChange} className={cn("w-20", errors.max_students && "border-red-500")} />
+                                                </div>
+                                            </TableCell>
+                                            <TableCell></TableCell>
+                                            <TableCell>
+                                                <div className="flex justify-end gap-2">
+                                                    <Button variant='outline' size="sm" onClick={() => { setEditing(false); reset(); clearErrors(); }}>
+                                                        Cancel
+                                                    </Button>
+                                                    <Button size="sm" onClick={submitEdit} disabled={!data.section || !data.max_students}>
+                                                        Save
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                }
+
+                                return (
+                                    <TableRow key={section.id} className="hover:bg-muted/30 transition-colors group">
+                                        <TableCell className="font-semibold text-base">{section.section}</TableCell>
+                                        <TableCell>
+                                            <div className="space-y-1.5 pr-8">
+                                                <div className="flex justify-between text-xs text-muted-foreground w-full">
+                                                    <span>{section.student_count} / {section.max_students}</span>
+                                                    <span className="font-medium">{Math.round((section.student_count / section.max_students) * 100)}%</span>
+                                                </div>
+                                                <Progress value={percentage} indicatorColor={colorClass} className="h-2" />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-1 opacity-100 sm:opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <ActionButtons
+                                                    section={section} yearLevel={yearLevel} courseId={courseId} schoolYear={schoolYear}
+                                                    forSchoolYear={forSchoolYear} allowEnrollment={allowEnrollment} userRole={userRole}
+                                                    setEditing={setEditing} setData={setData} setSelectedSection={setSelectedSection} handleDownload={handleDownload}
+                                                />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="md:hidden grid gap-4">
+                    {filteredAndSortedSections.map((section) => {
+                        const isRowEditing = editing && data.id === section.id;
+                        const { percentage, colorClass, badgeText, badgeVariant } = getCapacityDetails(section.student_count, section.max_students);
+
+                        if (isRowEditing) {
+                            return (
+                                <div key={section.id} className="border rounded-lg p-4 bg-muted/20 space-y-4">
+                                    <div>
+                                        <label className="text-sm font-medium mb-1 block">Section Name</label>
+                                        <Input onChange={sectionOnChange} name="section" className={cn("w-full", errors.section && "border-red-500")} value={data.section} />
                                     </div>
-                                </TableCell>
-                            </>
-                        ) : (
-                            <>
-                                <TableCell className="font-medium">{section.section}</TableCell>
-                                <TableCell
-                                    className={`p-2 ${section.student_count > section.max_students
-                                        ? "text-red-600 font-bold" // Overload
-                                        : section.student_count === section.max_students
-                                            ? "text-green-600 font-bold" // Complete
-                                            : section.student_count + 5 >= section.max_students
-                                            && "text-orange-400 font-bold" // Almost complete (87.5% or higher)
-                                        }`}
-                                >
-                                    {section.student_count}/{section.max_students}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    {(userRole == "program_head" || userRole == "registrar") && (
-                                        <>
-                                            {forSchoolYear ? (
-                                                <Link href={route('school-year.view.class', {
-                                                    schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
-                                                    semester: schoolYear.semester.semester_name,
-                                                    hashedCourseId: courseId,
-                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                }) + `?section=${section.section}`}>
-                                                    <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
-                                                </Link>
-                                            ) : (
-                                                <Link href={route('enrollment.view.class', {
-                                                    id: courseId,
-                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                }) + `?section=${section.section}`}>
-                                                    <Button className="text-purple-500 h-auto py-0" variant="link">Class</Button>
-                                                </Link>
-                                            )}
-                                        </>
-                                    )}
+                                    <div>
+                                        <label className="text-sm font-medium mb-1 block">Max Students</label>
+                                        <Input name="max_students" value={data.max_students} onChange={maxStudentsOnChange} className={cn("w-full", errors.max_students && "border-red-500")} />
+                                    </div>
+                                    <div className="flex gap-2 pt-2">
+                                        <Button variant='outline' className="flex-1" onClick={() => { setEditing(false); reset(); clearErrors(); }}>Cancel</Button>
+                                        <Button className="flex-1" onClick={submitEdit} disabled={!data.section || !data.max_students}>Save</Button>
+                                    </div>
+                                </div>
+                            );
+                        }
 
-                                    {forSchoolYear ? (
-                                        <Link href={route('school-year.view.students', {
-                                            schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
-                                            semester: schoolYear.semester.semester_name,
-                                            hashedCourseId: courseId,
-                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                        }) + `?section=${section.section}`}>
-                                            <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
-                                        </Link>
-                                    ) : (
-                                        <Link href={route('enrollment.view.students', {
-                                            id: courseId,
-                                            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                        }) + `?section=${section.section}`}>
-                                            <Button className="text-green-500 h-auto py-0" variant="link">Students</Button>
-                                        </Link>
-                                    )}
-
-                                    {(!forSchoolYear) ? (
-                                        allowEnrollment ? (
-                                            <Link
-                                                href={route('enrollment.view.enroll-student', {
-                                                    id: courseId,
-                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                }) + `?section=${section.section}`}
-                                            >
-                                                <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">
-                                                    Enroll Student
-                                                </Button>
-                                            </Link>
-                                        ) : (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <span>
-                                                        <Button
-                                                            disabled
-                                                            className="text-blue-500 hidden sm:inline h-auto py-0 pointer-events-none"
-                                                            variant="link"
-                                                        >
-                                                            Enroll Student
-                                                        </Button>
-                                                    </span>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Enrollment is not allowed at this time</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        )
-                                    ) : (
-                                        userRole === 'registrar' && (
-                                            <>
-                                                {/* allowEnrollment ? (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <span>
-                                                            <Button
-                                                                disabled
-                                                                className="text-blue-500 hidden sm:inline h-auto py-0 pointer-events-none"
-                                                                variant="link"
-                                                            >
-                                                                Enroll Student
-                                                            </Button>
-                                                        </span>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Enrollment is not allowed at this time</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                                ) : (
-                                                <Link>
-                                                    <Button className="text-blue-500 hidden sm:inline h-auto py-0" variant="link">
-                                                        Enroll Student
-                                                    </Button>
-                                                </Link>
-                                                ) */}
-                                            </>
-                                        )
-                                    )}
-
-                                    {(userRole == "registrar" || userRole == "program_head") && (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant='ghost' className=''>
-                                                    <Ellipsis />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent align='start' className="w-36 space-y-2 flex flex-col">
-                                                <Link href={route('enrollment.view.cor', {
-                                                    id: courseId,
-                                                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
-                                                }) + `?section=${section.section}`}>
-                                                    <Button
-                                                        disabled={!section.student_count}
-                                                        variant='outline'
-                                                        className='flex justify-between'>
-                                                        COR LIST <ArrowRight className="text-violet-500" />
-                                                    </Button>
-                                                </Link>
-                                                <Button
-                                                    disabled={!section.student_count}
-                                                    onClick={() => handleDownload(section.year_level_id, section.section)}
-                                                    variant='outline'
-                                                    className='flex justify-start'>
-                                                    Students <Download className="text-orange-500" />
-                                                </Button>
-                                                {userRole == "program_head" && (
-                                                    <>
-                                                        <Button
-                                                            variant='outline'
-                                                            className='flex justify-start'
-                                                            onClick={() => {
-                                                                setEditing(true)
-                                                                setData('id', section.id)
-                                                                setData('year_level_id', section.year_level_id)
-                                                                setData('section', section.section)
-                                                                setData('max_students', section.max_students)
-                                                            }}
-                                                        >
-                                                            Edit <Pencil className="text-green-500" />
-                                                        </Button>
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <Button
-                                                                    disabled={!!section.student_count}
-                                                                    variant="outline"
-                                                                    className="flex justify-start"
-                                                                    onClick={() => setSelectedSection(section.id)}
-                                                                >
-                                                                    Delete <Trash className="text-red-500" />
-                                                                </Button>
-                                                            </AlertDialogTrigger>
-
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>
-                                                                        Delete this section?
-                                                                    </AlertDialogTitle>
-
-                                                                    <AlertDialogDescription>
-                                                                        This action cannot be undone. This will permanently delete
-                                                                        the section and its related data.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>
-                                                                        Cancel
-                                                                    </AlertDialogCancel>
-
-                                                                    <AlertDialogAction
-                                                                        className="bg-red-500 hover:bg-red-600"
-                                                                        onClick={() => deleteSection(selectedSection)}
-                                                                    >
-                                                                        Delete
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
-                                                    </>
-                                                )}
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
-                                </TableCell>
-                            </>
-                        )}
-                    </TableRow>
-                ))}
-
-                {yearLevel.year_section.length < 1 &&
-                    <TableRow>
-                        <TableCell className="font-semibold">No section </TableCell>
-                    </TableRow>
-                }
-            </TableBody>
-        </Table>
-    )
+                        return (
+                            <div key={section.id} className="border rounded-lg p-4 bg-background shadow-sm hover:shadow-md transition-all">
+                                <div className="flex justify-between items-start mb-3">
+                                    <h4 className="font-bold text-lg">{section.section}</h4>
+                                    <Badge variant={badgeVariant} className={cn(badgeVariant === "outline" && "text-yellow-600 border-yellow-600")}>
+                                        {badgeText}
+                                    </Badge>
+                                </div>
+                                <div className="space-y-1 mb-4">
+                                    <div className="flex justify-between text-sm text-muted-foreground">
+                                        <span>{section.student_count} / {section.max_students} Students</span>
+                                        <span className="font-medium">{Math.round((section.student_count / section.max_students) * 100)}%</span>
+                                    </div>
+                                    <Progress value={percentage} indicatorColor={colorClass} className="h-2" />
+                                </div>
+                                <div className="flex flex-wrap gap-2 pt-2 border-t border-muted">
+                                    <ActionButtons
+                                        section={section} yearLevel={yearLevel} courseId={courseId} schoolYear={schoolYear}
+                                        forSchoolYear={forSchoolYear} allowEnrollment={allowEnrollment} userRole={userRole}
+                                        setEditing={setEditing} setData={setData} setSelectedSection={setSelectedSection} handleDownload={handleDownload}
+                                        mobile={true}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </TooltipProvider>
+    );
 }
 
-export default YearLevelSections
+// Extracted Action Buttons to reduce visual clutter in the main mapping logic
+function ActionButtons({ section, yearLevel, courseId, schoolYear, forSchoolYear, allowEnrollment, userRole, setEditing, setData, setSelectedSection, handleDownload, mobile = false }) {
+
+    // Shared route generation
+    const getRoute = (baseRoute) => {
+        if (forSchoolYear) {
+            return route(`school-year.view.${baseRoute}`, {
+                schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
+                semester: schoolYear.semester.semester_name,
+                hashedCourseId: courseId,
+                yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+            }) + `?section=${section.section}`;
+        }
+        return route(`enrollment.view.${baseRoute}`, {
+            id: courseId,
+            yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+        }) + `?section=${section.section}`;
+    };
+
+    const iconClass = "h-4 w-4";
+    const btnClass = mobile ? "flex-1 justify-center" : "h-8 w-8 p-0";
+
+    return (
+        <>
+            {(userRole === "program_head" || userRole === "registrar") && (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Link href={getRoute('class')} className={cn(mobile && "flex-1")}>
+                            <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-purple-600 hover:text-purple-700 hover:bg-purple-50", btnClass)}>
+                                <BookOpen className={iconClass} /> {mobile && <span className="ml-2 text-xs">Class</span>}
+                            </Button>
+                        </Link>
+                    </TooltipTrigger>
+                    {!mobile && <TooltipContent>View Class</TooltipContent>}
+                </Tooltip>
+            )}
+
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Link href={getRoute('students')} className={cn(mobile && "flex-1")}>
+                        <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-green-600 hover:text-green-700 hover:bg-green-50", btnClass)}>
+                            <Users className={iconClass} /> {mobile && <span className="ml-2 text-xs">Students</span>}
+                        </Button>
+                    </Link>
+                </TooltipTrigger>
+                {!mobile && <TooltipContent>View Students</TooltipContent>}
+            </Tooltip>
+
+            {!forSchoolYear && (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        {allowEnrollment ? (
+                            <Link href={getRoute('enroll-student')} className={cn(mobile && "flex-1")}>
+                                <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-blue-600 hover:text-blue-700 hover:bg-blue-50", btnClass)}>
+                                    <UserPlus className={iconClass} /> {mobile && <span className="ml-2 text-xs">Enroll</span>}
+                                </Button>
+                            </Link>
+                        ) : (
+                            <div className={cn(mobile && "flex-1 flex")}>
+                                <Button disabled variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-muted-foreground", btnClass)}>
+                                    <UserPlus className={iconClass} /> {mobile && <span className="ml-2 text-xs">Enroll</span>}
+                                </Button>
+                            </div>
+                        )}
+                    </TooltipTrigger>
+                    {!mobile && <TooltipContent>{allowEnrollment ? "Enroll Student" : "Enrollment not allowed at this time"}</TooltipContent>}
+                </Tooltip>
+            )}
+
+            {(userRole === "registrar" || userRole === "program_head") && (
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn(btnClass)}>
+                            <MoreVertical className={iconClass} /> {mobile && <span className="ml-2 text-xs">More</span>}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-48 p-2">
+                        <div className="space-y-1">
+                            <Link href={getRoute('cor')}>
+                                <Button disabled={!section.student_count} variant="ghost" className="w-full justify-start text-sm">
+                                    <FileStack className="mr-2 h-4 w-4 text-violet-500" /> COR List
+                                </Button>
+                            </Link>
+                            <Button
+                                disabled={!section.student_count}
+                                onClick={() => handleDownload(section.year_level_id, section.section)}
+                                variant="ghost" className="w-full justify-start text-sm"
+                            >
+                                <Download className="mr-2 h-4 w-4 text-orange-500" /> Download Data
+                            </Button>
+
+                            {userRole === "program_head" && (
+                                <>
+                                    <div className="h-px bg-muted my-1 w-full" />
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start text-sm"
+                                        onClick={() => {
+                                            setEditing(true);
+                                            setData('id', section.id);
+                                            setData('year_level_id', section.year_level_id);
+                                            setData('section', section.section);
+                                            setData('max_students', section.max_students);
+                                        }}
+                                    >
+                                        <Pencil className="mr-2 h-4 w-4 text-green-500" /> Edit Section
+                                    </Button>
+
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button disabled={!!section.student_count} variant="ghost" className="w-full justify-start text-sm text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setSelectedSection(section.id)}>
+                                                <Trash className="mr-2 h-4 w-4" /> Delete Section
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Delete this section?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the section and its related data.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={() => deleteSection(selectedSection)}>
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </>
+                            )}
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            )}
+        </>
+    );
+}
+
+export default YearLevelSections;

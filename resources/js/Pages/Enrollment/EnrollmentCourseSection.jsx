@@ -192,7 +192,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                                 )}
                             </div>
                             <Separator />
-                            <CardContent className="grid gap-4">
+                            <CardContent className="grid gap-4 pt-6">
                                 <YearLevelSections
                                     yearLevel={yearLevel}
                                     editing={editing}
