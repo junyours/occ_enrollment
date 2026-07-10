@@ -47,7 +47,7 @@ function GradeSignatories({ yearSectionSubjectsId }) {
             id: 'program-head',
             actionLabel: 'Checked by:',
             name: formatName(programHead, { casing: 'upper' }),
-            title: 'Program Head',
+            title: 'Dean',
         },
         {
             id: 'registrar',
