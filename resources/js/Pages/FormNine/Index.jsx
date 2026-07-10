@@ -12,6 +12,7 @@ import PaperContainer from './components/PaperContainer';
 import { Card } from '@/Components/ui/card';
 import AddRecordDialog from './AddRecordDialog';
 import AddStudentInfo from './AddStudentInfo';
+import { Plus, PlusSquareIcon } from 'lucide-react';
 
 export default function Index() {
     const documentRef = useRef(null);
@@ -28,7 +29,6 @@ export default function Index() {
         queryKey: ['permanent-record-student', selectedStudent?.id],
         queryFn: fetchStudentRecord,
         enabled: !!selectedStudent?.id,
-        staleTime: 1000 * 60 * 5,
     });
 
     // --- React-To-Print Setup ---
@@ -53,14 +53,14 @@ export default function Index() {
                                     className="px-6 font-semibold"
                                     variant='secondary'
                                 >
-                                    Add Student Records
+                                    <PlusSquareIcon /> Records
                                 </Button>
                                 <Button
                                     onClick={() => setAddingInfo(true)}
                                     className="px-6 font-semibold"
                                     variant='secondary'
                                 >
-                                    Add Student Info
+                                    <PlusSquareIcon /> Info
                                 </Button>
                             </>
                         )}

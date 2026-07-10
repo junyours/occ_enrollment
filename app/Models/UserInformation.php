@@ -21,6 +21,7 @@ class UserInformation extends Model
         'email_address',
         'present_address',
         'zip_code',
+        'place_of_birth',
         'civil_status',
         'suffix',
         'nationality',
@@ -31,7 +32,6 @@ class UserInformation extends Model
         'created_at',
         'updated_at'
     ];
-
 
     // user_information.user_id → users.id
     public function user()

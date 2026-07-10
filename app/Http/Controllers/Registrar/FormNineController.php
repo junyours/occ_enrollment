@@ -272,6 +272,7 @@ class FormNineController extends Controller
                     'contact_number' => $request->contact_number,
                     'present_address' => $combinedAddress,
                     'zip_code' => $request->zipCode,
+                    'place_of_birth' => $request->place_of_birth,
                     // Note: first_name, last_name, etc., should be handled here if passed in the form, 
                     // otherwise they remain unchanged if they already exist.
                 ]

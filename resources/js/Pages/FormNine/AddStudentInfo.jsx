@@ -32,6 +32,7 @@ import {
 import axios from 'axios';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { cn, formatPhoneNumber } from '@/Lib/Utils';
 
 export default function AddStudentInfo({ student, open, onClose }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +79,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                     civil_status: existingData.information?.civil_status || '',
                     birthday: existingData.information?.birthday || '',
                     contact_number: existingData.information?.contact_number || '',
+                    place_of_birth: existingData.information?.place_of_birth || '',
 
                     // Address Table
                     street: existingData.address?.street || '',
@@ -219,6 +221,29 @@ export default function AddStudentInfo({ student, open, onClose }) {
         }
     };
 
+    const handleContactChange = (e) => {
+        const value = e.target.value.replace(/-/g, '')
+
+        if (value.length <= 11 && isNaN(value)) {
+            return
+        }
+
+        if (value.trim() == '') {
+            setError('contact_number', { error: true });
+            setData('contact_number', '09')
+            return
+        } else if (!value.startsWith('09')) {
+            return;
+        } else if (value.length > 11) {
+            return
+        } else {
+            clearErrors('contact_number');
+        }
+
+        setData('contact_number', value);
+    };
+
+
     const handleClose = () => {
         reset();
         clearErrors();
@@ -227,12 +252,12 @@ export default function AddStudentInfo({ student, open, onClose }) {
 
     const handleSubmit = async (e) => {
         console.log(data);
-        
+
         e.preventDefault();
         clearErrors();
 
         const requiredFields = [
-            'gender', 'civil_status', 'birthday', 'contact_number',
+            'gender', 'civil_status', 'birthday', 'contact_number', 'place_of_birth',
             'regionCode', 'provinceCode', 'cityCode', 'barangayCode',
             'father_first_name', 'father_last_name',
             'mother_first_name', 'mother_maiden_last_name',
@@ -255,7 +280,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
 
         try {
             await axios.post(route('permanent-record.add-student-info', student?.id), data);
-            await queryClient.invalidateQueries({ queryKey: ['studentRecord', student.id] });
+            await queryClient.invalidateQueries({ queryKey: ['permanent-record-student', student.id] });
 
             toast.success('Record saved successfully!');
             handleClose();
@@ -293,57 +318,82 @@ export default function AddStudentInfo({ student, open, onClose }) {
                 <div className={`space-y-8 py-4 transition-opacity duration-200 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
 
                     {/* Basic Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1 items-end">
+                    <div className='flex flex-col gap-4'>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 items-start">
+                            <CFloatingInput
+                                type="date"
+                                name="birthday"
+                                label="Birthday"
+                                value={data.birthday}
+                                onChange={handleChange}
+                                error={errors.birthday}
+                            />
 
-                        <CFloatingInput
-                            name="gender"
-                            label="Gender"
-                            value={data.gender}
-                            onChange={handleChange}
-                            error={errors.gender}
-                        />
+                            <CFloatingInput
+                                type="tel"
+                                name="contact_number"
+                                label="Contact Number"
+                                value={formatPhoneNumber(data.contact_number)}
+                                onChange={handleContactChange}
+                                error={errors.contact_number}
 
-                        {/* Civil Status Container with fixed height to match CFloatingInput */}
-                        <div className="flex flex-col space-y-1 h-[56px] justify-end">
-                            <RequiredLabel>Civil Status</RequiredLabel>
-                            <Select
-                                value={data.civil_status}
-                                onValueChange={(val) => {
-                                    setData('civil_status', val);
-                                    clearErrors('civil_status');
-                                }}
-                            >
-                                {/* Matches the height and border styling of your standard inputs */}
-                                <SelectTrigger className={`h-[40px] ${errors.civil_status ? "border-destructive" : ""}`}>
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Single">Single</SelectItem>
-                                    <SelectItem value="Married">Married</SelectItem>
-                                    <SelectItem value="Widowed">Widowed</SelectItem>
-                                    <SelectItem value="Divorced">Divorced</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.civil_status && <p className="text-xs text-destructive mt-1">{errors.civil_status}</p>}
+                            />
+
+                            <CFloatingInput
+                                className="col-start-3 row-span-2"
+                                type="text"
+                                name="place_of_birth"
+                                label="Place of Birth"
+                                value={data.place_of_birth}
+                                onChange={handleChange}
+                                error={errors.place_of_birth}
+                            />
+
+                            <div className="flex flex-col space-y-1 h-[56px] justify-end">
+                                <RequiredLabel>Gender</RequiredLabel>
+                                <Select
+                                    value={data.gender}
+                                    onValueChange={(val) => {
+                                        setData('gender', val);
+                                        clearErrors('gender');
+                                    }}
+                                >
+                                    {/* Matches the height and border styling of your standard inputs */}
+                                    <SelectTrigger className={`h-[40px] ${errors.civil_status ? "border-destructive" : ""}`}>
+                                        <SelectValue placeholder="Select gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Male">Male</SelectItem>
+                                        <SelectItem value="Female">Female</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.civil_status && <p className="text-xs text-destructive mt-1">{errors.civil_status}</p>}
+                            </div>
+
+                            {/* Civil Status Container with fixed height to match CFloatingInput */}
+                            <div className="flex flex-col space-y-1 h-[56px] justify-end">
+                                <RequiredLabel>Civil Status</RequiredLabel>
+                                <Select
+                                    value={data.civil_status}
+                                    onValueChange={(val) => {
+                                        setData('civil_status', val);
+                                        clearErrors('civil_status');
+                                    }}
+                                >
+                                    {/* Matches the height and border styling of your standard inputs */}
+                                    <SelectTrigger className={`h-[40px] ${errors.civil_status ? "border-destructive" : ""}`}>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Single">Single</SelectItem>
+                                        <SelectItem value="Married">Married</SelectItem>
+                                        <SelectItem value="Widowed">Widowed</SelectItem>
+                                        <SelectItem value="Divorced">Divorced</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.civil_status && <p className="text-xs text-destructive mt-1">{errors.civil_status}</p>}
+                            </div>
                         </div>
-
-                        <CFloatingInput
-                            type="date"
-                            name="birthday"
-                            label="Birthday"
-                            value={data.birthday}
-                            onChange={handleChange}
-                            error={errors.birthday}
-                        />
-
-                        <CFloatingInput
-                            type="tel"
-                            name="contact_number"
-                            label="Contact Number"
-                            value={data.contact_number}
-                            onChange={handleChange}
-                            error={errors.contact_number}
-                        />
                     </div>
 
                     {/* Address Information */}
@@ -354,7 +404,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             <div className="space-y-1">
                                 <RequiredLabel>Region</RequiredLabel>
                                 <Select value={data.regionCode} onValueChange={handleRegionChange}>
-                                    <SelectTrigger className={errors.regionCode ? "border-destructive" : ""}>
+                                    <SelectTrigger className={cn(errors.regionCode ? "border-destructive" : "", "h-[4rem")}>
                                         <SelectValue placeholder="Select Region" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -369,7 +419,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             <div className="space-y-1">
                                 <RequiredLabel>Province</RequiredLabel>
                                 <Select value={data.provinceCode} onValueChange={handleProvinceChange} disabled={!data.regionCode}>
-                                    <SelectTrigger className={errors.provinceCode ? "border-destructive" : ""}>
+                                    <SelectTrigger className={cn(errors.provinceCode ? "border-destructive" : "", "h-[4rem")}>
                                         <SelectValue placeholder="Select Province" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -384,7 +434,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             <div className="space-y-1">
                                 <RequiredLabel>City / Municipality</RequiredLabel>
                                 <Select value={data.cityCode} onValueChange={handleCityChange} disabled={!data.provinceCode}>
-                                    <SelectTrigger className={errors.cityCode ? "border-destructive" : ""}>
+                                    <SelectTrigger className={cn(errors.cityCode ? "border-destructive" : "", "h-[4rem")}>
                                         <SelectValue placeholder="Select City" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -399,7 +449,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             <div className="space-y-1">
                                 <RequiredLabel>Barangay</RequiredLabel>
                                 <Select value={data.barangayCode} onValueChange={handleBarangayChange} disabled={!data.cityCode}>
-                                    <SelectTrigger className={errors.barangayCode ? "border-destructive" : ""}>
+                                    <SelectTrigger className={cn(errors.barangayCode ? "border-destructive" : "", "h-[44px]")}>
                                         <SelectValue placeholder="Select Barangay" />
                                     </SelectTrigger>
                                     <SelectContent>

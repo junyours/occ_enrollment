@@ -149,7 +149,7 @@ export default function AddRecordDialog({ student, open, onClose }) {
             });
 
             // Tell React Query to automatically refetch any query using this key
-            await queryClient.invalidateQueries({ queryKey: ['studentRecord', student.id] });
+            await queryClient.invalidateQueries({ queryKey: ['permanent-record-student', student.id] });
             
             toast.success('Record added successfully!');
 

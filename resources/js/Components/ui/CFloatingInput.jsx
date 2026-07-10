@@ -9,8 +9,8 @@ export const CFloatingInput = forwardRef(
         const inputId = id || generatedId
 
         return (
-            <div>
-                <div className="relative w-full h-12">
+            <div className={className}>
+                <div className={cn("relative w-full h-12", className)}>
                     <Input
                         id={inputId}
                         ref={ref}
