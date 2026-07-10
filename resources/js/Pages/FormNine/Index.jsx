@@ -12,7 +12,7 @@ import PaperContainer from './components/PaperContainer';
 import { Card } from '@/Components/ui/card';
 import AddRecordDialog from './AddRecordDialog';
 import AddStudentInfo from './AddStudentInfo';
-import { Plus, PlusSquareIcon } from 'lucide-react';
+import { Edit, PlusSquareIcon } from 'lucide-react';
 
 export default function Index() {
     const documentRef = useRef(null);
@@ -45,7 +45,7 @@ export default function Index() {
             <div className="flex flex-col ">
                 <Card className="flex items-center justify-between p-4 rounded-t-lg border border-b-0 shadow-sm rounded-b-none gap-16">
                     <div className="flex-1 flex gap-4">
-                        <StudentSearch onSelect={setSelectedStudent} className='max-w-96'/>
+                        <StudentSearch onSelect={setSelectedStudent} className='max-w-96' />
                         {selectedStudent && (
                             <>
                                 <Button
@@ -60,7 +60,7 @@ export default function Index() {
                                     className="px-6 font-semibold"
                                     variant='secondary'
                                 >
-                                    <PlusSquareIcon /> Info
+                                    <Edit /> Info
                                 </Button>
                             </>
                         )}

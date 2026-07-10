@@ -28,9 +28,10 @@ class FormNineController extends Controller
         $info = User::where('id', $id)
             ->with([
                 'Information' => function ($query) {
-                    $query->select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'gender', 'birthday', 'civil_status', 'contact_number', 'present_address as address');
+                    $query->select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'gender', 'birthday', 'civil_status', 'contact_number', 'present_address as address', 'place_of_birth');
                 },
                 'Parent',
+                'preliminaryEducation'
             ])
             ->select('id', 'user_id_no')
             ->first();
@@ -52,7 +53,7 @@ class FormNineController extends Controller
             $schoolYear = $record->YearSection?->SchoolYear;
             $semesterName = $schoolYear?->Semester?->semester_name ?? 'N/A';
             $schoolYearString = $schoolYear ? "{$schoolYear->start_year}-{$schoolYear->end_year}" : 'N/A';
-            $programName = $record->YearSection?->Course?->course_name ?? 'N/A';
+            $programName = $record->YearSection?->Course?->course_name . ($record->YearSection?->Course->major ? " MAJOR IN {$record->YearSection?->Course->major}" : '') ?? 'N/A';
 
             $subjects = $record->Subjects->map(function ($enrolledSubject) {
                 $subjectDetails = $enrolledSubject->YearSectionSubjects?->Subject;
@@ -256,7 +257,6 @@ class FormNineController extends Controller
                 $request->barangay,
                 $request->city,
                 $request->province,
-                $request->region
             ]);
 
             // Joins the available parts with a comma and space

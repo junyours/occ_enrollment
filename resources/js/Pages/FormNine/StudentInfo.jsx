@@ -3,7 +3,9 @@ import FormField from './components/FormField';
 import { formatName } from '@/Lib/InfoUtils';
 
 export default function StudentInfo({ info, lastRecord }) {
-    const { information, parent } = info;
+    const { information, parent, preliminary_education } = info;
+    console.log(preliminary_education);
+
 
     return (
         <div className='w-full max-w-4xl mx-auto font-sans text-black font-semibold'>
@@ -29,7 +31,7 @@ export default function StudentInfo({ info, lastRecord }) {
                                 : ''
                         }
                     />
-                    <FormField label=" Place of Birth:" value={null} />
+                    <FormField label=" Place of Birth:" value={information.place_of_birth ? information.place_of_birth.toUpperCase() : ''} />
                     <FormField label="Home Address:" value={information.address ? information.address.toUpperCase() : ''} />
                 </div>
                 <div className='flex flex-col'>
@@ -37,11 +39,11 @@ export default function StudentInfo({ info, lastRecord }) {
                     <FormField label="Civil Status:" value={information.civil_status ? information.civil_status.toUpperCase() : ''} />
                     <FormField
                         label="Father's Name:"
-                        value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }, {format: 'capitalize'}).toUpperCase() : ''}
+                        value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }, { format: 'capitalize' }).toUpperCase() : ''}
                     />
                     <FormField
                         label="Mother's Name:"
-                        value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }, {format: 'capitalize'}).toUpperCase() : ''}
+                        value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }, { format: 'capitalize' }).toUpperCase() : ''}
                     />
                 </div>
             </div>
@@ -68,14 +70,14 @@ export default function StudentInfo({ info, lastRecord }) {
                 <div className='flex flex-col space-y-1'>
                     {/* Elementary */}
                     <div className='grid grid-cols-[1fr_140px] items-end gap-12'>
-                        <FormField label="Elementary:" />
-                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' />
+                        <FormField label="Elementary:" value={preliminary_education?.elementary_name ? `${preliminary_education?.elementary_name.toUpperCase()} / ${preliminary_education?.elementary_address.toUpperCase()}` : ''} />
+                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' defaultValue={preliminary_education?.elementary_year ? preliminary_education?.elementary_year : ''} />
                     </div>
 
                     {/* Secondary */}
                     <div className='grid grid-cols-[1fr_140px] items-end gap-12'>
-                        <FormField label="Secondary:" />
-                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' />
+                        <FormField label="Secondary:" value={preliminary_education?.secondary_name ? `${preliminary_education?.secondary_name.toUpperCase()} / ${preliminary_education?.secondary_address.toUpperCase() }` : ''}/>
+                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' defaultValue={preliminary_education?.secondary_year ? preliminary_education?.secondary_year : ''}/>
                     </div>
                 </div>
             </div>
