@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\CurriculumTerm;
 use App\Models\CurriculumTermSubject;
 use App\Models\EnrolledStudent;
+use App\Models\GradeSubmission;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\SchoolYear;
@@ -675,9 +676,10 @@ class EnrollmentCourseSectionController extends Controller
 
     public function deleteMainSchedule($id)
     {
-        StudentSubject::where('year_section_subjects_id', '=', $id)->delete();
+        // StudentSubject::where('year_section_subjects_id', '=', $id)->delete();
         YearSectionSubjects::where('id', '=', $id)
             ->delete();
+        GradeSubmission::where('year_section_subjects_id', '=', $id)->delete();
 
         return response()->json(['message' => 'success'], 200);
     }
