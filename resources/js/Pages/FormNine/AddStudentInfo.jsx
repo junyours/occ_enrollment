@@ -504,14 +504,14 @@ export default function AddStudentInfo({ student, open, onClose }) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-1">
                             <CFloatingInput name="elementary_name" label="School Name" value={data.elementary_name} onChange={handleChange} error={errors.elementary_name} />
                             <CFloatingInput name="elementary_address" label="School Address" value={data.elementary_address} onChange={handleChange} error={errors.elementary_address} />
-                            <CFloatingInput type="number" name="elementary_year" label="Year Graduated" value={data.elementary_year} onChange={handleChange} error={errors.elementary_year} />
+                            <CFloatingInput name="elementary_year" label="Year Graduated" value={data.elementary_year} onChange={handleChange} error={errors.elementary_year} />
                         </div>
 
                         <h4 className="text-sm font-medium text-muted-foreground mb-4">Secondary</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                             <CFloatingInput name="secondary_name" label="School Name" value={data.secondary_name} onChange={handleChange} error={errors.secondary_name} />
                             <CFloatingInput name="secondary_address" label="School Address" value={data.secondary_address} onChange={handleChange} error={errors.secondary_address} />
-                            <CFloatingInput type="number" name="secondary_year" label="Year Graduated" value={data.secondary_year} onChange={handleChange} error={errors.secondary_year} />
+                            <CFloatingInput name="secondary_year" label="Year Graduated" value={data.secondary_year} onChange={handleChange} error={errors.secondary_year} />
                         </div>
                     </div>
 
