@@ -33,6 +33,11 @@ import axios from 'axios';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { cn, formatPhoneNumber } from '@/Lib/Utils';
+import { Calendar } from '@/Components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import { Field, FieldLabel } from '@/Components/ui/field';
+import { Button } from '@/Components/ui/button';
+import { format } from 'date-fns';
 
 export default function AddStudentInfo({ student, open, onClose }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +53,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
 
     const { data, setData, post, processing, errors, clearErrors, reset, setError } = useForm({
         gender: '', civil_status: '', birthday: '', contact_number: '',
-        street: '', region: '', regionCode: '', province: '', provinceCode: '',
+        street: '', region: 'Region X (Northern Mindanao)', regionCode: '10', province: 'Misamis Oriental', provinceCode: '1043',
         city: '', cityCode: '', barangay: '', barangayCode: '', zipCode: '',
         father_first_name: '', father_last_name: '', father_middle_name: '', father_suffix: '',
         mother_first_name: '', mother_maiden_last_name: '', mother_middle_name: '', mother_suffix: '',
@@ -83,10 +88,10 @@ export default function AddStudentInfo({ student, open, onClose }) {
 
                     // Address Table
                     street: existingData.address?.street || '',
-                    region: existingData.address?.region || '',         // ADDED
-                    regionCode: existingData.address?.region_code || '',
-                    province: existingData.address?.province || '',     // ADDED
-                    provinceCode: existingData.address?.province_code || '',
+                    region: existingData.address?.region || 'Region X (Northern Mindanao)',         // ADDED
+                    regionCode: existingData.address?.region_code || '10',
+                    province: existingData.address?.province || 'Misamis Oriental',     // ADDED
+                    provinceCode: existingData.address?.province_code || '1043',
                     city: existingData.address?.city || '',             // ADDED
                     cityCode: existingData.address?.city_code || '',
                     barangay: existingData.address?.barangay || '',     // ADDED
@@ -214,7 +219,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
         if (barangay) {
             setData(prev => ({
                 ...prev,
-                barangay: barangay.barangay_name, // THIS IS THE MISSING PIECE
+                barangay: barangay.barangay_name,
                 barangayCode: barangay.barangay_code
             }));
             clearErrors('barangayCode');
@@ -229,10 +234,11 @@ export default function AddStudentInfo({ student, open, onClose }) {
         }
 
         if (value.trim() == '') {
-            setError('contact_number', { error: true });
+            setError('contact_number', 'This field is required.');
             setData('contact_number', '09')
             return
         } else if (!value.startsWith('09')) {
+            setError('contact_number', 'This field is required.');
             return;
         } else if (value.length > 11) {
             return
@@ -257,7 +263,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
         clearErrors();
 
         const requiredFields = [
-            'gender', 'civil_status', 'birthday', 'contact_number', 'place_of_birth',
+            'gender', 'civil_status', 'birthday', 'place_of_birth',
             'regionCode', 'provinceCode', 'cityCode', 'barangayCode',
             'father_first_name', 'father_last_name',
             'mother_first_name', 'mother_maiden_last_name',
@@ -273,7 +279,6 @@ export default function AddStudentInfo({ student, open, onClose }) {
                 hasFrontendErrors = true;
             }
         });
-
         if (hasFrontendErrors) return;
 
         setIsSubmitting(true);
@@ -316,40 +321,33 @@ export default function AddStudentInfo({ student, open, onClose }) {
 
                 {/* You can wrap this in a ternary to hide the form or dim it while fetching */}
                 <div className={`space-y-8 py-4 transition-opacity duration-200 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-
                     {/* Basic Info */}
                     <div className='flex flex-col gap-4'>
+                    <h3 className="text-lg font-semibold">Personal Information</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 items-start">
-                            <CFloatingInput
-                                type="date"
-                                name="birthday"
-                                label="Birthday"
-                                value={data.birthday}
-                                onChange={handleChange}
-                                error={errors.birthday}
-                            />
+                            <div className="flex flex-col space-y-1 justify-end">
+                                <RequiredLabel>Birthday</RequiredLabel>
+                                <Field>
+                                    <Popover>
+                                        <PopoverTrigger>
+                                            <Button variant="outline" id="birthday" className="justify-start font-normal w-full h-12">{data.birthday ? data.birthday : "Select date"}</Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={data.birthday ? new Date(data.birthday) : undefined}
+                                                defaultMonth={data.birthday ? new Date(data.birthday) : undefined}
+                                                captionLayout="dropdown"
+                                                onSelect={(date) => {
+                                                    setData("birthday", date ? format(date, "yyyy-MM-dd") : "");
+                                                }}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </Field>
+                            </div>
 
-                            <CFloatingInput
-                                type="tel"
-                                name="contact_number"
-                                label="Contact Number"
-                                value={formatPhoneNumber(data.contact_number)}
-                                onChange={handleContactChange}
-                                error={errors.contact_number}
-
-                            />
-
-                            <CFloatingInput
-                                className="col-start-3 row-span-2"
-                                type="text"
-                                name="place_of_birth"
-                                label="Place of Birth"
-                                value={data.place_of_birth}
-                                onChange={handleChange}
-                                error={errors.place_of_birth}
-                            />
-
-                            <div className="flex flex-col space-y-1 h-[56px] justify-end">
+                            <div className="flex flex-col space-y-1 justify-end">
                                 <RequiredLabel>Gender</RequiredLabel>
                                 <Select
                                     value={data.gender}
@@ -359,7 +357,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                                     }}
                                 >
                                     {/* Matches the height and border styling of your standard inputs */}
-                                    <SelectTrigger className={`h-[40px] ${errors.civil_status ? "border-destructive" : ""}`}>
+                                    <SelectTrigger className={`h-12 ${errors.civil_status ? "border-destructive" : ""}`}>
                                         <SelectValue placeholder="Select gender" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -371,7 +369,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             </div>
 
                             {/* Civil Status Container with fixed height to match CFloatingInput */}
-                            <div className="flex flex-col space-y-1 h-[56px] justify-end">
+                            <div className="flex flex-col space-y-1 justify-end">
                                 <RequiredLabel>Civil Status</RequiredLabel>
                                 <Select
                                     value={data.civil_status}
@@ -381,7 +379,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                                     }}
                                 >
                                     {/* Matches the height and border styling of your standard inputs */}
-                                    <SelectTrigger className={`h-[40px] ${errors.civil_status ? "border-destructive" : ""}`}>
+                                    <SelectTrigger className={`h-12 ${errors.civil_status ? "border-destructive" : ""}`}>
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -393,6 +391,18 @@ export default function AddStudentInfo({ student, open, onClose }) {
                                 </Select>
                                 {errors.civil_status && <p className="text-xs text-destructive mt-1">{errors.civil_status}</p>}
                             </div>
+
+                            <CFloatingInput
+                                required='true'
+                                className="mt-2"
+                                type="text"
+                                name="place_of_birth"
+                                label="Place of Birth"
+                                value={data.place_of_birth}
+                                onChange={handleChange}
+                                error={errors.place_of_birth}
+                            />
+
                         </div>
                     </div>
 
@@ -400,11 +410,10 @@ export default function AddStudentInfo({ student, open, onClose }) {
                     <div>
                         <h4 className="text-sm font-medium text-muted-foreground mb-4">Current Address</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-
                             <div className="space-y-1">
                                 <RequiredLabel>Region</RequiredLabel>
                                 <Select value={data.regionCode} onValueChange={handleRegionChange}>
-                                    <SelectTrigger className={cn(errors.regionCode ? "border-destructive" : "", "h-[4rem")}>
+                                    <SelectTrigger className={cn(errors.regionCode ? "border-destructive" : "", "h-12")}>
                                         <SelectValue placeholder="Select Region" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -419,7 +428,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             <div className="space-y-1">
                                 <RequiredLabel>Province</RequiredLabel>
                                 <Select value={data.provinceCode} onValueChange={handleProvinceChange} disabled={!data.regionCode}>
-                                    <SelectTrigger className={cn(errors.provinceCode ? "border-destructive" : "", "h-[4rem")}>
+                                    <SelectTrigger className={cn(errors.provinceCode ? "border-destructive" : "", "h-12")}>
                                         <SelectValue placeholder="Select Province" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -434,7 +443,7 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             <div className="space-y-1">
                                 <RequiredLabel>City / Municipality</RequiredLabel>
                                 <Select value={data.cityCode} onValueChange={handleCityChange} disabled={!data.provinceCode}>
-                                    <SelectTrigger className={cn(errors.cityCode ? "border-destructive" : "", "h-[4rem")}>
+                                    <SelectTrigger className={cn(errors.cityCode ? "border-destructive" : "", "h-12")}>
                                         <SelectValue placeholder="Select City" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -462,11 +471,11 @@ export default function AddStudentInfo({ student, open, onClose }) {
                             </div>
 
                             <div className="mt-6">
-                                <CFloatingInput name="zipCode" label="Zip Code" value={data.zipCode} readOnly className="bg-muted" error={errors.zipCode} />
+                                <CFloatingInput required='true' name="zipCode" label="Zip Code" value={data.zipCode} onChange={handleChange} disabled={!data.cityCode} error={errors.zipCode} />
                             </div>
 
                             <div className="mt-6">
-                                <CFloatingInput name="street" label="Street / House No." value={data.street} onChange={handleChange} error={errors.street} />
+                                <CFloatingInput required='true' name="street" label="Street / House No." value={data.street} onChange={handleChange} error={errors.street} />
                             </div>
                         </div>
                     </div>
@@ -479,16 +488,16 @@ export default function AddStudentInfo({ student, open, onClose }) {
 
                         <h4 className="text-sm font-medium text-muted-foreground mb-4">Father's Details</h4>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <CFloatingInput name="father_first_name" label="First Name" value={data.father_first_name} onChange={handleChange} error={errors.father_first_name} />
-                            <CFloatingInput name="father_last_name" label="Last Name" value={data.father_last_name} onChange={handleChange} error={errors.father_last_name} />
+                            <CFloatingInput required='true' name="father_first_name" label="First Name" value={data.father_first_name} onChange={handleChange} error={errors.father_first_name} />
+                            <CFloatingInput required='true' name="father_last_name" label="Last Name" value={data.father_last_name} onChange={handleChange} error={errors.father_last_name} />
                             <CFloatingInput name="father_middle_name" label="Middle Name" value={data.father_middle_name} onChange={handleChange} error={errors.father_middle_name} />
                             <CFloatingInput name="father_suffix" label="Suffix (e.g., Jr.)" value={data.father_suffix} onChange={handleChange} error={errors.father_suffix} />
                         </div>
 
                         <h4 className="text-sm font-medium text-muted-foreground mb-4">Mother's Details</h4>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <CFloatingInput name="mother_first_name" label="First Name" value={data.mother_first_name} onChange={handleChange} error={errors.mother_first_name} />
-                            <CFloatingInput name="mother_maiden_last_name" label="Maiden Last Name" value={data.mother_maiden_last_name} onChange={handleChange} error={errors.mother_maiden_last_name} />
+                            <CFloatingInput required='true' name="mother_first_name" label="First Name" value={data.mother_first_name} onChange={handleChange} error={errors.mother_first_name} />
+                            <CFloatingInput required='true' name="mother_maiden_last_name" label="Maiden Last Name" value={data.mother_maiden_last_name} onChange={handleChange} error={errors.mother_maiden_last_name} />
                             <CFloatingInput name="mother_middle_name" label="Middle Name" value={data.mother_middle_name} onChange={handleChange} error={errors.mother_middle_name} />
                             <CFloatingInput name="mother_suffix" label="Suffix" value={data.mother_suffix} onChange={handleChange} error={errors.mother_suffix} />
                         </div>
@@ -502,16 +511,16 @@ export default function AddStudentInfo({ student, open, onClose }) {
 
                         <h4 className="text-sm font-medium text-muted-foreground mb-4">Elementary</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-1">
-                            <CFloatingInput name="elementary_name" label="School Name" value={data.elementary_name} onChange={handleChange} error={errors.elementary_name} />
-                            <CFloatingInput name="elementary_address" label="School Address" value={data.elementary_address} onChange={handleChange} error={errors.elementary_address} />
-                            <CFloatingInput name="elementary_year" label="Year Graduated" value={data.elementary_year} onChange={handleChange} error={errors.elementary_year} />
+                            <CFloatingInput required='true' name="elementary_name" label="School Name" value={data.elementary_name} onChange={handleChange} error={errors.elementary_name} />
+                            <CFloatingInput required='true' name="elementary_address" label="School Address" value={data.elementary_address} onChange={handleChange} error={errors.elementary_address} />
+                            <CFloatingInput required='true' name="elementary_year" label="Year Graduated" value={data.elementary_year} onChange={handleChange} error={errors.elementary_year} />
                         </div>
 
                         <h4 className="text-sm font-medium text-muted-foreground mb-4">Secondary</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-                            <CFloatingInput name="secondary_name" label="School Name" value={data.secondary_name} onChange={handleChange} error={errors.secondary_name} />
-                            <CFloatingInput name="secondary_address" label="School Address" value={data.secondary_address} onChange={handleChange} error={errors.secondary_address} />
-                            <CFloatingInput name="secondary_year" label="Year Graduated" value={data.secondary_year} onChange={handleChange} error={errors.secondary_year} />
+                            <CFloatingInput required='true' name="secondary_name" label="School Name" value={data.secondary_name} onChange={handleChange} error={errors.secondary_name} />
+                            <CFloatingInput required='true' name="secondary_address" label="School Address" value={data.secondary_address} onChange={handleChange} error={errors.secondary_address} />
+                            <CFloatingInput required='true' name="secondary_year" label="Year Graduated" value={data.secondary_year} onChange={handleChange} error={errors.secondary_year} />
                         </div>
                     </div>
 

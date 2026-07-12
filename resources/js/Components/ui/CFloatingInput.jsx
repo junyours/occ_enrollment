@@ -34,12 +34,13 @@ export const CFloatingInput = forwardRef(
                             "peer-focus:top-1.5 peer-focus:-translate-y-4 peer-focus:scale-90",
                             "peer-focus:text-primary",
                             "hover:cursor-text",
+                            required && 'flex gap-1',
 
                             // If there is an error, force the label up and turn it red
                             error && "top-1.5 -translate-y-4 scale-90 text-destructive peer-focus:text-destructive"
                         )}
                     >
-                        {label}
+                        <span>{label}</span> {required && <p className="text-red-500">*</p>}
                     </Label>
                 </div>
                 {error && (

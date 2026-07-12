@@ -12,23 +12,25 @@ import PaperContainer from './components/PaperContainer';
 import { Card } from '@/Components/ui/card';
 import AddRecordDialog from './AddRecordDialog';
 import AddStudentInfo from './AddStudentInfo';
-import { Edit, PlusSquareIcon } from 'lucide-react';
+import { Edit, List, PlusSquareIcon } from 'lucide-react';
 
 export default function Index() {
     const documentRef = useRef(null);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [addingRecord, setAddingRecord] = useState(false);
     const [addingInfo, setAddingInfo] = useState(false);
+    const [viewRecords, setViewRecords] = useState(false);
 
     const fetchStudentRecord = async () => {
         const { data } = await axios.get(route('permanent-record-student', { id: selectedStudent?.id }));
         return data;
     };
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isFetching } = useQuery({
         queryKey: ['permanent-record-student', selectedStudent?.id],
         queryFn: fetchStudentRecord,
         enabled: !!selectedStudent?.id,
+        staleTime: 1000 * 60 * 1
     });
 
     // --- React-To-Print Setup ---
@@ -43,32 +45,35 @@ export default function Index() {
         <div>
             <Head title='Permanent Record' />
             <div className="flex flex-col ">
-                <Card className="flex items-center justify-between p-4 rounded-t-lg border border-b-0 shadow-sm rounded-b-none gap-16">
-                    <div className="flex-1 flex gap-4">
-                        <StudentSearch onSelect={setSelectedStudent} className='max-w-96' />
+                <Card className="flex flex-col md:flex-row items-center justify-between p-4 rounded-t-lg border border-b-0 shadow-sm rounded-b-none gap-4 md:gap-8">
+                    <div className="flex-1 flex flex-col md:flex-row gap-4 w-full">
+                        <StudentSearch onSelect={setSelectedStudent} className='w-full md:max-w-96' />
+
                         {selectedStudent && (
-                            <>
+                            <div className='w-full flex gap-4'>
                                 <Button
                                     onClick={() => setAddingRecord(true)}
-                                    className="px-6 font-semibold"
+                                    className="px-4 font-semibold flex items-center gap-2"
                                     variant='secondary'
                                 >
-                                    <PlusSquareIcon /> Records
+                                    <PlusSquareIcon size={18} /> Add Record
                                 </Button>
+                                
                                 <Button
                                     onClick={() => setAddingInfo(true)}
-                                    className="px-6 font-semibold"
+                                    className="px-4 font-semibold flex items-center gap-2"
                                     variant='secondary'
                                 >
-                                    <Edit /> Info
+                                    <Edit size={18} /> Edit Info
                                 </Button>
-                            </>
+                            </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
+
+                    <div className="flex items-center w-full md:w-auto mt-4 md:mt-0">
                         <Button
                             onClick={handlePrint}
-                            className="px-6 font-semibold"
+                            className="w-full md:w-auto px-6 font-semibold"
                         >
                             Print Record
                         </Button>
@@ -77,7 +82,7 @@ export default function Index() {
                 <Card className="relative flex-1 flex flex-col rounded-b-lg max-h-[calc(100vh-10rem)] min-h-[calc(100vh-10rem)] overflow-auto rounded-t-none text-black">
                     <PaperContainer>
                         <div ref={documentRef} className="px-12 py-4 print:p-0 print:bg-white">
-                            {(isLoading) ? (
+                            {(isLoading || isFetching) ? (
                                 <div className="flex flex-col items-center justify-center py-32 text-slate-500">
                                     <div className="animate-pulse font-medium">Loading record...</div>
                                 </div>
