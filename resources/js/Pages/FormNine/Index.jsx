@@ -13,6 +13,7 @@ import { Card } from '@/Components/ui/card';
 import AddRecordDialog from './AddRecordDialog';
 import AddStudentInfo from './AddStudentInfo';
 import { Edit, List, PlusSquareIcon } from 'lucide-react';
+import ViewRecords from './ViewRecords';
 
 export default function Index() {
     const documentRef = useRef(null);
@@ -58,7 +59,15 @@ export default function Index() {
                                 >
                                     <PlusSquareIcon size={18} /> Add Record
                                 </Button>
-                                
+
+                                <Button
+                                    onClick={() => setViewRecords(true)}
+                                    className="px-4 font-semibold flex items-center gap-2"
+                                    variant='secondary'
+                                >
+                                    <List size={18} /> View Records
+                                </Button>
+
                                 <Button
                                     onClick={() => setAddingInfo(true)}
                                     className="px-4 font-semibold flex items-center gap-2"
@@ -99,6 +108,9 @@ export default function Index() {
             </div>
             {addingRecord && (
                 <AddRecordDialog student={selectedStudent} open={addingRecord} onClose={setAddingRecord} />
+            )}
+            {viewRecords && (
+                <ViewRecords student={selectedStudent} open={viewRecords} onClose={setViewRecords} />
             )}
             {addingInfo && (
                 <AddStudentInfo student={selectedStudent} open={addingInfo} onClose={setAddingInfo} />

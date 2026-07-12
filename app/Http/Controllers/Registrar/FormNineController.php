@@ -372,4 +372,13 @@ class FormNineController extends Controller
             ]
         ], 200);
     }
+
+    public function getAddedRecords($id)
+    {
+        $records = AcademicRecord::where('student_id', $id)
+            ->with('subjects')
+            ->get();
+
+        return response()->json($records);
+    }
 }

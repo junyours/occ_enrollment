@@ -16,6 +16,11 @@ class AcademicRecord extends Model
         'major'
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     // Add this relationship
     public function subjects()
     {

@@ -14,4 +14,9 @@ class AcademicRecordSubject extends Model
         're_exam',
         'units'
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 }

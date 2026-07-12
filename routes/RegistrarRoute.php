@@ -11,4 +11,7 @@ Route::middleware(['auth', 'maintenance', 'role:registrar'])->group(function () 
     // GET route to fetch the info
     Route::get('/permanent-record/get-student-info/{userId}/info', [FormNineController::class, 'getInfo'])->name('permanent-record.get-student-info');
     Route::post('/permanent-record/add-student-info/{userId}', [FormNineController::class, 'addInfo'])->name('permanent-record.add-student-info');
+
+    Route::get('/permanent-record/student-added-records/{id}', [FormNineController::class, 'getAddedRecords'])->name('permanent-record.student-added-records');
+    Route::patch('/permanent-record/student-added-records/{id}', [FormNineController::class, 'getAddedRecords'])->name('permanent-record.student-added-records');
 });
