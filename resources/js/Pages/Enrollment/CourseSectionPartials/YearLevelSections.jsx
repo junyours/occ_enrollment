@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Link, usePage } from '@inertiajs/react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { Badge } from "@/Components/ui/badge";
-import { Progress } from "@/Components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import axios from 'axios';
 import { cn } from "@/Lib/Utils";
@@ -37,9 +36,9 @@ function YearLevelSections({
     const deleteSection = (id) => {
         post(route('delete.section', { id: id }), {
             onSuccess: async () => {
-                toast({ description: "Section deleted successfully.", variant: "success" });
                 await getEnrollmentCourseSection();
                 setSelectedSection(null);
+                toast({ description: "Section deleted successfully.", variant: "success" });
             },
             onError: (errors) => {
                 if (errors.curriculum_id) toast({ description: errors.curriculum_id, variant: "destructive" });
@@ -83,9 +82,14 @@ function YearLevelSections({
 
         result.sort((a, b) => {
             if (sortOrder === "name-asc") return a.section.localeCompare(b.section);
+            if (sortOrder === "name-desc") return b.section.localeCompare(a.section);
             if (sortOrder === "students-desc") return b.student_count - a.student_count;
+            if (sortOrder === "students-asc") return a.student_count - b.student_count;
             if (sortOrder === "capacity-desc") {
                 return (b.student_count / b.max_students) - (a.student_count / a.max_students);
+            }
+            if (sortOrder === "capacity-asc") {
+                return (a.student_count / a.max_students) - (b.student_count / b.max_students);
             }
             return 0;
         });
@@ -96,25 +100,25 @@ function YearLevelSections({
         const percentage = Math.min((enrolled / max) * 100, 100);
         const overcap = enrolled > max;
 
-        let colorClass = "bg-green-500";
+        let statusColor = "bg-green-500";
         let badgeText = "Available";
         let badgeVariant = "secondary";
 
         if (overcap) {
-            colorClass = "bg-purple-500";
+            statusColor = "bg-red-500";
             badgeText = "Over Capacity";
             badgeVariant = "destructive";
         } else if (percentage === 100) {
-            colorClass = "bg-red-500";
+            statusColor = "bg-red-500";
             badgeText = "Full";
             badgeVariant = "destructive";
         } else if (percentage >= 80) {
-            colorClass = "bg-yellow-500";
+            statusColor = "bg-yellow-500";
             badgeText = "Nearly Full";
             badgeVariant = "outline";
         }
 
-        return { percentage, colorClass, badgeText, badgeVariant };
+        return { percentage, statusColor, badgeText, badgeVariant };
     };
 
     if (yearLevel.year_section.length === 0) {
@@ -123,7 +127,6 @@ function YearLevelSections({
                 <FolderOpen className="h-12 w-12 text-muted-foreground/50 mb-3" />
                 <h4 className="text-lg font-medium text-foreground">No Sections Yet</h4>
                 <p className="text-sm text-muted-foreground mb-4">Create your first section for this year level to start enrolling students.</p>
-                {/* Note: The main card header already has an Add Section button for authorized users */}
             </div>
         );
     }
@@ -131,6 +134,35 @@ function YearLevelSections({
     return (
         <TooltipProvider delayDuration={300}>
             <div className="space-y-4 p-4 sm:p-0">
+                {/* Search and Sort Controls */}
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <div className="flex-1 relative w-full sm:w-auto">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search sections..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 w-full"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                        <Select value={sortOrder} onValueChange={setSortOrder}>
+                            <SelectTrigger className="w-full sm:w-48">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="name-asc">Section Name (A-Z)</SelectItem>
+                                <SelectItem value="name-desc">Section Name (Z-A)</SelectItem>
+                                <SelectItem value="students-desc">Most Students</SelectItem>
+                                <SelectItem value="students-asc">Least Students</SelectItem>
+                                <SelectItem value="capacity-desc">Highest Capacity</SelectItem>
+                                <SelectItem value="capacity-asc">Lowest Capacity</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
                 {/* Desktop Table View */}
                 <div className="hidden md:block rounded-md border bg-background">
                     <Table>
@@ -144,7 +176,7 @@ function YearLevelSections({
                         <TableBody>
                             {filteredAndSortedSections.map((section) => {
                                 const isRowEditing = editing && data.id === section.id;
-                                const { percentage, colorClass, badgeText, badgeVariant } = getCapacityDetails(section.student_count, section.max_students);
+                                const { percentage, statusColor, badgeText, badgeVariant } = getCapacityDetails(section.student_count, section.max_students);
 
                                 if (isRowEditing) {
                                     return (
@@ -158,7 +190,6 @@ function YearLevelSections({
                                                     <Input name="max_students" value={data.max_students} onChange={maxStudentsOnChange} className={cn("w-20", errors.max_students && "border-red-500")} />
                                                 </div>
                                             </TableCell>
-                                            <TableCell></TableCell>
                                             <TableCell>
                                                 <div className="flex justify-end gap-2">
                                                     <Button variant='outline' size="sm" onClick={() => { setEditing(false); reset(); clearErrors(); }}>
@@ -182,15 +213,29 @@ function YearLevelSections({
                                                     <span>{section.student_count} / {section.max_students}</span>
                                                     <span className="font-medium">{Math.round((section.student_count / section.max_students) * 100)}%</span>
                                                 </div>
-                                                <Progress value={percentage} indicatorColor={colorClass} className="h-2" />
+                                                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                                                    <div
+                                                        className={cn("h-full transition-all", statusColor)}
+                                                        style={{ width: `${percentage}%` }}
+                                                    />
+                                                </div>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-1 opacity-100 sm:opacity-60 group-hover:opacity-100 transition-opacity">
                                                 <ActionButtons
-                                                    section={section} yearLevel={yearLevel} courseId={courseId} schoolYear={schoolYear}
-                                                    forSchoolYear={forSchoolYear} allowEnrollment={allowEnrollment} userRole={userRole}
-                                                    setEditing={setEditing} setData={setData} setSelectedSection={setSelectedSection} handleDownload={handleDownload}
+                                                    section={section}
+                                                    yearLevel={yearLevel}
+                                                    courseId={courseId}
+                                                    schoolYear={schoolYear}
+                                                    forSchoolYear={forSchoolYear}
+                                                    allowEnrollment={allowEnrollment}
+                                                    userRole={userRole}
+                                                    setEditing={setEditing}
+                                                    setData={setData}
+                                                    setSelectedSection={setSelectedSection}
+                                                    handleDownload={handleDownload}
+                                                    deleteSection={deleteSection}
                                                 />
                                             </div>
                                         </TableCell>
@@ -205,7 +250,7 @@ function YearLevelSections({
                 <div className="md:hidden grid gap-4">
                     {filteredAndSortedSections.map((section) => {
                         const isRowEditing = editing && data.id === section.id;
-                        const { percentage, colorClass, badgeText, badgeVariant } = getCapacityDetails(section.student_count, section.max_students);
+                        const { percentage, statusColor, badgeText, badgeVariant } = getCapacityDetails(section.student_count, section.max_students);
 
                         if (isRowEditing) {
                             return (
@@ -239,13 +284,27 @@ function YearLevelSections({
                                         <span>{section.student_count} / {section.max_students} Students</span>
                                         <span className="font-medium">{Math.round((section.student_count / section.max_students) * 100)}%</span>
                                     </div>
-                                    <Progress value={percentage} indicatorColor={colorClass} className="h-2" />
+                                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className={cn("h-full transition-all", statusColor)}
+                                            style={{ width: `${percentage}%` }}
+                                        />
+                                    </div>
                                 </div>
                                 <div className="flex flex-wrap gap-2 pt-2 border-t border-muted">
                                     <ActionButtons
-                                        section={section} yearLevel={yearLevel} courseId={courseId} schoolYear={schoolYear}
-                                        forSchoolYear={forSchoolYear} allowEnrollment={allowEnrollment} userRole={userRole}
-                                        setEditing={setEditing} setData={setData} setSelectedSection={setSelectedSection} handleDownload={handleDownload}
+                                        section={section}
+                                        yearLevel={yearLevel}
+                                        courseId={courseId}
+                                        schoolYear={schoolYear}
+                                        forSchoolYear={forSchoolYear}
+                                        allowEnrollment={allowEnrollment}
+                                        userRole={userRole}
+                                        setEditing={setEditing}
+                                        setData={setData}
+                                        setSelectedSection={setSelectedSection}
+                                        handleDownload={handleDownload}
+                                        deleteSection={deleteSection}
                                         mobile={true}
                                     />
                                 </div>
@@ -258,13 +317,32 @@ function YearLevelSections({
     );
 }
 
-// Extracted Action Buttons to reduce visual clutter in the main mapping logic
-function ActionButtons({ section, yearLevel, courseId, schoolYear, forSchoolYear, allowEnrollment, userRole, setEditing, setData, setSelectedSection, handleDownload, mobile = false }) {
+// Extracted Action Buttons component
+function ActionButtons({
+    section, yearLevel, courseId, schoolYear, forSchoolYear, allowEnrollment, userRole,
+    setEditing, setData, setSelectedSection, handleDownload, deleteSection, mobile = false
+}) {
 
-    // Shared route generation
     const getRoute = (baseRoute) => {
         if (forSchoolYear) {
-            return route(`school-year.view.${baseRoute}`, {
+            // Map route names for school-year views
+            const routeMap = {
+                'class': 'school-year.view.class',
+                'students': 'school-year.view.students',
+                'enroll-student': 'school-year.view.enroll-student',
+                'cor': 'enrollment.view.cor' // COR list uses enrollment route
+            };
+            const routeName = routeMap[baseRoute] || `school-year.view.${baseRoute}`;
+
+            if (baseRoute === 'cor') {
+                // COR list route doesn't need schoolyear params
+                return route('enrollment.view.cor', {
+                    id: courseId,
+                    yearlevel: yearLevel.year_level_name.replace(/\s+/g, '-')
+                }) + `?section=${section.section}`;
+            }
+
+            return route(routeName, {
                 schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`,
                 semester: schoolYear.semester.semester_name,
                 hashedCourseId: courseId,
@@ -336,11 +414,13 @@ function ActionButtons({ section, yearLevel, courseId, schoolYear, forSchoolYear
                     </PopoverTrigger>
                     <PopoverContent align="end" className="w-48 p-2">
                         <div className="space-y-1">
-                            <Link href={getRoute('cor')}>
-                                <Button disabled={!section.student_count} variant="ghost" className="w-full justify-start text-sm">
-                                    <FileStack className="mr-2 h-4 w-4 text-violet-500" /> COR List
-                                </Button>
-                            </Link>
+                            {!forSchoolYear && (
+                                <Link href={getRoute('cor')}>
+                                    <Button disabled={true} variant="ghost" className="w-full justify-start text-sm">
+                                        <FileStack className="mr-2 h-4 w-4 text-violet-500" /> COR List
+                                    </Button>
+                                </Link>
+                            )}
                             <Button
                                 disabled={!section.student_count}
                                 onClick={() => handleDownload(section.year_level_id, section.section)}
@@ -368,7 +448,12 @@ function ActionButtons({ section, yearLevel, courseId, schoolYear, forSchoolYear
 
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
-                                            <Button disabled={!!section.student_count} variant="ghost" className="w-full justify-start text-sm text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setSelectedSection(section.id)}>
+                                            <Button
+                                                disabled={!!section.student_count}
+                                                variant="ghost"
+                                                className="w-full justify-start text-sm text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                onClick={() => setSelectedSection(section.id)}
+                                            >
                                                 <Trash className="mr-2 h-4 w-4" /> Delete Section
                                             </Button>
                                         </AlertDialogTrigger>
@@ -381,7 +466,10 @@ function ActionButtons({ section, yearLevel, courseId, schoolYear, forSchoolYear
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={() => deleteSection(selectedSection)}>
+                                                <AlertDialogAction
+                                                    className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                                                    onClick={() => deleteSection(section.id)}
+                                                >
                                                     Delete
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>
