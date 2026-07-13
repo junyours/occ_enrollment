@@ -617,12 +617,14 @@ class EnrollmentClassSchedulingController extends Controller
                 'laboratory_hours',
             )
             ->groupBy(
+                'subjects.id',
                 'subject_code',
                 'descriptive_title',
                 'credit_units',
                 'lecture_hours',
                 'laboratory_hours',
             )
+            ->orderBy('descriptive_title', 'ASC')
             ->get();
 
         return response()->json($subjects);
