@@ -11,6 +11,7 @@ import { Head, usePage } from "@inertiajs/react"
 import { Button } from "@/Components/ui/button";
 import axios from "axios";
 import { useState } from "react";
+import IssueReportWidget from "@/Components/IssueReportWidget";
 
 export default function AuthenticatedLayout({ children, title }) {
 
@@ -50,6 +51,7 @@ export default function AuthenticatedLayout({ children, title }) {
                         {children}
                     </div>
                 </div>
+                <IssueReportWidget />
                 <Toaster />
             </SidebarInset>
         </SidebarProvider>
