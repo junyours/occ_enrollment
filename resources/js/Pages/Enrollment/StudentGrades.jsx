@@ -13,6 +13,7 @@ import StudentSearch from '@/Components/StudentSearch';
 import { useQuery } from '@tanstack/react-query';
 import { formatName } from '@/Lib/InfoUtils';
 import CopyButton from '@/Components/ui/CopyButton';
+import GradeRemarkBadge from '@/Components/GradeRemarkBadge';
 
 const semesterDisplayMap = {
     First: <div>1<sup>st</sup> Semester</div>,
@@ -219,19 +220,10 @@ export default function StudentGrades() {
                                                                         {subject.grade ?? "-"}
                                                                     </TableCell>
 
-                                                                    <TableCell className="text-right">
-                                                                        {grade === null ? (
-                                                                            <span className="text-muted-foreground text-xs">
-                                                                                In Progress
-                                                                            </span>
-                                                                        ) : isPassed ? (
-                                                                            <Badge variant="default">Passed</Badge>
-                                                                        ) : isFailed ? (
-                                                                            <Badge variant="destructive">Failed</Badge>
-                                                                        ) : (
-                                                                            <span className="text-muted-foreground text-xs">-</span>
-                                                                        )}
+                                                                    <TableCell className="text-center font-bold">
+                                                                        <GradeRemarkBadge midterm={subject.grade} final={subject.grade} />
                                                                     </TableCell>
+
                                                                 </TableRow>
                                                             );
                                                         })}

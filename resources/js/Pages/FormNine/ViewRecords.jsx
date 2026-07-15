@@ -8,10 +8,17 @@ import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { Check, Pencil, X, Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query';
 
-const Record = ({ subject }) => {
+const Record = ({ subject, studentId }) => {
+    const queryClient = useQueryClient();
     const [editing, setEditing] = useState(false);
-    const [formData, setFormData] = useState({
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Added clearErrors to clean up validation states on cancel
+    const { data: formData, setData: setFormData, setError, clearErrors, errors } = useForm({
+        subject_code: subject.subject_code || '',
+        descriptive_title: subject.descriptive_title || '',
         grade: subject.grade || '',
         re_exam: subject.re_exam || '',
         units: subject.units || ''
@@ -19,53 +26,129 @@ const Record = ({ subject }) => {
 
     const handleCancel = () => {
         setFormData({
+            subject_code: subject.subject_code || '',
+            descriptive_title: subject.descriptive_title || '',
             grade: subject.grade || '',
             re_exam: subject.re_exam || '',
             units: subject.units || ''
         });
+        clearErrors(); // Wipe errors when cancelling
         setEditing(false);
     };
 
     const handleSave = async () => {
-        await axios.patch(route('permanent-record.update-subject', {id: subject.id}), { formData })
-        setEditing(false);
+        clearErrors(); // Clear previous errors before re-validating
+        let hasError = false;
+
+        // FIXED: Now checking the correct formData properties
+        if (!String(formData.subject_code).trim()) {
+            hasError = true;
+            setError('subject_code', 'required');
+        }
+        if (!String(formData.descriptive_title).trim()) {
+            hasError = true;
+            setError('descriptive_title', 'required');
+        }
+        if (!String(formData.grade).trim()) {
+            hasError = true;
+            setError('grade', 'required');
+        }
+        if (!String(formData.units).trim()) {
+            hasError = true;
+            setError('units', 'required');
+        }
+
+        if (hasError) return;
+
+        setIsSaving(true);
+
+        try {
+            await axios.patch(route('permanent-record.update-subject', { id: subject.id }), formData);
+
+            await queryClient.invalidateQueries({ queryKey: ['permanent-record.student-added-records', studentId] });
+            await queryClient.invalidateQueries({ queryKey: ['permanent-record-student', studentId] });
+
+            setEditing(false);
+        } catch (error) {
+            toast.error('Something went wrong');
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        if (!value) {
+            setError(name, 'required')
+        } else {
+            clearErrors(name)
+        }
+        setFormData({ ...formData, [name]: value })
+    }
 
     return (
         <div className="grid grid-cols-[8rem_1fr_5rem_5rem_5rem_6rem] gap-4 w-full items-center py-2 border-b last:border-0 hover:bg-muted/50 px-2 rounded-md transition-colors">
-            <div className="font-medium text-sm">{subject.subject_code}</div>
-            <div className="text-sm truncate pr-4" title={subject.descriptive_title}>
-                {subject.descriptive_title}
-            </div>
-
             {/* Editable Fields */}
             {editing ? (
                 <>
                     <div>
                         <Input
+                            name='subject_code'
+                            value={formData.subject_code}
+                            onChange={handleChange}
+                            disabled={isSaving}
+                            className={`h-8 w-full px-2 disabled:opacity-50 ${errors.subject_code ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            placeholder="Required"
+                        />
+                    </div>
+                    <div>
+                        <Input
+                            name='descriptive_title'
+                            value={formData.descriptive_title}
+                            onChange={handleChange}
+                            disabled={isSaving}
+                            className={`h-8 w-full px-2 disabled:opacity-50 ${errors.descriptive_title ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            placeholder="Required"
+                        />
+                    </div>
+                    <div>
+                        <Input
+                            name='grade'
                             value={formData.grade}
-                            onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-                            className="h-8 w-full px-2"
+                            onChange={handleChange}
+                            disabled={isSaving}
+                            className={`h-8 w-full px-2 disabled:opacity-50 ${errors.grade ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            placeholder="Required"
                         />
                     </div>
                     <div>
                         <Input
+                            name='re_exam'
                             value={formData.re_exam}
-                            onChange={(e) => setFormData({ ...formData, re_exam: e.target.value })}
-                            className="h-8 w-full px-2"
+                            onChange={handleChange}
+                            disabled={isSaving}
+                            className="h-8 w-full px-2 disabled:opacity-50"
+                            placeholder="Optional"
                         />
                     </div>
                     <div>
                         <Input
+                            name='units'
                             value={formData.units}
-                            onChange={(e) => setFormData({ ...formData, units: e.target.value })}
-                            className="h-8 w-full px-2"
+                            onChange={handleChange}
+                            disabled={isSaving}
+                            className={`h-8 w-full px-2 disabled:opacity-50 ${errors.units ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                             type="number"
+                            placeholder="Required"
                         />
                     </div>
                 </>
             ) : (
                 <>
+                    <div className="font-medium text-sm">{subject.subject_code}</div>
+                    <div className="text-sm truncate pr-4" title={subject.descriptive_title}>
+                        {subject.descriptive_title}
+                    </div>
                     <div className="text-sm">{subject.grade}</div>
                     <div className="text-sm text-muted-foreground">{subject.re_exam ? subject.re_exam : '-'}</div>
                     <div className="text-sm">{subject.units}</div>
@@ -76,11 +159,27 @@ const Record = ({ subject }) => {
             <div className="flex justify-end">
                 {editing ? (
                     <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={handleCancel} className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 w-8">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 h-8 w-8 disabled:opacity-50"
+                        >
                             <X className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={handleSave} className="text-green-500 hover:text-green-600 hover:bg-green-50 h-8 w-8">
-                            <Check className="h-4 w-4" />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="text-green-500 hover:text-green-600 hover:bg-green-50 h-8 w-8 disabled:opacity-50"
+                        >
+                            {isSaving ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Check className="h-4 w-4" />
+                            )}
                         </Button>
                     </div>
                 ) : (
@@ -91,9 +190,11 @@ const Record = ({ subject }) => {
             </div>
         </div>
     )
-}
+};
 
 import { Plus } from 'lucide-react'; // Make sure to import Plus
+import { toast } from 'sonner'
+import { useForm } from '@inertiajs/react'
 
 const NewSubjectRow = ({ onSave, onCancel }) => {
     const [formData, setFormData] = useState({
@@ -105,7 +206,7 @@ const NewSubjectRow = ({ onSave, onCancel }) => {
     });
 
     const handleSave = () => {
-        // Basic validation could go here
+        
         onSave(formData);
     };
 
@@ -255,19 +356,13 @@ export default function ViewRecords({ student, open, onClose }) {
                                         </div>
 
                                         {/* Table Body */}
+
                                         <div className="flex flex-col">
                                             {record.subjects.map(subject => (
                                                 <Record
                                                     key={`subject-${subject.id}`}
                                                     subject={subject}
-                                                />
-                                            ))}
-                                        </div>
-                                        <div className="flex flex-col">
-                                            {record.subjects.map(subject => (
-                                                <Record
-                                                    key={`subject-${subject.id}`}
-                                                    subject={subject}
+                                                    studentId={student.id}
                                                 />
                                             ))}
 

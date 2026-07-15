@@ -13,5 +13,6 @@ Route::middleware(['auth', 'maintenance', 'role:registrar'])->group(function () 
     Route::post('/permanent-record/add-student-info/{userId}', [FormNineController::class, 'addInfo'])->name('permanent-record.add-student-info');
 
     Route::get('/permanent-record/student-added-records/{id}', [FormNineController::class, 'getAddedRecords'])->name('permanent-record.student-added-records');
-    Route::patch('/permanent-record/student-added-records/{id}', [FormNineController::class, 'getAddedRecords'])->name('permanent-record.student-added-records');
+    Route::patch('/permanent-record/student-update-record/{id}', [FormNineController::class, 'updateRecord'])->name('permanent-record.update-subject');
+    Route::post('/permanent-subject/student-add-subject/{id}', [FormNineController::class, 'addSubject'])->name('permanent-subject.add-subject');
 });

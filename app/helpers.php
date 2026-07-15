@@ -61,18 +61,25 @@ if (!function_exists('log_activity')) {
 }
 
 if (!function_exists('computeFinalGrade')) {
-    function computeFinalGrade($midterm, $final){
-        if (!is_null($midterm) && !is_null($final)) {
-            $average = ($midterm + $final) / 2;
-            
-            if ($average >= 3.0 && $average <= 3.09) {
-                $averageFormat = 3.0;
-            } elseif ($average >= 4.0) {
-                $averageFormat = 5.0;
-            } else {
-                $averageFormat = $average;
-            }
-            return number_format($averageFormat, 1);
+    function computeFinalGrade($midterm, $final)
+    {
+        if (is_null($midterm) || is_null($final)) {
+            return null;
         }
+
+        // If either grade is 0, return 0.0
+        if ((float) $midterm === 0.0 || (float) $final === 0.0) {
+            return number_format(0, 1); // "0.0"
+        }
+
+        $average = ($midterm + $final) / 2;
+
+        if ($average >= 3.0 && $average <= 3.09) {
+            $average = 3.0;
+        } elseif ($average >= 4.0) {
+            $average = 5.0;
+        }
+
+        return number_format($average, 1);
     }
 }

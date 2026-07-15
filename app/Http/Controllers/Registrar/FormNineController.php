@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Registrar;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademicRecord;
+use App\Models\AcademicRecordSubject;
 use App\Models\EnrolledStudent;
 use App\Models\PreliminaryEducation;
 use App\Models\StudentGrade;
@@ -59,19 +60,8 @@ class FormNineController extends Controller
                 $subjectDetails = $enrolledSubject->YearSectionSubjects?->Subject;
                 $midterm = $enrolledSubject->midterm_grade;
                 $final = $enrolledSubject->final_grade;
-                $finalComputedGrade = null;
 
-                if (!is_null($midterm) && !is_null($final)) {
-                    $average = ($midterm + $final) / 2;
-                    if ($average >= 3.0 && $average <= 3.09) {
-                        $averageFormat = 3.0;
-                    } elseif ($average >= 4.0) {
-                        $averageFormat = 5.0;
-                    } else {
-                        $averageFormat = $average;
-                    }
-                    $finalComputedGrade = number_format($averageFormat, 1);
-                }
+                $finalComputedGrade = computeFinalGrade($midterm, $final);
 
                 return [
                     'subject_code'      => $subjectDetails?->subject_code,
@@ -380,5 +370,29 @@ class FormNineController extends Controller
             ->get();
 
         return response()->json($records);
+    }
+
+    public function addSubject($id, Request $request)
+    {
+        AcademicRecordSubject::create([
+            'academic_record_id' => $request->id,
+            'subject_code' => $request->subject_code,
+            'descriptive_title' => $request->descriptive_title,
+            'grade' => $request->grade,
+            're_exam' => $request->re_exam,
+            'units' => $request->units
+        ]);
+    }
+
+    public function updateRecord($id, Request $request)
+    {
+        AcademicRecordSubject::where('id', '=', $id)
+            ->update([
+                'subject_code' => $request->subject_code,
+                'descriptive_title' => $request->descriptive_title,
+                'grade' => $request->grade,
+                're_exam' => $request->re_exam,
+                'units' => $request->units
+            ]);
     }
 }
