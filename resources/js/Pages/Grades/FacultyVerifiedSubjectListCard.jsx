@@ -91,6 +91,7 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
                             <TableRow>
                                 <TableHead>#</TableHead>
                                 <TableHead>SUBJECT</TableHead>
+                                <TableHead>Course Section</TableHead>
                                 <TableHead>PERIOD</TableHead>
                                 <TableHead>SUBMITTED</TableHead>
                                 <TableHead>VERIFIED</TableHead>
@@ -111,6 +112,10 @@ function FacultyVerifiedSubjectListCard({ subjects, schoolYear, facultyId, isLoa
 
                                         <TableCell rowSpan={2} className="align-middle">
                                             {subject.descriptive_title}
+                                        </TableCell>
+
+                                        <TableCell rowSpan={2} className="align-middle">
+                                            {subject.course_name_abbreviation}-{subject.year_level_id}{subject.section}
                                         </TableCell>
 
                                         <TableCell>

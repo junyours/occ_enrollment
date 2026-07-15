@@ -765,6 +765,9 @@ class GradeController extends Controller
             'final_verified_at',
             'final_rejection_message',
             'final_deployed_at',
+            'course_name_abbreviation',
+            'year_level_id',
+            'section',
         )
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
@@ -772,6 +775,7 @@ class GradeController extends Controller
             ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
             ->where('faculty_id', '=', $request->facultyId)
             ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
             ->join('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
             ->where('school_year_id', '=', $request->schoolYearId)
             ->get();

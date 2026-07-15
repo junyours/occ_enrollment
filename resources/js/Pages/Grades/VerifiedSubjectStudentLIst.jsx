@@ -15,6 +15,7 @@ import { computeFinalGrade } from './GradeUtility';
 import { Button } from '@/Components/ui/button';
 import { useReactToPrint } from 'react-to-print';
 import GradeHeader from './GradeHeader';
+import BackButton from '@/Components/ui/BackButton';
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -132,15 +133,7 @@ function VerifiedSubjectStudentLIst({ faculty, subject, schoolYear, courseSectio
         <div className='space-y-4'>
             <div className='flex justify-between'>
                 <div className='flex gap-2 h-min self-end'>
-                    <Card
-                        className='cursor-pointer hover:bg-gray-100'
-                        onClick={() => window.history.back()}
-                    >
-                        <CardContent className='flex items-center gap-2 px-4 py-2'>
-                            <ArrowLeft className='w-5 h-5' />
-                            <span>Back</span>
-                        </CardContent>
-                    </Card>
+                    <BackButton />
                     <Card className='w-max'>
                         <CardContent className='px-4 py-2'>
                             <h1>{formatFullNameFML(faculty).toUpperCase()}</h1>
