@@ -39,6 +39,8 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
     Route::delete('/api/enrollment/delete/subject/{studentSubjectId}', [EnrollmentCourseSectionController::class, 'deleteSubject'])->name('enrollment.delete.subject');
     Route::post('/api/enrollment/student-info/{schoolYearId}/{studentID}', [EnrollmentCourseSectionController::class, 'studentInfo'])->name('enrollment.student.info');
 
+    Route::post('/enrollment/save-staged-subjects', [EnrollmentCourseSectionController::class, 'saveStageSubjects'])->name('enrollment.save.staged-subjects');
+
     Route::post('/api/subjects-classes', [EnrollmentCourseSectionController::class, 'subjectClasses'])->name('subject.classes');
 
     Route::delete('/enrollment/unenroll/{id}', [EnrollmentCourseSectionController::class, 'unenroll'])->name('enrollment.unenroll');

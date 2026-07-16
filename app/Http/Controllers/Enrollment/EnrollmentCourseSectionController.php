@@ -26,6 +26,7 @@ use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use DateTime;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use function Symfony\Component\Clock\now;
@@ -664,6 +665,79 @@ class EnrollmentCourseSectionController extends Controller
             'message' => 'success',
             'class' => $class,
         ], 200);
+    }
+
+    public function saveStageSubjects(Request $request)
+    {
+        $studentId = $request->input('studentId');
+        $schoolYearId = $request->input('schoolYearId');
+        $addedSubjects = $request->input('addedSubjects', []);
+        $removedSubjects = $request->input('removedSubjects', []);
+
+        // Prepare User Info for the log
+        $userId = Auth::id();
+        $userInfo = User::where('id', $userId)->with('InstructorInfo')->first();
+
+
+        $evaluatorName = format_name(
+            [
+                'first_name'  => $userInfo->first_name,
+                'middle_name' => $userInfo->middle_name,
+                'last_name'   => $userInfo->last_name,
+            ],
+            ['format' => 'LFM']
+        );
+        
+        DB::beginTransaction();
+
+        try {
+            // --- PROCESS REMOVALS ---
+            if (!empty($removedSubjects)) {
+                // Collect the IDs passed from your payload
+                $removedIds = collect($removedSubjects)->pluck('studentSubjectId')->toArray();
+
+                StudentSubject::whereIn('id', $removedIds)->delete();
+            }
+
+            // --- PROCESS ADDITIONS ---
+            if (!empty($addedSubjects)) {
+                // Find the student
+                $student = User::where('user_id_no', $studentId)->firstOrFail();
+
+                // Find the enrolled student record
+                $enrolledStudent = EnrolledStudent::select('enrolled_students.id')
+                    ->where('student_id', $student->id)
+                    ->where('school_year_id', $schoolYearId)
+                    ->join('year_section', 'year_section.id', 'enrolled_students.year_section_id')
+                    ->firstOrFail();
+
+                // Reverted to create() to ensure all your Model defaults/events fire correctly
+                foreach ($addedSubjects as $subject) {
+                    StudentSubject::create([
+                        'enrolled_students_id'     => $enrolledStudent->id,
+                        'year_section_subjects_id' => $subject['classId'],
+                    ]);
+                }
+            }
+
+            DB::commit();
+            
+            return response()->json([
+                'message' => 'success'
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Failed to save staged subjects: ' . $e->getMessage());
+
+            // Return the actual error message so you can see it in your browser's Network tab
+            return response()->json([
+                'message' => 'error',
+                'error'   => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine()
+            ], 500);
+        }
     }
 
     public function deleteSubject($studentSubjectId)
