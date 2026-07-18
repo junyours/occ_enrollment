@@ -16,7 +16,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import SearchSubject from './SearchSubject';
 import { useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { FeedbackModal } from '@/Components/FeedbackModalProvider';
 
 export default function StudentSubjects() {
     const { courseName, yearlevel, section, student, schoolYear } = usePage().props;
@@ -92,7 +92,8 @@ export default function StudentSubjects() {
     };
 
     const handleSaveStagedChanges = async () => {
-        setSaving(true);
+        setEditing(true);
+
         const payload = {
             studentId: student.user_id_no,
             schoolYearId: schoolYear.id,
@@ -101,7 +102,9 @@ export default function StudentSubjects() {
         };
 
         try {
-            await axios.post(route('enrollment.save.staged-subjects'), payload);
+            FeedbackModal.Show('Saving student subjects...');
+
+            await axios.post(route('enrollment.save.staged-subjects'), payload)
 
             await refetch();
 
@@ -110,12 +113,10 @@ export default function StudentSubjects() {
             setStagedRemoves([]);
             setSearchedClasses([]);
 
-            toast.success('Student subjects updated successfully!')
+            FeedbackModal.Success('Student subjects updated successfully!');
         } catch (error) {
             console.error(error);
-            toast.error('Something went wrong!')
-        } finally {
-            setSaving(false);
+            FeedbackModal.Error(error?.response?.data?.message || 'Failed to save student subjects. Please try again.')
         }
     };
 
@@ -407,7 +408,7 @@ export default function StudentSubjects() {
                             <CardContent className='pt-4 flex gap-10'>
                                 <div className="flex items-center gap-6">
                                     <div className="flex flex-col">
-                                        <span className="text-sm font-semibold text-muted-foreground">Staged Changes Summary</span>
+                                        <span className="text-sm font-semibold text-muted-foreground">Changes Summary</span>
                                         {hasPendingChanges ? (
                                             <div className="flex gap-4 mt-1">
                                                 <Badge className="bg-green-600">Added: {stagedAdds.length} ({totalUnitsAdded} Units)</Badge>
@@ -429,7 +430,7 @@ export default function StudentSubjects() {
                                         disabled={!hasPendingChanges || saving || activeSubjectsCount === 0}
                                     >
                                         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                        {saving ? "Saving Changes..." : "Save Staged Changes"}
+                                        {saving ? "Saving Changes..." : "Save Changes"}
                                     </Button>
                                 </div>
                             </CardContent>

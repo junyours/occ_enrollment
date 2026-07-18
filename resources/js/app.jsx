@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/Components/theme-provider";
 import { Toaster } from "@/Components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router } from "@inertiajs/react";
+import { FeedbackModalProvider } from '@/Components/FeedbackModalProvider';
 
 router.on("invalid", () => {
     window.location.reload();
@@ -30,7 +31,9 @@ createInertiaApp({
         root.render(
             <ThemeProvider>
                 <QueryClientProvider client={queryClient}>
-                    <App {...props} />
+                    <FeedbackModalProvider>
+                        <App {...props} />
+                    </FeedbackModalProvider>
                 </QueryClientProvider>
                 <Toaster position="top-right" />
             </ThemeProvider>
