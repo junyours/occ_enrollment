@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-    AnimatePresence, 
-    LazyMotion, 
-    domAnimation, 
-    m, 
-    useReducedMotion 
+import {
+    AnimatePresence,
+    LazyMotion,
+    domAnimation,
+    m,
+    useReducedMotion
 } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Loader2, Info, AlertTriangle, X, ChevronDown } from 'lucide-react';
 
@@ -117,13 +117,12 @@ function getFocusableElements(container) {
 }
 
 /**
- * Premium Spring Configuration for UI Snappiness
+ * OPTIMIZED: Replaced expensive Spring physics with a lightweight Tween.
  */
-const springConfig = {
-    type: 'spring',
-    stiffness: 350,
-    damping: 25,
-    mass: 0.8,
+const tweenConfig = {
+    type: 'tween',
+    duration: 0.2,
+    ease: 'easeOut',
 };
 
 function ExpandableDetails({ details }) {
@@ -140,9 +139,9 @@ function ExpandableDetails({ details }) {
                 className="flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
                 aria-expanded={isExpanded}
             >
-                <m.div 
-                    animate={{ rotate: isExpanded ? (prefersReducedMotion ? 0 : 180) : 0 }} 
-                    transition={{ duration: 0.2 }} 
+                <m.div
+                    animate={{ rotate: isExpanded ? (prefersReducedMotion ? 0 : 180) : 0 }}
+                    transition={{ duration: 0.2 }}
                     className="mr-1"
                 >
                     <ChevronDown className="w-4 h-4" />
@@ -155,7 +154,7 @@ function ExpandableDetails({ details }) {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }} // Snappy custom cubic-bezier
+                        transition={{ duration: 0.2, ease: 'easeOut' }} // Simplified easing
                     >
                         <div className="mt-2 p-3 text-xs font-mono bg-muted text-muted-foreground rounded-md overflow-x-auto whitespace-pre-wrap max-h-40 overflow-y-auto border border-border">
                             {details}
@@ -245,13 +244,13 @@ function Modal({
                     className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0"
                     role="presentation"
                 >
-                    {/* Backdrop */}
+                    {/* Backdrop: Removed backdrop-blur-sm for massive performance gain */}
                     <m.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15, ease: 'easeOut' }}
-                        className="fixed inset-0 bg-background/80 backdrop-blur-sm"
+                        transition={{ duration: 0.15, ease: 'linear' }}
+                        className="fixed inset-0 bg-background/90"
                         onClick={status !== STATUS.LOADING ? onClose : undefined}
                         aria-hidden="true"
                     />
@@ -259,11 +258,13 @@ function Modal({
                     {/* Modal Dialog */}
                     <m.div
                         ref={modalNodeRef}
-                        // Staggering: small 50ms delay on entry lets backdrop load first
-                        initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.96, y: prefersReducedMotion ? 0 : 12 }}
-                        animate={{ opacity: 1, scale: 1, y: 0, transition: { ...springConfig, delay: 0.05 } }}
-                        exit={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.98, y: prefersReducedMotion ? 0 : 6, transition: { duration: 0.15, ease: 'easeIn' } }}
-                        className="relative z-50 grid w-full max-w-md gap-4 border border-border bg-background p-6 shadow-2xl sm:rounded-xl"
+                        // Hardware acceleration hint
+                        style={{ willChange: "transform, opacity" }}
+                        initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.97, y: prefersReducedMotion ? 0 : 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0, transition: tweenConfig }}
+                        exit={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.98, y: prefersReducedMotion ? 0 : 5, transition: { duration: 0.15, ease: 'easeIn' } }}
+                        // Reduced shadow from 2xl to xl
+                        className="relative z-50 grid w-full max-w-md gap-4 border border-border bg-background p-6 shadow-xl sm:rounded-xl"
                         onClick={(e) => e.stopPropagation()}
                         role="alertdialog"
                         aria-modal="true"
@@ -288,14 +289,13 @@ function Modal({
                                         <m.div
                                             initial={{ scale: 0.8, opacity: 0.8 }}
                                             animate={{ scale: 2.2, opacity: 0 }}
-                                            transition={{ duration: 0.6, ease: 'easeOut' }}
+                                            transition={{ duration: 0.5, ease: 'easeOut' }}
                                             className="absolute inset-0 rounded-full bg-emerald-500/30"
                                         />
                                     )}
                                 </AnimatePresence>
 
                                 <div className={`relative z-10 flex h-full w-full items-center justify-center rounded-full transition-colors duration-300 ${config?.iconBg}`}>
-                                    {/* mode="wait" ensures icons don't fight during fast status changes */}
                                     <AnimatePresence mode="wait">
                                         <m.div
                                             key={status}
@@ -332,18 +332,17 @@ function Modal({
                                 {/* Progress Bar Component */}
                                 <AnimatePresence>
                                     {config?.showSpinner && progress !== undefined && (
-                                        <m.div 
+                                        <m.div
                                             initial={{ opacity: 0, height: 0, marginTop: 0 }}
                                             animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
                                             exit={{ opacity: 0, height: 0, marginTop: 0 }}
                                             className="w-full bg-secondary h-1.5 rounded-full overflow-hidden relative"
                                         >
-                                            {/* We keep `width` to prevent children elements (the shimmer) from distorting during scaling. Eased heavily to prevent layout thrashing perception. */}
                                             <m.div
                                                 className="bg-primary h-full relative overflow-hidden"
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
-                                                transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.4 }}
+                                                transition={{ ease: 'easeOut', duration: 0.4 }}
                                             >
                                                 {!prefersReducedMotion && (
                                                     <m.div
@@ -372,10 +371,10 @@ function Modal({
                                                         if (action.closeOnClick !== false) onClose();
                                                     }}
                                                     className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-4 py-2 ${isDestructive
-                                                            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm'
-                                                            : isOutline
-                                                                ? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm'
-                                                                : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                                                        ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm'
+                                                        : isOutline
+                                                            ? 'border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm'
+                                                            : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
                                                         }`}
                                                 >
                                                     {action.label}

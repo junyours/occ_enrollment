@@ -76,7 +76,7 @@ if (!function_exists('computeFinalGrade')) {
 
         if ($average >= 3.0 && $average <= 3.09) {
             $average = 3.0;
-        } elseif ($average >= 4.0) {
+        } elseif ($average >= 3.1) {
             $average = 5.0;
         }
 
