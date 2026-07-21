@@ -16,7 +16,7 @@ const formatProgram = (text) => {
 
 export default function SYGrades({ data, className }) {
     return (
-        <div className={`space-y-1 break-inside-avoid-page ${className || ''}`}>
+        <div className={`space-y-1 ${className || ''}`}>
             <div className='grid grid-cols-[170px_1fr] gap-2 pl-8'>
                 <div className='flex flex-col'>
                     <FormField label="Term:" value={data.semester} labelWidth="100px" />

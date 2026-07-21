@@ -5,18 +5,15 @@ import SYGrades from './SYGrades';
 import Header from './components/Header';
 import { cn } from '@/Lib/Utils';
 
-// 1. Used React.forwardRef so we can measure the Header perfectly
 const THead = React.forwardRef((props, ref) => (
     <thead ref={ref} className="table-header-group">
         <tr><td><Header /></td></tr>
     </thead>
 ))
 
-// 2. Used React.forwardRef for the footer
 const TFoot = React.forwardRef((props, ref) => (
     <tfoot ref={ref} className="table-footer-group">
         <tr>
-            {/* Kept your 15mm height to protect the page numbers */}
             <td className="h-[15mm] print:h-[15mm]"></td>
         </tr>
     </tfoot>
@@ -62,7 +59,6 @@ export default function Paper({ data, className }) {
     useEffect(() => {
         if (!data || !wrapperRef.current || !tableRef.current || !theadRef.current || !tfootRef.current) return;
 
-        // Reset to auto to get an accurate, raw measurement
         wrapperRef.current.style.height = 'auto';
 
         setTimeout(() => {
@@ -70,26 +66,21 @@ export default function Paper({ data, className }) {
             const headerHeight = theadRef.current.offsetHeight;
             const tfootHeight = tfootRef.current.offsetHeight;
 
-            const A4_HEIGHT = 1123; // standard A4 at 96dpi
-            const PADDING_Y = 64;   // your p-8 wrapper padding
+            const A4_HEIGHT = 1123;
+            const PADDING_Y = 64;
+            const BUFFER = 150;
 
+            let estimatedPrintHeight = screenHeight + PADDING_Y + BUFFER;
             let pages = 1;
 
-            // Add a 50px tolerance to account for space lost when the browser breaks rows
-            let estimatedPrintHeight = screenHeight + PADDING_Y + 50;
-
-            // This loop calculates EXACTLY how many pages it takes by simulating the
-            // print engine adding a new Header & Footer onto every single extra page
             while (estimatedPrintHeight > pages * A4_HEIGHT) {
                 pages++;
-                estimatedPrintHeight = screenHeight + PADDING_Y + 50 + ((pages - 1) * (headerHeight + tfootHeight));
+                estimatedPrintHeight += (headerHeight + tfootHeight);
             }
 
-            // Lock the wrapper height exactly to the multiples of A4 
-            // The -1mm prevents hardware margins from forcing a blank page
             wrapperRef.current.style.height = `calc(${pages * 297}mm - 1mm)`;
             setTotalPages(pages);
-        }, 150);
+        }, 200);
     }, [data]);
 
     const totalUnits = data.enrollmentRecord.reduce(
@@ -99,7 +90,6 @@ export default function Paper({ data, className }) {
                 (subSum, subject) =>
                     (subject.grade > 3 || subject.grade == 0 || subject.grade == null)
                         ? subSum
-                        // Convert the string to a floating-point number here:
                         : subSum + parseFloat(subject.credit_units || 0),
                 0
             ),
@@ -113,35 +103,34 @@ export default function Paper({ data, className }) {
         >
             <style type="text/css" media="print">
                 {`
-                                @page { 
-                                    size: A4; 
-                                    margin: 0mm; /* Removes default browser margins */
-                                }
-                                body { 
-                                    -webkit-print-color-adjust: exact; 
-                                    print-color-adjust: exact; 
-                                }
-                            `}
+                    @page { 
+                        size: A4; 
+                        margin: 0mm;
+                    }
+                    body { 
+                        -webkit-print-color-adjust: exact; 
+                        print-color-adjust: exact; 
+                    }
+                `}
             </style>
-            {/* Added relative and z-10 so it sits above the absolute signature */}
             <table ref={tableRef} className="w-full border-collapse relative z-10">
                 <THead ref={theadRef} />
                 <tbody>
-                    {/* 1. Put Student Info in its own row */}
+                    {/* Student Info */}
                     <tr>
                         <td className="p-0 border-0">
                             <StudentInfo info={data.info} lastRecord={data.enrollmentRecord[data.enrollmentRecord.length - 1]} />
                         </td>
                     </tr>
 
-                    {/* 2. Put Collegiate Records in its own row */}
+                    {/* Collegiate Records */}
                     <tr>
                         <td className="p-0 border-0">
                             <CollegiateRecords />
                         </td>
                     </tr>
 
-                    {/* 3. Map each semester to its OWN row! */}
+                    {/* Map each semester */}
                     {data.enrollmentRecord.map((record, index) => (
                         <tr key={index}>
                             <td className="p-0 border-0">
@@ -150,52 +139,53 @@ export default function Paper({ data, className }) {
                         </tr>
                     ))}
 
-                    <table className='w-full mb-4'>
-                        <thead>
-                            <tr className=''>
-                                <th className='text-xs text-left w-32 pl-8 font-normal py-0.5'></th>
-                                <th className='text-xs font-normal'></th>
-                                <th className='text-xs font-normal w-16'></th>
-                                <th className='text-xs font-normal w-16'></th>
-                                <th className='text-xs font-normal w-16'></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr className='border-b border-gray-400'>
-                                <td className='text-xs  pl-8 py-0.5'></td>
-                                <td className='text-xs'></td>
-                                <td className='text-xs text-center'></td>
-                                <td className='text-xs text-center'>Total Units:</td>
-                                <td className='text-xs text-center'>{totalUnits}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    {/* Total Units */}
+                    <tr>
+                        <td className="p-0 border-0">
+                            <table className='w-full mb-4'>
+                                <thead>
+                                    <tr className=''>
+                                        <th className='text-xs text-left w-32 pl-8 font-normal py-0.5'></th>
+                                        <th className='text-xs font-normal'></th>
+                                        <th className='text-xs font-normal w-16'></th>
+                                        <th className='text-xs font-normal w-16'></th>
+                                        <th className='text-xs font-normal w-16'></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr className='border-b border-gray-400'>
+                                        <td className='text-xs  pl-8 py-0.5'></td>
+                                        <td className='text-xs'></td>
+                                        <td className='text-xs text-center'></td>
+                                        <td className='text-xs text-center'>Total Units:</td>
+                                        <td className='text-xs text-center'>{totalUnits}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
 
-                    {/* 4. Nothing Follows */}
+                    {/* Nothing Follows */}
                     <tr>
                         <td className="p-0 border-0">
                             <NothingFollows />
                         </td>
                     </tr>
 
-                    {/* 5. The Bumper */}
-                    <tr className="hidden print:table-row">
-                        <td className="h-[250px] print:h-[250px] text-transparent select-none p-0 border-0">.</td>
-                    </tr>
+
                 </tbody>
                 <TFoot ref={tfootRef} />
             </table>
 
-            {/* THE SIGNATURE: Pinned to the floor of our perfectly calculated wrapper.
-                It sits exactly 20mm from the bottom, safely above your page numbers. */}
+            {/* Signature */}
             <div
-                className="absolute left-0 w-full px-8  print:block z-0"
+                className="absolute left-0 w-full px-8 print:block z-0"
                 style={{ bottom: '20mm' }}
             >
                 <Confirmation />
             </div>
 
-            {/* Page Overlays */}
+            {/* Page Numbers */}
             {Array.from({ length: totalPages }).map((_, i) => (
                 <div
                     key={i}
