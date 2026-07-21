@@ -18,6 +18,7 @@ import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import SearchSubject from './SearchSubject';
+import StudentEnrollmentSkeleton from './Skeleton/StudentEnrollmentSkeleton';
 
 export default function EnrollStudent({ yearSectionId, courseName, yearlevel, section, schoolYear, departmentId }) {
 
@@ -149,29 +150,6 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
             })
     }
 
-    const [searchInput, setSearchInput] = useState('');
-
-    const handleSubjectCodehange = (e) => {
-        const value = e.target.value;
-        setSearchInput(value)
-
-        if (value.includes(' ')) return;
-        setSubjectCode(value);
-        if (!value) return setSearchedClasses([]);
-
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
-
-        const newTimeout = setTimeout(() => {
-            setStudentInfo([]);
-            if (value.length < 2) return;
-            searchSubjectClasses(value);
-        }, 1000);
-
-        setTypingTimeout(newTimeout);
-    }
-
     const searchSubjectClasses = async (value) => {
         setGettingCLasses(true)
 
@@ -225,8 +203,6 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
 
         return conflict
     }
-
-    console.log();
 
     const { user } = usePage().props.auth;
     const userRole = user.user_role;
@@ -304,31 +280,7 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
             });
     }
 
-    const searchSubjects = async (value) => {
-        if (!value) return
-
-        setGettingCLasses(true)
-
-        axios.post(route('subject.classes'), {
-            search: value,
-            schoolYearId: schoolYear.id,
-        })
-            .then(response => {
-                setSearchedClasses(response.data);
-            })
-            .catch(error => {
-                if (error.response?.data?.message === 'no classes found') {
-                    setSearchedClasses([]);
-                }
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    setGettingCLasses(false);
-                }, 500);
-            });
-    }
-
-    if (loading) return <PreLoader title="Enroll" />
+    if (loading) return <StudentEnrollmentSkeleton />
 
     return (
         <div className='space-y-4' >
@@ -647,4 +599,4 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
     )
 }
 
-EnrollStudent.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+EnrollStudent.layout = (page) => <AuthenticatedLayout title="Enroll">{page}</AuthenticatedLayout>;

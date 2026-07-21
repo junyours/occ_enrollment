@@ -1,9 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import axios from 'axios';
-import PreLoader from '@/Components/preloader/PreLoader';
 import React, { useEffect, useState, useRef } from 'react'
 import { formatFullName, identifyDayType } from '@/Lib/Utils';
-import { Head, usePage, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { detectTwoScheduleConflict } from '../../../Lib/ConflictUtilities';
 import ClassList from './Partials/ClassList';
 import Scheduling from './Partials/Scheduling';
@@ -11,12 +10,12 @@ import DeletionDialog from './Partials/DeletionDialog';
 import ScheduleToolbar from './Partials/ScheduleToolbar';
 import Room from './Assigned/Room';
 import Instructor from './Assigned/Instructor';
-import { Button } from '@/Components/ui/button';
 import AddSubjectDialog from './Partials/AddSubjectDialog';
 import { toast } from 'sonner';
+import ScheduleViewSkeleton from '../Skeleton/ScheduleViewSkeleton';
+import { useQuery } from '@tanstack/react-query';
 
 export default function ClassScheduling({ yearSectionId }) {
-    const [fetching, setFetching] = useState(true);
 
     const bottomRef = useRef(null);
 
@@ -31,7 +30,6 @@ export default function ClassScheduling({ yearSectionId }) {
     const [meridiem, setMeridiem] = useState('AM');
     const [classHour, setClassHour] = useState('3');
 
-    const [classes, setClasses] = useState([])
     const [rooms, setRooms] = useState([])
     const [instructors, setInstructors] = useState([])
     const [mainScheduleConflictList, setMainScheduleConflictList] = useState([])
@@ -55,16 +53,18 @@ export default function ClassScheduling({ yearSectionId }) {
     });
 
     const getCLasses = async () => {
-        await axios.post('/api/enrollment/get-classes', {
-            yearSectionId: yearSectionId,
-        })
-            .then(response => {
-                setClasses(response.data.classes)
-            })
-            .finally(() => {
-                setFetching(false)
-            })
+        try {
+            const response = await axios.post('/api/enrollment/get-classes', { yearSectionId: yearSectionId })
+            return response.data.classes
+        } catch (error) {
+            console.log(error)
+        }
     }
+
+    const { data: classes, isLoading, refetch } = useQuery({
+        queryKey: ['/api/enrollment/get-classes', yearSectionId],
+        queryFn: getCLasses,
+    })
 
     useEffect(() => {
         getCLasses()
@@ -431,12 +431,12 @@ export default function ClassScheduling({ yearSectionId }) {
         if (mainScheduleConflictList.length > 0 || secondScheduleConflictList.length > 0 || roomConflict || instructorConflict) return toast.error("There's a conflict, please resolve!");
 
         await post(route(url, data), {
-            onSuccess: () => {
+            onSuccess: async () => {
                 reset()
                 setEditing(false)
                 setEditingSecondSchedule(false)
                 toast.success("Class updated successfully.")
-                getCLasses()
+                await refetch()
                 setMainScheduleConflictList([])
                 setSecondScheduleConflictList([])
             },
@@ -444,7 +444,7 @@ export default function ClassScheduling({ yearSectionId }) {
         });
     };
 
-    if (fetching) return <PreLoader title="Class" />
+    if (isLoading) return <ScheduleViewSkeleton />
 
     return (
         <div className='space-y-4'>
@@ -466,7 +466,7 @@ export default function ClassScheduling({ yearSectionId }) {
                 colorful={colorful}
                 setClassType={setClassType}
                 setOpenDeleteDialog={setOpenDeleteDialog}
-                getCLasses={getCLasses}
+                getCLasses={refetch}
             />
 
             {(editing) &&
@@ -503,7 +503,7 @@ export default function ClassScheduling({ yearSectionId }) {
             }
 
             {!editing && (
-                <AddSubjectDialog yearSectionId={yearSectionId} getCLasses={getCLasses} />
+                <AddSubjectDialog yearSectionId={yearSectionId} getCLasses={refetch} />
             )}
 
             < DeletionDialog
@@ -511,7 +511,7 @@ export default function ClassScheduling({ yearSectionId }) {
                 setOpenDeleteDialog={setOpenDeleteDialog}
                 classType={classType}
                 classIdToDelete={classIdToDelete}
-                getCLasses={getCLasses}
+                getCLasses={refetch}
                 setClassIdToDelete={setClassIdToDelete}
             />
 

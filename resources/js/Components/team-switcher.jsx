@@ -13,7 +13,7 @@ export function TeamSwitcher() {
                 <Link href="/" className="w-full">
                     <SidebarMenuButton
                         size="lg"
-                        className="w-full transition-all duration-200 hover:bg-sidebar-accent active:scale-[0.98] group gap-1 group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:hover:bg-transparent"
+                        className="hover:translate-x-0 w-full transition-all duration-200 active:scale-[0.98] group gap-1 group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:hover:bg-transparent"
                     >
                         <div className="flex aspect-square size-8 items-center justify-center text-primary-foreground transition-shadow">
                             <AppLogo />

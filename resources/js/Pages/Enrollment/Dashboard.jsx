@@ -10,6 +10,8 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, L
 import { GraduationCap, TrendingUp } from 'lucide-react';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import { UserCheck } from "lucide-react";
+import { useQuery } from '@tanstack/react-query';
+import EnrollmentDashboardSkeleton from './Skeleton/EnrollmentDashboardSkeleton';
 
 const studentTypeChartConfig = {
     Freshman: { color: "#FFD700" },  // Yellow
@@ -30,180 +32,182 @@ const chartConfig = {
     },
 }
 
-export default function Dashboard({ schoolYear, hide }) {
-    const [loading, setLoading] = useState(true);
 
+const getStudentTypeData = (reports, selectedCourse) => {
+    if (!reports || !Array.isArray(reports)) return [];
+
+    const filteredCourses = reports
+        .filter(course => course.id == selectedCourse || selectedCourse == 0);
+
+    const studentTypeTotals = filteredCourses.reduce(
+        (totals, course) => ({
+            Freshman: totals.Freshman + (course.freshman_count || 0),
+            Old: totals.Old + (course.old_count || 0),
+            Returnee: totals.Returnee + (course.returnee_count || 0),
+            Transferee: totals.Transferee + (course.transferee_count || 0),
+        }),
+        { Freshman: 0, Old: 0, Returnee: 0, Transferee: 0 }
+    );
+
+    return Object.entries(studentTypeTotals).map(([name, count]) => ({ name, count }));
+};
+
+const getGenderStatisticsData = (reports, selectedCourse) => {
+    if (!reports || !Array.isArray(reports)) return [];
+
+    const filteredCourses = reports
+        .filter(course => course.id == selectedCourse || selectedCourse == 0);
+
+    const genderTotals = filteredCourses.reduce(
+        (totals, course) => ({
+            "1st Year": {
+                Male: (totals["1st Year"]?.Male || 0) + (course.first_year_male_count || 0),
+                Female: (totals["1st Year"]?.Female || 0) + (course.first_year_female_count || 0),
+            },
+            "2nd Year": {
+                Male: (totals["2nd Year"]?.Male || 0) + (course.second_year_male_count || 0),
+                Female: (totals["2nd Year"]?.Female || 0) + (course.second_year_female_count || 0),
+            },
+            "3rd Year": {
+                Male: (totals["3rd Year"]?.Male || 0) + (course.third_year_male_count || 0),
+                Female: (totals["3rd Year"]?.Female || 0) + (course.third_year_female_count || 0),
+            },
+            "4th Year": {
+                Male: (totals["4th Year"]?.Male || 0) + (course.fourth_year_male_count || 0),
+                Female: (totals["4th Year"]?.Female || 0) + (course.fourth_year_female_count || 0),
+            }
+        }),
+        {
+            "1st Year": { Male: 0, Female: 0 },
+            "2nd Year": { Male: 0, Female: 0 },
+            "3rd Year": { Male: 0, Female: 0 },
+            "4th Year": { Male: 0, Female: 0 }
+        }
+    );
+
+    return Object.entries(genderTotals).map(([year, { Male, Female }]) => ({
+        year,
+        male: Male,
+        female: Female
+    }));
+};
+
+const getEnrollmentStatisticsData = (reports, selectedCourse) => {
+    if (!reports || !Array.isArray(reports)) return [];
+
+    const filteredCourses = reports
+        .filter(course => course.id == selectedCourse || selectedCourse == 0);
+
+    const enrollmentTotals = filteredCourses.reduce((totals, course) => {
+        course.year_section.forEach(entry => {
+            const date = entry.date_enrolled;
+            totals[date] = (totals[date] || 0) + entry.total_students;
+        });
+
+        return totals;
+    }, {});
+
+    return Object.entries(enrollmentTotals).map(([date, totalStudents]) => ({
+        date,
+        total_students: totalStudents
+    }));
+};
+
+const AnimatedCount = ({ target }) => {
+    const [count, setCount] = useState(() => {
+        return Number(localStorage.getItem("total")) || 0; // Load last count
+    });
+
+    useEffect(() => {
+        const prevTotal = Number(localStorage.getItem("total")) || 0; // Get last count
+        const difference = target - prevTotal;
+        const duration = 450;
+        const stepTime = 30;
+        const steps = Math.ceil(duration / stepTime);
+        let step = 0;
+
+        if (difference !== 0) {
+            const timer = setInterval(() => {
+                step++;
+                const progress = step / steps;
+                const currentValue = Math.round(prevTotal + difference * progress);
+
+                if (step >= steps) {
+                    setCount(target);
+                    localStorage.setItem("total", target); // Save to localStorage
+                    clearInterval(timer);
+                } else {
+                    setCount(currentValue);
+                }
+            }, stepTime);
+
+            return () => clearInterval(timer);
+        }
+    }, [target]);
+
+    return <span className="text-md sm:text-4xl font-bold">{count}</span>;
+};
+
+const EnrolledCard = ({ reports, selectedCourse }) => {
+    const totalEnrolled = reports
+        .filter((report) => selectedCourse == 0 || report.id == selectedCourse)
+        .reduce((total, report) => total + report.enrolled_student_count, 0);
+
+    return (
+        <Card className="items-center flex flex-col justify-center">
+            {/* <div> */}
+            <CardHeader className="flex items-center justify-between">
+                <CardTitle>Total Enrolled</CardTitle>
+                <UserCheck className="w-6 h-6 text-gray-500" />
+            </CardHeader>
+
+            <CardContent className="flex flex-col items-center gap-2 pt-4">
+                {reports.length > 0 ? (
+                    <>
+                        <AnimatedCount target={totalEnrolled} />
+                        <span className="text-gray-500 text-sm">students enrolled</span>
+                    </>
+                ) : (
+                    <span className="text-gray-400 text-sm">No data available</span>
+                )}
+            </CardContent>
+            {/* </div> */}
+        </Card>
+    );
+};
+
+export default function Dashboard({ schoolYear, hide }) {
     const { user } = usePage().props.auth;
-    const [reports, setReports] = useState([]);
-    const [schoolYearDetails, setSchoolYearDetails] = useState([]);
 
     const [selectedCourse, setSelectedCourse] = useState(0);
 
     const getEnrollmentDashboardData = async () => {
-        await axios.post(route('get.enrollment.dashboard.data'), { schoolYearId: schoolYear.id })
-            .then(response => {
-                if (user.user_role == 'registrar') {
-                    setReports(response.data.coursesReports);
-                    setSchoolYearDetails(response.data.schoolYearDetails);
-                } else {
-                    setReports(response.data.coursesReports.department.course);
-                    setSchoolYearDetails(response.data.schoolYearDetails);
-                }
-            })
-            .finally(() => {
-                setLoading(false)
-            })
+        try {
+            const response = await axios.post(route('get.enrollment.dashboard.data'), { schoolYearId: schoolYear.id })
+            return response.data
+        } catch (error) {
+            console.log(error);
+        }
     }
 
-    useEffect(() => {
-        getEnrollmentDashboardData()
-    }, [schoolYear])
+    const { data, isLoading } = useQuery({
+        queryKey: ['enrollment.dashboard.data', schoolYear],
+        queryFn: getEnrollmentDashboardData,
+        enabled: !!schoolYear
+    })
 
+    if (isLoading) return <EnrollmentDashboardSkeleton />
 
-    if (loading) return <PreLoader title="Dashboard" />
+    let reports;
+    let schoolYearDetails;
 
-    const getStudentTypeData = (reports, selectedCourse) => {
-        if (!reports || !Array.isArray(reports)) return [];
-
-        const filteredCourses = reports
-            .filter(course => course.id == selectedCourse || selectedCourse == 0);
-
-        const studentTypeTotals = filteredCourses.reduce(
-            (totals, course) => ({
-                Freshman: totals.Freshman + (course.freshman_count || 0),
-                Old: totals.Old + (course.old_count || 0),
-                Returnee: totals.Returnee + (course.returnee_count || 0),
-                Transferee: totals.Transferee + (course.transferee_count || 0),
-            }),
-            { Freshman: 0, Old: 0, Returnee: 0, Transferee: 0 }
-        );
-
-        return Object.entries(studentTypeTotals).map(([name, count]) => ({ name, count }));
-    };
-
-    const getGenderStatisticsData = (reports, selectedCourse) => {
-        if (!reports || !Array.isArray(reports)) return [];
-
-        const filteredCourses = reports
-            .filter(course => course.id == selectedCourse || selectedCourse == 0);
-
-        const genderTotals = filteredCourses.reduce(
-            (totals, course) => ({
-                "1st Year": {
-                    Male: (totals["1st Year"]?.Male || 0) + (course.first_year_male_count || 0),
-                    Female: (totals["1st Year"]?.Female || 0) + (course.first_year_female_count || 0),
-                },
-                "2nd Year": {
-                    Male: (totals["2nd Year"]?.Male || 0) + (course.second_year_male_count || 0),
-                    Female: (totals["2nd Year"]?.Female || 0) + (course.second_year_female_count || 0),
-                },
-                "3rd Year": {
-                    Male: (totals["3rd Year"]?.Male || 0) + (course.third_year_male_count || 0),
-                    Female: (totals["3rd Year"]?.Female || 0) + (course.third_year_female_count || 0),
-                },
-                "4th Year": {
-                    Male: (totals["4th Year"]?.Male || 0) + (course.fourth_year_male_count || 0),
-                    Female: (totals["4th Year"]?.Female || 0) + (course.fourth_year_female_count || 0),
-                }
-            }),
-            {
-                "1st Year": { Male: 0, Female: 0 },
-                "2nd Year": { Male: 0, Female: 0 },
-                "3rd Year": { Male: 0, Female: 0 },
-                "4th Year": { Male: 0, Female: 0 }
-            }
-        );
-
-        return Object.entries(genderTotals).map(([year, { Male, Female }]) => ({
-            year,
-            male: Male,
-            female: Female
-        }));
-    };
-
-    const getEnrollmentStatisticsData = (reports, selectedCourse) => {
-        if (!reports || !Array.isArray(reports)) return [];
-
-        const filteredCourses = reports
-            .filter(course => course.id == selectedCourse || selectedCourse == 0);
-
-        const enrollmentTotals = filteredCourses.reduce((totals, course) => {
-            course.year_section.forEach(entry => {
-                const date = entry.date_enrolled;
-                totals[date] = (totals[date] || 0) + entry.total_students;
-            });
-
-            return totals;
-        }, {});
-
-        return Object.entries(enrollmentTotals).map(([date, totalStudents]) => ({
-            date,
-            total_students: totalStudents
-        }));
-    };
-
-    const AnimatedCount = ({ target }) => {
-        const [count, setCount] = useState(() => {
-            return Number(localStorage.getItem("total")) || 0; // Load last count
-        });
-
-        useEffect(() => {
-            const prevTotal = Number(localStorage.getItem("total")) || 0; // Get last count
-            const difference = target - prevTotal;
-            const duration = 450;
-            const stepTime = 30;
-            const steps = Math.ceil(duration / stepTime);
-            let step = 0;
-
-            if (difference !== 0) {
-                const timer = setInterval(() => {
-                    step++;
-                    const progress = step / steps;
-                    const currentValue = Math.round(prevTotal + difference * progress);
-
-                    if (step >= steps) {
-                        setCount(target);
-                        localStorage.setItem("total", target); // Save to localStorage
-                        clearInterval(timer);
-                    } else {
-                        setCount(currentValue);
-                    }
-                }, stepTime);
-
-                return () => clearInterval(timer);
-            }
-        }, [target]);
-
-        return <span className="text-md sm:text-4xl font-bold">{count}</span>;
-    };
-
-    const EnrolledCard = ({ reports, selectedCourse }) => {
-        const totalEnrolled = reports
-            .filter((report) => selectedCourse == 0 || report.id == selectedCourse)
-            .reduce((total, report) => total + report.enrolled_student_count, 0);
-
-        return (
-            <Card className="items-center flex flex-col justify-center">
-                {/* <div> */}
-                <CardHeader className="flex items-center justify-between">
-                    <CardTitle>Total Enrolled</CardTitle>
-                    <UserCheck className="w-6 h-6 text-gray-500" />
-                </CardHeader>
-
-                <CardContent className="flex flex-col items-center gap-2 pt-4">
-                    {reports.length > 0 ? (
-                        <>
-                            <AnimatedCount target={totalEnrolled} />
-                            <span className="text-gray-500 text-sm">students enrolled</span>
-                        </>
-                    ) : (
-                        <span className="text-gray-400 text-sm">No data available</span>
-                    )}
-                </CardContent>
-                {/* </div> */}
-            </Card>
-        );
-    };
+    if (user.user_role == 'registrar') {
+        reports = data.coursesReports;
+        schoolYearDetails = data.schoolYearDetails;
+    } else {
+        reports = data.coursesReports.department.course;
+        schoolYearDetails = data.schoolYearDetails;
+    }
 
     const selectCourse = (value) => {
         setSelectedCourse(value)

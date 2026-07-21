@@ -14,7 +14,7 @@ import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
-import TimeTableSkeleton from '../TimTableSckeleton';
+import TimetableSkeleton from '@/Components/Skeletons/TimTableSckeleton';
 
 export default function Index() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
@@ -123,7 +123,7 @@ export default function Index() {
         }
     }
 
-    if (isLoading) return <TimeTableSkeleton />
+    if (isLoading) return <TimetableSkeleton />
     
     return (
         <div className='space-y-4'>

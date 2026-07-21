@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import axios from "axios";
-import PreLoader from "@/Components/preloader/PreLoader";
 import { Head } from "@inertiajs/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
@@ -18,6 +17,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import html2canvas from "html2canvas";
 import * as XLSX from "xlsx";
 import { useQuery } from "@tanstack/react-query";
+import TimetableSkeleton from "@/Components/Skeletons/TimTableSckeleton";
 
 export default function RoomSchedules({ schoolYearId, departmentId }) {
 
@@ -152,17 +152,17 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
         }
     }
 
-    useEffect(() => {
-        getEnrollmentRoomSchedules();
-    }, []);
-
     const { data: rooms, isLoading } = useQuery({
         queryKey: ['room-schedules', schoolYearId, departmentId],
         queryFn: getEnrollmentRoomSchedules,
         enabled: !!schoolYearId && !!departmentId,
     });
 
-    if (isLoading) return <PreLoader title="Room schedules" />;
+    if (isLoading) return (
+        Array.from({ length: 12 }).map((_, i) => (
+            <TimetableSkeleton key={i} />
+        ))
+    )
 
     const downloadAllRoomImagesWithProgress = async () => {
         setIsDownloadingAll(true);
@@ -350,6 +350,8 @@ export default function RoomSchedules({ schoolYearId, departmentId }) {
                     </div>
                 </CardContent>
             </Card>
+
+
 
             {rooms.length > 0 ? (
                 <div className="space-y-4">

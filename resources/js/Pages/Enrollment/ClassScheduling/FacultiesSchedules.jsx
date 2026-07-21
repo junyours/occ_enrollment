@@ -18,6 +18,7 @@ import html2canvas from "html2canvas";
 import * as XLSX from 'xlsx'
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import TimetableSkeleton from '@/Components/Skeletons/TimTableSckeleton';
 
 export default function FacultySchedules({ schoolYearId, departmentId }) {
     // const [isLoading, setIsLoading] = useState(false);
@@ -217,7 +218,11 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
         enabled: !!schoolYearId && !!departmentId,
     });
 
-    if (isLoading) return <PreLoader title="Faculty schedules" />;
+        if (isLoading) return (
+            Array.from({ length: 12 }).map((_, i) => (
+                <TimetableSkeleton key={i} />
+            ))
+        )
 
     const downloadAllFacultyImagesWithProgress = async () => {
         setIsDownloadingAll(true);

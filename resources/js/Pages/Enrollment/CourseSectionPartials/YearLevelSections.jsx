@@ -364,7 +364,7 @@ function ActionButtons({
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Link href={getRoute('class')} className={cn(mobile && "flex-1")}>
-                            <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-purple-600 hover:text-purple-700 hover:bg-purple-50", btnClass)}>
+                            <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-purple-600 hover:text-purple-700 hover:bg-purple-300", btnClass)}>
                                 <BookOpen className={iconClass} /> {mobile && <span className="ml-2 text-xs">Class</span>}
                             </Button>
                         </Link>
@@ -376,7 +376,7 @@ function ActionButtons({
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Link href={getRoute('students')} className={cn(mobile && "flex-1")}>
-                        <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-green-600 hover:text-green-700 hover:bg-green-50", btnClass)}>
+                        <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-green-600 hover:text-green-700 hover:bg-green-300", btnClass)}>
                             <Users className={iconClass} /> {mobile && <span className="ml-2 text-xs">Students</span>}
                         </Button>
                     </Link>
@@ -389,7 +389,7 @@ function ActionButtons({
                     <TooltipTrigger asChild>
                         {allowEnrollment ? (
                             <Link href={getRoute('enroll-student')} className={cn(mobile && "flex-1")}>
-                                <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-blue-600 hover:text-blue-700 hover:bg-blue-50", btnClass)}>
+                                <Button variant={mobile ? "outline" : "ghost"} size="sm" className={cn("text-blue-600 hover:text-blue-700 hover:bg-blue-300", btnClass)}>
                                     <UserPlus className={iconClass} /> {mobile && <span className="ml-2 text-xs">Enroll</span>}
                                 </Button>
                             </Link>

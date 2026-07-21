@@ -1,90 +1,85 @@
 import React, { useEffect, useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PreLoader from '@/Components/preloader/PreLoader';
 import { cn, expandAlternatingDays, expandConsecutiveDays, identifyDayType } from '@/Lib/Utils';
 import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Button } from '@/Components/ui/button';
-import { Check, FileDown, ImageDown } from 'lucide-react';
-import { Switch } from '@/Components/ui/switch';
-import { Label } from '@/Components/ui/label';
+import { Check } from 'lucide-react';
 import TimeTable from '@/Pages/ScheduleFormats/TimeTable';
 import TabularSchedule from '@/Pages/ScheduleFormats/TabularSchedule';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
+import TimetableSkeleton from '@/Components/Skeletons/TimTableSckeleton';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
 export default function SubjectsSchedules({ schoolYearId, departmentId }) {
-    const [subjects, setSubjects] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [colorful, setColorful] = useState(true);
     const [selectedSubject, setSelectedSubject] = useState("All");
     const [scheduleType, setScheduleType] = useState('timetable');
     const [openSubjectPopover, setOpenSubjectPopover] = useState(false);
 
     const getEnrollmentSubjectsSchedules = async () => {
-        axios.post(route("enrollment.get.subjects-schedules", { schoolYearId, departmentId }))
-            .then(response => {
-                const sortedSubjects = response.data.map(subject => {
-                    let schedLength = 0;
+        try {
+            const response = await axios.post(route("enrollment.get.subjects-schedules", { schoolYearId, departmentId }))
+            const sortedSubjects = response.data.map(subject => {
+                let schedLength = 0;
 
-                    const sortedSchedules = subject.schedules.sort((a, b) => {
-                        const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                const sortedSchedules = subject.schedules.sort((a, b) => {
+                    const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-                        // Sort by day
-                        const dayComparison = daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day);
-                        if (dayComparison !== 0) return dayComparison;
+                    // Sort by day
+                    const dayComparison = daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day);
+                    if (dayComparison !== 0) return dayComparison;
 
-                        // Sort by descriptive title
-                        const titleComparison = a.descriptive_title.localeCompare(b.descriptive_title);
-                        if (titleComparison !== 0) return titleComparison;
+                    // Sort by descriptive title
+                    const titleComparison = a.descriptive_title.localeCompare(b.descriptive_title);
+                    if (titleComparison !== 0) return titleComparison;
 
-                        // Sort by start time
-                        return a.start_time.localeCompare(b.start_time);
-                    });
-
-                    sortedSchedules.forEach(sched => {
-                        let initialSchedlength = 0; // Initialize counter
-
-                        const day = sched.day ? sched.day.trim() : "TBA"; // Ensure valid day value
-                        const dayType = identifyDayType(day);
-
-                        // Handle primary schedule
-                        if (day !== "TBA") {
-                            initialSchedlength = initialSchedlength + countDays(dayType, day)
-                        } else {
-                            initialSchedlength++; // Count TBA schedules
-                        }
-
-                        // Handle secondary schedule if it exists
-                        if (sched.secondary_schedule) {
-                            const secDay = sched.secondary_schedule.day ? sched.secondary_schedule.day.trim() : "TBA";
-                            const secDayType = identifyDayType(secDay);
-
-                            if (secDay !== "TBA") {
-                                initialSchedlength = initialSchedlength + countDays(secDayType, secDay)
-                            } else {
-                                initialSchedlength++;
-                            }
-                        }
-
-                        schedLength += initialSchedlength; // Add computed value to total schedLength
-                    });
-
-                    return {
-                        ...subject,
-                        schedules: sortedSchedules,
-                        schedLength // Store the total computed length
-                    };
+                    // Sort by start time
+                    return a.start_time.localeCompare(b.start_time);
                 });
 
-                setSubjects(sortedSubjects);
-            })
-            .finally(() => {
-                setLoading(false);
-            })
+                sortedSchedules.forEach(sched => {
+                    let initialSchedlength = 0; // Initialize counter
+
+                    const day = sched.day ? sched.day.trim() : "TBA"; // Ensure valid day value
+                    const dayType = identifyDayType(day);
+
+                    // Handle primary schedule
+                    if (day !== "TBA") {
+                        initialSchedlength = initialSchedlength + countDays(dayType, day)
+                    } else {
+                        initialSchedlength++; // Count TBA schedules
+                    }
+
+                    // Handle secondary schedule if it exists
+                    if (sched.secondary_schedule) {
+                        const secDay = sched.secondary_schedule.day ? sched.secondary_schedule.day.trim() : "TBA";
+                        const secDayType = identifyDayType(secDay);
+
+                        if (secDay !== "TBA") {
+                            initialSchedlength = initialSchedlength + countDays(secDayType, secDay)
+                        } else {
+                            initialSchedlength++;
+                        }
+                    }
+
+                    schedLength += initialSchedlength; // Add computed value to total schedLength
+                });
+
+                return {
+                    ...subject,
+                    schedules: sortedSchedules,
+                    schedLength // Store the total computed length
+                };
+            });
+
+            return sortedSubjects;
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     const countDays = (dayType, day) => {
@@ -104,7 +99,17 @@ export default function SubjectsSchedules({ schoolYearId, departmentId }) {
         getEnrollmentSubjectsSchedules();
     }, []);
 
-    if (loading) return <PreLoader title="Subject schedules" />;
+    const { data: subjects, isLoading } = useQuery({
+        queryKey: ['enrollment.get.subjects-schedules', schoolYearId, departmentId],
+        queryFn: getEnrollmentSubjectsSchedules,
+    })
+
+    if (isLoading) return (
+        Array.from({ length: 12 }).map((_, i) => (
+            <TimetableSkeleton key={i} />
+        ))
+    )
+
     return (
         <div className='space-y-4'>
             <Head title="Subject schedules" />

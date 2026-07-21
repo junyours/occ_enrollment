@@ -10,20 +10,17 @@ import {
     CardHeader,
     CardTitle,
 } from "@/Components/ui/card"
-import { Head } from '@inertiajs/react';
 import axios from "axios";
-import PreLoader from "@/Components/preloader/PreLoader";
 import { Separator } from "@/Components/ui/separator"
 import { PageTitle } from "@/Components/ui/PageTitle";
 import EnhancedDownloadDialog from "./EnhancedDownloadDialog";
 import AddNewSection from "./CourseSectionPartials/AddNewSection";
 import YearLevelSections from "./CourseSectionPartials/YearLevelSections";
+import { useQuery } from "@tanstack/react-query";
+import SectionsDashboardSkeleton from "./Skeleton/SectionsDashboardSkeleton";
 
 export default function EnrollmentCourseSection({ courseId, error, course, schoolYearId, allowEnrollment, forSchoolYear = false, semester, schoolYear }) {
     const user = usePage().props.auth.user;
-
-    const [yearLevels, setYearLevels] = useState([]);
-    const [fetching, setFetching] = useState(true);
 
     const { toast } = useToast()
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -45,6 +42,20 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
             data.year_level_id === 2 ? 'Second year' :
                 data.year_level_id === 3 ? 'Third year' :
                     data.year_level_id === 4 ? 'Fourth year' : '';
+
+    const getEnrollmentCourseSection = async () => {
+        try {
+            const response = await axios.post(`/enrollment/${courseId}/${schoolYearId}`)
+            return response.data
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const { data: yearLevels, isLoading, refetch } = useQuery({
+        queryKey: ['enrollment.course.section', courseId, schoolYearId],
+        queryFn: getEnrollmentCourseSection,
+    })
 
     const createNewSection = (year_level_id) => {
         setData('year_level_id', year_level_id);
@@ -100,14 +111,14 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
         }
 
         post(route('add.new.section', { schoolYearId }), {
-            onSuccess: () => {
+            onSuccess: async () => {
                 reset();
                 setIsDialogOpen(false);
                 toast({
                     description: "Section added successfully.",
                     variant: "success",
                 });
-                getEnrollmentCourseSection();
+                await refetch();
             },
             onError: (errors) => {
                 if (errors.curriculum_id) {
@@ -123,13 +134,13 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
 
     const submitEdit = (e) => {
         post(route('edit.section'), {
-            onSuccess: () => {
+            onSuccess: async () => {
                 reset();
                 toast({
                     description: "Section edited successfully.",
                     variant: "success",
                 });
-                getEnrollmentCourseSection();
+                await refetch();
                 reset();
                 setEditing(false);
             },
@@ -145,37 +156,22 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
         });
     };
 
-    const getEnrollmentCourseSection = async () => {
-        await axios.post(`/enrollment/${courseId}/${schoolYearId}`)
-            .then(response => {
-                setYearLevels(response.data)
-            })
-            .finally(() => {
-                setFetching(false)
-            })
-    }
-
-    useEffect(() => {
-        getEnrollmentCourseSection()
-    }, [])
-
     const closeAddingSectionDialog = () => {
         setIsDialogOpen(false)
         clearErrors()
     }
 
-    if (fetching) return <PreLoader title="Sections" />
-
     if (error) return
 
     return (
         <div className="container">
-            <Head title="Sections" />
             <PageTitle className="mb-4" align="center"> {course.course_name} {course.major && ` MAJOR IN ${course.major}`}</PageTitle>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                {yearLevels && yearLevels.length > 0 ? (
-                    yearLevels.map((yearLevel) => (
+            {isLoading ? (
+                <SectionsDashboardSkeleton />
+            ) : yearLevels && yearLevels.length > 0 ? (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    {yearLevels.map((yearLevel) => (
                         <Card key={yearLevel.id} className={cn("w-full")}>
                             <div className="flex justify-between items-center mb-2">
                                 <CardHeader>
@@ -208,7 +204,7 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                                     setData={setData}
                                     submitEdit={submitEdit}
                                     post={post}
-                                    getEnrollmentCourseSection={getEnrollmentCourseSection}
+                                    getEnrollmentCourseSection={refetch}
                                     setIsDownloading={setIsDownloading}
                                     schoolYearId={schoolYearId}
                                     schoolYear={schoolYear}
@@ -216,11 +212,11 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
                                 />
                             </CardContent>
                         </Card>
-                    ))
-                ) : (
-                    <p className="text-gray-500">No year levels found.</p>
-                )}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                <p className="text-gray-500">No year levels found.</p>
+            )}
 
             {/* Dialog Component (Outside of the Map Loop) */}
             <AddNewSection isDialogOpen={isDialogOpen}
@@ -242,4 +238,4 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
     );
 }
 
-EnrollmentCourseSection.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+EnrollmentCourseSection.layout = (page) => <AuthenticatedLayout title="Sections">{page}</AuthenticatedLayout>;

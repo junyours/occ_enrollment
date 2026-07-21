@@ -159,7 +159,7 @@ export default function StudentGrades() {
                         </div>
 
                         <div className="relative w-full md:w-72">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 type="text"
                                 placeholder="Search & filter subjects..."

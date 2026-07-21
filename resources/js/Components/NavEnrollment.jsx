@@ -35,7 +35,7 @@ export function NavEnrollment() {
                                     </div>
                                 </SidebarGroupLabel>
                             )}
-                            <SidebarMenu className='space-y-1'>
+                            <SidebarMenu className='space-y-2'>
                                 {courses.map((course) => {
                                     const courseUrl = route("enrollment.view", course.hashed_course_id);
                                     const isActive = currentUrl.startsWith(`/enrollment/${course.hashed_course_id}`);
@@ -61,7 +61,7 @@ export function NavEnrollment() {
                                     <SidebarMenuButton
                                         tooltip="Dashboard"
                                         className={cn("h-10 text-sm", currentUrl.startsWith("/dashboard") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground")}
+                                            : "text-sidebar-foreground")}
                                         asChild
                                     >
                                         <Link
@@ -79,7 +79,7 @@ export function NavEnrollment() {
                                             <SidebarMenuButton
                                                 tooltip="Room Schedules"
                                                 className={cn("h-10 text-sm", currentUrl.startsWith("/rooms-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                                    : "hover:bg-sidebar-accent/50 text-sidebar-foreground")}
+                                                    : "text-sidebar-foreground")}
                                                 asChild
                                             >
                                                 <Link
@@ -111,7 +111,7 @@ export function NavEnrollment() {
                                             <SidebarMenuButton
                                                 tooltip="Subject Schedules"
                                                 className={cn("h-10 text-sm", currentUrl.startsWith("/subjects-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                                    : "hover:bg-sidebar-accent/50 text-sidebar-foreground")}
+                                                    : "text-sidebar-foreground")}
                                                 asChild
                                             >
                                                 <Link
@@ -129,7 +129,7 @@ export function NavEnrollment() {
                                     <SidebarMenuButton
                                         tooltip="Student Grades"
                                         className={cn("h-10 text-sm", currentUrl.startsWith("/student-grades") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground")}
+                                            : "text-sidebar-foreground")}
                                         asChild
                                     >
                                         <Link

@@ -21,9 +21,9 @@ function DeletionDialog({ openDeleteDialog, setOpenDeleteDialog, classType, clas
         }
 
         await axios.post(route(routeName, { id: classIdToDelete }))
-            .then(response => {
+            .then(async (response) => {
                 if (response.data.message) {
-                    getCLasses();
+                    await getCLasses();
                     setOpenDeleteDialog(false);
                     setClassIdToDelete(0);
                     toast({

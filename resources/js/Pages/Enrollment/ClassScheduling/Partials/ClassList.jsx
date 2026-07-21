@@ -37,9 +37,9 @@ function ClassList({
         setSubjectId(id);
 
         await axios.post(`/api/add-second-schedule/${id}`)
-            .then(response => {
+            .then(async (response) => {
                 if (response.data.message) {
-                    getCLasses();
+                    await getCLasses();
                 }
             })
             .finally(() => {

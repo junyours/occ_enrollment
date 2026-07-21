@@ -17,9 +17,9 @@ function AddSubjectDialog({ yearSectionId, getCLasses }) {
 
     const addSubject = async () => {
         await post(route('class.add.subject', { yearSectionId, subjectCode: data.subject_code }), {
-            onSuccess: () => {
+            onSuccess: async () => {
                 reset();
-                getCLasses();
+                await getCLasses();
                 toast({
                     description: "Subject added successfully",
                     variant: "success",

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PreLoader from '@/Components/preloader/PreLoader';
 import { Head } from '@inertiajs/react';
 import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -14,7 +13,7 @@ import { Input } from '@/Components/ui/input';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import { useQuery } from '@tanstack/react-query';
-import TimeTableSkeleton from '../TimTableSckeleton';
+import TimetableSkeleton from '@/Components/Skeletons/TimTableSckeleton';
 
 export default function Index() {
     const { selectedSchoolYearEntry } = useSchoolYearStore();
@@ -93,7 +92,7 @@ export default function Index() {
         }
     }
 
-    if (isLoading) return <TimeTableSkeleton />
+    if (isLoading) return <TimetableSkeleton />
     
     return (
         <div className='space-y-4'>
@@ -171,7 +170,7 @@ export default function Index() {
             </Card>
 
             {isLoading && (
-                <TimeTableSkeleton />
+                <TimetableSkeleton />
             )}
 
             {data.length > 0 ? (
