@@ -1,19 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { PageTitle } from '@/Components/ui/PageTitle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
-import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useState } from 'react'
-import TimeTable from '../ScheduleFormats/TimeTable';
 import MobileViewClasses from './MobileViewClasses';
-import html2canvas from 'html2canvas';
-import { Button } from '@/Components/ui/button';
 import { AlertCircle, BookOpen, ImageDown, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import EnrollmentSchedule from './EnrollmentSchedule';
+import DownloadableTimetable from './ClassesComponents/DownloadableTimetable';
+import { Separator } from '@/Components/ui/separator';
+import { PageTitle } from '@/Components/ui/PageTitle';
 
 const DAY_ORDER = {
     Monday: 1,
@@ -71,39 +69,10 @@ const ViewClasses = ({ currentSchoolYear }) => {
         retry: 1,
     });
 
-    const downloadImage = async () => {
-        try {
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            const filename = `classes.png`;
-            const element = document.getElementById(`classes`);
-
-            if (element) {
-                const style = document.createElement("style");
-                document.head.appendChild(style);
-                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
-                style.sheet?.insertRule('td div > svg { display: none !important; }');
-
-                const canvas = await html2canvas(element, { scale: 5 });
-                const imageUrl = canvas.toDataURL("image/png");
-
-                const link = document.createElement("a");
-                link.href = imageUrl;
-                link.download = filename;
-                link.click();
-
-                style.remove();
-            }
-        } catch (error) {
-            console.error('Error downloading image:', error);
-        }
-    };
-
     const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 
     return (
         <main className='space-y-6'>
-            <Head title="Classes" />
             <PageTitle align="center" className='text-lg md:text-xl lg:text-2xl px-4'>
                 {currentSchoolYear.start_year}-{currentSchoolYear.end_year} {currentSchoolYear.semester_name} Semester
             </PageTitle>
@@ -122,15 +91,6 @@ const ViewClasses = ({ currentSchoolYear }) => {
                             </nav>
                         </CardContent>
                     </Card>
-
-                    <Button
-                        size='lg'
-                        className={`${scheduleType == 'timetable' ? '' : 'hidden'}`}
-                        onClick={downloadImage}
-                    >
-                        Download
-                        <ImageDown className="ml-2 w-4 h-4" />
-                    </Button>
                 </header>
             )}
 
@@ -276,21 +236,18 @@ const ViewClasses = ({ currentSchoolYear }) => {
                     </aside>
                 </>
             ) : (
-                <section className='max-w-[calc(100vw-2rem)] min-w-[calc(100vw-2rem)] max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)] sm:w-auto sm:min-w-0 sm:max-w-none sm:h-auto sm:min-h-0 sm:max-h-none overflow-x-auto sm:p-0'>
-                    <Card id='classes' className='w-[1200px] sm:w-auto pt-6 border-border'>
-                        <CardContent>
-                            <TimeTable data={classes} />
-                        </CardContent>
-                    </Card>
-                </section>
+                <div>
+                    <DownloadableTimetable classes={classes} />
+                </div>
             )}
+
+            <Separator />
 
             {/* Recreated Enrollment Schedule using native Shadcn styling */}
             <EnrollmentSchedule />
-
         </main>
     );
 };
 
 export default ViewClasses
-ViewClasses.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+ViewClasses.layout = (page) => <AuthenticatedLayout title="Classes" children={page} />;

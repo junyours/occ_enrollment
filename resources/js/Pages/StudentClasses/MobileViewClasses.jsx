@@ -8,9 +8,7 @@ import {
     CardTitle,
 } from '@/Components/ui/card'
 import { convertToAMPM, formatFullName } from '@/Lib/Utils'
-import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, ArrowRight, Calendar, ChevronRight } from 'lucide-react'
-import { Button } from '@/Components/ui/button'
-import { Link } from '@inertiajs/react'
+import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, Calendar } from 'lucide-react'
 
 const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 
@@ -76,44 +74,14 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
 
                                     <CardContent className="pt-0">
                                         {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
-                                            <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.05] to-transparent p-5 text-center">
-                                                {/* Decorative background element */}
-                                                <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-primary/10 blur-2xl" />
-
-                                                {/* <div className="relative flex flex-col items-center">
-                                                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                                                        <AlertCircle className="h-5 w-5 text-primary" />
-                                                    </div>
-
-                                                    <h2 className="text-sm font-bold text-primary uppercase tracking-widest">
-                                                        Action Required
-                                                    </h2>
-                                                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground/80 max-w-[200px]">
-                                                        Please select the NSTP component you attended last semester to continue.
-                                                    </p>
-                                                </div> */}
-                                                <p className='font-semibold'>Visit nstp office for scheduling</p>
-
-                                                {/* <div className="mt-5 grid gap-2.5">
-                                                    {['rotc', 'cwts', 'lts'].map((comp) => (
-                                                        <Link
-                                                            key={comp}
-                                                            href={route('nstp-enrollment', { component: comp, id: classInfo.student_subject_id })}
-                                                            className="block"
-                                                        >
-                                                            <Button
-                                                                variant="secondary"
-                                                                size="lg"
-                                                                className="w-full justify-between h-12 px-5 text-xs font-bold tracking-wider bg-background border-primary/10 shadow-sm active:scale-[0.98] active:bg-muted transition-transform"
-                                                            >
-                                                                {comp.toUpperCase()}
-                                                                <div className="flex items-center gap-2 text-primary">
-                                                                    <ChevronRight className="h-4 w-4" />
-                                                                </div>
-                                                            </Button>
-                                                        </Link>
-                                                    ))}
-                                                </div> */}
+                                            <div className="mt-2 rounded-xl bg-amber-500/10 border border-amber-500/20 p-4 flex gap-3">
+                                                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+                                                <div className="flex flex-col gap-1 text-left">
+                                                    <span className="text-sm font-semibold text-amber-800 dark:text-amber-400">Action Required</span>
+                                                    <span className="text-sm text-amber-700/80 dark:text-amber-300/80">
+                                                        Visit the NSTP office to finalize your schedule assignment.
+                                                    </span>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="grid grid-cols-2 gap-y-3">
