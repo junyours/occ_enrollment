@@ -4,6 +4,8 @@ import CollegiateRecords from './components/CollegiateRecords';
 import SYGrades from './SYGrades';
 import Header from './components/Header';
 import { cn } from '@/Lib/Utils';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 
 const THead = React.forwardRef((props, ref) => (
     <thead ref={ref} className="table-header-group">
@@ -54,12 +56,17 @@ export default function Paper({ data, className }) {
     const theadRef = useRef(null);
     const tfootRef = useRef(null);
 
-    const [totalPages, setTotalPages] = useState(1);
+    const [autoPages, setAutoPages] = useState(1);
+    const [manualPages, setManualPages] = useState(null);
+    const [isMeasuring, setIsMeasuring] = useState(true); // Added measuring state
+
+    const totalPages = manualPages !== null ? manualPages : autoPages;
 
     useEffect(() => {
         if (!data || !wrapperRef.current || !tableRef.current || !theadRef.current || !tfootRef.current) return;
 
-        wrapperRef.current.style.height = 'auto';
+        // Trigger auto height to measure actual content length
+        setIsMeasuring(true);
 
         setTimeout(() => {
             const screenHeight = tableRef.current.offsetHeight;
@@ -78,8 +85,9 @@ export default function Paper({ data, className }) {
                 estimatedPrintHeight += (headerHeight + tfootHeight);
             }
 
-            wrapperRef.current.style.height = `calc(${pages * 297}mm - 1mm)`;
-            setTotalPages(pages);
+            setAutoPages(pages);
+            // End measuring so the wrapper snaps to the calculated height
+            setIsMeasuring(false);
         }, 200);
     }, [data]);
 
@@ -96,105 +104,139 @@ export default function Paper({ data, className }) {
         0
     );
 
+    const handlePageChange = (e) => {
+        const value = e.target.value;
+        if (value === '' || value === '0') {
+            setManualPages(null);
+        } else {
+            setManualPages(Math.max(1, parseInt(value) || autoPages));
+        }
+    };
+
     return (
-        <div
-            ref={wrapperRef}
-            className={cn(`relative w-[210mm] mx-auto bg-white shadow-lg p-8`, className)}
-        >
-            <style type="text/css" media="print">
-                {`
-                    @page { 
-                        size: A4; 
-                        margin: 0mm;
-                    }
-                    body { 
-                        -webkit-print-color-adjust: exact; 
-                        print-color-adjust: exact; 
-                    }
-                `}
-            </style>
-            <table ref={tableRef} className="w-full border-collapse relative z-10">
-                <THead ref={theadRef} />
-                <tbody>
-                    {/* Student Info */}
-                    <tr>
-                        <td className="p-0 border-0">
-                            <StudentInfo info={data.info} lastRecord={data.enrollmentRecord[data.enrollmentRecord.length - 1]} />
-                        </td>
-                    </tr>
-
-                    {/* Collegiate Records */}
-                    <tr>
-                        <td className="p-0 border-0">
-                            <CollegiateRecords />
-                        </td>
-                    </tr>
-
-                    {/* Map each semester */}
-                    {data.enrollmentRecord.map((record, index) => (
-                        <tr key={index}>
-                            <td className="p-0 border-0">
-                                <SYGrades data={record} className='mb-6' />
-                            </td>
-                        </tr>
-                    ))}
-
-                    {/* Total Units */}
-                    <tr>
-                        <td className="p-0 border-0">
-                            <table className='w-full mb-4'>
-                                <thead>
-                                    <tr className=''>
-                                        <th className='text-xs text-left w-32 pl-8 font-normal py-0.5'></th>
-                                        <th className='text-xs font-normal'></th>
-                                        <th className='text-xs font-normal w-16'></th>
-                                        <th className='text-xs font-normal w-16'></th>
-                                        <th className='text-xs font-normal w-16'></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr className='border-b border-gray-400'>
-                                        <td className='text-xs  pl-8 py-0.5'></td>
-                                        <td className='text-xs'></td>
-                                        <td className='text-xs text-center'></td>
-                                        <td className='text-xs text-center'>Total Units:</td>
-                                        <td className='text-xs text-center'>{totalUnits}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-
-                    {/* Nothing Follows */}
-                    <tr>
-                        <td className="p-0 border-0">
-                            <NothingFollows />
-                        </td>
-                    </tr>
-
-
-                </tbody>
-                <TFoot ref={tfootRef} />
-            </table>
-
-            {/* Signature */}
-            <div
-                className="absolute left-0 w-full px-8 print:block z-0"
-                style={{ bottom: '20mm' }}
-            >
-                <Confirmation />
+        <div>
+            {/* Page Control */}
+            <div className="print:hidden mb-4 p-3 bg-gray-50 rounded border flex items-center gap-4">
+                <div className="text-sm flex items-center gap-2">
+                    <span className="font-medium text-gray-700">Pages:</span>
+                    <Input
+                        type="number"
+                        min="1"
+                        value={manualPages ?? autoPages}
+                        onChange={handlePageChange}
+                        className="w-16 h-8 text-sm"
+                    />
+                </div>
+                <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setManualPages(null)}
+                    className="text-xs"
+                >
+                    Reset
+                </Button>
             </div>
 
-            {/* Page Numbers */}
-            {Array.from({ length: totalPages }).map((_, i) => (
+            <div
+                ref={wrapperRef}
+                /* Added overflow-hidden to cut off extra content past the specified totalPages */
+                className={cn(`relative w-[210mm] mx-auto bg-white shadow-lg p-8 overflow-hidden print:overflow-hidden`, className)}
+                /* Dynamically bind the height to totalPages using React State */
+                style={{ height: isMeasuring ? 'auto' : `calc(${totalPages * 297}mm - 1mm)` }}
+            >
+                <style type="text/css" media="print">
+                    {`
+                        @page { 
+                            size: A4; 
+                            margin: 0mm;
+                        }
+                        body { 
+                            -webkit-print-color-adjust: exact; 
+                            print-color-adjust: exact; 
+                        }
+                    `}
+                </style>
+                <table ref={tableRef} className="w-full border-collapse relative z-10">
+                    <THead ref={theadRef} />
+                    <tbody>
+                        {/* Student Info */}
+                        <tr>
+                            <td className="p-0 border-0">
+                                <StudentInfo info={data.info} lastRecord={data.enrollmentRecord[data.enrollmentRecord.length - 1]} />
+                            </td>
+                        </tr>
+
+                        {/* Collegiate Records */}
+                        <tr>
+                            <td className="p-0 border-0">
+                                <CollegiateRecords />
+                            </td>
+                        </tr>
+
+                        {/* Map each semester */}
+                        {data.enrollmentRecord.map((record, index) => (
+                            <tr key={index}>
+                                <td className="p-0 border-0">
+                                    <SYGrades data={record} className='mb-6' />
+                                </td>
+                            </tr>
+                        ))}
+
+                        {/* Total Units */}
+                        <tr>
+                            <td className="p-0 border-0">
+                                <table className='w-full mb-4'>
+                                    <thead>
+                                        <tr className=''>
+                                            <th className='text-xs text-left w-32 pl-8 font-normal py-0.5'></th>
+                                            <th className='text-xs font-normal'></th>
+                                            <th className='text-xs font-normal w-16'></th>
+                                            <th className='text-xs font-normal w-16'></th>
+                                            <th className='text-xs font-normal w-16'></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className='border-b border-gray-400'>
+                                            <td className='text-xs  pl-8 py-0.5'></td>
+                                            <td className='text-xs'></td>
+                                            <td className='text-xs text-center'></td>
+                                            <td className='text-xs text-center'>Total Units:</td>
+                                            <td className='text-xs text-center'>{totalUnits}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+
+                        {/* Nothing Follows */}
+                        <tr>
+                            <td className="p-0 border-0">
+                                <NothingFollows />
+                            </td>
+                        </tr>
+                    </tbody>
+                    <TFoot ref={tfootRef} />
+                </table>
+
+                {/* Signature - Absolute positioning forces it to the bottom of the wrapper (last page) */}
                 <div
-                    key={i}
-                    className="absolute left-0 w-full text-center text-sm font-semibold print:text-[11px] hidden print:block"
-                    style={{ top: `calc(${(i + 1) * 297}mm - 15mm)` }}
+                    className="absolute left-0 w-full px-8 print:block z-20"
+                    style={{ bottom: '20mm' }}
                 >
-                    {i + 1} / {totalPages}
+                    <Confirmation />
                 </div>
-            ))}
+
+                {/* Page Numbers */}
+                {Array.from({ length: totalPages }).map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute left-0 w-full text-center text-sm font-semibold print:text-[11px] hidden print:block"
+                        style={{ top: `calc(${(i + 1) * 297}mm - 15mm)` }}
+                    >
+                        {i + 1} / {totalPages}
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
