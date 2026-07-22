@@ -143,7 +143,16 @@ class EnrollmentCourseSectionController extends Controller
 
     public function deleteSection($id)
     {
-        YearSection::where('id', '=', $id)->delete();
+        $section = YearSection::findOrFail($id);
+
+        GradeSubmission::whereIn(
+            'year_section_subjects_id',
+            $section->Classes()->pluck('id')
+        )->delete();
+
+        $section->Classes()->delete();
+
+        $section->delete();
     }
 
     public function getEnrollmentCourseSections($hashedCourseId, $schoolYearId)
@@ -687,7 +696,7 @@ class EnrollmentCourseSectionController extends Controller
             ],
             ['format' => 'LFM']
         );
-        
+
         DB::beginTransaction();
 
         try {
@@ -721,7 +730,7 @@ class EnrollmentCourseSectionController extends Controller
             }
 
             DB::commit();
-            
+
             return response()->json([
                 'message' => 'success'
             ], 200);
@@ -751,9 +760,9 @@ class EnrollmentCourseSectionController extends Controller
     public function deleteMainSchedule($id)
     {
         // StudentSubject::where('year_section_subjects_id', '=', $id)->delete();
+        GradeSubmission::where('year_section_subjects_id', '=', $id)->delete();
         YearSectionSubjects::where('id', '=', $id)
             ->delete();
-        GradeSubmission::where('year_section_subjects_id', '=', $id)->delete();
 
         return response()->json(['message' => 'success'], 200);
     }
