@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import TimeTableCells from "./TimeTableCells";
-import { convertToAMPM } from "@/Lib/Utils";
+import { cn, convertToAMPM } from "@/Lib/Utils";
 
 // ============================================================================
 // Constants
@@ -12,12 +12,10 @@ const END_HOUR = 22;
 const SLOT_DURATION_MINUTES = 30;
 const TOTAL_SLOTS = 30;
 const HEADER_HEIGHT_PX = 40;
-const ROW_HEIGHT_PX = 48;
+const ROW_HEIGHT_PX = 38;
 const PIXELS_PER_MINUTE = ROW_HEIGHT_PX / SLOT_DURATION_MINUTES;
 const TIME_COLUMN_WIDTH = "80px";
-const CELL_MIN_WIDTH = "140px";
-
-const WEEKEND_DAYS = new Set(["Saturday", "Sunday"]);
+const CELL_MIN_WIDTH = "100px";
 
 // ============================================================================
 // Utility Functions
@@ -76,21 +74,19 @@ const calculateTimeIndicatorPosition = () => {
  */
 const TopLeftCorner = () => (
     <div className="sticky left-0 top-0 z-30 col-start-1 row-start-1 bg-card border-b border-r-2 border-border flex items-center justify-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-        GMT+8
+        {/* GMT+8 */}
     </div>
 );
 
 /**
  * Day header cell with styling for current day and weekends
  */
-const DayHeader = ({ day, index, isToday, isWeekend }) => (
+const DayHeader = ({ day, index, isToday }) => (
     <div
-        className={`sticky top-0 z-20 flex flex-col items-center justify-center border-b border-border ${index > 0 ? "border-l border-border/40" : "border-l border-border"
+        className={`sticky top-0 z-20 flex flex-col items-center justify-center border-b border-border ${index < 6 ? "border-r" : ""
             } ${isToday
                 ? "bg-primary/5 text-primary border-b-2 border-b-primary"
-                : isWeekend
-                    ? "bg-muted/30 text-foreground"
-                    : "bg-card/95 backdrop-blur-sm text-foreground"
+                : "bg-card/95 backdrop-blur-sm text-foreground"
             }`}
         style={{ gridColumn: index + 2, gridRow: 1 }}
     >
@@ -126,24 +122,22 @@ const TimeSlotLabel = ({ timeSlot, rowIndex, isTopOfHour }) => {
  * Individual grid cell
  * Solid border at top of hour (every 2 rows), dashed otherwise
  */
-const GridCell = ({ rowIndex, colIndex, isToday, isWeekend }) => {
+const GridCell = ({ rowIndex, colIndex, isToday }) => {
     // rowIndex 0 & 1 = 7:00-8:00, rowIndex 2 & 3 = 8:00-9:00, etc.
     // Solid border every 2 rows (at :00 minutes)
     const isHourBoundary = rowIndex % 2 === 0;
 
     return (
         <div
-            className={`
-                transition-colors duration-200
-                ${isHourBoundary ? "border-t border-border" : "border-t border-dashed border-border/40"}
-                ${colIndex > 0 ? "border-l border-border/40" : ""}
-                ${isToday
+            className={cn(
+                "transition-colors duration-200",
+                isHourBoundary ? "border-t border-border" : "border-t [border-top-style:dashed] [border-right-style:solid]",
+                colIndex < 6 ? "border-r" : "",
+                isToday
                     ? "bg-primary/[0.02]"
-                    : isWeekend
-                        ? "bg-muted/10"
-                        : "bg-card hover:bg-accent/30"
-                }
-            `}
+                    : ""
+                ,
+            ) }
             style={{ gridColumn: colIndex + 2, gridRow: rowIndex + 2 }}
         />
     );
@@ -170,13 +164,21 @@ const TimeIndicator = ({ position }) => {
 // Main Component
 // ============================================================================
 
-function TimeTable({ data, colorful = true }) {
+// 1. Added showCurrentTime and showCurrentDay props
+function TimeTable({
+    data,
+    colorful = true,
+    showCurrentTime = true,
+    showCurrentDay = true
+}) {
     const [currentTimePosition, setCurrentTimePosition] = useState(null);
     const currentDay = useMemo(() => getCurrentDay(), []);
     const timeSlots = useMemo(() => generateTimeSlots(), []);
 
-    // Update time indicator every minute
+    // 2. Wrap the interval in a check for showCurrentTime
     useEffect(() => {
+        if (!showCurrentTime) return; // Don't run the timer if disabled
+
         setCurrentTimePosition(calculateTimeIndicatorPosition());
 
         const interval = setInterval(() => {
@@ -184,17 +186,17 @@ function TimeTable({ data, colorful = true }) {
         }, 60000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [showCurrentTime]); // Add dependency
 
-    // Memoize day properties to avoid recalculation
+    // 3. Update day properties to check showCurrentDay
     const dayProperties = useMemo(
         () =>
             DAYS_OF_WEEK.map((day) => ({
                 day,
-                isToday: day === currentDay,
-                isWeekend: WEEKEND_DAYS.has(day),
+                // Only mark as today if the prop allows it
+                isToday: showCurrentDay ? day === currentDay : false,
             })),
-        [currentDay]
+        [currentDay, showCurrentDay] // Add dependency
     );
 
     const gridTemplateColumns = `${TIME_COLUMN_WIDTH} repeat(7, minmax(${CELL_MIN_WIDTH}, 1fr))`;
@@ -203,7 +205,7 @@ function TimeTable({ data, colorful = true }) {
     return (
         <div className="relative w-full overflow-x-auto rounded-2xl border border-border shadow-sm bg-card no-scrollbar">
             <div
-                className="grid min-w-[900px] bg-card"
+                className="grid bg-card"
                 style={{
                     gridTemplateColumns,
                     gridTemplateRows,
@@ -213,13 +215,12 @@ function TimeTable({ data, colorful = true }) {
                 <TopLeftCorner />
 
                 {/* Day headers */}
-                {dayProperties.map(({ day, isToday, isWeekend }, index) => (
+                {dayProperties.map(({ day, isToday }, index) => (
                     <DayHeader
                         key={day}
                         day={day}
                         index={index}
                         isToday={isToday}
-                        isWeekend={isWeekend}
                     />
                 ))}
 
@@ -229,29 +230,28 @@ function TimeTable({ data, colorful = true }) {
 
                     return (
                         <React.Fragment key={`row-${rowIndex}`}>
-                            {/* Time label container (renders on every row to maintain the border) */}
                             <TimeSlotLabel
                                 timeSlot={timeSlot}
                                 rowIndex={rowIndex}
                                 isTopOfHour={isTopOfHour}
                             />
 
-                            {/* Grid cells for each day */}
-                            {dayProperties.map(({ day, isToday, isWeekend }, colIndex) => (
+                            {dayProperties.map(({ day, isToday }, colIndex) => (
                                 <GridCell
                                     key={`cell-${rowIndex}-${colIndex}`}
                                     rowIndex={rowIndex}
                                     colIndex={colIndex}
                                     isToday={isToday}
-                                    isWeekend={isWeekend}
                                 />
                             ))}
                         </React.Fragment>
                     );
                 })}
 
-                {/* Current time indicator */}
-                <TimeIndicator position={currentTimePosition} />
+                {/* 4. Conditionally render the red line */}
+                {showCurrentTime && (
+                    <TimeIndicator position={currentTimePosition} />
+                )}
 
                 {/* Schedule cards */}
                 <TimeTableCells data={data} colorful={colorful} />

@@ -72,11 +72,11 @@ if (!function_exists('computeFinalGrade')) {
             return number_format(0, 1); // "0.0"
         }
 
-        $average = ($midterm + $final) / 2;
+        $average = round(($midterm + $final) / 2, 2);
 
         if ($average >= 3.0 && $average <= 3.09) {
             $average = 3.0;
-        } elseif ($average >= 3.1) {
+        } elseif ($average > 3.09) {
             $average = 5.0;
         }
 

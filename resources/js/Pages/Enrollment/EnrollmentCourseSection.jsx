@@ -18,6 +18,7 @@ import AddNewSection from "./CourseSectionPartials/AddNewSection";
 import YearLevelSections from "./CourseSectionPartials/YearLevelSections";
 import { useQuery } from "@tanstack/react-query";
 import SectionsDashboardSkeleton from "./Skeleton/SectionsDashboardSkeleton";
+import HistoryButtons from "@/Components/ui/HistoryButtons";
 
 export default function EnrollmentCourseSection({ courseId, error, course, schoolYearId, allowEnrollment, forSchoolYear = false, semester, schoolYear }) {
     const user = usePage().props.auth.user;
@@ -164,8 +165,11 @@ export default function EnrollmentCourseSection({ courseId, error, course, schoo
     if (error) return
 
     return (
-        <div className="container">
-            <PageTitle className="mb-4" align="center"> {course.course_name} {course.major && ` MAJOR IN ${course.major}`}</PageTitle>
+        <div className="container space-y-4">
+            <div className='flex gap-2 w-full'>
+                <HistoryButtons button='forward' />
+                <PageTitle className="w-full" align="center"> {course.course_name} {course.major && ` MAJOR IN ${course.major}`}</PageTitle>
+            </div>
 
             {isLoading ? (
                 <SectionsDashboardSkeleton />

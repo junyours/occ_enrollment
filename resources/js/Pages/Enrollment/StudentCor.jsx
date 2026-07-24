@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import CORSkeleton from './CorSkeleton';
 import { set } from 'react-hook-form';
 import { cn } from '@/Lib/Utils';
+import HistoryButtons from '@/Components/ui/HistoryButtons';
 
 function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId }) {
 
@@ -89,9 +90,9 @@ function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId })
 
     return (
         <div className='space-y-4'>
-            <Head title='COR' />
             <div className='w-full flex justify-center'>
                 <div className="flex justify-between w-[800px] px-5">
+                    <HistoryButtons button='back' />
                     <div className="flex justify-center text-center space-x-2 rounded-md w-full">
                         <Button
                             disabled={showSeal}
@@ -137,4 +138,4 @@ function StudentCor({ courseId, section, yearlevel, studentIdNo, schoolYearId })
 }
 
 export default StudentCor
-StudentCor.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+StudentCor.layout = (page) => <AuthenticatedLayout title='COR' children={page} />;

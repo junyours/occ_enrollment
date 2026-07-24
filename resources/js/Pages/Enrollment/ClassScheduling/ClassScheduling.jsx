@@ -14,6 +14,8 @@ import AddSubjectDialog from './Partials/AddSubjectDialog';
 import { toast } from 'sonner';
 import ScheduleViewSkeleton from '../Skeleton/ScheduleViewSkeleton';
 import { useQuery } from '@tanstack/react-query';
+import BackButton from '@/Components/ui/BackButton';
+import HistoryButtons from '@/Components/ui/HistoryButtons';
 
 export default function ClassScheduling({ yearSectionId }) {
 
@@ -449,9 +451,10 @@ export default function ClassScheduling({ yearSectionId }) {
     return (
         <div className='space-y-4'>
             <Head title="Class" />
-
-            <ScheduleToolbar scheduleType={scheduleType} isDownloading={isDownloading} colorful={colorful} setColorful={setColorful} setScheduleType={setScheduleType} setIsDownloading={setIsDownloading} />
-
+            <div className='flex gap-2 w-full'>
+                <HistoryButtons button='back'/>
+                <ScheduleToolbar scheduleType={scheduleType} isDownloading={isDownloading} colorful={colorful} setColorful={setColorful} setScheduleType={setScheduleType} setIsDownloading={setIsDownloading} />
+            </div>
             <ClassList
                 secondScheduleConflictList={secondScheduleConflictList}
                 scheduleType={scheduleType}

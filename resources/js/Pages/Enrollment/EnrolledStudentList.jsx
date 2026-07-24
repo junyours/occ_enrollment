@@ -32,6 +32,8 @@ import { Input } from '@/Components/ui/input';
 import { Skeleton } from "@/Components/ui/skeleton";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import CopyButton from '@/Components/ui/CopyButton';
+import BackButton from '@/Components/ui/BackButton';
+import HistoryButtons from '@/Components/ui/HistoryButtons';
 
 export default function EnrolledStudentList({
     hashedCourseId,
@@ -179,7 +181,10 @@ export default function EnrolledStudentList({
     return (
         <div className='space-y-4'>
             <Head title='Students' />
-            <PageTitle align="center">{courseName} - {yearlevel}{section}</PageTitle>
+            <div className='flex gap-2'>
+                <HistoryButtons />
+                <PageTitle align="center" className='w-full'>{courseName} - {yearlevel}{section}</PageTitle>
+            </div>
 
             <Card>
                 <CardHeader className="pb-4">
@@ -248,7 +253,11 @@ export default function EnrolledStudentList({
 
                                     return paginatedStudents.map((student) => (
                                         <TableRow key={student.id} className="transition-colors">
-                                            <TableCell className="font-mono font-semibold flex gap-1 w-40 justify-start items-center"><CopyButton text={student.user_id_no} size='xs' /> {student.user_id_no} </TableCell>
+                                            <TableCell>
+                                                <div className="font-mono font-semibold gap-1 flex w-40 justify-start items-center">
+                                                    <CopyButton text={student.user_id_no} size='xs' /> <span>{student.user_id_no}</span>
+                                                </div>
+                                            </TableCell>
                                             <TableCell className="font-medium">{formatFullName(student)}</TableCell>
                                             <TableCell className="text-muted-foreground">{student.email_address}</TableCell>
                                             <TableCell className="text-center">

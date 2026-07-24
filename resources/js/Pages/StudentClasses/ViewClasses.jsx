@@ -70,11 +70,12 @@ const ViewClasses = ({ currentSchoolYear }) => {
     });
 
     const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+    const schoolYear = currentSchoolYear.start_year + '-' + currentSchoolYear.end_year + ' ' + currentSchoolYear.semester_name + ' Semester';
 
     return (
         <main className='space-y-6'>
             <PageTitle align="center" className='text-lg md:text-xl lg:text-2xl px-4'>
-                {currentSchoolYear.start_year}-{currentSchoolYear.end_year} {currentSchoolYear.semester_name} Semester
+                {schoolYear}
             </PageTitle>
 
             {classes?.length > 0 && (
@@ -237,7 +238,7 @@ const ViewClasses = ({ currentSchoolYear }) => {
                 </>
             ) : (
                 <div>
-                    <DownloadableTimetable classes={classes} />
+                    <DownloadableTimetable classes={classes} schoolYear={schoolYear} />
                 </div>
             )}
 

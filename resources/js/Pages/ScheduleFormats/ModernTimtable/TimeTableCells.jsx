@@ -139,9 +139,9 @@ AccentBorder.displayName = "AccentBorder";
  */
 const ScheduleHeader = React.memo(({ classCode, conflict, studentCount }) => (
     <div className="flex items-start justify-between gap-1 w-full pl-1">
-        <span className="font-bold tracking-tight leading-tight truncate">
+        {/* <span className="font-bold tracking-tight leading-tight truncate">
             {classCode || "TBA"}
-        </span>
+        </span> */}
 
         <div className="flex items-center gap-1.5 shrink-0">
             {conflict && <ConflictBadge />}
@@ -165,7 +165,6 @@ ClassTitle.displayName = "ClassTitle";
  * Info footer with location and instructor
  */
 const InfoFooter = React.memo(({ roomName, instructorName, isCompact }) => {
-    if (isCompact) return null;
 
     return (
         <div className="mt-auto flex flex-col gap-1 pl-1 pt-2 opacity-75 text-[11px] font-medium">
@@ -175,7 +174,7 @@ const InfoFooter = React.memo(({ roomName, instructorName, isCompact }) => {
                     <span className="truncate">{roomName}</span>
                 </div>
             )}
-            {instructorName && (
+            {(instructorName && !isCompact) && (
                 <div className="flex items-center gap-1.5 truncate">
                     <User className="w-3 h-3 shrink-0" />
                     <span className="truncate">{instructorName}</span>
@@ -200,7 +199,7 @@ const ScheduleCell = React.memo(({ schedData, colorful }) => {
         cardStyles = "bg-destructive/10 border-destructive/40 text-destructive shadow-destructive/10 hover:border-destructive";
     }
 
-    const title = `${schedData.class_code} - ${schedData.descriptive_title}\nRoom: ${schedData.room_name || "TBA"}\nInstructor: ${schedData.first_name ? formatFullName(schedData) : "TBA"}`;
+    const title = `${schedData.descriptive_title}\nRoom: ${schedData.room_name || "TBA"}\nInstructor: ${schedData.first_name ? formatFullName(schedData) : "TBA"}`;
 
     return (
         <div

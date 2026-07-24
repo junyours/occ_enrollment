@@ -1,4 +1,3 @@
-import PreLoader from '@/Components/preloader/PreLoader';
 import { PageTitle } from '@/Components/ui/PageTitle';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { convertToAMPM, formatFullNameFML } from '@/Lib/Utils';
@@ -6,8 +5,8 @@ import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
-import { CirclePlus, Loader2, Search, Trash2, TriangleAlert, Users, Undo2, Save, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/Components/ui/card';
+import { CirclePlus, Loader2, Trash2, TriangleAlert, Users, Undo2, Save, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import TimeTable from '../ScheduleFormats/TimeTable';
@@ -17,6 +16,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip
 import SearchSubject from './SearchSubject';
 import { useQuery } from '@tanstack/react-query';
 import { FeedbackModal } from '@/Components/FeedbackModalProvider';
+import StudentSubjectsViewSkeleton from './Skeleton/StudentSubjectsViewSkeleton';
+import HistoryButtons from '@/Components/ui/HistoryButtons';
 
 export default function StudentSubjects() {
     const { courseName, yearlevel, section, student, schoolYear } = usePage().props;
@@ -156,7 +157,7 @@ export default function StudentSubjects() {
             .finally(() => setGettingClasses(false));
     };
 
-    if (loading) return <PreLoader title='Subjects' />;
+    if (loading) return <StudentSubjectsViewSkeleton />;
 
     // Net Change calculations for badging
     const totalUnitsAdded = stagedAdds.reduce((acc, curr) => acc + (curr.credit_units || 0), 0);
@@ -168,8 +169,10 @@ export default function StudentSubjects() {
     return (
         <div className='space-y-4 pb-28 relative'>
             <Head title="Subjects" />
-            <PageTitle align="center">{courseName} - {yearlevel}{section}</PageTitle>
-            <PageTitle>{formatFullNameFML(student)}</PageTitle>
+            <div className='flex gap-2 w-full'>
+                <HistoryButtons button='back' />
+                <PageTitle align="center" className='w-full'>{formatFullNameFML(student)} | {courseName} - {yearlevel}{section}</PageTitle>
+            </div>
 
             <div className="flex justify-between items-center">
                 <Tabs className="w-max" value={scheduleType} onValueChange={setScheduleType} defaultValue="tabular">

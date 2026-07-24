@@ -45,9 +45,9 @@ function ScheduleToolbar({ scheduleType, isDownloading, colorful, setColorful, s
     };
 
     return (
-        <Card>
-            <CardContent className="p-2">
-                <div className="flex gap-2 w-min">
+        <Card className='w-full'>
+            <CardContent className="p-2 w-full">
+                <div className="flex gap-4 w-min">
                     <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
                         <TabsList className="grid max-w-max grid-cols-2">
                             <TabsTrigger className="w-28" value="tabular">Tabular</TabsTrigger>
@@ -70,7 +70,6 @@ function ScheduleToolbar({ scheduleType, isDownloading, colorful, setColorful, s
                         )}
                         Image
                     </Button>
-
                     <div className="flex items-center space-x-2">
                         <Switch
                             checked={colorful}
