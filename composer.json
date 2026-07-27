@@ -11,13 +11,13 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
+        "erag/laravel-pwa": "^2.1",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^1.1",
         "phpoffice/phpspreadsheet": "^4.4",
-        "staudenmeir/eloquent-has-many-deep": "^1.20",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

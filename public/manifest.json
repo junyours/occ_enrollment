@@ -1,0 +1,16 @@
+{
+    "name": "SIS",
+    "short_name": "SIS-OCC",
+    "background_color": "#01215f",
+    "display": "fullscreen",
+    "description": "The official Student Information System for Opol Community College.",
+    "theme_color": "#01215f",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

@@ -761,7 +761,7 @@ export function NavMain() {
                 <SidebarMenu key={index} className="mb-4 space-y-2">
                     {/* Conditionally render the label to prevent empty space */}
                     {open && (
-                        <SidebarGroupLabel className="px-3 text-xs font-semibold tracking-wider uppercase text-muted-foreground/80 h-min">
+                        <SidebarGroupLabel className="px-3 text-xs tracking-wider uppercase text-muted-foreground/80 h-min">
                             {section.label}
                         </SidebarGroupLabel>
                     )}
@@ -783,7 +783,7 @@ export function NavMain() {
                                     isActive={isActive}
                                     tooltip={item.name}
                                     className={cn(
-                                        "h-10 text-sm font-medium",
+                                        "",
                                     )}
                                     asChild
                                 >

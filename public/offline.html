@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connection Status</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle at center, #2a1f24 0%, #111016 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* Use native system fonts that are guaranteed to be available offline */
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            /* Added a subtle glassmorphism card effect */
+            background: rgba(255, 255, 255, 0.03);
+            padding: 60px 80px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .text {
+            color: #fff;
+            font-weight: 300;
+            font-size: 36px;
+            letter-spacing: 4px;
+            margin-bottom: 50px;
+            /* Softened the fade so it pulses instead of disappearing entirely */
+            animation: pulse-text 2s infinite ease-in-out;
+            transition: color 0.3s ease;
+        }
+
+        /* --- CSS ART --- */
+        .box {
+            width: 240px;
+            height: 150px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .comp,
+        .server {
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .comp {
+            width: 80px;
+            height: 55px;
+            border-radius: 8px;
+            position: absolute;
+            top: 0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comp:after {
+            content: "";
+            position: absolute;
+            top: 19px;
+            left: 5px;
+            width: 65px;
+            height: 10px;
+            border-radius: 360px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .loader {
+            position: absolute;
+            top: 26px;
+            left: 12px;
+            width: 8px;
+            height: 7px;
+            background: #ff2d20;
+            /* Laravel Red accent */
+            border-radius: 8%;
+            animation: loader 5s infinite linear 0.5s;
+        }
+
+        .con {
+            position: absolute;
+            top: 28px;
+            left: 85px;
+            width: 100px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .byte {
+            position: absolute;
+            top: 25px;
+            left: 80px;
+            width: 9px;
+            height: 9px;
+            background: #4ade80;
+            /* Green success byte */
+            border-radius: 50%;
+            opacity: 0;
+            box-shadow: 0 0 10px #4ade80, 0 0 20px #4ade80;
+            animation: byte_animate 3s infinite ease-in-out 0.5s;
+            z-index: 6;
+        }
+
+        .server {
+            width: 35px;
+            height: 65px;
+            border-radius: 360px;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotateX(58deg);
+            position: absolute;
+            top: 6px;
+            left: 185px;
+            z-index: 1;
+        }
+
+        .server:before {
+            content: "";
+            position: absolute;
+            top: -47px;
+            left: -3px;
+            width: 35px;
+            height: 35px;
+            background: #111016;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            z-index: 20;
+        }
+
+        .server:after {
+            content: "";
+            position: absolute;
+            top: -26px;
+            left: -3px;
+            width: 35px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid rgba(255, 255, 255, 0.8);
+            border-right: 3px solid rgba(255, 255, 255, 0.8);
+            z-index: 17;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes byte_animate {
+            0% {
+                opacity: 0;
+                left: 80px
+            }
+
+            10% {
+                opacity: 1
+            }
+
+            40% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0;
+                left: 185px
+            }
+
+            60% {
+                opacity: 1
+            }
+
+            90% {
+                opacity: 1
+            }
+
+            100% {
+                opacity: 0;
+                left: 80px
+            }
+        }
+
+        @keyframes loader {
+            0% {
+                width: 8px
+            }
+
+            100% {
+                width: 63px
+            }
+        }
+
+        @keyframes pulse-text {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* Utility classes applied via JS */
+        .offline-text {
+            color: #f87171 !important;
+            animation: none !important;
+        }
+
+        .offline-byte {
+            display: none !important;
+        }
+
+        .offline-loader {
+            animation-play-state: paused !important;
+            background: #6b7280;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="text" id="status-text">CONNECTING</div>
+        <div class="box">
+            <div class="comp"></div>
+            <div class="loader" id="loader-bar"></div>
+            <div class="con"></div>
+            <div class="byte" id="data-byte"></div>
+            <div class="server"></div>
+        </div>
+    </div>
+
+    <script>
+        // Make the page reactive to the actual internet connection
+        const statusText = document.getElementById('status-text');
+        const dataByte = document.getElementById('data-byte');
+        const loaderBar = document.getElementById('loader-bar');
+
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                // Reconnected state
+                statusText.textContent = "CONNECTED";
+                statusText.classList.remove('offline-text');
+                dataByte.classList.remove('offline-byte');
+                loaderBar.classList.remove('offline-loader');
+
+                // If they just reconnected, redirect them back to the app after 2 seconds
+                setTimeout(() => {
+                    if (window.location.pathname === '/offline') {
+                        window.location.href = '/';
+                    }
+                }, 2000);
+            } else {
+                // Offline state
+                statusText.textContent = "OFFLINE";
+                statusText.classList.add('offline-text');
+
+                // Stop the data flowing animation to indicate broken connection
+                dataByte.classList.add('offline-byte');
+                loaderBar.classList.add('offline-loader');
+            }
+        }
+
+        // Listen for browser network events
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // Initial check on page load
+        updateOnlineStatus();
+    </script>
+
+</body>
+
+</html>

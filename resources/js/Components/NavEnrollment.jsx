@@ -45,7 +45,7 @@ export function NavEnrollment() {
                                             <SidebarMenuButton
                                                 tooltip={course.course_name_abbreviation}
                                                 isActive={isActive}
-                                                className={cn("h-10 text-sm")}
+                                                className={cn(" ")}
                                                 asChild
                                             >
                                                 <Link onClick={() => setOpenMobile(false)} href={courseUrl} className="flex items-center w-full gap-3 px-3 py-2">
@@ -60,8 +60,8 @@ export function NavEnrollment() {
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
                                         tooltip="Dashboard"
-                                        className={cn("h-10 text-sm", currentUrl.startsWith("/dashboard") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                            : "text-sidebar-foreground")}
+                                        className={cn(" ", currentUrl.startsWith("/dashboard") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                            : "")}
                                         asChild
                                     >
                                         <Link
@@ -78,8 +78,8 @@ export function NavEnrollment() {
                                         <SidebarMenuItem>
                                             <SidebarMenuButton
                                                 tooltip="Room Schedules"
-                                                className={cn("h-10 text-sm", currentUrl.startsWith("/rooms-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                                    : "text-sidebar-foreground")}
+                                                className={cn(" ", currentUrl.startsWith("/rooms-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                                    : "")}
                                                 asChild
                                             >
                                                 <Link
@@ -95,7 +95,7 @@ export function NavEnrollment() {
                                             <SidebarMenuButton
                                                 tooltip="Faculty Schedules"
                                                 isActive={currentUrl.startsWith("/faculties-schedules")}
-                                                className={cn("h-10 text-sm")}
+                                                className={cn(" ")}
                                                 asChild
                                             >
                                                 <Link
@@ -110,8 +110,8 @@ export function NavEnrollment() {
                                         <SidebarMenuItem>
                                             <SidebarMenuButton
                                                 tooltip="Subject Schedules"
-                                                className={cn("h-10 text-sm", currentUrl.startsWith("/subjects-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                                    : "text-sidebar-foreground")}
+                                                className={cn(" ", currentUrl.startsWith("/subjects-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                                    : "")}
                                                 asChild
                                             >
                                                 <Link
@@ -128,8 +128,8 @@ export function NavEnrollment() {
                                 <SidebarMenuItem>
                                     <SidebarMenuButton
                                         tooltip="Student Grades"
-                                        className={cn("h-10 text-sm", currentUrl.startsWith("/student-grades") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                            : "text-sidebar-foreground")}
+                                        className={cn(" ", currentUrl.startsWith("/student-grades") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                            : "")}
                                         asChild
                                     >
                                         <Link
