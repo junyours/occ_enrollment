@@ -19,6 +19,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import SearchSubject from './SearchSubject';
 import StudentEnrollmentSkeleton from './Skeleton/StudentEnrollmentSkeleton';
+import HistoryButtons from '@/Components/ui/HistoryButtons';
 
 export default function EnrollStudent({ yearSectionId, courseName, yearlevel, section, schoolYear, departmentId }) {
 
@@ -285,7 +286,10 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
     return (
         <div className='space-y-4' >
             <Head title='Enroll' />
-            <PageTitle ref={topRef} align="center" >{courseName} - {yearlevel}{section}</PageTitle>
+            <div className='flex gap-2'>
+                <HistoryButtons button='back'/>
+                <PageTitle ref={topRef} align="center" className='w-full'>{courseName} - {yearlevel}{section}</PageTitle>
+            </div>
             <Card>
                 <CardHeader>
                     <CardTitle className='text-3xl'>Student info <span className='text-sm italic font-normal'>(Add student details if freshman or transferee to create ID)</span></CardTitle>
