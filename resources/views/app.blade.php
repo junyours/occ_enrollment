@@ -10,13 +10,17 @@
     <!-- Fonts -->
     <link rel="icon" type="image/png" href="{{ asset('favicon.ico') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" />
+    <!-- <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900&display=swap" rel="stylesheet" /> -->
+    <!-- <link href="[https://fonts.bunny.net/css?family=roboto:300,400,500,700&display=swap](https://fonts.bunny.net/css?family=roboto:300,400,500,700&display=swap)" rel="stylesheet" /> -->
+    <link href="[https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap](https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap)" rel="stylesheet" />
+
 
     <!-- Scripts -->
     @routes
     @viteReactRefresh
     @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
     @inertiaHead
+    @PwaHead
 </head>
 
 <body class="font-sans antialiased">
