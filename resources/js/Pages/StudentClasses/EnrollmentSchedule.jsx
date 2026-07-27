@@ -7,7 +7,7 @@ import React from 'react'
  * Uses July 22, 2026, as the reference current date (based on system context).
  */
 const getScheduleStatus = (dateStr) => {
-    const currentDate = new Date('2026-07-22T00:00:00');
+    const currentDate = new Date();
 
     // Parses formats like "July 6 - 10"
     const match = dateStr.match(/([a-zA-Z]+)\s+(\d+)\s*-\s*(\d+)/);
