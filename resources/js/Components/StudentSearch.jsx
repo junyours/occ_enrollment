@@ -21,7 +21,7 @@ function useDebounce(value, delay) {
     return debouncedValue;
 }
 
-export default function StudentSearch({ onSelect,className, props }) {
+export default function StudentSearch({ onSelect, className, props }) {
     const [query, setQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
@@ -125,7 +125,7 @@ export default function StudentSearch({ onSelect,className, props }) {
                             : undefined
                     }
                     placeholder="Search students by name or ID..."
-                    className="pl-10 pr-10"
+                    className={cn("pl-10 pr-10", className)}
                     value={query}
                     onChange={(e) => {
                         setQuery(e.target.value);
@@ -191,8 +191,8 @@ export default function StudentSearch({ onSelect,className, props }) {
                                             setActiveIndex(index)
                                         }
                                         className={`flex items-center px-4 py-2 cursor-pointer transition-colors ${isSelected
-                                                ? "bg-accent text-accent-foreground"
-                                                : "hover:bg-accent/50"
+                                            ? "bg-accent text-accent-foreground"
+                                            : "hover:bg-accent/50"
                                             }`}
                                     >
                                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted mr-3 shrink-0">

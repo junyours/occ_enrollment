@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Enrollment\ClassScheduling;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicRecord;
 use App\Models\EnrolledStudent;
 use App\Models\Faculty;
 use App\Models\Room;
@@ -507,7 +508,7 @@ class EnrollmentClassSchedulingController extends Controller
                     'subject_code'      => $subjectDetails?->subject_code,
                     'descriptive_title' => $subjectDetails?->descriptive_title,
                     'grade'             => $finalComputedGrade,
-                    'credit_units'      => $subjectDetails?->credit_units,
+                    'credit_units'      => ($finalComputedGrade > 3 || $finalComputedGrade == '0.0' || $finalComputedGrade == null || $finalComputedGrade == 0) ? 0 : $subjectDetails?->credit_units,
                 ];
             })->values()->toArray();
 
@@ -532,7 +533,7 @@ class EnrollmentClassSchedulingController extends Controller
                     'subject_code'      => $item->subject_code,
                     'descriptive_title' => $item->subject,
                     'grade'             => $item->grade,
-                    'credit_units'      => $item->units,
+                    'credit_units'      => ($item->grade > 3 || $item->grade == '0.0' || $item->grade == null || $item->grade == 0) ? 0 : $item->units,
                 ];
             })->values()->toArray();
 
@@ -547,7 +548,7 @@ class EnrollmentClassSchedulingController extends Controller
 
         // 3. Get and transform the NEW Academic Records
         // Make sure to import App\Models\AcademicRecord at the top of your controller
-        $academicRecords = \App\Models\AcademicRecord::where('student_id', $student->id)
+        $academicRecords = AcademicRecord::where('student_id', $student->id)
             ->with('subjects') // Eager load the subjects relationship
             ->get();
 

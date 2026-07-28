@@ -16,6 +16,7 @@ import axios from 'axios';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import StudentGrades from '../components/StudentGrades';
 import PaginationPages from '@/Components/ui/PaginationPages';
+import { Dialog, DialogContent } from '@/Components/ui/dialog';
 
 export default function StudentList({ students, filters }) {
 
@@ -214,7 +215,11 @@ export default function StudentList({ students, filters }) {
                 <AddStudent open={open} setOpen={setOpen} student={studentEdit} editing={editMode} setEditing={setEditMode} setStudent={setStudentEdit} />
             )}
             {selectedStudent?.id && (
-                <StudentGrades studentId={selectedStudent.id} open={!!selectedStudent.id} setOpen={setSelectedStudent} />
+                <Dialog open={!!selectedStudent.id} onOpenChange={setSelectedStudent} className="ourline-none">
+                    <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto">
+                        <StudentGrades studentId={selectedStudent.user_id_no} />
+                    </DialogContent>
+                </Dialog>
             )}
         </div>
     );
