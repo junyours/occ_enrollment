@@ -16,9 +16,8 @@ Route::middleware(['auth', 'maintenance', 'role:program_head,registrar,nstp_dire
     Route::post('/student-list', [UserController::class, 'getStudents'])->name('student-list');
 });
 
-Route::middleware(['auth', 'maintenance', 'UserManagementPermission'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:program_head,registrar,evaluator'])->group(function () {
     Route::get('/faculty-list', [UserController::class, 'viewFaculty'])->name('faculty-list');
-
 
     Route::post('/api/get/faculty-list-department', [UserController::class, 'getFacultyListDepartment'])->name('get.faculty.list.department');
     Route::post('/api/get/faculty-list', [UserController::class, 'getFacultyList'])->name('get.faculty.list');
