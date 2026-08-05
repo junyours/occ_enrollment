@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/Components/ui/input";
-import { Search, Loader2, User, XCircle, AlertCircle, RotateCcw } from "lucide-react";
+import { Search, Loader2, User, XCircle, AlertCircle, RotateCcw } from "lucide-react"; 
 import axios from "axios";
 import { formatName } from "@/Lib/InfoUtils";
 import { cn } from "@/Lib/Utils";
+import { MdHistory } from "react-icons/md";
 
 // ============================================================================
 // Helpers
@@ -248,7 +249,7 @@ const HistoryItem = React.memo(({ student, index, isSelected, onSelect, onRemove
                 className="flex-1 flex items-center gap-3 text-left truncate"
             >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted shrink-0">
-                    <RotateCcw className="h-4 w-4 text-muted-foreground" />
+                    <MdHistory className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="truncate">
                     <div className="text-sm font-medium truncate">

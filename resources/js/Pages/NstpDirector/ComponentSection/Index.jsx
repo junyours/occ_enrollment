@@ -1,4 +1,3 @@
-import { PageTitle } from '@/Components/ui/PageTitle';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/Componen
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Button } from '@/Components/ui/button';
 import { useSection } from './useSection';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import Scheduling from './Scheduling';
@@ -25,7 +24,6 @@ import {
     ContextMenuShortcut,
     ContextMenuTrigger,
 } from "@/Components/ui/context-menu";
-import { Separator } from '@/Components/ui/separator';
 import NstpEnrollment from './NstpEnrollment';
 
 const TableHeadTemplate = ({ children }) => {
@@ -71,6 +69,8 @@ export default function Index({ component }) {
         section: false,
         max_students: false,
     });
+
+    const userRole = usePage().props.auth.user.user_role;
 
     const [downloading, setDownloading] = useState(false);
 
@@ -393,6 +393,7 @@ export default function Index({ component }) {
                                         </ContextMenuTrigger>
                                         <ContextMenuContent className="w-36">
                                             <ContextMenuItem
+                                                disabled={userRole != 'nstp_director'}
                                                 onClick={() => {
                                                     if (isEditing) {
                                                         clearSelectedSection()
@@ -417,7 +418,7 @@ export default function Index({ component }) {
                                                 </ContextMenuShortcut>
                                             </ContextMenuItem>
                                             <ContextMenuItem
-                                                disabled={students > 0}
+                                                disabled={students > 0 || userRole != 'nstp_director'}
                                                 onClick={() => deleteSection(section.id)}
                                                 className={students > 0 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
                                             >
@@ -439,9 +440,11 @@ export default function Index({ component }) {
                         </TableHeadTemplate>
                     )}
                 </CardContent>
-                <CardFooter>
-                    <Button disabled={isLoading || addingSection || isError} onClick={addSection}><CirclePlus /> Add section</Button>
-                </CardFooter>
+                {userRole == 'nstp_director' && (
+                    <CardFooter>
+                        <Button disabled={isLoading || addingSection || isError} onClick={addSection}><CirclePlus /> Add section</Button>
+                    </CardFooter>
+                )}
             </Card>
 
             {

@@ -3,16 +3,12 @@
 use App\Http\Controllers\NstpDirector\ComponentController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:nstp_director,cwts_evaluator,rotc_evaluator,lts_evaluator'])->group(function () {
     Route::get('/nstp-director/dashboard', [ComponentController::class, 'viewDashboard'])->name('nstp-director.dashboard');
     Route::post('/nstp-director/dashboard', [ComponentController::class, 'getDashboardData'])->name('nstp-director.dashboard');
 
-    Route::get('/nstp-director/students', [ComponentController::class, 'viewStudents'])->name('nstp-director.students');
-    Route::post('/nstp-director/students', [ComponentController::class, 'getStudentsData'])->name('nstp-director.students');
-
     Route::get('/nstp-director/section/{component}', [ComponentController::class, 'viewSections'])->name('nstp-director.component.sections');
     Route::post('/nstp-director/section/{component}', [ComponentController::class, 'getSections'])->name('nstp-director.component.sections');
-    Route::post('/nstp-director/add-section/{schoolYearId}', [ComponentController::class, 'addSection'])->name('nstp-director.add-section');
 
     Route::post('/nstp-director/section/{component}/student-with-nstp', [ComponentController::class, 'getStudentsWithNstp'])->name('nstp-director.component.student-with-nstp');
 
@@ -21,12 +17,18 @@ Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function
     Route::get('/nstp-director/section/{component}/{section}', [ComponentController::class, 'viewSectionStudents'])->name('nstp-director.component.sections.student-list');
     Route::post('/nstp-director/section/{component}/{section}', [ComponentController::class, 'getSectionSudents'])->name('nstp-director.component.sections.student-list');
 
-    Route::post('/nstp-director/section/{component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
-    Route::post('/nstp-director/section/{component}/{section}/move-student', [ComponentController::class, 'moveStudent'])->name('nstp-director.component.sections.student-list.move-student');
-
     Route::post('/nstp-director/section/{component}/component/download-students', [ComponentController::class, 'downloadStudents'])->name('nstp-director.component.component.student-list.download-students');
     Route::post('/nstp-director/section/{component}/{section}/download-students', [ComponentController::class, 'downloadSectionStudents'])->name('nstp-director.component.sections.student-list.download-students');
 
+    Route::get('/nstp-director/students', [ComponentController::class, 'viewStudents'])->name('nstp-director.students');
+    Route::post('/nstp-director/students', [ComponentController::class, 'getStudentsData'])->name('nstp-director.students');
+});
+
+Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function () {
+
+    Route::post('/nstp-director/add-section/{schoolYearId}', [ComponentController::class, 'addSection'])->name('nstp-director.add-section');
+    Route::post('/nstp-director/section/{component}/{section}/remove-student', [ComponentController::class, 'removeStudent'])->name('nstp-director.component.sections.student-list.remove-student');
+    Route::post('/nstp-director/section/{component}/{section}/move-student', [ComponentController::class, 'moveStudent'])->name('nstp-director.component.sections.student-list.move-student');
 
     Route::post('/nstp-director/change-section-info', [ComponentController::class, 'changeSectionInfo'])->name('nstp-director.change-section-info');
 
@@ -54,10 +56,10 @@ Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function
 
     Route::post('/nstp-director/create-nstp-evaluator', [ComponentController::class, 'createEvaluator'])->name('nstp-director.create-nstp-evaluator');
     Route::post('/nstp-director/update-nstp-evaluator', [ComponentController::class, 'updateEvaluator'])->name('nstp-director.update-nstp-evaluator');
+    Route::post('/nstp-director/change-evaluator-password', [ComponentController::class, 'changeEvaluatorPassword'])->name('nstp-director.change-evaluator-password');
     Route::post('/nstp-director/toggle-active', [ComponentController::class, 'toggleActive'])->name('nstp-director.toggle-active');
 
     Route::get('/serial-numbering', [ComponentController::class, 'serialNumbering'])->name('nstp-director.serial-numbering');
     Route::post('/serial-numbering/serial-change', [ComponentController::class, 'serialChange'])->name('nstp-director.serial-numbering.serial-change');
     Route::post('/serial-numbering/bulk-upload', [ComponentController::class, 'bulkUpload'])->name('nstp-director.serial-numbering.bulk-upload');
-
 });

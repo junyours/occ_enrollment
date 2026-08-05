@@ -1576,7 +1576,7 @@ class ComponentController extends Controller
                         $errors[] = "Row {$rowNum}: Serial Number '{$serialNum}' is already assigned to {$conflictFirstName} {$conflictLastName} (ID: {$conflictUser->user_id_no}).";
                         continue;
                     }
-                }       
+                }
 
                 // 5. Stage user update
                 $user->serial_number = $serialNum;
@@ -1600,6 +1600,43 @@ class ComponentController extends Controller
             return response()->json([
                 'message' => 'Server error occurred.',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function changeEvaluatorPassword(Request $request)
+    {
+        $request->validate([
+            'evaluator_id' => 'required|exists:users,id',
+            'password' => 'required|min:8',
+        ]);
+
+        try {
+            $evaluator = User::findOrFail($request->evaluator_id);
+
+            // Check if user has evaluator role by checking user_role column
+            // $evaluatorRoles = ['rotc_evaluator', 'cwts_evaluator', 'lts_evaluator'];
+
+            // if (!in_array($evaluator->user_role, $evaluatorRoles)) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'User is not an evaluator',
+            //     ], 403);
+            // }
+
+            // Update password
+            $evaluator->update([
+                'password' => Hash::make($request->password),
+            ]);
+
+            return response()->json([
+                'success' => 'Password changed successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while changing the password',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

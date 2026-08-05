@@ -106,7 +106,7 @@ const TimeSlotLabel = ({ timeSlot, rowIndex, isTopOfHour }) => {
 
     return (
         <div
-            className="sticky left-0 z-10 flex items-start justify-end pr-2 pt-1.5 border-r-2 border-border bg-card/95 backdrop-blur-sm"
+            className="sticky left-0 z-10 flex items-start justify-end pr-2 pt-1 border-r-2 border-border bg-card/95 backdrop-blur-sm"
             style={{ gridColumn: 1, gridRow: rowIndex + 2 }}
         >
             {isTopOfHour && (
