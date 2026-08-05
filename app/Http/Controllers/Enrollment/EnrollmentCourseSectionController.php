@@ -311,6 +311,7 @@ class EnrollmentCourseSectionController extends Controller
     public function getEnrolledStudentList(Request $request)
     {
         $students = EnrolledStudent::select(
+            'enrolled_students.created_at',
             'enrolled_students.id',
             'enrolled_students.student_id',
             'first_name',
@@ -324,7 +325,8 @@ class EnrollmentCourseSectionController extends Controller
             ->join('user_information', 'users.id', '=', 'user_information.user_id')
             ->withCount('Subjects as total_subjects')
             ->orderBy('user_information.last_name', 'asc')
-            ->get();
+            ->get()
+            ->makeVisible('created_at');;
 
         return response()->json($students);
     }

@@ -13,7 +13,10 @@ import {
     ChevronRight,
     X,
     Loader2,
-    Users
+    Users,
+    ArrowUp,
+    ArrowDown,
+    ArrowUpDown
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip';
 import StudentActions from './StudentActions';
@@ -55,16 +58,20 @@ export default function EnrolledStudentList({
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
+    // --- SORT STATE ---
+    // key: 'name' | 'date' | null, direction: 'asc' | 'desc'
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
     // Debounce search input to improve performance
     useEffect(() => {
         const handler = setTimeout(() => setDebouncedSearch(searchTerm), 300);
         return () => clearTimeout(handler);
     }, [searchTerm]);
 
-    // Reset pagination on search
+    // Reset pagination on search or sort change
     useEffect(() => {
         setCurrentPage(1);
-    }, [debouncedSearch]);
+    }, [debouncedSearch, sortConfig]);
 
     // --- DATA FETCHING (TanStack Query) ---
     const { data: students = [], isLoading, isError, refetch } = useQuery({
@@ -111,9 +118,51 @@ export default function EnrolledStudentList({
         });
     }, [students, debouncedSearch]);
 
-    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+    // --- SORTING LOGIC ---
+    const sortedStudents = useMemo(() => {
+        if (!sortConfig.key) return filteredStudents;
+
+        const sorted = [...filteredStudents].sort((a, b) => {
+            let comparison = 0;
+
+            if (sortConfig.key === 'name') {
+                // Sort by last name, then first name, so it lines up with how names are read
+                const aName = `${a.last_name || ''} ${a.first_name || ''}`.trim().toLowerCase();
+                const bName = `${b.last_name || ''} ${b.first_name || ''}`.trim().toLowerCase();
+                comparison = aName.localeCompare(bName);
+            } else if (sortConfig.key === 'date') {
+                comparison = new Date(a.created_at) - new Date(b.created_at);
+            }
+
+            return sortConfig.direction === 'asc' ? comparison : -comparison;
+        });
+
+        return sorted;
+    }, [filteredStudents, sortConfig]);
+
+    const handleSort = (key) => {
+        setSortConfig(prev => {
+            if (prev.key === key) {
+                // Toggle direction on repeated clicks
+                return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+            }
+            // New column: default to ascending
+            return { key, direction: 'asc' };
+        });
+    };
+
+    const renderSortIcon = (key) => {
+        if (sortConfig.key !== key) {
+            return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/40" />;
+        }
+        return sortConfig.direction === 'asc'
+            ? <ArrowUp className="h-3.5 w-3.5 text-primary" />
+            : <ArrowDown className="h-3.5 w-3.5 text-primary" />;
+    };
+
+    const totalPages = Math.ceil(sortedStudents.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedStudents = sortedStudents.slice(startIndex, startIndex + itemsPerPage);
 
     // --- SKELETON RENDERER ---
     const renderSkeletonRows = Array.from({ length: 5 }).map((_, i) => (
@@ -222,8 +271,24 @@ export default function EnrolledStudentList({
                             <TableHeader>
                                 <TableRow className="">
                                     <TableHead className="w-32 font-bold">Student ID</TableHead>
-                                    <TableHead className="w-52 font-bold">Name</TableHead>
-                                    <TableHead className="font-bold">Email</TableHead>
+                                    <TableHead
+                                        className="w-52 font-bold cursor-pointer select-none hover:text-primary transition-colors"
+                                        onClick={() => handleSort('name')}
+                                    >
+                                        <div className="flex items-center gap-1.5">
+                                            Name
+                                            {renderSortIcon('name')}
+                                        </div>
+                                    </TableHead>
+                                    <TableHead
+                                        className="font-bold cursor-pointer select-none hover:text-primary transition-colors"
+                                        onClick={() => handleSort('date')}
+                                    >
+                                        <div className="flex items-center gap-1.5">
+                                            Date Enrolled
+                                            {renderSortIcon('date')}
+                                        </div>
+                                    </TableHead>
                                     <TableHead className="text-center font-bold">Subjects</TableHead>
                                     <TableHead className="text-right font-bold">Actions</TableHead>
                                 </TableRow>
@@ -259,8 +324,17 @@ export default function EnrolledStudentList({
                                                 </div>
                                             </TableCell>
                                             <TableCell className="font-medium">{formatFullName(student)}</TableCell>
-                                            <TableCell className="text-muted-foreground">{student.email_address}</TableCell>
-                                            <TableCell className="text-center">
+                                            <TableCell className="text-muted-foreground">
+                                                {new Date(student.created_at).toLocaleString("en-US", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                    hour: "numeric",
+                                                    minute: "2-digit",
+                                                    second: "2-digit",
+                                                    hour12: true,
+                                                })}
+                                            </TableCell>                                            <TableCell className="text-center">
                                                 <span className="text-primary px-2 py-0.5 rounded text-xs font-bold">
                                                     {student.total_subjects}
                                                 </span>
@@ -319,7 +393,7 @@ export default function EnrolledStudentList({
                     {/* Pagination */}
                     <div className="flex items-center justify-between space-x-2 py-4">
                         <div className="text-xs text-muted-foreground italic">
-                            Showing {Math.min(startIndex + 1, filteredStudents.length)} to {Math.min(startIndex + itemsPerPage, filteredStudents.length)} of {filteredStudents.length} students
+                            Showing {Math.min(startIndex + 1, sortedStudents.length)} to {Math.min(startIndex + itemsPerPage, sortedStudents.length)} of {sortedStudents.length} students
                         </div>
                         <div className="flex items-center space-x-2">
                             <Button variant="outline" size="sm" onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>
