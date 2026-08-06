@@ -49,9 +49,16 @@ const DAY_TO_COLUMN = {
  * @param {string} time - Time in HH:MM format
  * @returns {number} Grid row index
  */
+const START_HOUR = 6;
+const START_MINUTE = 30;
+
 const timeToRowIndex = (time) => {
     const [hour, minute] = time.split(":").map(Number);
-    return (hour - TIME_TO_ROW_START) * 2 + (minute === 30 ? 3 : 2);
+
+    const startMinutes = START_HOUR * 60 + START_MINUTE;
+    const currentMinutes = hour * 60 + minute;
+
+    return ((currentMinutes - startMinutes) / 30) + 2;
 };
 
 /**

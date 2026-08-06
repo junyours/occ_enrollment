@@ -7,10 +7,11 @@ import { cn, convertToAMPM } from "@/Lib/Utils";
 // ============================================================================
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const START_HOUR = 7;
+const START_HOUR = 6;
+const START_MINUTE = 30;
+const TOTAL_SLOTS = 32;
 const END_HOUR = 22;
 const SLOT_DURATION_MINUTES = 30;
-const TOTAL_SLOTS = 30;
 const HEADER_HEIGHT_PX = 40;
 const ROW_HEIGHT_PX = 38;
 const PIXELS_PER_MINUTE = ROW_HEIGHT_PX / SLOT_DURATION_MINUTES;
@@ -26,7 +27,9 @@ const CELL_MIN_WIDTH = "100px";
  */
 const generateTimeSlots = () => {
     return Array.from({ length: TOTAL_SLOTS }, (_, i) => {
-        const totalMinutes = START_HOUR * 60 + i * SLOT_DURATION_MINUTES;
+        const totalMinutes =
+            START_HOUR * 60 + START_MINUTE + i * SLOT_DURATION_MINUTES;
+
         const nextTotalMinutes = totalMinutes + SLOT_DURATION_MINUTES;
 
         const hour = Math.floor(totalMinutes / 60);
@@ -34,10 +37,10 @@ const generateTimeSlots = () => {
         const nextHour = Math.floor(nextTotalMinutes / 60);
         const nextMinute = nextTotalMinutes % 60;
 
-        const start = `${hour}:${minute.toString().padStart(2, "0")}`;
-        const end = `${nextHour}:${nextMinute.toString().padStart(2, "0")}`;
-
-        return { start, end, displayRange: `${start} - ${end}` };
+        return {
+            start: `${hour}:${minute.toString().padStart(2, "0")}`,
+            end: `${nextHour}:${nextMinute.toString().padStart(2, "0")}`,
+        };
     });
 };
 
@@ -98,22 +101,48 @@ const DayHeader = ({ day, index, isToday }) => (
 
 /**
  * Time slot label (Y-axis)
- * FIX: The container MUST render even if !isTopOfHour, otherwise the right border breaks.
+ * Only renders for top-of-hour slots (:00), positioned to center on the hour row.
  */
 const TimeSlotLabel = ({ timeSlot, rowIndex, isTopOfHour }) => {
-    const formattedTime = convertToAMPM(timeSlot.start).replace(/ AM| PM/g, "");
-    const period = convertToAMPM(timeSlot.start).slice(-2);
+
+    const isSpacer = rowIndex === 0;
+
+    if (isSpacer) {
+        return (
+            <div
+                className="sticky left-0 border-r-2 border-border bg-card"
+                style={{ gridColumn: 1, gridRow: rowIndex + 2 }}
+            />
+        );
+    }
+
+    if (!isTopOfHour) {
+        // Still render empty container to maintain grid structure
+        return (
+            <div
+                className="sticky left-0 z-10 border-r-2 border-border bg-card/95 backdrop-blur-sm"
+                style={{ gridColumn: 1, gridRow: rowIndex + 2 }}
+            />
+        );
+    }
+
+    const fullTime = convertToAMPM(timeSlot.start);
+    // fullTime format: "7:00 AM" -> extract "7" and "AM"
+    const [time, period] = fullTime.split(" ");
+    const hour = time.split(":")[0];
 
     return (
         <div
-            className="sticky left-0 z-10 flex items-start justify-end pr-2 pt-1 border-r-2 border-border bg-card/95 backdrop-blur-sm"
-            style={{ gridColumn: 1, gridRow: rowIndex + 2 }}
+            className="sticky left-0 z-10 border-r-2 border-border bg-card"
+            style={{
+                gridColumn: 1,
+                gridRow: rowIndex + 2,
+                position: "relative",
+            }}
         >
-            {isTopOfHour && (
-                <span className="text-xs font-medium text-muted-foreground leading-none">
-                    {formattedTime} <span className="text-[10px] uppercase opacity-70">{period}</span>
-                </span>
-            )}
+            <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-md text-muted-foreground">
+                {hour} <span className="text-[10px]">{period}</span>
+            </span>
         </div>
     );
 };
@@ -122,23 +151,27 @@ const TimeSlotLabel = ({ timeSlot, rowIndex, isTopOfHour }) => {
  * Individual grid cell
  * Solid border at top of hour (every 2 rows), dashed otherwise
  */
+
 const GridCell = ({ rowIndex, colIndex, isToday }) => {
-    // rowIndex 0 & 1 = 7:00-8:00, rowIndex 2 & 3 = 8:00-9:00, etc.
-    // Solid border every 2 rows (at :00 minutes)
+    const isSpacer = rowIndex === 0;
     const isHourBoundary = rowIndex % 2 === 0;
 
     return (
         <div
             className={cn(
-                "transition-colors duration-200",
-                isHourBoundary ? "border-t border-border" : "border-t [border-top-style:dashed] [border-right-style:solid]",
-                colIndex < 6 ? "border-r" : "",
-                isToday
-                    ? "bg-primary/[0.02]"
-                    : ""
-                ,
-            ) }
-            style={{ gridColumn: colIndex + 2, gridRow: rowIndex + 2 }}
+                "transition-colors",
+                isSpacer
+                        ? ""
+                        : isHourBoundary
+                            ? "border-t [border-top-style:dashed]"
+                            : "border-t border-border",
+                colIndex < 6 && "border-r",
+                isToday && "bg-primary/[0.02]"
+            )}
+            style={{
+                gridColumn: colIndex + 2,
+                gridRow: rowIndex + 2,
+            }}
         />
     );
 };
@@ -200,7 +233,7 @@ function TimeTable({
     );
 
     const gridTemplateColumns = `${TIME_COLUMN_WIDTH} repeat(7, minmax(${CELL_MIN_WIDTH}, 1fr))`;
-    const gridTemplateRows = `${HEADER_HEIGHT_PX}px repeat(${timeSlots.length}, ${ROW_HEIGHT_PX}px)`;
+    const gridTemplateRows = `${HEADER_HEIGHT_PX}px 10px repeat(${timeSlots.length - 1}, ${ROW_HEIGHT_PX}px)`;
 
     return (
         <div className="relative w-full overflow-x-auto rounded-2xl border border-border shadow-sm bg-card no-scrollbar">
@@ -225,28 +258,24 @@ function TimeTable({
                 ))}
 
                 {/* Time slots and grid cells */}
-                {timeSlots.map((timeSlot, rowIndex) => {
-                    const isTopOfHour = timeSlot.start.endsWith(":00");
+                {timeSlots.map((timeSlot, rowIndex) => (
+                    <React.Fragment key={rowIndex}>
+                        <TimeSlotLabel
+                            timeSlot={timeSlot}
+                            rowIndex={rowIndex}
+                            isTopOfHour={timeSlot.start.endsWith(":00")}
+                        />
 
-                    return (
-                        <React.Fragment key={`row-${rowIndex}`}>
-                            <TimeSlotLabel
-                                timeSlot={timeSlot}
+                        {dayProperties.map(({ isToday }, colIndex) => (
+                            <GridCell
+                                key={`${rowIndex}-${colIndex}`}
                                 rowIndex={rowIndex}
-                                isTopOfHour={isTopOfHour}
+                                colIndex={colIndex}
+                                isToday={isToday}
                             />
-
-                            {dayProperties.map(({ day, isToday }, colIndex) => (
-                                <GridCell
-                                    key={`cell-${rowIndex}-${colIndex}`}
-                                    rowIndex={rowIndex}
-                                    colIndex={colIndex}
-                                    isToday={isToday}
-                                />
-                            ))}
-                        </React.Fragment>
-                    );
-                })}
+                        ))}
+                    </React.Fragment>
+                ))}
 
                 {/* 4. Conditionally render the red line */}
                 {showCurrentTime && (
