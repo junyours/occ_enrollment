@@ -802,20 +802,22 @@ class ClassController extends Controller
 
                         // MIDTERM GRADE (Kept exactly as you had it)
                         DB::raw("IF(
-                                    (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed'))
-                                    OR (year_section.school_year_id < 3)
-                                    OR (LOWER(subjects.type) = 'nstp' AND nstp_grade_submissions.midterm_status = 'deployed'), 
-                                    midterm_grade, 
-                                    NULL
+                                (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.midterm_status = 'deployed'))
+                                OR (year_section.school_year_id < 3)
+                                OR (school_years.semester_id = 3)
+                                OR (LOWER(subjects.type) = 'nstp' AND nstp_grade_submissions.midterm_status = 'deployed'),
+                                midterm_grade,
+                                NULL
                                 ) as midterm_grade"),
 
                         // FINAL GRADE (Kept exactly as you had it)
                         DB::raw("IF(
-                                    (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed'))
-                                    OR (year_section.school_year_id < 3)
-                                    OR (LOWER(subjects.type) = 'nstp' AND nstp_grade_submissions.final_status = 'deployed'), 
-                                    final_grade, 
-                                    NULL
+                                (student_subjects.id IN (" . $idsString . ") AND (grade_submissions.is_deployed = 1 OR grade_submissions.final_status = 'deployed'))
+                                OR (year_section.school_year_id < 3)
+                                OR (school_years.semester_id = 3)
+                                OR (LOWER(subjects.type) = 'nstp' AND nstp_grade_submissions.final_status = 'deployed'),
+                                final_grade,
+                                NULL
                                 ) as final_grade"),
 
                         // NEW: Added a null 'grade' column so it matches the old record structure
@@ -823,18 +825,20 @@ class ClassController extends Controller
 
                         // EVALUATED STATUS
                         DB::raw("IF(
-                                    student_subjects.id IN (" . $idsString . ")
-                                    OR year_section.school_year_id < 3
-                                    OR LOWER(subjects.type) = 'nstp', 
-                                    1, 
-                                    0
+                                student_subjects.id IN (" . $idsString . ")
+                                OR year_section.school_year_id < 3
+                                OR school_years.semester_id = 3
+                                OR LOWER(subjects.type) = 'nstp',
+                                1,
+                                0
                                 ) as evaluated"),
-
                         'remarks',
                         'student_subjects.year_section_subjects_id',
                     ])
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
                         ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
+                        ->join('school_years', 'school_years.id', '=', 'year_section.school_year_id')
+                        ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
                         ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
                         ->leftJoin('student_subject_nstp_schedule', 'student_subject_nstp_schedule.student_subject_id', '=', 'student_subjects.id')
                         ->leftJoin('nstp_section_schedules', 'nstp_section_schedules.id',   '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
