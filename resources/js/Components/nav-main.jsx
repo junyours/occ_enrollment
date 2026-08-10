@@ -24,7 +24,7 @@ export function NavMain() {
         ? menuConfigForRole(courses)
         : menuConfigForRole || [];
 
-        const showSchoolYearPicker = (userRole === "gened_coordinator" || userRole === "nstp_director" || userRole === "cwts_evaluator" || userRole === "rotc_evaluator" || userRole === "lts_evaluator") && open;
+    const showSchoolYearPicker = (userRole === "gened_coordinator" || userRole === "nstp_director" || userRole === "cwts_evaluator" || userRole === "rotc_evaluator" || userRole === "lts_evaluator" || userRole === "academic_dean") && open;
 
     return (
         <SidebarGroup>

@@ -402,4 +402,13 @@ export const MENU_CONFIG = {
             ],
         },
     ],
+    academic_dean: [
+        {
+            label: "Schedules",
+            items: [
+                { name: "Faculty", route: "schedules.view-faculty-schedules", icon: UsersIcon },
+                { name: "Room", route: "schedules.view-room-schedules", icon: MdOutlineMeetingRoom },
+            ],
+        },
+    ],
 };

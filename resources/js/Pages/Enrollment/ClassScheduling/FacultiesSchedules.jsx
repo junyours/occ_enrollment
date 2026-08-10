@@ -218,11 +218,11 @@ export default function FacultySchedules({ schoolYearId, departmentId }) {
         enabled: !!schoolYearId && !!departmentId,
     });
 
-        if (isLoading) return (
-            Array.from({ length: 12 }).map((_, i) => (
-                <TimetableSkeleton key={i} />
-            ))
-        )
+    if (isLoading) return (
+        Array.from({ length: 12 }).map((_, i) => (
+            <TimetableSkeleton key={i} />
+        ))
+    )
 
     const downloadAllFacultyImagesWithProgress = async () => {
         setIsDownloadingAll(true);

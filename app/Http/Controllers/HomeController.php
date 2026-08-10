@@ -33,6 +33,8 @@ class HomeController extends Controller
             return redirect()->intended(route('nstp-director.dashboard', absolute: false));
         } else if ($user->user_role == 'billing') {
             return redirect()->intended(route('billing.dashboard', absolute: false));
+        } else if ($user->user_role == 'academic_dean') {
+            return redirect()->intended(route('schedules.view-faculty-schedules', absolute: false));
         } else {
             return redirect()->intended(route('classes', absolute: false));
         }

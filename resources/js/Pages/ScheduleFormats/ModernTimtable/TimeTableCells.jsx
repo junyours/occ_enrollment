@@ -123,7 +123,7 @@ const StudentCountBadge = React.memo(({ count }) => {
     if (!count || count < 0) return null;
 
     return (
-        <span className="flex items-center gap-1 text-[10px] font-semibold bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded-full">
+        <span className="flex items-center gap-1 text-[10px] font-semibold bg-black/5 dark:bg-white/10 rounded-full">
             <PiStudent className="opacity-70" />
             {count}
         </span>
@@ -145,11 +145,16 @@ AccentBorder.displayName = "AccentBorder";
  * Header section with class code and badges
  */
 const ScheduleHeader = React.memo(({ classCode, conflict, studentCount }) => (
-    <div className="flex items-start justify-between gap-1 w-full pl-1">
-        {/* <span className="font-bold tracking-tight leading-tight truncate">
-            {classCode || "TBA"}
-        </span> */}
+    // 1. Removed shrink-0 from here, added min-w-0 to allow the container to shrink
+    <div className="flex items-start justify-between gap-1 w-full pl-1 min-w-0">
+        {classCode && (
+            // 2. Added min-w-0 to the text span to enforce the truncate
+            <span className="font-bold tracking-tight leading-tight truncate min-w-0">
+                {classCode}
+            </span>
+        )}
 
+        {/* 3. Moved shrink-0 to the badge wrapper so only the badges refuse to shrink */}
         <div className="flex items-center gap-1.5 shrink-0">
             {conflict && <ConflictBadge />}
             <StudentCountBadge count={studentCount} />
@@ -172,9 +177,9 @@ ClassTitle.displayName = "ClassTitle";
  * Info footer with location and instructor
  */
 const InfoFooter = React.memo(({ roomName, instructorName, isCompact }) => {
-
     return (
-        <div className="mt-auto flex flex-col gap-1 pl-1 pt-2 opacity-75 text-[11px] font-medium">
+        <div className={`mt-auto flex flex-col pl-1 opacity-75 text-[11px] font-medium ${isCompact ? "pt-0.5 gap-0" : "pt-2 gap-1"
+            }`}>
             {roomName && (
                 <div className="flex items-center gap-1.5 truncate">
                     <MapPin className="w-3 h-3 shrink-0" />

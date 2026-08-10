@@ -56,6 +56,7 @@ require __DIR__ . '/ProfileRoute.php';
 require __DIR__ . '/ProgramHeadRoute.php';
 require __DIR__ . '/ResearchCoordinatorRoute.php';
 require __DIR__ . '/RegistrarRoute.php';
+require __DIR__ . '/SchedulesRoute.php';
 require __DIR__ . '/SchoolyearManagementRoute.php';
 require __DIR__ . '/SchoolYearRoute.php';
 require __DIR__ . '/SuperAdminRoute.php';

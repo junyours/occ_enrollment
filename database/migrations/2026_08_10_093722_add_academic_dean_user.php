@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::table('users', function (Blueprint $table) {
+        Schema::table('users', function (Blueprint $table) {
             DB::statement("ALTER TABLE users MODIFY user_role ENUM(
                 'faculty',
                 'student',
@@ -34,7 +34,8 @@ return new class extends Migration
                 'rotc_evaluator',
                 'lts_evaluator',
                 'billing',
-                'cashier'
+                'cashier',
+                'academic_dean'
                 ) NOT NULL");
         });
     }
