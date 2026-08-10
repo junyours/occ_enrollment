@@ -16,6 +16,7 @@ import UsersTable from './UsersTable';
 import { userRoles } from '@/Lib/Utils';
 import PaginationPages from '@/Components/ui/PaginationPages';
 import SearchBar from '@/Components/ui/SearchBar';
+import CopyButton from '@/Components/ui/CopyButton';
 
 function Index({ users, filters }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -134,8 +135,8 @@ function Index({ users, filters }) {
                             </div>
 
                             {user.contact_number && (
-                                <p className="text-sm text-gray-600">
-                                    <span className="font-medium">Contact:</span> {user.contact_number}
+                                <p className="text-sm text-gray-600 flex items-center gap-1 text-center">
+                                    <span className="font-medium">User ID:</span> <span>{user.user_id_no}</span> <CopyButton text={user.user_id_no} size='xs' /> 
                                 </p>
                             )}
 

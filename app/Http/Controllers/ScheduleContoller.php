@@ -170,6 +170,11 @@ class ScheduleContoller extends Controller
             }
         }
 
+        // Remove faculties with no schedules
+        $yearSectionSched = $yearSectionSched
+            ->filter(fn($faculty) => $faculty->Schedules->isNotEmpty())
+            ->values();
+
         return response()->json($yearSectionSched);
     }
 

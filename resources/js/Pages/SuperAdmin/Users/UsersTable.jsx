@@ -5,6 +5,7 @@ import { LogIn } from 'lucide-react'
 import { router } from '@inertiajs/react'
 import UserRoleBadge from '@/Components/ui/UserRoleBadge'
 import { Card, CardContent } from '@/Components/ui/card'
+import CopyButton from '@/Components/ui/CopyButton'
 
 function UsersTable({ users }) {
 
@@ -35,7 +36,11 @@ function UsersTable({ users }) {
                         ) : (
                             users.data.map((user) => (
                                 <TableRow key={user.id}>
-                                    <TableCell className="font-medium">{user.user_id_no}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <div classname='flex gap-1'>
+                                            <CopyButton text={user.user_id_no} size='xs' /> <span>{user.user_id_no}</span>
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
                                         {user.first_name && user.last_name
                                             ? `${user.first_name} ${user.last_name}`
