@@ -52,9 +52,7 @@ class ClassController extends Controller
                 'schoolYears' => $schoolYears,
             ]);
         } else if ($userRole == 'student') {
-            return Inertia::render('StudentClasses/ViewClasses', [
-                'currentSchoolYear' => $currentSchoolYear,
-            ]);
+            return Inertia::render('StudentClasses/ViewClasses');
         }
     }
 
@@ -668,9 +666,7 @@ class ClassController extends Controller
             ->first();
 
         if (!$enrolledStudent) {
-            return response()->json([
-                'error' => 'You are not currently enrolled in this school year.',
-            ], 403);
+            return response()->json([]);
         }
 
         $classes = YearSectionSubjects::where('enrolled_students_id', $enrolledStudent->id)
@@ -755,6 +751,34 @@ class ClassController extends Controller
             ->get();
 
         return response()->json($classes);
+    }
+
+    public function getStudentCourseSection(Request $request)
+    {
+        $studentId = Auth::id();
+
+        $enrolledStudent = EnrolledStudent::select(
+            'enrolled_students.id',
+            'year_level_name',
+            'section',
+            'course_name',
+            'course_name_abbreviation',
+            'year_level',
+            'major',
+            'department_name',
+            'department_name_abbreviation',
+        )
+            ->join('year_section', 'year_section.id', '=', 'enrolled_students.year_section_id')
+            ->join('year_level', 'year_level.id', '=', 'year_section.year_level_id')
+            ->join('school_years', 'school_years.id', '=', 'year_section.school_year_id')
+            ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
+            ->join('course', 'course.id', '=', 'year_section.course_id')
+            ->join('department', 'department.id', '=', 'course.department_id')
+            ->where('school_years.id', '=', $request->schoolYearId)
+            ->where('student_id', '=', $studentId)
+            ->first();
+
+        return response()->json($enrolledStudent);
     }
 
     public function getStudentEnrollmentRecord()

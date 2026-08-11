@@ -61,4 +61,6 @@ Route::middleware(['auth', 'maintenance', 'role:evaluator,faculty,registrar,nstp
 Route::middleware(['auth', 'maintenance', 'student'])->group(function () {
     Route::post('/enrollment-record', [ClassController::class, 'getStudentEnrollmentRecord'])->name('enrollment-record');
     Route::post('/api/get-student-classes', [ClassController::class, 'getStudentClasses'])->name('student.classes');
+
+    Route::post('/get-student-course-section', [ClassController::class, 'getStudentCourseSection'])->name('student.course-section');
 });

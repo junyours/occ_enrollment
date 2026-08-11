@@ -1,17 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Card, CardContent } from '@/Components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import axios from 'axios';
 import React, { useState } from 'react'
 import MobileViewClasses from './MobileViewClasses';
-import { AlertCircle, BookOpen, ImageDown, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import EnrollmentSchedule from './EnrollmentSchedule';
 import DownloadableTimetable from './ClassesComponents/DownloadableTimetable';
 import { Separator } from '@/Components/ui/separator';
-import { PageTitle } from '@/Components/ui/PageTitle';
+import SchoolYearPicker from '@/Components/SchoolYearPicker';
+import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import DesktopViewClasses from './DesktopViewClasses';
+import ClassListSkeleton from './ClassListSkeleton';
+import { ErrorState, EmptyState } from './EnhancedStates.jsx';
+import CIT_LOGO from "../../../images/departments-logo/cit.webp";
+import CBA_LOGO from "../../../images/departments-logo/cba.webp";
+import TED_LOGO from "../../../images/departments-logo/ted.webp";
+import { Skeleton } from '@/Components/ui/skeleton';
 
 const DAY_ORDER = {
     Monday: 1,
@@ -24,16 +29,49 @@ const DAY_ORDER = {
     TBA: 99,
 };
 
-const ViewClasses = ({ currentSchoolYear }) => {
-    const [scheduleType, setScheduleType] = useState('tabular');
+const Header = ({ scheduleType, setScheduleType, hasSchoolYear }) => (
+    <div className='flex flex-col md:flex-row gap-4 items-center md:items-end'>
+        <SchoolYearPicker />
+        <header className={`flex flex-col md:flex-row gap-4 items-center ${!hasSchoolYear && 'hidden'}`}>
+            <Card className='w-min'>
+                <CardContent className="p-2">
+                    <nav className="flex gap-2 w-min">
+                        <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
+                            <TabsList className="grid max-w-max grid-cols-2">
+                                <TabsTrigger className="w-28" value="list">List</TabsTrigger>
+                                <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </nav>
+                </CardContent>
+            </Card>
+        </header>
+    </div>
+)
 
-    if (!currentSchoolYear) {
-        return (
-            <section className="flex items-center justify-center rounded-md shadow-sm p-8 text-muted-foreground">
-                Current School Year not set yet
-            </section>
-        );
-    }
+function DepartmentHeaderSkeleton() {
+    return (
+        <div className="flex items-center gap-5  bg-background rounded-lg shadow-sm font-sans">
+
+            {/* Circular Logo Skeleton */}
+            <Skeleton className="h-16 w-16 rounded-full shrink-0 bg-muted" />
+
+            {/* Text Container */}
+            <div className="flex flex-col gap-3 w-full">
+                {/* Title Skeleton (e.g., BSBA-FM — 2F) */}
+                <Skeleton className="h-6 w-48 md:w-56 bg-muted" />
+
+                {/* Subtitle Skeleton (e.g., Bachelor Of Science...) */}
+                <Skeleton className="h-4 w-[80%] max-w-[600px] bg-muted/80" />
+            </div>
+
+        </div>
+    );
+}
+
+export default function ViewClasses() {
+    const { selectedSchoolYearEntry } = useSchoolYearStore();
+    const [scheduleType, setScheduleType] = useState('list');
 
     const toMinutes = (time) => {
         if (!time || time === 'TBA') return Number.MAX_SAFE_INTEGER;
@@ -52,6 +90,23 @@ const ViewClasses = ({ currentSchoolYear }) => {
         });
     };
 
+    const fetchStudentCourseSection = async ({ queryKey }) => {
+        const [, schoolYearId] = queryKey;
+
+        const response = await axios.post(route('student.course-section'), {
+            schoolYearId,
+        });
+
+        return response.data;
+    }
+
+    const { data: courseSection, error: courseSectionError, isLoading: courseSectionIsLoading, isError: courseSectionIsError } = useQuery({
+        queryKey: ['studentCourseSection', selectedSchoolYearEntry?.id],
+        queryFn: fetchStudentCourseSection,
+        enabled: !!selectedSchoolYearEntry?.id,
+    });
+
+
     const fetchStudentClasses = async ({ queryKey }) => {
         const [, schoolYearId] = queryKey;
 
@@ -63,192 +118,103 @@ const ViewClasses = ({ currentSchoolYear }) => {
     };
 
     const { data: classes, error, isLoading, isError } = useQuery({
-        queryKey: ['studentClasses', currentSchoolYear.id],
+        queryKey: ['studentClasses', selectedSchoolYearEntry?.id],
         queryFn: fetchStudentClasses,
-        enabled: !!currentSchoolYear?.id,
-        retry: 1,
+        enabled: !!selectedSchoolYearEntry?.id,
     });
 
-    const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
-    const schoolYear = currentSchoolYear.start_year + '-' + currentSchoolYear.end_year + ' ' + currentSchoolYear.semester_name + ' Semester';
+    const getDepartmentLogo = () => {
+        const abbreviation = courseSection?.department_name_abbreviation;
 
-    return (
-        <main className='space-y-6'>
-            <PageTitle align="center" className='text-lg md:text-xl lg:text-2xl px-4'>
-                {schoolYear}
-            </PageTitle>
+        switch (abbreviation) {
+            case 'CIT':
+                return CIT_LOGO;
+            case 'CBA':
+                return CBA_LOGO;
+            case 'TED':
+                return TED_LOGO;
+            default:
+                return CIT_LOGO;
+        }
+    };
 
-            {classes?.length > 0 && (
-                <header className='flex flex-col sm:flex-row gap-4 items-center'>
-                    <Card className='w-min'>
-                        <CardContent className="p-2">
-                            <nav className="flex gap-2 w-min">
-                                <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
-                                    <TabsList className="grid max-w-max grid-cols-2">
-                                        <TabsTrigger className="w-28" value="tabular">List</TabsTrigger>
-                                        <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
-                                    </TabsList>
-                                </Tabs>
-                            </nav>
-                        </CardContent>
-                    </Card>
-                </header>
-            )}
+    const renderCourseSectionInfo = () => {
+        if (courseSectionIsLoading) return <DepartmentHeaderSkeleton />;
 
-            {scheduleType == 'tabular' ? (
+        if (courseSectionIsError) {
+            return <ErrorState error={courseSectionError} />;
+        }
+
+        // Checks if it's null/undefined OR if it's an empty object {}
+        if (!courseSection || Object.keys(courseSection).length === 0) {
+            return null;
+        }
+
+        return (
+            <div className="flex flex-col gap-4">
+                <div className="flex items-start gap-4">
+                    <img src={getDepartmentLogo()} alt="Department Logo" className="h-16 w-16 object-contain" />
+                    <div className="flex flex-col space-y-1">
+                        <h2 className="text-xl font-bold tracking-tight text-foreground">
+                            {courseSection.course_name_abbreviation} &mdash; {courseSection.year_level}{courseSection.section}
+                        </h2>
+                        <p className="text-sm text-muted-foreground capitalize">
+                            {/* Added optional chaining (?.) below */}
+                            {courseSection.course_name?.toLowerCase()} {courseSection.major && ` Major in ${courseSection.major.toLowerCase()}`}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const renderContent = () => {
+        if (!selectedSchoolYearEntry?.id) return null;
+
+        if (isLoading) return <ClassListSkeleton />;
+
+        if (isError) {
+            return <ErrorState error={error} />;
+        }
+
+        if (!classes || classes.length === 0) {
+            return <EmptyState />;
+        }
+
+        if (scheduleType === 'list') {
+            return (
                 <>
                     {/* Desktop Table View */}
-                    <Card className="mx-2 md:mx-0 hidden md:block border-border">
-                        <CardHeader>
-                            <CardTitle className="text-2xl">Class List</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {isLoading ? (
-                                <article className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                                    <Loader2 className="w-8 h-8 animate-spin mb-3" />
-                                    <p className="text-sm">Loading classes...</p>
-                                </article>
-                            ) : isError ? (
-                                <article className="flex flex-col items-center justify-center py-12 text-destructive">
-                                    <AlertCircle className="w-8 h-8 mb-3" />
-                                    <p className="text-sm font-medium">Failed to load classes</p>
-                                    <p className="text-xs text-muted-foreground mt-1">{error.response?.data?.error ?? 'Please try again later'}</p>
-                                </article>
-                            ) : classes?.length === 0 ? (
-                                <article className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                                    <BookOpen className="w-12 h-12 mb-3 opacity-30" />
-                                    <p className="text-sm font-medium">No classes</p>
-                                    <p className="text-xs mt-1">Check back later or contact administration</p>
-                                </article>
-                            ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Subject</TableHead>
-                                            <TableHead>Day</TableHead>
-                                            <TableHead>Time</TableHead>
-                                            <TableHead>Room</TableHead>
-                                            <TableHead>Instructor</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {isError ? (
-                                            <TableRow>
-                                                <TableCell colSpan={5} className="text-center text-destructive">
-                                                    {error.response?.data?.error ?? 'Unable to load classes.'}
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            <>
-                                                {classes.map((classInfo) => {
-                                                    const isPrimaryToday = classInfo.day === today;
-                                                    const isSecondaryToday = classInfo.secondary_schedule?.day === today;
-                                                    const highlightClass = "bg-primary/[0.04] dark:bg-primary/[0.08] relative after:absolute after:left-0 after:top-1 after:bottom-1 after:w-1 after:bg-primary after:rounded-r-full after:shadow-[2px_0_10px_rgba(var(--primary),0.4)]";
-
-                                                    return (
-                                                        <React.Fragment key={classInfo.id}>
-                                                            {/* Primary schedule row */}
-                                                            <TableRow className={`${isPrimaryToday ? highlightClass : "hover:bg-muted/40"}`}>
-                                                                <TableCell className="font-medium">
-                                                                    <span className="flex items-center gap-3">
-                                                                        {isPrimaryToday && (
-                                                                            <span className="relative flex h-2 w-2">
-                                                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                                                            </span>
-                                                                        )}
-                                                                        <span className={isPrimaryToday ? "text-primary font-bold" : "text-foreground"}>
-                                                                            {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id
-                                                                                ? 'NSTP - Select Component'
-                                                                                : classInfo.descriptive_title} {classInfo.component_name ? `| ${classInfo.component_name.toUpperCase()}` : ''}
-                                                                        </span>
-                                                                    </span>
-                                                                </TableCell>
-
-                                                                {classInfo.type === 'nstp' && !classInfo.nstp_student_schedule_id ? (
-                                                                    <TableCell colSpan={4}>
-                                                                        <span className='font-semibold'>Visit nstp office for scheduling</span>
-                                                                    </TableCell>
-                                                                ) : (
-                                                                    <>
-                                                                        <TableCell className={isPrimaryToday ? "text-primary font-bold" : ""}>
-                                                                            {classInfo.day === 'TBA' ? '-' : classInfo.day}
-                                                                        </TableCell>
-                                                                        <TableCell className={`tabular-nums ${isPrimaryToday ? "text-primary font-medium" : ""}`}>
-                                                                            {classInfo.start_time === 'TBA' ? '-' : `${convertToAMPM(classInfo.start_time)} – ${convertToAMPM(classInfo.end_time)}`}
-                                                                        </TableCell>
-                                                                        <TableCell>
-                                                                            <span className={`px-2 py-0.5 rounded text-xs font-medium tracking-wide`}>
-                                                                                {classInfo.room_name || 'TBA'}
-                                                                            </span>
-                                                                        </TableCell>
-                                                                        <TableCell rowSpan={classInfo.secondary_schedule ? 2 : 1} className="border-l border-border">
-                                                                            {classInfo.first_name ? formatFullName(classInfo) : '-'}
-                                                                        </TableCell>
-                                                                    </>
-                                                                )}
-                                                            </TableRow>
-
-                                                            {/* Secondary schedule */}
-                                                            {classInfo.secondary_schedule && (
-                                                                <TableRow className={`${isSecondaryToday ? highlightClass : ""}`}>
-                                                                    <TableCell className="font-medium">
-                                                                        <span className="flex items-center gap-3">
-                                                                            {isSecondaryToday && (
-                                                                                <span className="relative flex h-2 w-2">
-                                                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                                                                </span>
-                                                                            )}
-                                                                            <span className="flex flex-col">
-                                                                                <span className={isSecondaryToday ? "text-primary font-bold" : ""}>
-                                                                                    {classInfo.descriptive_title} <span className="text-[10px] font-extralight italic uppercase text-muted-foreground ml-1">2nd Schedule</span>
-                                                                                </span>
-                                                                            </span>
-                                                                        </span>
-                                                                    </TableCell>
-                                                                    <TableCell className={isSecondaryToday ? "text-primary font-bold" : ""}>
-                                                                        {classInfo.secondary_schedule.day}
-                                                                    </TableCell>
-                                                                    <TableCell className={`tabular-nums ${isSecondaryToday ? "text-primary font-medium" : ""}`}>
-                                                                        {convertToAMPM(classInfo.secondary_schedule.start_time)} – {convertToAMPM(classInfo.secondary_schedule.end_time)}
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        <span className={`px-2 py-0.5 rounded text-xs font-medium tracking-wide`}>
-                                                                            {classInfo.secondary_schedule.room_name || 'TBA'}
-                                                                        </span>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                        </React.Fragment>
-                                                    );
-                                                })}
-                                            </>
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <aside className='hidden md:block'>
+                        <DesktopViewClasses classes={classes} />
+                    </aside>
 
                     {/* Mobile Card View */}
-                    <aside className='sm:hidden'>
+                    <aside className='md:hidden'>
                         <MobileViewClasses classes={classes} isLoading={isLoading} isError={isError} error={error} />
                     </aside>
                 </>
-            ) : (
-                <div>
-                    <DownloadableTimetable classes={classes} schoolYear={schoolYear} />
-                </div>
-            )}
+            );
+        }
 
+        if (scheduleType === 'timetable') {
+            return (
+                <DownloadableTimetable classes={classes} schoolYear={selectedSchoolYearEntry} />
+            );
+        }
+    };
+
+    return (
+        <main className='space-y-6'>
+            <Header scheduleType={scheduleType} setScheduleType={setScheduleType} hasSchoolYear={!!selectedSchoolYearEntry?.id} />
+
+            {renderCourseSectionInfo()}
+
+            {renderContent()}
             <Separator />
-
-            {/* Recreated Enrollment Schedule using native Shadcn styling */}
             <EnrollmentSchedule />
         </main>
     );
-};
+}
 
-export default ViewClasses
 ViewClasses.layout = (page) => <AuthenticatedLayout title="Classes" children={page} />;
