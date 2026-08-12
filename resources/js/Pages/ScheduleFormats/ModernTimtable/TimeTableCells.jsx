@@ -1,8 +1,9 @@
 import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { PiStudent } from 'react-icons/pi';
-import { MapPin, User, AlertTriangle } from 'lucide-react';
+import { MapPin, User, AlertTriangle, Clock, Users } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 // ============================================================================
 // Constants
@@ -15,16 +16,16 @@ const PIXELS_PER_30MIN = 1; // Maps to grid row increments
  * Modern, accessible pastel color palette
  */
 const COLOR_PALETTE = [
-    "bg-blue-50 border-blue-200 text-blue-800 shadow-blue-500/10 hover:border-blue-400",
-    "bg-emerald-50 border-emerald-200 text-emerald-800 shadow-emerald-500/10 hover:border-emerald-400",
-    "bg-violet-50 border-violet-200 text-violet-800 shadow-violet-500/10 hover:border-violet-400",
-    "bg-amber-50 border-amber-200 text-amber-800 shadow-amber-500/10 hover:border-amber-400",
-    "bg-pink-50 border-pink-200 text-pink-800 shadow-pink-500/10 hover:border-pink-400",
-    "bg-cyan-50 border-cyan-200 text-cyan-800 shadow-cyan-500/10 hover:border-cyan-400",
-    "bg-rose-50 border-rose-200 text-rose-800 shadow-rose-500/10 hover:border-rose-400",
-    "bg-indigo-50 border-indigo-200 text-indigo-800 shadow-indigo-500/10 hover:border-indigo-400",
-    "bg-teal-50 border-teal-200 text-teal-800 shadow-teal-500/10 hover:border-teal-400",
-    "bg-fuchsia-50 border-fuchsia-200 text-fuchsia-800 shadow-fuchsia-500/10 hover:border-fuchsia-400",
+    { card: "bg-blue-50 border-blue-200 text-blue-800 shadow-blue-500/10 hover:border-blue-400", chipBg: "bg-blue-100", chipText: "text-blue-600", badgeBg: "bg-blue-100", badgeText: "text-blue-700" },
+    { card: "bg-emerald-50 border-emerald-200 text-emerald-800 shadow-emerald-500/10 hover:border-emerald-400", chipBg: "bg-emerald-100", chipText: "text-emerald-600", badgeBg: "bg-emerald-100", badgeText: "text-emerald-700" },
+    { card: "bg-violet-50 border-violet-200 text-violet-800 shadow-violet-500/10 hover:border-violet-400", chipBg: "bg-violet-100", chipText: "text-violet-600", badgeBg: "bg-violet-100", badgeText: "text-violet-700" },
+    { card: "bg-amber-50 border-amber-200 text-amber-800 shadow-amber-500/10 hover:border-amber-400", chipBg: "bg-amber-100", chipText: "text-amber-600", badgeBg: "bg-amber-100", badgeText: "text-amber-700" },
+    { card: "bg-pink-50 border-pink-200 text-pink-800 shadow-pink-500/10 hover:border-pink-400", chipBg: "bg-pink-100", chipText: "text-pink-600", badgeBg: "bg-pink-100", badgeText: "text-pink-700" },
+    { card: "bg-cyan-50 border-cyan-200 text-cyan-800 shadow-cyan-500/10 hover:border-cyan-400", chipBg: "bg-cyan-100", chipText: "text-cyan-600", badgeBg: "bg-cyan-100", badgeText: "text-cyan-700" },
+    { card: "bg-rose-50 border-rose-200 text-rose-800 shadow-rose-500/10 hover:border-rose-400", chipBg: "bg-rose-100", chipText: "text-rose-600", badgeBg: "bg-rose-100", badgeText: "text-rose-700" },
+    { card: "bg-indigo-50 border-indigo-200 text-indigo-800 shadow-indigo-500/10 hover:border-indigo-400", chipBg: "bg-indigo-100", chipText: "text-indigo-600", badgeBg: "bg-indigo-100", badgeText: "text-indigo-700" },
+    { card: "bg-teal-50 border-teal-200 text-teal-800 shadow-teal-500/10 hover:border-teal-400", chipBg: "bg-teal-100", chipText: "text-teal-600", badgeBg: "bg-teal-100", badgeText: "text-teal-700" },
+    { card: "bg-fuchsia-50 border-fuchsia-200 text-fuchsia-800 shadow-fuchsia-500/10 hover:border-fuchsia-400", chipBg: "bg-fuchsia-100", chipText: "text-fuchsia-600", badgeBg: "bg-fuchsia-100", badgeText: "text-fuchsia-700" },
 ];
 
 /**
@@ -145,16 +146,13 @@ AccentBorder.displayName = "AccentBorder";
  * Header section with class code and badges
  */
 const ScheduleHeader = React.memo(({ classCode, conflict, studentCount }) => (
-    // 1. Removed shrink-0 from here, added min-w-0 to allow the container to shrink
     <div className="flex items-start justify-between gap-1 w-full pl-1 min-w-0">
         {classCode && (
-            // 2. Added min-w-0 to the text span to enforce the truncate
             <span className="font-bold tracking-tight leading-tight truncate min-w-0">
                 {classCode}
             </span>
         )}
 
-        {/* 3. Moved shrink-0 to the badge wrapper so only the badges refuse to shrink */}
         <div className="flex items-center gap-1.5 shrink-0">
             {conflict && <ConflictBadge />}
             <StudentCountBadge count={studentCount} />
@@ -198,14 +196,76 @@ const InfoFooter = React.memo(({ roomName, instructorName, isCompact }) => {
 InfoFooter.displayName = "InfoFooter";
 
 /**
+ * Schedule detail modal
+ */
+const InfoRow = React.memo(({ icon: Icon, label, value, chipBg, chipText }) => (
+    <div className="flex items-center gap-3">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${chipBg}`}>
+            <Icon className={`w-4 h-4 ${chipText}`} />
+        </div>
+        <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="text-sm font-medium truncate">{value}</p>
+        </div>
+    </div>
+));
+InfoRow.displayName = "InfoRow";
+
+const ScheduleModal = React.memo(({ schedData, isOpen, onOpenChange, colorful }) => {
+    if (!schedData) return null;
+
+    const instructorName = schedData.first_name ? formatFullName(schedData) : "TBA";
+
+    const neutral = { chipBg: "bg-muted", chipText: "text-muted-foreground", badgeBg: "bg-muted", badgeText: "text-muted-foreground" };
+    const accent = colorful ? schedData.color : neutral;
+
+    const chipBg = schedData.conflict ? "bg-destructive/10" : accent.chipBg;
+    const chipText = schedData.conflict ? "text-destructive" : accent.chipText;
+    const badgeBg = schedData.conflict ? "bg-destructive/10" : accent.badgeBg;
+    const badgeText = schedData.conflict ? "text-destructive" : accent.badgeText;
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{schedData.descriptive_title}</DialogTitle>
+                </DialogHeader>
+
+                <span className={`inline-block mt-1 mb-2 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeBg} ${badgeText}`}>
+                    {schedData.class_code}
+                </span>
+
+                <div className="flex flex-col gap-4 pt-4 border-t border-border">
+                    <InfoRow icon={Clock} label="Time" value={`${schedData.start_time} - ${schedData.end_time}`} chipBg={chipBg} chipText={chipText} />
+                    <InfoRow icon={MapPin} label="Room" value={schedData.room_name || "TBA"} chipBg={chipBg} chipText={chipText} />
+                    <InfoRow icon={User} label="Instructor" value={instructorName} chipBg={chipBg} chipText={chipText} />
+                    {schedData.student_count !== null && schedData.student_count !== undefined && (
+                        <InfoRow icon={Users} label="Enrolled students" value={schedData.student_count} chipBg={chipBg} chipText={chipText} />
+                    )}
+                </div>
+
+                {schedData.conflict && (
+                    <div className="mt-2 flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm font-medium">
+                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                        Schedule conflict detected
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
+});
+ScheduleModal.displayName = "ScheduleModal";
+
+/**
  * Individual schedule cell card
  */
 const ScheduleCell = React.memo(({ schedData, colorful }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const rowSpan = schedData.rowEnd - schedData.rowStart;
     const isCompact = rowSpan <= 2;
 
     // Determine card styles
-    let cardStyles = !colorful ? "bg-card border-border text-foreground hover:border-primary shadow-sm" : schedData.color;
+    let cardStyles = !colorful ? "bg-card border-border text-foreground hover:border-primary shadow-sm" : schedData.color.card;
 
     if (schedData.conflict) {
         cardStyles = "bg-destructive/10 border-destructive/40 text-destructive shadow-destructive/10 hover:border-destructive";
@@ -214,30 +274,35 @@ const ScheduleCell = React.memo(({ schedData, colorful }) => {
     const title = `${schedData.descriptive_title}\nRoom: ${schedData.room_name || "TBA"}\nInstructor: ${schedData.first_name ? formatFullName(schedData) : "TBA"}`;
 
     return (
-        <div
-            title={title}
-            className={`group relative z-10 mx-1 mb-1 p-2 rounded-xl border text-sm flex flex-col justify-start overflow-hidden transition-all duration-200 cursor-pointer shadow-sm hover:z-30 hover:scale-[1.02] hover:shadow-lg ${cardStyles}`}
-            style={{
-                gridRow: `${schedData.rowStart} / ${schedData.rowEnd}`,
-                gridColumn: `${schedData.colStart} / ${schedData.colStart + 1}`,
-            }}
-        >
-            <AccentBorder hasConflict={schedData.conflict} />
+        <>
+            <div
+                title={title}
+                className={`group relative z-10 mx-1 mb-1 p-2 rounded-xl border text-sm flex flex-col justify-start overflow-hidden transition-all duration-200 cursor-pointer shadow-sm hover:z-30 hover:scale-[1.02] hover:shadow-lg ${cardStyles}`}
+                style={{
+                    gridRow: `${schedData.rowStart} / ${schedData.rowEnd}`,
+                    gridColumn: `${schedData.colStart} / ${schedData.colStart + 1}`,
+                }}
+                onClick={() => setIsOpen(true)}
+            >
+                <AccentBorder hasConflict={schedData.conflict} />
 
-            <ScheduleHeader
-                classCode={schedData.class_code}
-                conflict={schedData.conflict}
-                studentCount={schedData.student_count}
-            />
+                <ScheduleHeader
+                    classCode={schedData.class_code}
+                    conflict={schedData.conflict}
+                    studentCount={schedData.student_count}
+                />
 
-            <ClassTitle title={schedData.descriptive_title} isCompact={isCompact} />
+                <ClassTitle title={schedData.descriptive_title} isCompact={isCompact} />
 
-            <InfoFooter
-                roomName={schedData.room_name}
-                instructorName={schedData.first_name ? formatFullName(schedData) : null}
-                isCompact={isCompact}
-            />
-        </div>
+                <InfoFooter
+                    roomName={schedData.room_name}
+                    instructorName={schedData.first_name ? formatFullName(schedData) : null}
+                    isCompact={isCompact}
+                />
+            </div>
+
+            <ScheduleModal schedData={schedData} isOpen={isOpen} onOpenChange={setIsOpen} colorful={colorful} />
+        </>
     );
 });
 ScheduleCell.displayName = "ScheduleCell";
