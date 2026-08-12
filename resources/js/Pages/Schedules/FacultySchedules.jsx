@@ -1,7 +1,6 @@
 import TimetableSkeleton from '@/Components/Skeletons/TimTableSckeleton';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Input } from '@/Components/ui/input';
 import {
     Select,
     SelectContent,
@@ -11,97 +10,359 @@ import {
 } from '@/Components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatFullName, getRandomNumber } from '@/Lib/Utils';
 import { useQuery } from '@tanstack/react-query';
-import { FileDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
-import React, { useState } from 'react'
+import axios from 'axios';
+import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import TimeTable from '../ScheduleFormats/ModernTimtable/TimeTable';
 import TabularSchedule from '../ScheduleFormats/TabularSchedule';
+import {
+    Command,
+    CommandDialog,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/Components/ui/command';
+
+// ============================================================
+// Constants
+// ============================================================
 
 const SCHEDULES_PER_PAGE = 5;
 
-export default function FacultySchedules() {
-    const { selectedSchoolYearEntry } = useSchoolYearStore();
-    const [scheduleType, setScheduleType] = useState('timetable');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedDay, setSelectedDay] = useState('');
+const DAYS_OF_WEEK = [
+    'monday', 'tuesday', 'wednesday', 'thursday',
+    'friday', 'saturday', 'sunday'
+];
 
-    const getFacultySchedules = async (id) => {
-        const response = await axios.post(
-            route('schedules.get-faculty-schedules'),
-            {
-                schoolYearId: id,
-            }
-        );
+const DAY_OPTIONS = [
+    { value: 'all', label: 'All Days' },
+    ...DAYS_OF_WEEK.map(day => ({
+        value: day,
+        label: day.charAt(0).toUpperCase() + day.slice(1)
+    }))
+];
 
-        return response.data;
-    };
+// ============================================================
+// Utility Functions
+// ============================================================
 
-    const { data, isLoading, isError, error } = useQuery({
-        queryKey: ['facultySchedules', selectedSchoolYearEntry?.id],
-        queryFn: () => getFacultySchedules(selectedSchoolYearEntry.id),
-        enabled: !!selectedSchoolYearEntry?.id,
-        staletime: 1000 * 60 * 5,
-    });
+/**
+ * Check if a day format string contains the target day
+ * Handles: "Monday", "Monday-Wednesday", "Mon,Wed,Fri"
+ */
+const hasDayInSchedule = (dayFormat, targetDay) => {
+    if (!dayFormat) return false;
 
-    // Helper function to parse day format and check if day is in schedule
-    const hasDayInSchedule = (dayFormat, targetDay) => {
-        if (!dayFormat) return false;
+    const dayLowercase = dayFormat.toLowerCase();
+    const targetLowercase = targetDay.toLowerCase();
+    const targetShort = targetLowercase.slice(0, 3);
 
-        const dayLowercase = dayFormat.toLowerCase();
-        const targetDayLowercase = targetDay.toLowerCase();
+    // Single day: "Monday"
+    if (!dayLowercase.includes('-') && !dayLowercase.includes(',')) {
+        return dayLowercase === targetLowercase || dayLowercase === targetShort;
+    }
 
-        // Single day format: "monday"
-        if (!dayLowercase.includes('-') && !dayLowercase.includes(',')) {
-            return dayLowercase === targetDayLowercase ||
-                dayLowercase.startsWith(targetDayLowercase.slice(0, 3));
-        }
+    // Consecutive days: "Monday-Wednesday"
+    if (dayLowercase.includes('-') && !dayLowercase.includes(',')) {
+        return dayLowercase
+            .split('-')
+            .some(day => {
+                const trimmed = day.trim();
+                return trimmed === targetLowercase || trimmed === targetShort;
+            });
+    }
 
-        // Consecutive format: "monday-tuesday"
-        if (dayLowercase.includes('-')) {
-            const parts = dayLowercase.split('-');
-            return parts.some(day =>
-                day.trim() === targetDayLowercase ||
-                day.trim().startsWith(targetDayLowercase.slice(0, 3))
-            );
-        }
+    // Alternating days: "Mon,Wed,Fri"
+    if (dayLowercase.includes(',')) {
+        return dayLowercase
+            .split(',')
+            .map(day => day.trim())
+            .some(day => day === targetLowercase || day === targetShort);
+    }
 
-        // Alternating format: "mon,tue,fri"
-        if (dayLowercase.includes(',')) {
-            const days = dayLowercase.split(',').map(d => d.trim());
-            return days.some(day =>
-                day === targetDayLowercase ||
-                day === targetDayLowercase.slice(0, 3)
-            );
-        }
+    return false;
+};
 
-        return false;
-    };
+/**
+ * Calculate total hours from schedules (lecture + laboratory)
+ */
+const calculateTotalHours = (schedules = []) => {
+    return schedules.reduce((total, schedule) => {
+        return total + (schedule.lecture_hours || 0) + (schedule.laboratory_hours || 0);
+    }, 0);
+};
 
-    // Filter data by search query and day
-    const filteredData = data?.filter(faculty => {
-        const matchesSearch = formatFullName(faculty).toLowerCase().includes(searchQuery.toLowerCase());
+/**
+ * Filter faculties based on search and selected day
+ */
+const filterFaculties = (faculties, searchQuery, selectedDay) => {
+    if (!faculties) return [];
+
+    return faculties.filter(faculty => {
+        const matchesSearch = formatFullName(faculty)
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
 
         if (!selectedDay) return matchesSearch;
 
-        const matchesDay = faculty.schedules.some(schedule =>
+        const matchesDay = faculty.schedules?.some(schedule =>
             hasDayInSchedule(schedule.day, selectedDay)
         );
 
         return matchesSearch && matchesDay;
-    }) || [];
+    });
+};
 
-    // Calculate pagination
+/**
+ * Get today's day name (lowercase)
+ */
+const getTodayDayName = () => {
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[new Date().getDay()];
+};
+
+// ============================================================
+// Sub-components
+// ============================================================
+
+function SearchFilter({ data, searchOpen, onSearchOpenChange, onSelectFaculty }) {
+    return (
+        <CommandDialog open={searchOpen} onOpenChange={onSearchOpenChange}>
+            <Command>
+                <CommandInput placeholder="Search faculty..." />
+                <CommandList>
+                    <CommandEmpty>No faculty found.</CommandEmpty>
+                    <CommandGroup heading="Faculty">
+                        {data?.map(faculty => (
+                            <CommandItem
+                                key={faculty.id}
+                                value={formatFullName(faculty)}
+                                onSelect={(value) => {
+                                    onSelectFaculty(value);
+                                }}
+                            >
+                                <span>{formatFullName(faculty)}</span>
+                            </CommandItem>
+                        ))}
+                    </CommandGroup>
+                </CommandList>
+            </Command>
+        </CommandDialog>
+    );
+}
+
+function FilterBar({ searchQuery, selectedDay, scheduleType, onSearchOpen, onClearSearch, onDayChange, onScheduleTypeChange }) {
+    const todayDay = getTodayDayName();
+
+    return (
+        <Card>
+            <CardContent className="p-2">
+                <div className="flex gap-2 items-center">
+                    {/* Faculty Search */}
+                    <div className="flex-1 relative">
+                        <Button
+                            variant="outline"
+                            className="w-full justify-start text-muted-foreground"
+                            onClick={() => onSearchOpen(true)}
+                        >
+                            <Search />
+                            <span className="ml-2">
+                                {searchQuery ? `Faculty: ${searchQuery}` : 'Search faculty...'}
+                            </span>
+                        </Button>
+                        {searchQuery && (
+                            <button
+                                onClick={onClearSearch}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Day Filter */}
+                    <Select value={selectedDay || 'all'} onValueChange={onDayChange}>
+                        <SelectTrigger className="w-40">
+                            <SelectValue placeholder="Filter by day" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {DAY_OPTIONS.map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    <span className={option.value === todayDay ? 'text-blue-600 font-semibold' : ''}>
+                                        {option.label}
+                                    </span>
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {/* Schedule View Toggle */}
+                    <Tabs value={scheduleType} onValueChange={onScheduleTypeChange} className="w-max">
+                        <TabsList className="grid max-w-max grid-cols-2">
+                            <TabsTrigger value="tabular" className="w-28">Tabular</TabsTrigger>
+                            <TabsTrigger value="timetable" className="w-28">Timetable</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function FacultyCard({ faculty, scheduleType, selectedDay }) {
+    const filteredSchedules = useMemo(() => {
+        if (!selectedDay || !faculty.schedules) return faculty.schedules;
+
+        return faculty.schedules
+            .filter(schedule => hasDayInSchedule(schedule.day, selectedDay))
+            .map(schedule => ({
+                ...schedule,
+                day: selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)
+            }));
+    }, [faculty.schedules, selectedDay]);
+
+    const totalHours = useMemo(
+        () => calculateTotalHours(filteredSchedules),
+        [filteredSchedules]
+    );
+
+    return (
+        <Card className="w-full">
+            <CardHeader>
+                <CardTitle className="text-3xl pb-4">
+                    {formatFullName(faculty)} | {totalHours.toFixed(1)} hr
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                {scheduleType === 'timetable' ? (
+                    <TimeTable data={filteredSchedules} />
+                ) : (
+                    <TabularSchedule data={filteredSchedules} type="faculty" />
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
+function PaginationControls({ currentPage, totalPages, totalSchedules, onPrevPage, onNextPage }) {
+    if (totalPages <= 1) return null;
+
+    return (
+        <Card>
+            <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages} ({totalSchedules} total)
+                    </p>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={onPrevPage}
+                            disabled={currentPage === 1}
+                            variant="outline"
+                            size="sm"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            Previous
+                        </Button>
+                        <Button
+                            onClick={onNextPage}
+                            disabled={currentPage === totalPages}
+                            variant="outline"
+                            size="sm"
+                        >
+                            Next
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function ContentRenderer({ isLoading, isError, error, data, filteredData, paginatedData, scheduleType, selectedDay }) {
+    if (isLoading) {
+        return Array.from({ length: getRandomNumber(4, 8) }).map((_, i) => (
+            <TimetableSkeleton key={i} />
+        ));
+    }
+
+    if (isError) {
+        return (
+            <p className="text-center text-red-500">
+                Error getting faculty schedules: {error?.message}
+            </p>
+        );
+    }
+
+    if (!data?.length) {
+        return <p className="text-center text-gray-500">No faculty schedules available.</p>;
+    }
+
+    if (!filteredData.length) {
+        return <p className="text-center text-gray-500">No schedules found.</p>;
+    }
+
+    return paginatedData.map(faculty => (
+        <FacultyCard key={faculty.id} faculty={faculty} scheduleType={scheduleType} selectedDay={selectedDay} />
+    ));
+}
+
+// ============================================================
+// Main Component
+// ============================================================
+
+export default function FacultySchedules() {
+    const { selectedSchoolYearEntry } = useSchoolYearStore();
+
+    const [scheduleType, setScheduleType] = useState('timetable');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedDay, setSelectedDay] = useState('');
+    const [searchOpen, setSearchOpen] = useState(false);
+
+    // Fetch faculty schedules
+    const { data, isLoading, isError, error } = useQuery({
+        queryKey: ['facultySchedules', selectedSchoolYearEntry?.id],
+        queryFn: async () => {
+            const response = await axios.post(
+                route('schedules.get-faculty-schedules'),
+                { schoolYearId: selectedSchoolYearEntry.id }
+            );
+            return response.data;
+        },
+        enabled: !!selectedSchoolYearEntry?.id,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    // Filter faculties
+    const filteredData = useMemo(
+        () => filterFaculties(data, searchQuery, selectedDay),
+        [data, searchQuery, selectedDay]
+    );
+
+    // Pagination
     const totalSchedules = filteredData.length;
     const totalPages = Math.ceil(totalSchedules / SCHEDULES_PER_PAGE);
-    const startIndex = (currentPage - 1) * SCHEDULES_PER_PAGE;
-    const endIndex = startIndex + SCHEDULES_PER_PAGE;
-    const paginatedData = filteredData.slice(startIndex, endIndex);
+    const paginatedData = filteredData.slice(
+        (currentPage - 1) * SCHEDULES_PER_PAGE,
+        currentPage * SCHEDULES_PER_PAGE
+    );
 
-    const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value);
+    // Handlers
+    const handleSelectFaculty = (value) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+        setSearchOpen(false);
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
         setCurrentPage(1);
     };
 
@@ -120,138 +381,45 @@ export default function FacultySchedules() {
 
     return (
         <div className="space-y-4">
-            <Card>
-                <CardContent className="p-2">
-                    <div className="flex gap-2 items-center">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                placeholder="Search faculty by name..."
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                className="pl-10 pr-10"
-                            />
-                            {searchQuery && (
-                                <button
-                                    onClick={() => {
-                                        setSearchQuery('');
-                                        setCurrentPage(1);
-                                    }}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
+            <FilterBar
+                searchQuery={searchQuery}
+                selectedDay={selectedDay}
+                scheduleType={scheduleType}
+                onSearchOpen={setSearchOpen}
+                onClearSearch={handleClearSearch}
+                onDayChange={handleDayChange}
+                onScheduleTypeChange={setScheduleType}
+            />
 
-                        <Select value={selectedDay || 'all'} onValueChange={handleDayChange}>
-                            <SelectTrigger className="w-40">
-                                <SelectValue placeholder="Filter by day" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Days</SelectItem>
-                                <SelectItem value="monday">Monday</SelectItem>
-                                <SelectItem value="tuesday">Tuesday</SelectItem>
-                                <SelectItem value="wednesday">Wednesday</SelectItem>
-                                <SelectItem value="thursday">Thursday</SelectItem>
-                                <SelectItem value="friday">Friday</SelectItem>
-                                <SelectItem value="saturday">Saturday</SelectItem>
-                                <SelectItem value="sunday">Sunday</SelectItem>
-                            </SelectContent>
-                        </Select>
+            <SearchFilter
+                data={data}
+                searchOpen={searchOpen}
+                onSearchOpenChange={setSearchOpen}
+                onSelectFaculty={handleSelectFaculty}
+            />
 
-                        <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
-                            <TabsList className="grid max-w-max grid-cols-2">
-                                <TabsTrigger className="w-28" value="tabular">Tabular</TabsTrigger>
-                                <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
+            <ContentRenderer
+                isLoading={isLoading}
+                isError={isError}
+                error={error}
+                data={data}
+                filteredData={filteredData}
+                paginatedData={paginatedData}
+                scheduleType={scheduleType}
+                selectedDay={selectedDay}
+            />
 
-                        {/* <Button
-                            onClick={() => donwloadExcel()}
-                            className="bg-green-600 hover:bg-green-500"
-                            variant=""
-                        >
-                            <FileDown />
-                            Excel
-                        </Button> */}
-                    </div>
-                </CardContent>
-            </Card>
-
-            {(() => {
-                if (isLoading) return (
-                    Array.from({ length: getRandomNumber(4, 8) }).map((_, i) => (
-                        <TimetableSkeleton key={i} />
-                    ))
-                )
-
-                if (isError) return (
-                    <p className="text-center text-red-500">Error getting faculty schedules: {error.message}</p>
-                )
-
-                if (!data) return (
-                    <p className="text-center text-gray-500">No faculty schedules available.</p>
-                )
-
-                if (filteredData.length === 0) return (
-                    <p className="text-center text-gray-500">No schedules found matching "{searchQuery}".</p>
-                )
-
-                return (
-                    <>
-                        {paginatedData.map((faculty) => (
-                            <Card id={faculty.id} className="w-full" key={faculty.id}>
-                                <CardHeader>
-                                    <CardTitle className="text-3xl pb-4">
-                                        {formatFullName(faculty)} | {faculty.schedules.reduce((acc, sched) => acc + sched.lecture_hours + sched.laboratory_hours, 0)} hr
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    {scheduleType === 'timetable' ? (
-                                        <TimeTable data={faculty.schedules} />
-                                    ) : (
-                                        <TabularSchedule data={faculty.schedules} type="faculty" />
-                                    )}
-                                </CardContent>
-                            </Card>
-                        ))}
-
-                        {/* Pagination Controls */}
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm text-gray-600">
-                                        Page {currentPage} of {totalPages} ({totalSchedules} total)
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            onClick={handlePrevPage}
-                                            disabled={currentPage === 1}
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                            Previous
-                                        </Button>
-                                        <Button
-                                            onClick={handleNextPage}
-                                            disabled={currentPage === totalPages}
-                                            variant="outline"
-                                            size="sm"
-                                        >
-                                            Next
-                                            <ChevronRight className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </>
-                );
-            })()}
+            <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalSchedules={totalSchedules}
+                onPrevPage={handlePrevPage}
+                onNextPage={handleNextPage}
+            />
         </div>
     );
 }
 
-FacultySchedules.layout = page => <AuthenticatedLayout children={page} title={'Faculty Schedules'} />
+FacultySchedules.layout = page => (
+    <AuthenticatedLayout children={page} title="Faculty Schedules" />
+);

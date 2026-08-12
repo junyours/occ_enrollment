@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\NstpSectionSchedule;
 use App\Models\Room;
-use App\Models\SubjectSecondarySchedule;
 use App\Models\User;
-use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -84,13 +82,8 @@ class ScheduleContoller extends Controller
                                     );
                             }
                         ])
-                        ->withCount(
-                            'SubjectEnrolledStudents as student_count'
-                        )
-                        ->where(
-                            'school_year_id',
-                            $request->schoolYearId
-                        );
+                        ->withCount('SubjectEnrolledStudents as student_count')
+                        ->where('school_year_id', $request->schoolYearId);
                 }
             ])
             ->join(
@@ -109,6 +102,7 @@ class ScheduleContoller extends Controller
             ->orderBy('last_name', 'asc')
             ->get();
 
+
         $nstpSched = NstpSectionSchedule::select(
             'nstp_sections.id as nstp_section_id',
             'nstp_section_schedules.id',
@@ -120,7 +114,6 @@ class ScheduleContoller extends Controller
             'room_name',
             'school_year_id',
 
-            // Normalize NSTP → regular schedule structure
             DB::raw("CONCAT('SECTION ', UPPER(section)) as class_code"),
             DB::raw("CONCAT('NSTP-', UPPER(component_name)) as descriptive_title"),
 
@@ -130,7 +123,6 @@ class ScheduleContoller extends Controller
             DB::raw('null as year_section_id'),
             DB::raw('null as secondary_schedule'),
 
-            // Useful for React if you want to identify NSTP
             DB::raw("'nstp' as schedule_type")
         )
             ->join(
@@ -151,10 +143,7 @@ class ScheduleContoller extends Controller
                 '=',
                 'nstp_section_schedules.room_id'
             )
-            ->where(
-                'school_year_id',
-                $request->schoolYearId
-            )
+            ->where('school_year_id', $request->schoolYearId)
             ->withCount([
                 'studentSubjects as student_count'
             ])
@@ -170,6 +159,10 @@ class ScheduleContoller extends Controller
                 $faculty->Schedules->push($nstp);
             }
         }
+
+        $yearSectionSched = $yearSectionSched
+            ->filter(fn($faculty) => $faculty->Schedules->isNotEmpty())
+            ->values();
 
         return response()->json($yearSectionSched);
     }
@@ -205,7 +198,7 @@ class ScheduleContoller extends Controller
                         ->leftjoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                         ->leftjoin('user_information', 'users.id', '=', 'user_information.user_id')
                         ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
-                        ->where('school_year_id', '=', $request->schoolYearID);
+                        ->where('school_year_id', '=', $request->schoolYearId);
 
                     // Secondary schedules query
                     $secondarySchedules = DB::table('subject_secondary_schedule')
@@ -230,7 +223,7 @@ class ScheduleContoller extends Controller
                         ->leftjoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                         ->leftjoin('user_information', 'users.id', '=', 'user_information.user_id')
                         ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
-                        ->where('school_year_id', '=', $request->schoolYearID);
+                        ->where('school_year_id', '=', $request->schoolYearId);
 
                     // Combine primary and secondary schedules using union
                     $query->union($secondarySchedules);
@@ -242,7 +235,6 @@ class ScheduleContoller extends Controller
         $nstpSched = NstpSectionSchedule::select(
             'nstp_sections.id as nstp_section_id',
             'nstp_section_schedules.id',
-            'component_name',
             'day',
             'end_time',
             'faculty_id',
@@ -252,20 +244,71 @@ class ScheduleContoller extends Controller
             'first_name',
             'middle_name',
             'last_name',
-            'school_year_id',
-            'section',
+            'nstp_sections.school_year_id',
+
+            DB::raw(
+                "CONCAT('SECTION ', nstp_sections.section) as class_code"
+            ),
+
+            DB::raw(
+                "CONCAT('NSTP-', UPPER(nstp_components.component_name))
+        as descriptive_title"
+            ),
+
+            DB::raw("'nstp' as schedule_type"),
+
             DB::raw('3 as lecture_hours'),
             DB::raw('0 as laboratory_hours'),
             DB::raw('null as secondary_schedule'),
         )
-            ->join('nstp_sections', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
-            ->join('nstp_components', 'nstp_components.id', '=', 'nstp_sections.nstp_component_id')
-            ->leftJoin('rooms', 'rooms.id', '=', 'nstp_section_schedules.room_id')
-            ->leftJoin('users', 'users.id', '=', 'nstp_section_schedules.faculty_id')
-            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
-            ->where('school_year_id', $request->schoolYearID)
+            ->join(
+                'nstp_sections',
+                'nstp_sections.id',
+                '=',
+                'nstp_section_schedules.nstp_section_id'
+            )
+            ->join(
+                'nstp_components',
+                'nstp_components.id',
+                '=',
+                'nstp_sections.nstp_component_id'
+            )
+            ->leftJoin(
+                'rooms',
+                'rooms.id',
+                '=',
+                'nstp_section_schedules.room_id'
+            )
+            ->leftJoin(
+                'users',
+                'users.id',
+                '=',
+                'nstp_section_schedules.faculty_id'
+            )
+            ->leftJoin(
+                'user_information',
+                'users.id',
+                '=',
+                'user_information.user_id'
+            )
+            ->where(
+                'nstp_sections.school_year_id',
+                $request->schoolYearId
+            )
             ->get();
 
-        return response()->json(['yearSectionSubjectsSched' => $rooms, 'nstpSched' => $nstpSched]);
+        foreach ($nstpSched as $nstp) {
+            $room = $rooms->firstWhere('id', $nstp->room_id);
+
+            if ($room) {
+                $room->Schedules->push($nstp);
+            }
+        }
+
+        $rooms = $rooms
+            ->filter(fn($room) => $room->Schedules->isNotEmpty())
+            ->values();
+
+        return response()->json($rooms);
     }
 }
