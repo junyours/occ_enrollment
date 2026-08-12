@@ -3,7 +3,7 @@ import React, { useMemo, useCallback, useState } from 'react';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { PiStudent } from 'react-icons/pi';
 import { MapPin, User, AlertTriangle, Clock, Users } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 
 // ============================================================================
 // Constants
