@@ -13,9 +13,9 @@ import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import DesktopViewClasses from './DesktopViewClasses';
 import ClassListSkeleton from './ClassListSkeleton';
 import { ErrorState, EmptyState } from './EnhancedStates.jsx';
-import CIT_LOGO from "../../../images/departments-logo/cit.webp";
-import CBA_LOGO from "../../../images/departments-logo/cba.webp";
-import TED_LOGO from "../../../images/departments-logo/ted.webp";
+import CIT_LOGO from "../../../images/departments-logo/CIT.webp";
+import CBA_LOGO from "../../../images/departments-logo/CBA.webp";
+import TED_LOGO from "../../../images/departments-logo/TED.webp";
 import { Skeleton } from '@/Components/ui/skeleton';
 
 const DAY_ORDER = {
