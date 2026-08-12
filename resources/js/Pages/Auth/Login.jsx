@@ -32,8 +32,6 @@ export default function Login({ status }) {
         // Password Validation
         if (!data.password) {
             newErrors.password = "Password is required.";
-        } else if (data.password.length < 8) {
-            newErrors.password = "Password must be at least 8 characters.";
         }
 
         return newErrors;

@@ -1,4 +1,4 @@
-import { expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
+import { convertToAMPM, expandAlternatingDays, expandConsecutiveDays, formatFullName, identifyDayType } from '@/Lib/Utils';
 import React, { useMemo, useCallback, useState } from 'react';
 import { detectTwoScheduleConflict } from '@/Lib/ConflictUtilities';
 import { PiStudent } from 'react-icons/pi';
@@ -230,13 +230,15 @@ const ScheduleModal = React.memo(({ schedData, isOpen, onOpenChange, colorful })
                 <DialogHeader>
                     <DialogTitle>{schedData.descriptive_title}</DialogTitle>
                 </DialogHeader>
-
-                <span className={`inline-block mt-1 mb-2 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeBg} ${badgeText}`}>
-                    {schedData.class_code}
-                </span>
+                
+                {schedData.class_code && (
+                    <span className={`inline-block mt-1 mb-2 text-xs font-semibold px-2.5 py-1 rounded-full ${badgeBg} ${badgeText}`}>
+                        {schedData.class_code}
+                    </span>
+                )}
 
                 <div className="flex flex-col gap-4 pt-4 border-t border-border">
-                    <InfoRow icon={Clock} label="Time" value={`${schedData.start_time} - ${schedData.end_time}`} chipBg={chipBg} chipText={chipText} />
+                    <InfoRow icon={Clock} label="Time" value={`${convertToAMPM(schedData.start_time)} - ${convertToAMPM(schedData.end_time)}`} chipBg={chipBg} chipText={chipText} />
                     <InfoRow icon={MapPin} label="Room" value={schedData.room_name || "TBA"} chipBg={chipBg} chipText={chipText} />
                     <InfoRow icon={User} label="Instructor" value={instructorName} chipBg={chipBg} chipText={chipText} />
                     {schedData.student_count !== null && schedData.student_count !== undefined && (

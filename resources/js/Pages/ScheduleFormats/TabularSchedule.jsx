@@ -2,20 +2,35 @@ import React from "react";
 import { convertToAMPM, formatFullName } from "../../Lib/Utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { PiStudent } from "react-icons/pi";
+
 function TabularSchedule({ data, type }) {
     const sortSchedule = (data) => {
         const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-        return data.sort((a, b) => {
+        // Create a shallow copy to avoid mutating the original prop array
+        return [...data].sort((a, b) => {
             const getRank = (day) => {
-                if (day === "TBA") return 11;
+                if (day === "TBA" || !day) return 11;
                 const daysArray = day.split(",");
                 if (daysArray.length > 1) return 10; // Consecutive/Alternating days
 
                 return dayOrder.indexOf(day) !== -1 ? dayOrder.indexOf(day) : 9; // Single days first
             };
 
-            return getRank(a.day) - getRank(b.day);
+            const dayRankA = getRank(a.day);
+            const dayRankB = getRank(b.day);
+
+            // First, sort by Day
+            if (dayRankA !== dayRankB) {
+                return dayRankA - dayRankB;
+            }
+
+            // Secondary sort by Time if Days are the same
+            // Pushing "-" or TBA times to the bottom of that specific day
+            const timeA = a.start_time === "-" || !a.start_time ? "24:00" : a.start_time;
+            const timeB = b.start_time === "-" || !b.start_time ? "24:00" : b.start_time;
+
+            return timeA.localeCompare(timeB);
         });
     };
 
@@ -106,15 +121,14 @@ function TabularSchedule({ data, type }) {
                     ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                        <TableCell colSpan={7} className="text-center py-4 text-gray-500">
                             No schedules available.
                         </TableCell>
                     </TableRow>
                 )}
             </TableBody>
         </Table>
-
     )
 }
 
-export default TabularSchedule
+export default TabularSchedule;
