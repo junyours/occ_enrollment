@@ -6,10 +6,11 @@ import { Card, CardContent } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { Alert, AlertTitle } from "@/Components/ui/alert";
-import { CheckCircle2, GraduationCap, BookOpen, BarChart3, Globe } from "lucide-react";
+import { CheckCircle2, GraduationCap, BookOpen, BarChart3, Globe, User, Lock } from "lucide-react";
 import AppLogo from "@/Components/AppLogo";
 import { TwoModeToggle } from "@/Components/two-modes-toggle";
 import { Checkbox } from "@/Components/ui/checkbox";
+import OCC_LOGO from "../../../images/OCC_LOGO.svg";
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, setError } = useForm({
@@ -56,208 +57,235 @@ export default function Login({ status }) {
     };
 
     return (
-        <div className="h-svh w-full flex flex-col items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-slate-50 via-slate-100 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
+        <div className="min-h-svh flex flex-col bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-slate-50 via-slate-100 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
             <Head title="Login" />
-
-            {status && (
-                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md animate-in fade-in slide-in-from-top-4 duration-500">
-                    <Alert className="border-green-200 bg-white dark:bg-slate-900 shadow-2xl border-l-4 border-l-green-500">
-                        <div className="flex gap-3 items-center">
-                            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0" />
-                            <AlertTitle className="text-green-700 dark:text-green-300 font-medium mb-0 text-sm">
-                                {status}
-                            </AlertTitle>
+            <Card className='md:hidden rounded-none border-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm'>
+                <CardContent className='py-3'>
+                    <div className='flex justify-between items-center gap-2'>
+                        <div className='flex gap-2 items-center'>
+                            <AppLogo size="xs" />
+                            <h2 className="text-lg tracking-tight text-slate-900 dark:text-slate-50">SIS &ndash; Opol Community College</h2>
                         </div>
-                    </Alert>
-                </div>
-            )}
-
-            <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out will-change-transform">
-                <Card className="relative overflow-hidden shadow-2xl border-0 bg-white dark:bg-slate-900">
-
-                    {/* Theme Toggle */}
-                    <div className="absolute top-4 right-4 z-20">
-                        <TwoModeToggle />
+                        <TwoModeToggle className="bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 border-slate-300 dark:border-slate-600" />
                     </div>
+                </CardContent>
+            </Card>
+            <div className="flex flex-1 flex-col items-center justify-center md:p-4">
+                {status && (
+                    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md animate-in fade-in slide-in-from-top-4 duration-500">
+                        <Alert className="border-green-200 bg-white dark:bg-slate-900 shadow-2xl border-l-4 border-l-green-500">
+                            <div className="flex gap-3 items-center">
+                                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0" />
+                                <AlertTitle className="text-green-700 dark:text-green-300 font-medium mb-0 text-sm">
+                                    {status}
+                                </AlertTitle>
+                            </div>
+                        </Alert>
+                    </div>
+                )}
 
-                    <div className="grid md:grid-cols-2">
-                        {/* Left Side - Branding & Features */}
-                        <div className="hidden md:flex flex-col justify-between p-12 bg-primary text-primary-foreground relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground opacity-10 rounded-full -translate-y-32 translate-x-32" />
+                <div className="w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out will-change-transform">
+                    <Card className="relative overflow-hidden shadow-none md:shadow-2xl border-0 bg-transparent md:bg-background">
 
-                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary opacity-5 rounded-full translate-y-32 -translate-x-32" />
-                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/20 rounded-full translate-y-32 -translate-x-32 blur-3xl duration-1000"></div>
+                        {/* Theme Toggle */}
+                        <div className="absolute top-4 right-4 z-20 hidden md:block">
+                            <TwoModeToggle />
+                        </div>
 
-                            {/* Large watermark icon */}
-                            <GraduationCap className="absolute -bottom-10 -right-10 h-64 w-64 text-primary-foreground/5 -rotate-12" />
+                        <div className="grid md:grid-cols-2">
+                            {/* Left Side - Branding & Features */}
+                            <div className="hidden md:flex flex-col justify-between p-12 bg-primary text-primary-foreground relative overflow-hidden">
+                                {/* <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground opacity-10 rounded-full -translate-y-32 translate-x-32" /> */}
+                                <img
+                                    src={OCC_LOGO}
+                                    alt="OCC Logo"
+                                    draggable={false}
+                                    className="object-contain absolute top-20 right-20 w-96 h-80 opacity-10 -translate-y-32 translate-x-32 invert dark:invert-0"
+                                />
 
-                            <div className="relative z-10 space-y-12">
-                                {/* Staggered entry */}
-                                <div className="space-y-6 animate-in slide-in-from-left-4 duration-500 delay-75 fill-mode-both transform-gpu">
-                                    {/* Icon Container */}
-                                    <div className="inline-flex items-center justify-center p-3 bg-primary-foreground/10 rounded-2xl backdrop-blur-md border border-primary-foreground/20 shadow-xl transition-transform hover:scale-110">
-                                        <GraduationCap className="h-8 w-8 text-primary-foreground" />
+                                {/* <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary opacity-5 rounded-full translate-y-32 -translate-x-32" /> */}
+                                {/* <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/20 rounded-full translate-y-32 -translate-x-32 blur-3xl duration-1000"></div> */}
+
+                                {/* Large watermark icon */}
+                                {/* <GraduationCap className="absolute -bottom-10 -right-10 h-64 w-64 text-primary-foreground/5 -rotate-12" /> */}
+
+                                <div className="relative z-10 space-y-12">
+                                    {/* Staggered entry */}
+                                    <div className="space-y-6 animate-in slide-in-from-left-4 duration-500 delay-75 fill-mode-both transform-gpu">
+                                        {/* Icon Container */}
+                                        <div className="inline-flex items-center justify-center p-3 bg-primary-foreground/10 rounded-2xl backdrop-blur-md border border-primary-foreground/20 shadow-xl transition-transform hover:scale-110">
+                                            <GraduationCap className="h-8 w-8 text-primary-foreground" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h2 className="text-3xl font-bold tracking-tight text-primary-foreground">Opol Community College</h2>
+                                            <p className="text-lg opacity-80 font-light text-primary-foreground">Student Information System</p>
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <h2 className="text-3xl font-bold tracking-tight text-primary-foreground">Opol Community College</h2>
-                                        <p className="text-lg opacity-80 font-light text-primary-foreground">Student Information System</p>
-                                    </div>
-                                </div>
 
-                                <div className="space-y-6">
-                                    {[
-                                        { icon: <BookOpen className="h-5 w-5 text-primary-foreground" />, text: "Manage academic journey", delay: "delay-150" },
-                                        { icon: <BarChart3 className="h-5 w-5 text-primary-foreground" />, text: "Access grades and schedules", delay: "delay-200" },
-                                        { icon: <Globe className="h-5 w-5 text-primary-foreground" />, text: "Stay connected with education", delay: "delay-300" }
-                                    ].map((feature, i) => (
-                                        <div key={i} className={`flex items-center gap-4 group animate-in slide-in-from-left-4 fade-in duration-500 fill-mode-both ${feature.delay}`}>
-                                            <div className="p-2 rounded-lg bg-primary-foreground/10 group-hover:bg-primary-foreground/20 group-hover:scale-110 transition-all">
-                                                {feature.icon}
+                                    <div className="space-y-6">
+                                        {[
+                                            { icon: <BookOpen className="h-5 w-5 text-primary-foreground" />, text: "Manage academic journey", delay: "delay-150" },
+                                            { icon: <BarChart3 className="h-5 w-5 text-primary-foreground" />, text: "Access grades and schedules", delay: "delay-200" },
+                                            { icon: <Globe className="h-5 w-5 text-primary-foreground" />, text: "Stay connected with education", delay: "delay-300" }
+                                        ].map((feature, i) => (
+                                            <div key={i} className={`flex items-center gap-4 group animate-in slide-in-from-left-4 fade-in duration-500 fill-mode-both ${feature.delay}`}>
+                                                <div className="p-2 rounded-lg bg-primary-foreground/10 group-hover:bg-primary-foreground/20 group-hover:scale-110 transition-all">
+                                                    {feature.icon}
+                                                </div>
+                                                <span className="text-sm font-medium opacity-90 text-primary-foreground">{feature.text}</span>
                                             </div>
-                                            <span className="text-sm font-medium opacity-90 text-primary-foreground">{feature.text}</span>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Footer Section */}
+                                <div className="relative z-10 pt-8 border-t border-primary-foreground/10 animate-in fade-in duration-1000 delay-[800ms] fill-mode-both mt-2">
+                                    <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground">
+                                        Empowering Excellence
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* Footer Section */}
-                            <div className="relative z-10 pt-8 border-t border-primary-foreground/10 animate-in fade-in duration-1000 delay-[800ms] fill-mode-both mt-2">
-                                <p className="text-xs font-semibold uppercase tracking-widest text-primary-foreground">
-                                    Empowering Excellence
-                                </p>
+                            {/* Right Side - Login Form */}
+                            <div className="relative flex flex-col justify-center md:p-8 sm:p-12 bg-transparent md:bg-background overflow-hidden">
+                                {/* Large Background Watermark Logo */}
+                                {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
+                                    <div className="w-[150%] h-[150%] opacity-[0.10] dark:opacity-[0.05] transition-transform duration-700 group-hover:scale-110 -rotate-12 translate-x-20 translate-y-20 text-primary">
+                                        <AppLogo size="xl" />
+                                    </div>
+                                    </div> */}
+
+                                <CardContent className="relative z-10 space-y-10 p-0 w-full max-w-sm mx-auto">
+                                    {/* Header Section */}
+                                    <div className="text-center md:text-start space-y-6 animate-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
+                                        <div className='md:flex md:gap-2'>
+                                            <div className='hidden md:block'>
+                                                <AppLogo  />
+                                            </div>
+                                            <div className="space-y-2 md:self-end py-2">
+                                                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary-hover to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x">
+                                                    Welcome Back
+                                                </h1>
+                                                <p className="text-sm font-medium text-muted-foreground mx-auto">
+                                                    Sign in to access your personal dashboard.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <form onSubmit={submit} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
+                                        <div>
+                                            {/* ID Number Input */}
+                                            <div className="relative group">
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground peer-focus:text-primary transition-colors z-10 pointer-events-none">
+                                                    <User size={18} />
+                                                </div>
+                                                <Input
+                                                    type="text"
+                                                    id="user_id_no"
+                                                    value={data.user_id_no}
+                                                    onChange={(e) => {
+                                                        setData("user_id_no", e.target.value);
+                                                        if (!!e.target.value) return setError("user_id_no", null);
+                                                        if (!e.target.value) return setError("user_id_no", "ID Number is required.");
+                                                    }}
+                                                    placeholder=" "
+                                                    className={`peer h-14 pt-6 pb-2 pl-11 pr-3 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
+                                                            focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
+                                                            ${errors.user_id_no ? 'border-red-500 dark:border-red-500 focus-visible:ring-red-500 animate-shake' : ''}`}
+                                                />
+                                                <label
+                                                    htmlFor="user_id_no"
+                                                    className={`absolute left-11 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground pointer-events-none transition-all duration-200 
+                                                            peer-focus:top-3.5 peer-focus:text-xs peer-focus:text-primary
+                                                            peer-[:not(:placeholder-shown)]:top-3.5 peer-[:not(:placeholder-shown)]:text-xs
+                                                            ${errors.user_id_no ? 'peer-focus:text-red-500' : ''}`}
+                                                >
+                                                    ID Number
+                                                </label>
+                                            </div>
+                                            {errors.user_id_no && <p className="text-destructive text-xs mt-1 ml-1 animate-in fade-in slide-in-from-left-1">{errors.user_id_no}</p>}
+
+                                            {/* Password Input */}
+                                            <div className="relative group mt-4">
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground peer-focus:text-primary transition-colors z-10 pointer-events-none">
+                                                    <Lock size={18} />
+                                                </div>
+                                                <Input
+                                                    type={showPassword ? "text" : "password"}
+                                                    id="password"
+                                                    value={data.password}
+                                                    onChange={(e) => {
+                                                        setData("password", e.target.value);
+                                                        if (!!e.target.value) return setError("password", null);
+                                                        if (!e.target.value) return setError("password", "Password is required.");
+                                                    }}
+                                                    placeholder=" "
+                                                    className={`peer h-14 pt-6 pb-2 pl-11 pr-11 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
+                                                                focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
+                                                                ${errors.password ? 'border-red-500 dark:border-red-500 focus-visible:ring-red-500 animate-shake' : ''}`}
+                                                />
+                                                <label
+                                                    htmlFor="password"
+                                                    className={`absolute left-11 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground pointer-events-none transition-all duration-200 
+                                                                peer-focus:top-3.5 peer-focus:text-xs peer-focus:text-primary
+                                                                peer-[:not(:placeholder-shown)]:top-3.5 peer-[:not(:placeholder-shown)]:text-xs
+                                                                ${errors.password ? 'peer-focus:text-red-500' : ''}`}
+                                                >
+                                                    Password
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    tabIndex="-1"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none z-10"
+                                                >
+                                                    {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
+                                                </button>
+                                            </div>
+                                            {errors.password && <p className="text-destructive text-xs mt-1 ml-1 animate-in fade-in slide-in-from-left-1">{errors.password}</p>}
+                                        </div>
+
+                                        {/* Remember & Forgot Password */}
+                                        <div className="flex items-center justify-between transition-all animate-in fade-in duration-700 delay-100 fill-mode-both">
+                                            <div className="flex items-center space-x-2 group cursor-pointer">
+                                                <Checkbox
+                                                    id="remember"
+                                                    checked={data.remember}
+                                                    onCheckedChange={(checked) => setData("remember", checked)}
+                                                    className="transition-transform group-active:scale-90 border-primary data-[state=checked]:bg-primary"
+                                                />
+                                                <label htmlFor="remember" className="text-xs font-medium text-muted-foreground cursor-pointer select-none uppercase tracking-wider">Keep me logged in</label>
+                                            </div>
+                                            <Link href="/forgot-password" size="sm" className="text-xs font-semibold text-primary hover:text-primary-hover hover:underline transition-all uppercase tracking-wider">
+                                                Forgot Password?
+                                            </Link>
+                                        </div>
+
+                                        {/* Submit Button */}
+                                        <Button
+                                            type="submit"
+                                            disabled={processing || submitting}
+                                            className="w-full h-12 text-base font-bold bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98]  uppercase tracking-wider"
+                                        >
+                                            {submitting ? (
+                                                <span className="flex items-center gap-2">
+                                                    Signing In...
+                                                </span>
+                                            ) : "Sign In"}
+                                        </Button>
+                                    </form>
+                                </CardContent>
                             </div>
                         </div>
-
-                        {/* Right Side - Login Form */}
-                        <div className="relative flex flex-col justify-center p-8 sm:p-12 bg-background overflow-hidden">
-                            {/* Large Background Watermark Logo */}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
-                                <div className="w-[150%] h-[150%] opacity-[0.10] dark:opacity-[0.05] transition-transform duration-700 group-hover:scale-110 -rotate-12 translate-x-20 translate-y-20 text-primary">
-                                    <AppLogo size="xl"/>
-                                </div>
-                            </div>
-
-                            <CardContent className="relative z-10 space-y-10 p-0 w-full max-w-sm mx-auto">
-
-                                {/* Header Section */}
-                                <div className="text-center space-y-6 animate-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
-                                    <div className="space-y-2">
-                                        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary-hover to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x">
-                                            Welcome Back
-                                        </h1>
-                                        <p className="text-sm font-medium text-muted-foreground mx-auto">
-                                            Sign in to your student account to continue
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <form onSubmit={submit} className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
-                                    <div>
-                                        {/* ID Number Input */}
-                                        <div className="relative group">
-                                            <Input
-                                                type="text"
-                                                id="user_id_no"
-                                                value={data.user_id_no}
-                                                onChange={(e) => {
-                                                    setData("user_id_no", e.target.value);
-                                                    if (!!e.target.value) return setError("user_id_no", null);
-                                                    if (!e.target.value) return setError("user_id_no", "ID Number is required.");
-                                                }}
-                                                placeholder=" "
-                                                className={`peer h-14 pt-6 pb-2 px-3 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
-                                                        focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
-                                                        ${errors.user_id_no ? 'border-red-500 dark:border-red-500 focus-visible:ring-red-500 animate-shake' : ''}`}
-                                            />
-                                            <label
-                                                htmlFor="user_id_no"
-                                                className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground pointer-events-none transition-all duration-200 
-                                                           peer-focus:top-3.5 peer-focus:text-xs peer-focus:text-primary
-                                                           peer-[:not(:placeholder-shown)]:top-3.5 peer-[:not(:placeholder-shown)]:text-xs
-                                                           ${errors.user_id_no ? 'peer-focus:text-red-500' : ''}`}
-                                            >
-                                                ID Number
-                                            </label>
-                                        </div>
-                                        {errors.user_id_no && <p className="text-destructive text-xs mt-1 ml-1 animate-in fade-in slide-in-from-left-1">{errors.user_id_no}</p>}
-
-                                        {/* Password Input */}
-                                        <div className="relative group mt-4">
-                                            <Input
-                                                type={showPassword ? "text" : "password"}
-                                                id="password"
-                                                value={data.password}
-                                                onChange={(e) => {
-                                                    setData("password", e.target.value);
-                                                    if (!!e.target.value) return setError("password", null);
-                                                    if (!e.target.value) return setError("password", "Password is required.");
-                                                }}
-                                                placeholder=" "
-                                                className={`peer h-14 pt-6 pb-2 pr-11 pl-3 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
-                                                        focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
-                                                        ${errors.password ? 'border-red-500 dark:border-red-500 focus-visible:ring-red-500 animate-shake' : ''}`}
-                                            />
-                                            <label
-                                                htmlFor="password"
-                                                className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground pointer-events-none transition-all duration-200 
-                                                           peer-focus:top-3.5 peer-focus:text-xs peer-focus:text-primary
-                                                           peer-[:not(:placeholder-shown)]:top-3.5 peer-[:not(:placeholder-shown)]:text-xs
-                                                           ${errors.password ? 'peer-focus:text-red-500' : ''}`}
-                                            >
-                                                Password
-                                            </label>
-                                            <button
-                                                type="button"
-                                                tabIndex="-1"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none z-10"
-                                            >
-                                                {showPassword ? <FaEye size={18} /> : <FaEyeSlash size={18} />}
-                                            </button>
-                                        </div>
-                                        {errors.password && <p className="text-destructive text-xs mt-1 ml-1 animate-in fade-in slide-in-from-left-1">{errors.password}</p>}
-                                    </div>
-
-                                    {/* Remember & Forgot Password */}
-                                    <div className="flex items-center justify-between transition-all animate-in fade-in duration-700 delay-100 fill-mode-both">
-                                        <div className="flex items-center space-x-2 group cursor-pointer">
-                                            <Checkbox
-                                                id="remember"
-                                                checked={data.remember}
-                                                onCheckedChange={(checked) => setData("remember", checked)}
-                                                className="transition-transform group-active:scale-90 border-primary data-[state=checked]:bg-primary"
-                                            />
-                                            <label htmlFor="remember" className="text-xs font-medium text-muted-foreground cursor-pointer select-none uppercase tracking-wider">Keep me logged in</label>
-                                        </div>
-                                        <Link href="/forgot-password" size="sm" className="text-xs font-semibold text-primary hover:text-primary-hover hover:underline transition-all uppercase tracking-wider">
-                                            Forgot Password?
-                                        </Link>
-                                    </div>
-
-                                    {/* Submit Button */}
-                                    <Button
-                                        type="submit"
-                                        disabled={processing || submitting}
-                                        className="w-full h-12 text-base font-bold bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98]  uppercase tracking-wider"
-                                    >
-                                        {submitting ? (
-                                            <span className="flex items-center gap-2">
-                                                Signing In...
-                                            </span>
-                                        ) : "Sign In"}
-                                    </Button>
-                                </form>
-                            </CardContent>
-                        </div>
-                    </div>
-                </Card>
-
-                <footer className="mt-8 flex flex-col items-center gap-2 animate-in fade-in duration-1000 delay-[1000ms] fill-mode-both">
-                    <p className="text-xs text-muted-foreground font-medium">
-                        © 2024 Opol Community College. All rights reserved.
-                    </p>
-                </footer>
+                    </Card>
+                </div>
             </div>
+            <footer className="shrink-0 animate-in fade-in duration-1000 delay-[1000ms] fill-mode-both px-4 py-4">
+                <p className="text-xs text-muted-foreground font-medium text-center">
+                    © 2024 Opol Community College. All rights reserved.
+                </p>
+            </footer>
         </div>
     );
 }

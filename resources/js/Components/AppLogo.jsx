@@ -4,6 +4,7 @@ import OCC_LOGO from "../../images/OCC_LOGO.png";
 export default function AppLogo({ size = "md", className = "" }) {
     // Extended sizes using Tailwind classes
     const sizeClasses = {
+        xs: "w-12 h-12", 
         sm: "w-16 h-16",             // 64px
         md: "w-24 h-24",             // 96px
         lg: "w-32 h-32",             // 128px

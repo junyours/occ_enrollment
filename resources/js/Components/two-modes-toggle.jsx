@@ -3,8 +3,9 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { useTheme } from "@/Components/theme-provider";
+import { cn } from "@/Lib/Utils";
 
-export function TwoModeToggle() {
+export function TwoModeToggle({ className }) {
     const { theme, setTheme } = useTheme();
 
     const toggleTheme = () => {
@@ -16,7 +17,7 @@ export function TwoModeToggle() {
             variant="outline"
             size="icon"
             onClick={toggleTheme}
-            className="relative"
+            className={cn("relative", className)}
         >
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
