@@ -81,7 +81,7 @@ export default function EnrollmentDashboardSelector({ onSelect }) {
         return schoolYears.find((sy) => String(sy.id) === selectedId)
     }, [selectedId, schoolYears])
 
-    if (isLoading) return <Skeleton className="h-16 w-[420px] rounded-md" />
+    if (isLoading) return <div className='p-6'><Skeleton className="h-16 w-full rounded-md p-6" /></div>
 
     if (error) {
         return (
