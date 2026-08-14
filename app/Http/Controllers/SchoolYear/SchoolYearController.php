@@ -425,38 +425,45 @@ class SchoolYearController extends Controller
     {
         $user = Auth::user();
 
-        $schoolYear = SchoolYear::where('is_current', '=', 1)
-            ->with('Semester')
-            ->first();
+        $schoolYear = SchoolYear::with('Semester')
+            ->get();
 
         if (!$user) {
-            return Inertia::render('Guest/OngoingEnrollment', [
+            return Inertia::render('Guest/EnrollmentDashboard', [
                 'schoolYear' => $schoolYear
             ]);
         }
 
         if ($user->user_role == 'president') {
-            return Inertia::render('President/OngoingEnrollment', [
+            return Inertia::render('President/EnrollmentDashboard', [
                 'schoolYear' => $schoolYear
             ]);
         }
 
-        return Inertia::render('Guest/OngoingEnrollment', [
+        return Inertia::render('Guest/EnrollmentDashboard', [
             'schoolYear' => $schoolYear
         ]);
     }
 
     public function viewEnrollmentDashboard()
     {
-        $ongoingEnrollmentSy = $this->getPreparingOrOngoingSchoolYear()['school_year'];
+        return Inertia::render('Guest/Enrollment/EnrollmentDashboardSelector');
+    }
 
-        $schoolYear = SchoolYear::where('id', '=', $ongoingEnrollmentSy->id)
-            ->with('Semester')
-            ->first();
+    public function getSchoolYears()
+    {
+        $schoolYear = SchoolYear::select(
+            'school_years.id',
+            'start_year',
+            'end_year',
+            'is_current',
+            'semester_name'
+        )
+            ->join('semesters', 'school_years.semester_id', '=', 'semesters.id')
+            ->orderBy('school_years.created_at', 'desc')
+            ->get();
 
-        return Inertia::render('Guest/EnrollmentData/OngoingEnrollment', [
-            'schoolYear' => $schoolYear
-        ]);
+        return response()->json($schoolYear);
     }
 
     public function enrollmentData(Request $request)

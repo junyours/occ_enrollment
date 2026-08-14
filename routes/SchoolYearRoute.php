@@ -61,3 +61,5 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
 Route::middleware(['auth'])->post('/school-years-data', [SchoolYearController::class, 'schoolYearsData'])->name('school-years-data');
 
 Route::post('/enrollment-data', [SchoolYearController::class, 'enrollmentData'])->name('enrollment-data');
+
+Route::post('/school-years', [SchoolYearController::class, 'getSchoolYears'])->name('school-years');

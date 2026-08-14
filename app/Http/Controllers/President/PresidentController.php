@@ -21,7 +21,7 @@ class PresidentController extends Controller
 
         $schoolYear = SchoolYear::with('Semester')->find($schoolYear->id);
 
-        return Inertia::render('President/OngoingEnrollment', [
+        return Inertia::render('President/EnrollmentDashboard', [
             'schoolYear' => $schoolYear
         ]);
     }
