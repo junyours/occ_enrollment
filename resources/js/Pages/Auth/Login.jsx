@@ -147,7 +147,7 @@ export default function Login({ status }) {
                             </div>
 
                             {/* Right Side - Login Form */}
-                            <div className="relative flex flex-col justify-center md:p-8 sm:p-12 bg-transparent md:bg-background overflow-hidden">
+                            <div className="relative flex flex-col justify-center md:p-8 sm:p-12 bg-transparent md:bg-background overflow-hidden px-6 pb-8 md:px-0 md:pb-0">
                                 {/* Large Background Watermark Logo */}
                                 {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
                                     <div className="w-[150%] h-[150%] opacity-[0.10] dark:opacity-[0.05] transition-transform duration-700 group-hover:scale-110 -rotate-12 translate-x-20 translate-y-20 text-primary">
@@ -190,7 +190,7 @@ export default function Login({ status }) {
                                                         if (!e.target.value) return setError("user_id_no", "ID Number is required.");
                                                     }}
                                                     placeholder=" "
-                                                    className={`peer h-14 pt-6 pb-2 pl-11 pr-3 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
+                                                    className={`peer h-16 md:h-14 pt-6 pb-2 pl-11 pr-3 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
                                                             focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
                                                             ${errors.user_id_no ? 'border-red-500 dark:border-red-500 focus-visible:ring-red-500 animate-shake' : ''}`}
                                                 />
@@ -221,7 +221,7 @@ export default function Login({ status }) {
                                                         if (!e.target.value) return setError("password", "Password is required.");
                                                     }}
                                                     placeholder=" "
-                                                    className={`peer h-14 pt-6 pb-2 pl-11 pr-11 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
+                                                    className={`peer h-16 md:h-14 pt-6 pb-2 pl-11 pr-11 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-all duration-300
                                                                 focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
                                                                 ${errors.password ? 'border-red-500 dark:border-red-500 focus-visible:ring-red-500 animate-shake' : ''}`}
                                                 />

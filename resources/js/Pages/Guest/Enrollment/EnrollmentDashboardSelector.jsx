@@ -112,7 +112,7 @@ export default function EnrollmentDashboardSelector({ onSelect }) {
                 >
                     <div className="flex items-center justify-center gap-3.5">
                         {selectedItem ? (
-                            <div className="flex items-baseline justify-center text-center gap-3">
+                            <div className="flex flex-col md:flex-row items-baseline justify-center text-center gap-3">
                                 <span className="font-extrabold text-3xl tracking-tight whitespace-nowrap text-foreground">
                                     {selectedItem.start_year} &ndash; {selectedItem.end_year}
                                 </span>
@@ -132,7 +132,7 @@ export default function EnrollmentDashboardSelector({ onSelect }) {
                     </div>
                 </Button>
 
-                <CommandDialog open={open} onOpenChange={setOpen}>
+                <CommandDialog open={open} onOpenChange={setOpen} className='w-96'>
                     <CommandInput placeholder="Search school year..." className="h-12 text-base" />
                     <CommandList>
                         <CommandEmpty className="py-6 text-center text-sm">No school year found.</CommandEmpty>
