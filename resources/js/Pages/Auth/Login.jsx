@@ -147,7 +147,7 @@ export default function Login({ status }) {
                             </div>
 
                             {/* Right Side - Login Form */}
-                            <div className="relative flex flex-col justify-center md:p-8 sm:p-12 bg-transparent md:bg-background overflow-hidden px-6 pb-8 md:px-0 md:pb-0">
+                            <div className="relative flex flex-col justify-center md:p-8 sm:p-12 bg-transparent md:bg-background overflow-hidden px-6 pb-8 md:px-0">
                                 {/* Large Background Watermark Logo */}
                                 {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden z-0">
                                     <div className="w-[150%] h-[150%] opacity-[0.10] dark:opacity-[0.05] transition-transform duration-700 group-hover:scale-110 -rotate-12 translate-x-20 translate-y-20 text-primary">
