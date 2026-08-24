@@ -211,8 +211,8 @@ export default function ViewClasses() {
             {renderCourseSectionInfo()}
 
             {renderContent()}
-            <Separator />
-            <EnrollmentSchedule />
+            {/* <Separator /> */}
+            {/* <EnrollmentSchedule /> */}
         </main>
     );
 }
