@@ -135,7 +135,7 @@ function YearLevelSections({
         <TooltipProvider delayDuration={300}>
             <div className="space-y-4 p-4 sm:p-0">
                 {/* Search and Sort Controls */}
-                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                {/* <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                     <div className="flex-1 relative w-full sm:w-auto">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -161,7 +161,7 @@ function YearLevelSections({
                             </SelectContent>
                         </Select>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Desktop Table View */}
                 <div className="hidden md:block rounded-md border bg-background">

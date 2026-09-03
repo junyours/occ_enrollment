@@ -12,35 +12,85 @@ export default function DownloadableTimetable({ classes, schoolYear }) {
 
     const downloadImage = async (elementId) => {
         try {
-            // 2. Set downloading to true to trigger the UI update (hiding indicators)
             setIsDownloading(true);
+            await new Promise(resolve => setTimeout(resolve, 300));
 
-            // 3. Wait a moment for React to re-render the DOM without the indicators
-            await new Promise(resolve => setTimeout(resolve, 150));
-
-            const filename = `${schoolYear}.png`;
+            const filename = `${schoolYear.start_year}-${schoolYear.end_year} ${schoolYear.semester.semester_name} Semester.png`;
             const element = document.getElementById(elementId);
 
-            if (element) {
-                const style = document.createElement("style");
-                document.head.appendChild(style);
-                style.sheet?.insertRule('body > div:last-child img { display: inline-block; }');
-                style.sheet?.insertRule('td div > svg { display: none !important; }');
-
-                const canvas = await html2canvas(element, { scale: 5 });
-                const imageUrl = canvas.toDataURL("image/png");
-
-                const link = document.createElement("a");
-                link.href = imageUrl;
-                link.download = filename;
-                link.click();
-
-                style.remove();
+            if (!element) {
+                console.error('Element not found');
+                return;
             }
+
+            // Get the ACTUAL container width as it appears in browser
+            const containerWidth = element.offsetWidth;
+            const containerHeight = element.scrollHeight;
+
+            console.log('Container size:', containerWidth, 'x', containerHeight);
+
+            // Clone element
+            const clonedElement = element.cloneNode(true);
+
+            // Create temp container with EXACT current dimensions
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = containerWidth + 'px';
+            tempContainer.style.height = 'auto';
+            tempContainer.style.overflow = 'visible';
+            tempContainer.appendChild(clonedElement);
+            document.body.appendChild(tempContainer);
+
+            const style = document.createElement("style");
+            document.head.appendChild(style);
+            style.sheet?.insertRule('td div > svg { display: none !important; }');
+            style.sheet?.insertRule('img { display: inline-block; }');
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            const canvas = await html2canvas(clonedElement, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                windowWidth: containerWidth,
+                windowHeight: containerHeight,
+            });
+
+            console.log('Canvas size:', canvas.width, 'x', canvas.height);
+
+            canvas.toBlob(
+                (blob) => {
+                    if (!blob) {
+                        console.error('Blob creation failed');
+                        return;
+                    }
+
+                    console.log('Blob size:', blob.size, 'bytes');
+
+                    const blobUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                },
+                'image/png',
+                0.95
+            );
+
+            document.body.removeChild(tempContainer);
+            style.remove();
+
         } catch (error) {
             console.error('Error downloading image:', error);
+            alert('Download failed: ' + error.message);
         } finally {
-            // 4. Always turn indicators back on after download (even if it fails)
             setIsDownloading(false);
         }
     };

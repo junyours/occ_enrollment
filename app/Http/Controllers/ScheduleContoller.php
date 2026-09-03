@@ -194,6 +194,7 @@ class ScheduleContoller extends Controller
                         'class_code',
                         'school_year_id'
                     )
+                        ->withCount('SubjectEnrolledStudents as student_count')
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
                         ->leftjoin('users', 'users.id', '=', 'year_section_subjects.faculty_id')
                         ->leftjoin('user_information', 'users.id', '=', 'user_information.user_id')
@@ -216,7 +217,12 @@ class ScheduleContoller extends Controller
                             'middle_name',
                             'last_name',
                             'class_code',
-                            'school_year_id'
+                            'school_year_id',
+                                    DB::raw('(
+                                SELECT COUNT(*)
+                                FROM student_subjects
+                                WHERE student_subjects.year_section_subjects_id = year_section_subjects.id
+                            ) as student_count')
                         )
                         ->join('year_section_subjects', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id') // Corrected join condition
                         ->join('subjects', 'subjects.id', '=', 'year_section_subjects.subject_id')
@@ -295,6 +301,7 @@ class ScheduleContoller extends Controller
                 'nstp_sections.school_year_id',
                 $request->schoolYearId
             )
+            ->withCount('studentSubjects as student_count')
             ->get();
 
         foreach ($nstpSched as $nstp) {

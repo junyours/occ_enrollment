@@ -124,7 +124,7 @@ const StudentCountBadge = React.memo(({ count }) => {
     if (!count || count < 0) return null;
 
     return (
-        <span className="flex items-center gap-1 text-[10px] font-semibold bg-black/5 dark:bg-white/10 rounded-full">
+        <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-black/5 dark:bg-white/10 rounded-sm px-1">
             <PiStudent className="opacity-70" />
             {count}
         </span>

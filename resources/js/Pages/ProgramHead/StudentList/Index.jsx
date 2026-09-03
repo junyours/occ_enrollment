@@ -9,6 +9,7 @@ import { formatFullName } from '@/Lib/Utils';
 import { Input } from '@/Components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
 import StudentGrades from '../../components/StudentGrades';
+import { Dialog, DialogContent } from '@/Components/ui/dialog';
 
 export default function Index({ students, filters }) {
 
@@ -237,7 +238,11 @@ export default function Index({ students, filters }) {
                 </CardContent>
             </Card>
             {selectedStudent?.id && (
-                <StudentGrades studentId={selectedStudent.id} open={!!selectedStudent.id} setOpen={setSelectedStudent} />
+                <Dialog open={!!selectedStudent.id} onOpenChange={setSelectedStudent} className="ourline-none">
+                    <DialogContent className="sm:max-w-[900px] max-h-[95vh] overflow-y-auto">
+                        <StudentGrades studentId={selectedStudent.user_id_no} open={!!selectedStudent.user_id_no} setOpen={setSelectedStudent} />
+                    </DialogContent>
+                </Dialog>
             )}
         </div>
     );

@@ -136,7 +136,7 @@ function Index({ users, filters }) {
 
                             {user.contact_number && (
                                 <p className="text-sm text-gray-600 flex items-center gap-1 text-center">
-                                    <span className="font-medium">User ID:</span> <span>{user.user_id_no}</span> <CopyButton text={user.user_id_no} size='xs' /> 
+                                    <span className="font-medium">User ID:</span> <span>{user.user_id_no}</span> <CopyButton text={user.user_id_no} size='xs' />
                                 </p>
                             )}
 

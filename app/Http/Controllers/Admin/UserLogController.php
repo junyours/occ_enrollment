@@ -58,7 +58,8 @@ class UserLogController extends Controller
                 }
             })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('SuperAdmin/Logs/Index', [
             'logs' => $logs,

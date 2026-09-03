@@ -15,6 +15,7 @@ import html2canvas from 'html2canvas';
 import { ImageDown, BookOpen, Clock, MapPin, Users, ArrowRight, GraduationCap, Calendar, Loader2, AlertCircle } from 'lucide-react';
 import SchoolYearPicker from '@/Components/SchoolYearPicker';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
+import DownloadableTimetable from '../StudentClasses/ClassesComponents/DownloadableTimetable';
 
 const CellData = ({ icon, value }) => (
     <div className="flex items-center gap-2">
@@ -115,38 +116,22 @@ const ViewClasses = ({ schoolYears }) => {
         <div className='space-y-4'>
             <Head title="Classes" />
 
-            <div className='flex flex-col sm:flex-row gap-4 items-center'>
-                <div className='self-start'>
-                    <SchoolYearPicker />
-                </div>
-
-                <div className='flex flex-col sm:flex-row gap-4 items-center sm:self-end'>
+            <div className='flex flex-col md:flex-row gap-4 items-center md:items-end'>
+                <SchoolYearPicker />
+                <header className={`flex flex-col md:flex-row gap-4 items-center ${!selectedSchoolYearEntry && 'hidden'}`}>
                     <Card className='w-min'>
                         <CardContent className="p-2">
-                            <div className="flex gap-2 w-min">
-                                <Tabs
-                                    className="w-max"
-                                    value={scheduleType}
-                                    onValueChange={(value) => setScheduleType(value)}
-                                >
+                            <nav className="flex gap-2 w-min">
+                                <Tabs className="w-max" value={scheduleType} onValueChange={(value) => setScheduleType(value)} defaultValue="account" >
                                     <TabsList className="grid max-w-max grid-cols-2">
-                                        <TabsTrigger className="w-28" value="tabular">List</TabsTrigger>
+                                        <TabsTrigger className="w-28" value="tabular">Tabular</TabsTrigger>
                                         <TabsTrigger className="w-28" value="timetable">Timetable</TabsTrigger>
                                     </TabsList>
                                 </Tabs>
-                            </div>
+                            </nav>
                         </CardContent>
                     </Card>
-
-                    <Button
-                        size='lg'
-                        className={`bg-blue-700 hover:bg-blue-600 self-end ${scheduleType == 'timetable' ? '' : 'hidden'}`}
-                        onClick={downloadImage}
-                    >
-                        Download
-                        <ImageDown />
-                    </Button>
-                </div>
+                </header>
             </div>
 
             {scheduleType == 'tabular' ? (
@@ -293,14 +278,7 @@ const ViewClasses = ({ schoolYears }) => {
                     </div>
                 </div>
             ) : (
-                <div className='max-w-[calc(100vw-2rem)] min-w-[calc(100vw-2rem)] max-h-[calc(100vh-19rem)] min-h-[calc(100vh-19rem)] sm:w-auto sm:min-w-0 sm:max-w-none sm:h-auto sm:min-h-0 sm:max-h-none overflow-x-auto sm:p-0'
-                >
-                    <Card id='classes' className='w-[1200px] sm:w-auto pt-6'>
-                        <CardContent>
-                            <TimeTable data={classes} />
-                        </CardContent>
-                    </Card>
-                </div>
+               <DownloadableTimetable classes={classes} schoolYear={selectedSchoolYearEntry} />
             )}
         </div>
     )

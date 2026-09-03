@@ -5,30 +5,100 @@ import { PiStudent } from "react-icons/pi";
 
 function TabularSchedule({ data, type }) {
     const sortSchedule = (data) => {
-        const dayOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const dayOrder = {
+            Mon: 0,
+            Monday: 0,
+            Tue: 1,
+            Tuesday: 1,
+            Wed: 2,
+            Wednesday: 2,
+            Thu: 3,
+            Thursday: 3,
+            Fri: 4,
+            Friday: 4,
+            Sat: 5,
+            Saturday: 5,
+            Sun: 6,
+            Sunday: 6,
+        };
 
-        // Create a shallow copy to avoid mutating the original prop array
-        return [...data].sort((a, b) => {
-            const getRank = (day) => {
-                if (day === "TBA" || !day) return 11;
-                const daysArray = day.split(",");
-                if (daysArray.length > 1) return 10; // Consecutive/Alternating days
-
-                return dayOrder.indexOf(day) !== -1 ? dayOrder.indexOf(day) : 9; // Single days first
-            };
-
-            const dayRankA = getRank(a.day);
-            const dayRankB = getRank(b.day);
-
-            // First, sort by Day
-            if (dayRankA !== dayRankB) {
-                return dayRankA - dayRankB;
+        const getScheduleInfo = (day) => {
+            if (!day || day === "TBA") {
+                return {
+                    type: 4,
+                    firstDay: 99,
+                };
             }
 
-            // Secondary sort by Time if Days are the same
-            // Pushing "-" or TBA times to the bottom of that specific day
-            const timeA = a.start_time === "-" || !a.start_time ? "24:00" : a.start_time;
-            const timeB = b.start_time === "-" || !b.start_time ? "24:00" : b.start_time;
+            const days = day
+                .split(",")
+                .map((d) => d.trim())
+                .filter(Boolean);
+
+            const indexes = days
+                .map((d) => dayOrder[d])
+                .filter((d) => d !== undefined);
+
+            if (indexes.length === 0) {
+                return {
+                    type: 4,
+                    firstDay: 99,
+                };
+            }
+
+            // Single
+            if (indexes.length === 1) {
+                return {
+                    type: 1,
+                    firstDay: indexes[0],
+                };
+            }
+
+            // Consecutive
+            const isConsecutive = indexes.every(
+                (value, index) =>
+                    index === 0 ||
+                    value === indexes[index - 1] + 1
+            );
+
+            if (isConsecutive) {
+                return {
+                    type: 2,
+                    firstDay: indexes[0],
+                };
+            }
+
+            // Alternating
+            return {
+                type: 3,
+                firstDay: indexes[0],
+            };
+        };
+
+        return [...data].sort((a, b) => {
+            const scheduleA = getScheduleInfo(a.day);
+            const scheduleB = getScheduleInfo(b.day);
+
+            // 1. Single → Consecutive → Alternating → TBA
+            if (scheduleA.type !== scheduleB.type) {
+                return scheduleA.type - scheduleB.type;
+            }
+
+            // 2. Sort by first day
+            if (scheduleA.firstDay !== scheduleB.firstDay) {
+                return scheduleA.firstDay - scheduleB.firstDay;
+            }
+
+            // 3. Sort by start time
+            const timeA =
+                a.start_time === "-" || !a.start_time
+                    ? "24:00"
+                    : a.start_time;
+
+            const timeB =
+                b.start_time === "-" || !b.start_time
+                    ? "24:00"
+                    : b.start_time;
 
             return timeA.localeCompare(timeB);
         });
@@ -80,7 +150,7 @@ function TabularSchedule({ data, type }) {
                                         {sched.room_name || "-"}
                                     </TableCell>
                                 }
-                                {(type == "faculty" || (type == "subject")) &&
+                                {(type == "faculty" || type == "subject" || type == "room") &&
                                     <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
                                         <div className="flex justify-center items-center">
                                             <PiStudent /> {sched.student_count}
@@ -108,7 +178,7 @@ function TabularSchedule({ data, type }) {
                                             {sched.secondary_schedule.room_name || "-"}
                                         </TableCell>
                                     }
-                                    {(type == "faculty" || (type == "subject")) &&
+                                    {(type == "faculty" || type == "subject" || type == "room") &&
                                         <TableCell className="w-20 truncate max-w-20 overflow-hidden whitespace-nowrap">
                                             <div className="flex justify-center items-center">
                                                 <PiStudent /> {sched.student_count}
