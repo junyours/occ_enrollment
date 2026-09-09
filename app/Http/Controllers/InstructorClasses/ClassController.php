@@ -598,6 +598,7 @@ class ClassController extends Controller
             'year_level_id',
             'course_name_abbreviation',
             DB::raw('"yearSectionSubject" as class_type'),
+            'class_code',
         )
             ->selectRaw(
                 "SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id"
