@@ -4,9 +4,14 @@ namespace App\Http\Controllers\InstructorClasses;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Assessment;
+use App\Models\AssessmentScore;
 use App\Models\EnrolledStudent;
+use App\Models\Exam;
+use App\Models\ExamScore;
 use App\Models\GradeEditRequest;
 use App\Models\GradeSubmission;
+use App\Models\GradingCategory;
 use App\Models\NstpComponent;
 use App\Models\NstpGradeSubmission;
 use App\Models\NstpSection;
@@ -20,10 +25,15 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -1206,5 +1216,964 @@ class ClassController extends Controller
             ['message' => 'success'],
             202
         );
+    }
+
+    public function classGradings(Request $request)
+    {
+        $request->validate([
+            'class_id' => ['required', 'integer'],
+        ]);
+
+        $this->createInitialGrading($request->class_id);
+
+        $gradings = GradingCategory::where(
+            'year_section_subject_id',
+            $request->class_id
+        )
+            ->with([
+                'assessments' => function ($query) {
+                    $query->orderBy('sort_order');
+                }
+            ])
+            ->orderByRaw("
+            CASE
+                WHEN period = 'midterm' THEN 1
+                WHEN period = 'final' THEN 2
+            END
+        ")
+            ->orderBy('sort_order')
+            ->get();
+
+        $exams = Exam::where(
+            'year_section_subject_id',
+            '=',
+            $request->class_id
+        )
+            ->get();
+
+        return response()->json(['classStanding' => $gradings, 'exams' => $exams]);
+    }
+
+    private function createInitialGrading($classId)
+    {
+        $periods = ['midterm', 'final'];
+
+        $categories = [
+            [
+                'name' => 'Quiz',
+                'weight' => 30,
+                'sort_order' => 1,
+            ],
+            [
+                'name' => 'Assignment',
+                'weight' => 30,
+                'sort_order' => 2,
+            ],
+            [
+                'name' => 'Oral',
+                'weight' => 40,
+                'sort_order' => 3,
+            ],
+        ];
+
+        foreach ($periods as $period) {
+
+            // Skip this period if categories already exist
+            $exists = GradingCategory::where(
+                'year_section_subject_id',
+                $classId
+            )
+                ->where('period', $period)
+                ->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            foreach ($categories as $categoryData) {
+
+                $category = GradingCategory::create([
+                    'year_section_subject_id' => $classId,
+                    'period' => $period,
+                    ...$categoryData,
+                ]);
+
+                foreach (range(1, 3) as $index) {
+                    $category->assessments()->create([
+                        'name' => "{$index}",
+                        'max_score' => 10,
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+        }
+
+        foreach ($periods as $period) {
+
+            // Skip this period if categories already exist
+            $exists = Exam::where(
+                'year_section_subject_id',
+                $classId
+            )
+                ->where('period', $period)
+                ->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            Exam::create([
+                'year_section_subject_id' => $classId,
+                'period' => $period,
+                'name' => $period . ' exam',
+                'max_score' => 100
+            ]);
+        }
+    }
+
+    public function assessmentInfo(Request $request)
+    {
+        $assessmentInfo = Assessment::where('id', '=', $request->id)
+            ->with('gradingCategory')
+            ->first();
+
+        return response()->json($assessmentInfo);
+    }
+
+    public function assessmentScores(Request $request)
+    {
+        $assessmentScores = AssessmentScore::where('assessment_id', '=', $request->id)
+            ->select('users.id as student_id', 'assessment_scores.score', 'assessment_id', 'student_subject_id')
+            ->join('student_subjects', 'assessment_scores.student_subject_id', '=', 'student_subjects.id')
+            ->join('enrolled_students', 'student_subjects.enrolled_students_id', '=', 'enrolled_students.id')
+            ->join('users', 'enrolled_students.student_id', '=', 'users.id')
+            ->get();
+
+        return response()->json($assessmentScores);
+    }
+
+    public function addAssessment(Request $request)
+    {
+        $categoryAssessments = Assessment::where('grading_category_id', '=', $request->category_id)->count();
+
+        $newAssessmentName = $categoryAssessments + 1;
+
+        Assessment::create([
+            'grading_category_id' => $request->category_id,
+            'name' => $newAssessmentName,
+            'max_score' => 10,
+            'sort_order' => $categoryAssessments + 1,
+        ]);
+    }
+
+    public function destroy(Request $request, int $id)
+    {
+        $user = $request->user();
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        DB::transaction(function () use ($id, $user) {
+            // Score/name/maximum writes must also lock this assessment row.
+            $assessment = Assessment::query()
+                ->lockForUpdate()
+                ->findOrFail($id);
+
+            $canDelete = GradingCategory::query()
+                ->join(
+                    'year_section_subjects',
+                    'year_section_subjects.id',
+                    '=',
+                    'grading_categories.year_section_subject_id'
+                )
+                ->where('grading_categories.id', $assessment->grading_category_id)
+                ->where('year_section_subjects.faculty_id', $user->id)
+                ->exists();
+
+            abort_unless($canDelete, 403, 'You are not assigned to this class.');
+
+            // Delete dependent scores first; do not rely on a database cascade.
+            AssessmentScore::query()
+                ->where('assessment_id', $assessment->id)
+                ->delete();
+
+            $assessment->delete();
+        });
+
+        return response()->noContent();
+    }
+
+    public function saveScore(Request $request)
+    {
+        $user = $request->user();
+
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        $data = $request->validate([
+            'assessment_id' => ['required', 'integer', 'min:1'],
+
+            // The frontend sends users.id.
+            'student_id' => ['required', 'integer', 'exists:users,id'],
+
+            'score' => ['present', 'nullable', 'integer', 'min:0'],
+        ]);
+
+        $record = DB::transaction(function () use ($data, $user) {
+            $assessment = Assessment::query()
+                ->lockForUpdate()
+                ->findOrFail($data['assessment_id']);
+
+            // Check that the logged-in instructor teaches this class.
+            $classId = GradingCategory::query()
+                ->join(
+                    'year_section_subjects',
+                    'year_section_subjects.id',
+                    '=',
+                    'grading_categories.year_section_subject_id'
+                )
+                ->where(
+                    'grading_categories.id',
+                    $assessment->grading_category_id
+                )
+                ->where('year_section_subjects.faculty_id', $user->id)
+                ->value('year_section_subjects.id');
+
+            abort_unless(
+                $classId !== null,
+                403,
+                'You are not assigned to this class.'
+            );
+
+            // Resolve users.id to the student's subject record in this class.
+            $studentClass = StudentSubject::query()
+                ->join(
+                    'enrolled_students',
+                    'enrolled_students.id',
+                    '=',
+                    'student_subjects.enrolled_students_id'
+                )
+                ->where('enrolled_students.student_id', $data['student_id'])
+                ->where('student_subjects.year_section_subjects_id', $classId)
+                ->select('student_subjects.id as student_subjects_id')
+                ->first();
+
+            abort_if(
+                $studentClass === null,
+                403,
+                'This student does not belong to this class.'
+            );
+
+            if (
+                $data['score'] !== null &&
+                $data['score'] > $assessment->max_score
+            ) {
+                throw ValidationException::withMessages([
+                    'score' => "Score cannot exceed {$assessment->max_score}.",
+                ]);
+            }
+
+            $record = AssessmentScore::query()
+                ->where('assessment_id', $assessment->id)
+                ->where(
+                    'student_subject_id',
+                    $studentClass->student_subjects_id
+                )
+                ->first() ?? new AssessmentScore();
+
+            $record->assessment_id = $assessment->id;
+            $record->student_subject_id = $studentClass->student_subjects_id;
+            $record->score = $data['score'];
+            $record->save();
+
+            // Return the model from the transaction.
+            return $record->fresh();
+        });
+
+        // Return JSON only after the transaction finishes.
+        return response()->json([
+            'id' => $record->id,
+            'assessment_id' => $record->assessment_id,
+            'student_subject_id' => $record->student_subject_id,
+            'student_id' => (int) $data['student_id'],
+            'score' => $record->score,
+        ]);
+    }
+
+    public function saveMaximum(Request $request)
+    {
+        $data = $request->validate([
+            'assessment_id' => ['required', 'integer', 'min:1'],
+            'max_score' => [
+                'required',
+                'numeric',
+                'min:1',
+                'max:99999999.99',
+                'decimal:0,2',
+            ],
+        ]);
+
+        $assessment = DB::transaction(function () use ($data) {
+            $assessment = Assessment::query()
+                ->lockForUpdate()
+                ->findOrFail($data['assessment_id']);
+
+            $user = Auth::user();
+
+            // Check that the logged-in instructor teaches this class.
+            $classId = GradingCategory::query()
+                ->join(
+                    'year_section_subjects',
+                    'year_section_subjects.id',
+                    '=',
+                    'grading_categories.year_section_subject_id'
+                )
+                ->where(
+                    'grading_categories.id',
+                    $assessment->grading_category_id
+                )
+                ->where('year_section_subjects.faculty_id', $user->id)
+                ->value('year_section_subjects.id');
+
+            abort_unless(
+                $classId !== null,
+                403,
+                'You are not assigned to this class.'
+            );
+
+            $highestScore = AssessmentScore::query()
+                ->where('assessment_id', $assessment->id)
+                ->max('score');
+
+            if ($highestScore !== null && $data['max_score'] < $highestScore) {
+                throw ValidationException::withMessages([
+                    'max_score' => "Maximum score cannot be below the highest saved score ({$highestScore}).",
+                ]);
+            }
+
+            $assessment->max_score = $data['max_score'];
+            $assessment->save();
+
+            return $assessment;
+        });
+
+        return response()->json([
+            'id' => $assessment->id,
+            'max_score' => $assessment->max_score,
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        $data = $request->validate([
+            'assessment_id' => ['required', 'integer', 'min:1'],
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $result = DB::transaction(function () use ($data, $user) {
+            $assessment = Assessment::query()
+                ->lockForUpdate()
+                ->findOrFail($data['assessment_id']);
+
+            // Uses the same class ownership check as your saveScore method.
+            $canEdit = GradingCategory::query()
+                ->join(
+                    'year_section_subjects',
+                    'year_section_subjects.id',
+                    '=',
+                    'grading_categories.year_section_subject_id'
+                )
+                ->where('grading_categories.id', $assessment->grading_category_id)
+                ->where('year_section_subjects.faculty_id', $user->id)
+                ->exists();
+
+            abort_unless($canEdit, 403, 'You are not assigned to this class.');
+
+            $assessment->name = trim($data['name']);
+            $assessment->save();
+
+            return [
+                'id' => $assessment->id,
+                'name' => $assessment->name,
+            ];
+        });
+
+        return response()->json($result);
+    }
+
+    private function lockOwnedClass(Request $request, int $classId): void
+    {
+        $user = $request->user();
+
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        $class = DB::table('year_section_subjects')
+            ->where('id', $classId)
+            ->lockForUpdate()
+            ->first();
+
+        abort_unless($class, 404, 'Class not found.');
+
+        abort_unless(
+            (string) $class->faculty_id === (string) $user->id,
+            403,
+            'You are not assigned to this class.'
+        );
+    }
+
+    private function categoryQuery(array $data)
+    {
+        return DB::table('grading_categories')
+            ->where('year_section_subject_id', $data['class_id'])
+            ->where('period', $data['period']);
+    }
+
+    private function categoryList(array $data)
+    {
+        return $this->categoryQuery($data)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function saveCategory(Request $request)
+    {
+        $creating = $request->routeIs('manage-grading.category.create');
+
+        $data = $request->validate([
+            'class_id' => ['required', 'integer', 'min:1'],
+            'period' => ['required', 'in:midterm,final'],
+            'category_id' => $creating
+                ? ['prohibited']
+                : ['required', 'integer', 'min:1'],
+            'name' => ['required', 'string', 'max:255'],
+            'weight' => ['required', 'integer', 'between:0,100'],
+        ]);
+
+        $data['name'] = trim($data['name']);
+
+        if ($data['name'] === '') {
+            throw ValidationException::withMessages([
+                'name' => 'Category name is required.',
+            ]);
+        }
+
+        $categories = DB::transaction(function () use (
+            $request,
+            $data,
+            $creating
+        ) {
+            $this->lockOwnedClass($request, (int) $data['class_id']);
+
+            $category = null;
+
+            if (!$creating) {
+                $category = $this->categoryQuery($data)
+                    ->where('id', $data['category_id'])
+                    ->lockForUpdate()
+                    ->first();
+
+                abort_unless(
+                    $category,
+                    404,
+                    'Category not found in this class and period.'
+                );
+            }
+
+            $others = $this->categoryQuery($data);
+
+            if ($category) {
+                $others->where('id', '!=', $category->id);
+            }
+
+            if ((int) $others->sum('weight') + (int) $data['weight'] > 100) {
+                throw ValidationException::withMessages([
+                    'weight' => 'Category weights cannot exceed 100%. Reduce another category first.',
+                ]);
+            }
+
+            $values = [
+                'name' => $data['name'],
+                'weight' => (int) $data['weight'],
+            ];
+
+            if ($category) {
+                DB::table('grading_categories')
+                    ->where('id', $category->id)
+                    ->update($values);
+            } else {
+                DB::table('grading_categories')->insert($values + [
+                    'year_section_subject_id' => $data['class_id'],
+                    'period' => $data['period'],
+                    'sort_order' =>
+                    (int) $this->categoryQuery($data)->max('sort_order') + 1,
+                ]);
+            }
+
+            return $this->categoryList($data);
+        });
+
+        return response()->json(
+            ['categories' => $categories],
+            $creating ? 201 : 200
+        );
+    }
+
+    public function moveCategory(Request $request)
+    {
+        $data = $request->validate([
+            'class_id' => ['required', 'integer', 'min:1'],
+            'period' => ['required', 'in:midterm,final'],
+            'category_id' => ['required', 'integer', 'min:1'],
+            'direction' => ['required', 'in:up,down'],
+        ]);
+
+        $categories = DB::transaction(function () use ($request, $data) {
+            $this->lockOwnedClass($request, (int) $data['class_id']);
+
+            $items = $this->categoryList($data)->all();
+            $index = null;
+
+            foreach ($items as $position => $item) {
+                if ((int) $item->id === (int) $data['category_id']) {
+                    $index = $position;
+                }
+            }
+
+            abort_if(
+                $index === null,
+                404,
+                'Category not found in this class and period.'
+            );
+
+            $target = $index + ($data['direction'] === 'up' ? -1 : 1);
+
+            if ($target >= 0 && $target < count($items)) {
+                [$items[$index], $items[$target]] = [
+                    $items[$target],
+                    $items[$index],
+                ];
+            }
+
+            // Temporary positions avoid conflicts with a scoped unique index.
+            $offset =
+                (int) $this->categoryQuery($data)->max('sort_order')
+                + count($items)
+                + 1;
+
+            foreach ($items as $position => $item) {
+                DB::table('grading_categories')
+                    ->where('id', $item->id)
+                    ->update(['sort_order' => $offset + $position]);
+            }
+
+            // Final positions: 1, 2, 3, ...
+            foreach ($items as $position => $item) {
+                DB::table('grading_categories')
+                    ->where('id', $item->id)
+                    ->update(['sort_order' => $position + 1]);
+            }
+
+            return $this->categoryList($data);
+        });
+
+        return response()->json(['categories' => $categories]);
+    }
+
+    public function saveExamMaximum(Request $request)
+    {
+        $data = $request->validate([
+            'class_id' => ['required', 'integer', 'min:1'],
+            'period' => ['required', 'in:midterm,final'],
+            'exam_id' => ['required', 'integer', 'min:1'],
+            'max_score' => ['required', 'integer', 'between:1,2147483647'],
+        ]);
+
+        $exam = DB::transaction(function () use ($request, $data) {
+            $this->lockOwnedClass($request, (int) $data['class_id']);
+
+            $exam = DB::table('exams')
+                ->where('id', $data['exam_id'])
+                ->where('year_section_subject_id', $data['class_id'])
+                ->where('period', $data['period'])
+                ->whereNull('deleted_at')
+                ->lockForUpdate()
+                ->first();
+
+            abort_unless(
+                $exam,
+                404,
+                'Exam not found in this class and period.'
+            );
+
+            $scores = DB::table('exam_scores');
+
+            // Supports both versions of your exam-score schema.
+            if (Schema::hasColumn('exam_scores', 'exam_id')) {
+                $scores->where('exam_id', $exam->id);
+            } else {
+                $scores
+                    ->where('year_section_subject_id', $data['class_id'])
+                    ->where('period', $data['period']);
+            }
+
+            $highestScore = (clone $scores)->max('score');
+
+            if (
+                $highestScore !== null &&
+                (int) $data['max_score'] < (float) $highestScore
+            ) {
+                throw ValidationException::withMessages([
+                    'max_score' =>
+                    "Maximum score cannot be lower than an existing score ({$highestScore}).",
+                ]);
+            }
+
+            DB::table('exams')
+                ->where('id', $exam->id)
+                ->update([
+                    'max_score' => (int) $data['max_score'],
+                ]);
+
+            // Synchronize the legacy per-score maximum if it exists.
+            if (Schema::hasColumn('exam_scores', 'max_score')) {
+                $scores->update([
+                    'max_score' => (int) $data['max_score'],
+                ]);
+            }
+
+            return DB::table('exams')
+                ->where('id', $exam->id)
+                ->first();
+        });
+
+        return response()->json(['exam' => $exam]);
+    }
+
+    public function show(Request $request, int $classId)
+    {
+        $user = $request->user();
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        $class = DB::table('year_section_subjects')->where('id', $classId)->first();
+        abort_unless($class, 404, 'Class not found.');
+        abort_unless((string) $class->faculty_id === (string) $user->id, 403, 'You are not assigned to this class.');
+
+        $data = DB::transaction(function () use ($classId) {
+            $students = DB::table('student_subjects as ss')
+                ->join('enrolled_students as es', 'es.id', '=', 'ss.enrolled_students_id')
+                ->join('users as u', 'u.id', '=', 'es.student_id')
+                ->leftJoin('user_information as ui', 'ui.user_id', '=', 'u.id')
+                ->where('ss.year_section_subjects_id', $classId)
+                ->where(function ($query) {
+                    $query->whereNull('ss.dropped')->orWhere('ss.dropped', 0);
+                })
+                ->orderBy('ui.last_name')->orderBy('ui.first_name')->orderBy('ss.id')
+                ->get([
+                    'ss.id as student_subject_id',
+                    'u.id as student_id',
+                    'u.user_id_no',
+                    'ui.first_name',
+                    'ui.middle_name',
+                    'ui.last_name',
+                ]);
+
+            $categories = DB::table('grading_categories')
+                // Your latest controller uses this column, rather than the older class_id.
+                ->where('year_section_subject_id', $classId)
+                ->whereIn('period', ['midterm', 'final'])
+                ->orderBy('sort_order')->orderBy('id')
+                ->get(['id', 'period', 'name', 'weight', 'sort_order']);
+
+            $assessments = DB::table('assessments')
+                ->whereIn('grading_category_id', $categories->pluck('id'))
+                ->whereNull('deleted_at')
+                ->orderBy('sort_order')->orderBy('id')
+                ->get(['id', 'grading_category_id', 'name', 'max_score', 'sort_order']);
+
+            $assessmentsByCategory = $assessments->groupBy('grading_category_id');
+            foreach ($categories as $category) {
+                $category->assessments = $assessmentsByCategory->get($category->id, collect())->values();
+            }
+
+            // Scope both the assessment and the enrollment to the authorized class.
+            $assessmentScores = DB::table('assessment_scores')
+                ->whereIn('assessment_id', $assessments->pluck('id'))
+                ->whereIn('student_subject_id', $students->pluck('student_subject_id'))
+                ->get(['assessment_id', 'student_subject_id', 'score']);
+
+            $exams = DB::table('exams')
+                ->where('year_section_subject_id', $classId)
+                ->whereIn('period', ['midterm', 'final'])
+                ->whereNull('deleted_at')
+                ->orderBy('id')
+                ->get(['id', 'period', 'name', 'max_score']);
+
+            $examScoresQuery = DB::table('exam_scores as scores')
+                ->whereIn('scores.student_subject_id', $students->pluck('student_subject_id'));
+
+            // Normalize either of the exam-score layouts used by your existing controllers.
+            if (Schema::hasColumn('exam_scores', 'exam_id')) {
+                $examScores = $examScoresQuery
+                    ->whereIn('scores.exam_id', $exams->pluck('id'))
+                    ->get(['scores.exam_id', 'scores.student_subject_id', 'scores.score']);
+            } else {
+                $examScores = $examScoresQuery
+                    ->join('exams as e', function ($join) {
+                        $join->on('e.year_section_subject_id', '=', 'scores.year_section_subject_id')
+                            ->on('e.period', '=', 'scores.period');
+                    })
+                    ->whereIn('e.id', $exams->pluck('id'))
+                    ->get(['e.id as exam_id', 'scores.student_subject_id', 'scores.score']);
+            }
+
+            return [
+                'class_id' => $classId,
+                'students' => $students,
+                'categories' => $categories,
+                'exams' => $exams,
+                'assessment_scores' => $assessmentScores,
+                'exam_scores' => $examScores,
+            ];
+        });
+
+        return response()->json($data)->header('Cache-Control', 'private, no-store');
+    }
+
+    private function ownedExam(
+        Request $request,
+        int $id,
+        bool $lock = false
+    ): object {
+        $user = $request->user();
+
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        $examQuery = DB::table('exams')
+            ->where('id', $id)
+            ->whereNull('deleted_at');
+
+        $classId = (clone $examQuery)
+            ->value('year_section_subject_id');
+
+        abort_if($classId === null, 404, 'Exam not found.');
+
+        // Match the maximum-score endpoint's lock order.
+        $classQuery = DB::table('year_section_subjects')
+            ->where('id', $classId);
+
+        if ($lock) {
+            $classQuery->lockForUpdate();
+        }
+
+        $class = $classQuery->first();
+
+        abort_unless($class, 404, 'Class not found.');
+
+        abort_unless(
+            (string) $class->faculty_id === (string) $user->id,
+            403,
+            'You are not assigned to this class.'
+        );
+
+        $examQuery->where('year_section_subject_id', $classId);
+
+        if ($lock) {
+            $examQuery->lockForUpdate();
+        }
+
+        $exam = $examQuery->first();
+
+        abort_unless($exam, 404, 'Exam not found.');
+
+        return $exam;
+    }
+
+    private function scoreKey(object $exam, array $columns): array
+    {
+        if (in_array('exam_id', $columns, true)) {
+            return ['exam_id' => $exam->id];
+        }
+
+        return [
+            'year_section_subject_id' => $exam->year_section_subject_id,
+            'period' => $exam->period,
+        ];
+    }
+
+    private function activeStudents(int $classId)
+    {
+        return DB::table('student_subjects as ss')
+            ->join(
+                'enrolled_students as enrollment',
+                'enrollment.id',
+                '=',
+                'ss.enrolled_students_id'
+            )
+            ->where('ss.year_section_subjects_id', $classId)
+            ->where(function (Builder $query) {
+                $query
+                    ->whereNull('ss.dropped')
+                    ->orWhere('ss.dropped', 0);
+            });
+    }
+
+    public function index(Request $request, int $id)
+    {
+        $exam = $this->ownedExam($request, $id);
+        $columns = Schema::getColumnListing('exam_scores');
+
+        $query = $this
+            ->activeStudents((int) $exam->year_section_subject_id)
+            ->join(
+                'exam_scores as scores',
+                'scores.student_subject_id',
+                '=',
+                'ss.id'
+            );
+
+        foreach ($this->scoreKey($exam, $columns) as $column => $value) {
+            $query->where("scores.{$column}", $value);
+        }
+
+        $rows = $query
+            ->select(
+                'scores.id',
+                'scores.score',
+                'scores.student_subject_id',
+                'enrollment.student_id'
+            )
+            ->get()
+            ->map(fn(object $row) => [
+                'id' => (int) $row->id,
+                'exam_id' => (int) $exam->id,
+
+                // Frontend identity: users.id.
+                'student_id' => (int) $row->student_id,
+
+                'student_subject_id' => (int) $row->student_subject_id,
+
+                'score' => $row->score === null
+                    ? null
+                    : (int) $row->score,
+            ]);
+
+        return response()->json($rows);
+    }
+
+    public function store(Request $request)
+    {
+        abort_unless($request->user(), 401, 'Unauthenticated.');
+
+        $data = $request->validate([
+            'exam_id' => ['required', 'integer', 'min:1'],
+
+            // This is users.id.
+            'student_id' => [
+                'required',
+                'integer',
+                'exists:users,id',
+            ],
+
+            'score' => ['present', 'nullable', 'integer', 'min:0'],
+        ]);
+
+        $columns = Schema::getColumnListing('exam_scores');
+
+        $record = DB::transaction(function () use (
+            $request,
+            $data,
+            $columns
+        ) {
+            $exam = $this->ownedExam(
+                $request,
+                (int) $data['exam_id'],
+                true
+            );
+
+            $studentSubject = $this
+                ->activeStudents((int) $exam->year_section_subject_id)
+                ->where('enrollment.student_id', $data['student_id'])
+                ->select('ss.id')
+                ->lockForUpdate()
+                ->first();
+
+            abort_unless(
+                $studentSubject,
+                403,
+                'This student is not actively enrolled in this class.'
+            );
+
+            if ((int) $exam->max_score < 1) {
+                throw ValidationException::withMessages([
+                    'score' => 'Set the exam maximum score in Grading Settings first.',
+                ]);
+            }
+
+            if (
+                $data['score'] !== null &&
+                $data['score'] > $exam->max_score
+            ) {
+                throw ValidationException::withMessages([
+                    'score' => "Score cannot exceed {$exam->max_score}.",
+                ]);
+            }
+
+            $key = $this->scoreKey($exam, $columns) + [
+                'student_subject_id' => $studentSubject->id,
+            ];
+
+            $values = [
+                'score' => $data['score'] === null
+                    ? null
+                    : (int) $data['score'],
+            ];
+
+            // Populate these columns only when present in your table.
+            foreach (
+                [
+                    'year_section_subject_id' => $exam->year_section_subject_id,
+                    'period' => $exam->period,
+                    'max_score' => $exam->max_score,
+                    'updated_at' => now(),
+                ] as $column => $value
+            ) {
+                if (in_array($column, $columns, true)) {
+                    $values[$column] = $value;
+                }
+            }
+
+            $existing = DB::table('exam_scores')
+                ->where($key)
+                ->first();
+
+            if ($existing) {
+                DB::table('exam_scores')
+                    ->where('id', $existing->id)
+                    ->update($values);
+
+                $scoreId = $existing->id;
+            } else {
+                if (in_array('created_at', $columns, true)) {
+                    $values['created_at'] = now();
+                }
+
+                $scoreId = DB::table('exam_scores')
+                    ->insertGetId($key + $values);
+            }
+
+            return [
+                'id' => (int) $scoreId,
+                'exam_id' => (int) $exam->id,
+
+                // Return the same identity submitted by the frontend.
+                'student_id' => (int) $data['student_id'],
+
+                'student_subject_id' => (int) $studentSubject->id,
+                'score' => $values['score'],
+            ];
+        }, 3);
+
+        return response()->json($record);
     }
 }

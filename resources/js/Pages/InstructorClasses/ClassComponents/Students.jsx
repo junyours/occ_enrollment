@@ -13,7 +13,7 @@ function Students({ students, currentPage, studentsPerPage = 10, isLoading, name
     const currentStudents = students.slice(startIndex, startIndex + studentsPerPage);
 
     return (
-        <div className="w-full space-y-4">
+        <div className="w-full flex flex-col gap-2">
             {/* Desktop Table View */}
             <div className="hidden md:block">
                 <StudentList students={students} isLoading={isLoading} nameClass={nameClass} />

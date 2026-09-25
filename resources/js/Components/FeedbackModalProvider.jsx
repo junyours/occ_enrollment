@@ -59,7 +59,57 @@ export const STATUS_CONFIG = {
 };
 
 const modalRef = { current: null };
-let activeProvider = false;
+
+// The timer only grants permission to proceed. The caller performs the request.
+function createUndoCountdown({ delayMs, signal, onTick, onFinish }) {
+    let timer = null;
+    let deadline = 0;
+    let started = false;
+    let settled = false;
+
+    const finish = (proceed) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        signal?.removeEventListener('abort', cancel);
+        onFinish(proceed);
+    };
+
+    const cancel = () => finish(false);
+
+    const tick = () => {
+        if (settled) return;
+
+        const remainingMs = Math.max(0, deadline - Date.now());
+        if (remainingMs === 0) {
+            finish(true);
+            return;
+        }
+
+        onTick({
+            seconds: Math.ceil(remainingMs / 1000),
+            progress: (remainingMs / delayMs) * 100,
+        });
+        timer = setTimeout(tick, Math.min(250, remainingMs));
+    };
+
+    return {
+        cancel,
+        start() {
+            if (started || settled) return;
+            started = true;
+
+            if (signal?.aborted) {
+                cancel();
+                return;
+            }
+
+            signal?.addEventListener('abort', cancel, { once: true });
+            deadline = Date.now() + delayMs;
+            tick();
+        },
+    };
+}
 
 export const FeedbackModal = {
     Show: (message = 'Processing...', options = {}) => {
@@ -87,6 +137,13 @@ export const FeedbackModal = {
     },
     Close: () => {
         modalRef.current?.close();
+    },
+    // true: the countdown finished; false: the user or caller cancelled it.
+    Undoable: (message, options = {}) => {
+        if (!modalRef.current) {
+            return Promise.reject(new Error('FeedbackModalProvider is not mounted.'));
+        }
+        return modalRef.current.undoable(message, options);
     },
     promise: async (promise, messages = {}) => {
         const {
@@ -174,11 +231,13 @@ function Modal({
     actions,
     details,
     progress,
+    countdownSeconds,
     onClose,
     focusReturnElement,
 }) {
     const modalNodeRef = useRef(null);
     const closeButtonRef = useRef(null);
+    const firstActionRef = useRef(null);
     const config = STATUS_CONFIG[status];
     const hasActions = actions && actions.length > 0;
     const prefersReducedMotion = useReducedMotion();
@@ -188,16 +247,27 @@ function Modal({
 
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && status !== STATUS.LOADING) {
+                e.preventDefault();
                 onClose();
                 return;
             }
             if (e.key === 'Tab') {
                 const focusableElements = getFocusableElements(modalNodeRef.current);
-                if (focusableElements.length === 0) return;
+                if (focusableElements.length === 0) {
+                    e.preventDefault();
+                    modalNodeRef.current?.focus();
+                    return;
+                }
 
                 const firstElement = focusableElements[0];
                 const lastElement = focusableElements[focusableElements.length - 1];
                 const activeElement = document.activeElement;
+
+                if (!modalNodeRef.current?.contains(activeElement)) {
+                    e.preventDefault();
+                    firstElement.focus();
+                    return;
+                }
 
                 if (e.shiftKey) {
                     if (activeElement === firstElement) {
@@ -214,19 +284,21 @@ function Modal({
         };
 
         document.addEventListener('keydown', handleKeyDown);
-        if (closeButtonRef.current && status !== STATUS.LOADING) {
-            closeButtonRef.current.focus();
-        }
+        const focusTarget = status === STATUS.LOADING
+            ? modalNodeRef.current
+            : firstActionRef.current ?? closeButtonRef.current ?? modalNodeRef.current;
+        focusTarget?.focus();
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, status, onClose]);
 
     useEffect(() => {
         if (!isOpen && focusReturnElement) {
-            requestAnimationFrame(() => {
-                if (focusReturnElement instanceof HTMLElement) {
+            const frame = requestAnimationFrame(() => {
+                if (focusReturnElement instanceof HTMLElement && focusReturnElement.isConnected) {
                     focusReturnElement.focus();
                 }
             });
+            return () => cancelAnimationFrame(frame);
         }
     }, [isOpen, focusReturnElement]);
 
@@ -241,7 +313,7 @@ function Modal({
         <AnimatePresence>
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0"
+                    className="pointer-events-auto fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0"
                     role="presentation"
                 >
                     {/* Backdrop: Removed backdrop-blur-sm for massive performance gain */}
@@ -269,9 +341,12 @@ function Modal({
                         role="alertdialog"
                         aria-modal="true"
                         aria-labelledby="modal-title"
+                        aria-describedby={message ? 'modal-message' : undefined}
+                        tabIndex={-1}
                     >
                         {status !== STATUS.LOADING && (
                             <button
+                                type="button"
                                 ref={closeButtonRef}
                                 onClick={onClose}
                                 className="absolute right-4 top-4 rounded-sm opacity-50 ring-offset-background transition-all hover:opacity-100 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none p-1"
@@ -329,22 +404,34 @@ function Modal({
                                     </div>
                                 )}
 
+                                {countdownSeconds !== undefined && (
+                                    <p className="text-sm font-medium tabular-nums" role="status" aria-live="polite" aria-atomic="true">
+                                        Undo available for {countdownSeconds} second{countdownSeconds === 1 ? '' : 's'}.
+                                        {' '}Closing this dialog also cancels.
+                                    </p>
+                                )}
+
                                 {/* Progress Bar Component */}
                                 <AnimatePresence>
-                                    {config?.showSpinner && progress !== undefined && (
+                                    {Number.isFinite(progress) && (
                                         <m.div
                                             initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                                            animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                                            animate={{ opacity: 1, height: 6, marginTop: 12 }}
                                             exit={{ opacity: 0, height: 0, marginTop: 0 }}
                                             className="w-full bg-secondary h-1.5 rounded-full overflow-hidden relative"
+                                            role="progressbar"
+                                            aria-label={countdownSeconds !== undefined ? 'Undo time remaining' : 'Progress'}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-valuenow={Math.round(Math.min(Math.max(progress, 0), 100))}
                                         >
                                             <m.div
                                                 className="bg-primary h-full relative overflow-hidden"
-                                                initial={{ width: 0 }}
+                                                initial={false}
                                                 animate={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
-                                                transition={{ ease: 'easeOut', duration: 0.4 }}
+                                                transition={{ ease: 'linear', duration: prefersReducedMotion ? 0 : 0.2 }}
                                             >
-                                                {!prefersReducedMotion && (
+                                                {config?.showSpinner && !prefersReducedMotion && (
                                                     <m.div
                                                         className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-r from-transparent via-white/30 dark:via-black/30 to-transparent"
                                                         animate={{ x: ['-100%', '200%'] }}
@@ -366,6 +453,9 @@ function Modal({
                                             return (
                                                 <button
                                                     key={idx}
+                                                    ref={idx === 0 ? firstActionRef : undefined}
+                                                    type="button"
+                                                    disabled={action.disabled}
                                                     onClick={(e) => {
                                                         if (action.onClick) action.onClick(e);
                                                         if (action.closeOnClick !== false) onClose();
@@ -403,17 +493,30 @@ export function FeedbackModalProvider({ children, defaultAutoCloseDelay = 1000 }
         actions: [],
         details: null,
         progress: undefined,
+        countdownSeconds: undefined,
     });
 
     const timeoutRef = useRef(null);
     const focusReturnElementRef = useRef(null);
+    const pendingUndoRef = useRef(null);
+    const mountedRef = useRef(false);
 
     const clearTimeout_ = useCallback(() => {
-        if (timeoutRef.current) {
+        if (timeoutRef.current !== null) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
         }
     }, []);
+
+    const cancelUndo = useCallback(() => {
+        pendingUndoRef.current?.cancel();
+    }, []);
+
+    const close = useCallback(() => {
+        cancelUndo();
+        clearTimeout_();
+        setModalState((prev) => ({ ...prev, isOpen: false }));
+    }, [cancelUndo, clearTimeout_]);
 
     const setStatus = useCallback(
         (status, message = '', options = {}) => {
@@ -424,13 +527,16 @@ export function FeedbackModalProvider({ children, defaultAutoCloseDelay = 1000 }
                 actions = [],
                 details = null,
                 progress = undefined,
+                returnFocusElement,
             } = options;
 
+            // Another feedback message replaces and cancels any pending action.
+            cancelUndo();
             clearTimeout_();
 
             setModalState((prev) => {
                 if (!prev.isOpen) {
-                    focusReturnElementRef.current = document.activeElement;
+                    focusReturnElementRef.current = returnFocusElement ?? document.activeElement;
                 }
                 return {
                     ...prev,
@@ -443,6 +549,7 @@ export function FeedbackModalProvider({ children, defaultAutoCloseDelay = 1000 }
                     actions,
                     details,
                     progress,
+                    countdownSeconds: undefined,
                 };
             });
 
@@ -452,7 +559,7 @@ export function FeedbackModalProvider({ children, defaultAutoCloseDelay = 1000 }
                 }, autoCloseDelay);
             }
         },
-        [clearTimeout_, defaultAutoCloseDelay]
+        [cancelUndo, clearTimeout_, close, defaultAutoCloseDelay]
     );
 
     const show = useCallback(
@@ -462,31 +569,86 @@ export function FeedbackModalProvider({ children, defaultAutoCloseDelay = 1000 }
         [setStatus]
     );
 
-    const close = useCallback(() => {
-        clearTimeout_();
-        setModalState((prev) => ({ ...prev, isOpen: false }));
-    }, [clearTimeout_]);
+    const undoable = useCallback((message, options = {}) => {
+        const {
+            delayMs = 5000,
+            title = 'Action scheduled',
+            undoLabel = 'Undo',
+            loadingTitle = 'Processing',
+            loadingMessage = 'Processing...',
+            signal,
+            returnFocusElement,
+        } = options;
+
+        if (!Number.isFinite(delayMs) || delayMs <= 0) {
+            return Promise.reject(new Error('delayMs must be a positive number.'));
+        }
+        if (signal?.aborted) return Promise.resolve(false);
+
+        return new Promise((resolve) => {
+            setStatus(STATUS.WARNING, message, { title, returnFocusElement });
+
+            const countdown = createUndoCountdown({
+                delayMs,
+                signal,
+                onTick: ({ seconds, progress }) => {
+                    if (pendingUndoRef.current !== countdown) return;
+                    setModalState((prev) => ({
+                        ...prev,
+                        countdownSeconds: seconds,
+                        progress,
+                    }));
+                },
+                onFinish: (proceed) => {
+                    if (pendingUndoRef.current === countdown) {
+                        pendingUndoRef.current = null;
+                        if (mountedRef.current) {
+                            setModalState((prev) => proceed ? {
+                                ...prev,
+                                status: STATUS.LOADING,
+                                title: loadingTitle,
+                                message: loadingMessage,
+                                actions: [],
+                                progress: undefined,
+                                countdownSeconds: undefined,
+                            } : { ...prev, isOpen: false });
+                        }
+                    }
+                    resolve(proceed);
+                },
+            });
+
+            pendingUndoRef.current = countdown;
+            setModalState((prev) => ({
+                ...prev,
+                actions: [{
+                    label: undoLabel,
+                    onClick: countdown.cancel,
+                    closeOnClick: false,
+                }],
+            }));
+            countdown.start();
+        });
+    }, [setStatus]);
 
     useEffect(() => {
-        if (activeProvider) {
+        if (modalRef.current) {
             console.warn(
                 '[FeedbackModal] Warning: Multiple <FeedbackModalProvider> instances detected. ' +
                 'Only one provider should be mounted at a time.'
             );
         }
-        activeProvider = true;
-        modalRef.current = { show, setStatus, close };
+        mountedRef.current = true;
+        const api = { show, setStatus, close, undoable };
+        modalRef.current = api;
 
         return () => {
-            activeProvider = false;
+            mountedRef.current = false;
+            cancelUndo();
             clearTimeout_();
-            modalRef.current = null;
+            if (modalRef.current === api) modalRef.current = null;
         };
-    }, [show, setStatus, close, clearTimeout_]);
-
-    useEffect(() => {
-        return () => clearTimeout_();
-    }, [clearTimeout_]);
+    }, [show, setStatus, close, undoable, cancelUndo, clearTimeout_]);
 
     return (
         <LazyMotion features={domAnimation}>
@@ -499,6 +661,7 @@ export function FeedbackModalProvider({ children, defaultAutoCloseDelay = 1000 }
                 actions={modalState.actions}
                 details={modalState.details}
                 progress={modalState.progress}
+                countdownSeconds={modalState.countdownSeconds}
                 onClose={close}
                 focusReturnElement={focusReturnElementRef.current}
             />

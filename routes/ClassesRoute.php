@@ -64,3 +64,53 @@ Route::middleware(['auth', 'maintenance', 'student'])->group(function () {
 
     Route::post('/get-student-course-section', [ClassController::class, 'getStudentCourseSection'])->name('student.course-section');
 });
+
+Route::middleware(['auth', 'role:faculty,program_head,evaluator'])->group(function () {
+    Route::post('/class-gradings', [ClassController::class, 'classGradings'])->name('class-gradings');
+    Route::post('/assessment-scores', [ClassController::class, 'assessmentScores'])->name('assessment-scores');
+    Route::post('/assessment-info', [ClassController::class, 'assessmentInfo'])->name('assessment-info');
+
+    Route::post('/assessment/add', [ClassController::class, 'addAssessment'])->name('assessment.add');
+    Route::delete('/assessments/{id}', [ClassController::class, 'destroy'])->middleware('auth')->whereNumber('id')->name('assessments.destroy');
+
+    Route::post('/assessment-scores/save', [ClassController::class, 'saveScore'])->name('assessment-scores.save');
+    Route::post('/assessment-max-score/save', [ClassController::class, 'saveMaximum'])->name('assessment-max-score.save');
+    Route::post('/assessment-name/save', [ClassController::class, 'update'])->name('assessment-name.save');
+
+    Route::post(
+        '/manage-grading/categories/update',
+        [ClassController::class, 'saveCategory']
+    )->name('manage-grading.category.update');
+
+    Route::post(
+        '/manage-grading/categories/create',
+        [ClassController::class, 'saveCategory']
+    )->name('manage-grading.category.create');
+
+    Route::post(
+        '/manage-grading/categories/move',
+        [ClassController::class, 'moveCategory']
+    )->name('manage-grading.category.move');
+
+    Route::post(
+        '/manage-grading/exam/maximum',
+        [ClassController::class, 'saveExamMaximum']
+    )->name('manage-grading.exam.maximum');
+
+    Route::get('/classes/{classId}/grade-summary', [ClassController::class, 'show'])
+        ->middleware('auth')
+        ->whereNumber('classId')
+        ->name('grade-summary.show');
+
+    Route::get(
+        '/grading/exams/{id}/scores',
+        [ClassController::class, 'index']
+    )
+        ->whereNumber('id')
+        ->name('exam-scores.index');
+
+    Route::post(
+        '/grading/exam-scores',
+        [ClassController::class, 'store']
+    )->name('exam-scores.save');
+});

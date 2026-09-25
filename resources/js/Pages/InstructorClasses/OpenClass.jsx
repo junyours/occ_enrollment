@@ -1,89 +1,193 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
-// Import components
 import Students from './ClassComponents/Students'
 import Attendance from './ClassComponents/Attendance'
 import Grades from './ClassComponents/Grades'
-import Assignments from './ClassComponents/Assignments'
+import Grading from './ClassComponents/Grading'
 import Materials from './ClassComponents/Materials'
 import Announcements from './ClassComponents/Announcements'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
-import { Head } from '@inertiajs/react'
-import { PageTitle } from '@/Components/ui/PageTitle'
 
-function OpenClass({ subjectCode, descriptiveTitle, id, courseSection, gradeStatus, schoolYear }) {
-    const [loading, setLoading] = useState(true);
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select'
+
+import NavigationTabs from '@/Components/ui/NavigationTabs'
+
+import {
+    Users,
+    CalendarDays,
+    ChartNoAxesColumnIncreasing,
+    ClipboardList,
+    FolderOpen,
+    Megaphone,
+} from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+
+
+const navigationTabs = [
+    {
+        value: 'students',
+        label: 'Students',
+        icon: Users,
+    },
+    {
+        value: 'attendance',
+        label: 'Attendance',
+        icon: CalendarDays,
+    },
+    {
+        value: 'grades',
+        label: 'Grades',
+        icon: ChartNoAxesColumnIncreasing,
+    },
+    {
+        value: 'grading',
+        label: 'Grading',
+        icon: ClipboardList,
+    },
+    {
+        value: 'materials',
+        label: 'Materials',
+        icon: FolderOpen,
+    },
+    {
+        value: 'announcements',
+        label: 'Announcements',
+        icon: Megaphone,
+    },
+]
+
+export default function OpenClass({
+    subjectCode,
+    descriptiveTitle,
+    id,
+    courseSection,
+    gradeStatus,
+    schoolYear,
+}) {
     const [tab, setTab] = useState('students')
-    const [students, setStudents] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1)
 
     const getClassStudents = async () => {
         try {
-            const response = await axios.post(route('class.students', { id }));
-            setStudents(response.data);
-            setLoading(false);
+            const response = await axios.post(
+                route('class.students', { id })
+            )
+
+            return response.data
         } catch (err) {
-            console.error(err);
+            console.error(err)
         }
-    };
+    }
 
-    const section = `${subjectCode} - ${descriptiveTitle} | ${courseSection}`;
+    const { data: students = [], isLoading } = useQuery({
+        queryKey: ['class.students', id],
+        queryFn: getClassStudents
+    })
 
-    useEffect(() => {
-        getClassStudents();
-    }, []);
+    const section = `${subjectCode} - ${descriptiveTitle} | ${courseSection}`
+
 
     return (
-        <div className="space-y-4">
-            <Head title={subjectCode} />
-            <PageTitle align='center'>{section}</PageTitle>
-            <div className="w-full flex justify-center">
-                {/* Tabs for md and up */}
-                <div className="hidden md:flex">
-                    <Tabs value={tab} onValueChange={setTab} className="w-max">
-                        <TabsList className="flex flex-wrap justify-start gap-2">
-                            <TabsTrigger className="w-32" value="students">Students</TabsTrigger>
-                            <TabsTrigger className="w-32" value="attendance">Attendance</TabsTrigger>
-                            <TabsTrigger className="w-32" value="grades">Grades</TabsTrigger>
-                            <TabsTrigger className="w-32" value="assignments">Assignments</TabsTrigger>
-                            <TabsTrigger className="w-32" value="materials">Materials</TabsTrigger>
-                            <TabsTrigger className="w-32" value="announcements">Announcements</TabsTrigger>
-                        </TabsList>
-                    </Tabs>
-                </div>
+        <div className="flex flex-col gap-4">
+            {/* <PageTitle align="center">
+                {section}
+            </PageTitle> */}
 
-                {/* Select for mobile only */}
-                <div className="block md:hidden w-full">
-                    <Select value={tab} onValueChange={setTab}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select Section" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="students">Students</SelectItem>
-                            <SelectItem value="attendance">Attendance</SelectItem>
-                            <SelectItem value="grades">Grades</SelectItem>
-                            <SelectItem value="assignments">Assignments</SelectItem>
-                            <SelectItem value="materials">Materials</SelectItem>
-                            <SelectItem value="announcements">Announcements</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+            {/* Desktop navigation */}
+            <div className="hidden md:block">
+                <NavigationTabs
+                    value={tab}
+                    onValueChange={setTab}
+                    items={navigationTabs}
+                />
             </div>
 
-            <div className="mt-4">
-                {tab === 'students' && <Students getClassStudents={getClassStudents} students={students} setStudents={setStudents} currentPage={currentPage} setPage={setCurrentPage} isLoading={loading} nameClass={section} />}
-                {tab === 'attendance' && <Attendance />}
-                {tab === 'grades' && <Grades students={students} subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} yearSectionSubjectsId={id} gradeStatus={gradeStatus} getClassStudents={getClassStudents} schoolYear={schoolYear} />}
-                {tab === 'assignments' && <Assignments />}
-                {tab === 'materials' && <Materials />}
-                {tab === 'announcements' && <Announcements />}
+            {/* Mobile navigation */}
+            <div className="block w-full md:hidden">
+                <Select
+                    value={tab}
+                    onValueChange={setTab}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select Section" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                        {navigationTabs.map((item) => (
+                            <SelectItem
+                                key={item.value}
+                                value={item.value}
+                            >
+                                {item.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div>
+                {tab === 'students' && (
+                    <Students
+                        getClassStudents={getClassStudents}
+                        students={students}
+                        currentPage={currentPage}
+                        setPage={setCurrentPage}
+                        isLoading={isLoading}
+                        nameClass={section}
+                    />
+                )}
+
+                {tab === 'attendance' && (
+                    <Attendance />
+                )}
+
+                {tab === 'grades' && (
+                    <Grades
+                        students={students}
+                        subjectCode={subjectCode}
+                        descriptiveTitle={descriptiveTitle}
+                        courseSection={courseSection}
+                        yearSectionSubjectsId={id}
+                        gradeStatus={gradeStatus}
+                        getClassStudents={getClassStudents}
+                        schoolYear={schoolYear}
+                    />
+                )}
+
+                {tab === 'grading' && (
+                    <Grading classId={id} />
+                )}
+
+                {tab === 'materials' && (
+                    <Materials />
+                )}
+
+                {tab === 'announcements' && (
+                    <Announcements />
+                )}
             </div>
         </div>
     )
 }
 
-export default OpenClass
+OpenClass.layout = (page) => {
+    const {
+        subjectCode,
+        descriptiveTitle,
+        courseSection,
+    } = page.props
 
-OpenClass.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>
+    const section = `${subjectCode} - ${descriptiveTitle} | ${courseSection}`
+
+    return (
+        <AuthenticatedLayout title={section}>
+            {page}
+        </AuthenticatedLayout>
+    )
+}
