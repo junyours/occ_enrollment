@@ -58,25 +58,30 @@ return Application::configure(basePath: dirname(__DIR__))
             return Inertia::location(route('login'));
         });
 
-        $exceptions->respond(function (
-            Response $response,
-            Throwable $exception,
-            Request $request
-        ) {
-            $status = $response->getStatusCode();
+    $exceptions->respond(function (
+        Response $response,
+        Throwable $exception,
+        Request $request
+    ) {
+        $status = $response->getStatusCode();
 
-            if (
-                in_array($status, [403, 404, 500], true) &&
-                ! $request->expectsJson()
-            ) {
-                return Inertia::render('Errors/GuestErrorPage', [
-                    'status' => $status,
-                ])
-                    ->toResponse($request)
-                    ->setStatusCode($status);
-            }
-
+        if (config('app.debug')) {
             return $response;
-        });
+        }
+
+        if (
+            in_array($status, [403, 404, 500], true) &&
+            ! $request->expectsJson()
+        ) {
+            return Inertia::render('Errors/GuestErrorPage', [
+                'status'  => $status,
+                'message' => $exception->getMessage() ?: 'An unexpected error occurred.',
+            ])
+                ->toResponse($request)
+                ->setStatusCode($status);
+        }
+
+        return $response;
+    });
     })
     ->create();
