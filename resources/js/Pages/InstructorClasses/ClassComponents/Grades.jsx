@@ -1,53 +1,241 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Button } from '@/Components/ui/button'
-import { Download, FileDown, Printer, Upload, Cloud, CloudUpload, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react'
-import axios from 'axios'
-import GradesStudentList from './GradePartials/GradesStudentList'
-import { useToast } from "@/hooks/use-toast";
-import { router, usePage } from '@inertiajs/react'
-import { Card, CardContent, CardHeader } from '@/Components/ui/card'
-import { useReactToPrint } from 'react-to-print';
-import GradeSignatories from './GradePartials/GradeSignatories'
-import GradeHeader from './GradePartials/GradeHeader'
-import { useGradeSubmission } from './GradePartials/useGradeSubmission'
-import PreLoader from '@/Components/preloader/PreLoader'
 import {
+    Download,
+    Printer,
+    Upload,
+    Cloud,
+    CloudUpload,
+    AlertCircle,
+    ChevronUp,
+    ChevronDown,
     FileText,
     Send,
     CheckCircle,
     XCircle,
     Rocket,
-} from "lucide-react"
+} from 'lucide-react'
+import axios from 'axios'
+import GradesStudentList from './GradePartials/GradesStudentList'
+import { router, usePage } from '@inertiajs/react'
+import { useReactToPrint } from 'react-to-print'
+import GradeSignatories from './GradePartials/GradeSignatories'
+import GradeHeader from './GradePartials/GradeHeader'
+import { useGradeSubmission } from './GradePartials/useGradeSubmission'
+import PreLoader from '@/Components/preloader/PreLoader'
 import InstructorGradeSubmitionButton from './GradePartials/InstructorGradeSubmitionButton'
 import GradeRequestEditAction from './GradePartials/GradeRequestEditAction'
 import { toast } from 'sonner'
 
+/* -------------------------------------------------------------------------- */
+/*  Status config                                                              */
+/* -------------------------------------------------------------------------- */
+
+// Order of the submission pipeline. "rejected" is a detour that sits at the
+// "submitted" step, so it reuses that position with a red fill.
+const STEPS = ['draft', 'submitted', 'verified', 'deployed']
+
 const statusMap = {
-    draft: { color: "text-gray-500", icon: FileText },
-    submitted: { color: "text-blue-500", icon: Send },
-    verified: { color: "text-green-600", icon: CheckCircle },
-    rejected: { color: "text-red-500", icon: XCircle },
-    deployed: { color: "text-indigo-600", icon: Rocket },
+    draft: {
+        label: 'Draft',
+        text: 'text-gray-500 dark:text-gray-400',
+        bar: 'bg-gray-400',
+        icon: FileText,
+        step: 0,
+    },
+    submitted: {
+        label: 'Submitted',
+        text: 'text-blue-600 dark:text-blue-400',
+        bar: 'bg-blue-500',
+        icon: Send,
+        step: 1,
+    },
+    verified: {
+        label: 'Verified',
+        text: 'text-green-600 dark:text-green-400',
+        bar: 'bg-green-600',
+        icon: CheckCircle,
+        step: 2,
+    },
+    rejected: {
+        label: 'Rejected',
+        text: 'text-red-600 dark:text-red-400',
+        bar: 'bg-red-500',
+        icon: XCircle,
+        step: 1,
+    },
+    deployed: {
+        label: 'Deployed',
+        text: 'text-indigo-600 dark:text-indigo-400',
+        bar: 'bg-indigo-600',
+        icon: Rocket,
+        step: 3,
+    },
 }
 
-function StatusLabel({ label }) {
-    const status = label?.toLowerCase?.()
-    const { color, icon: Icon } = statusMap[status] || {}
+const saveStateMap = {
+    uploading: {
+        icon: CloudUpload,
+        label: 'Saving…',
+        className: 'text-blue-600 dark:text-blue-400',
+        pulse: true,
+    },
+    saved: {
+        icon: Cloud,
+        label: 'All changes saved',
+        className: 'text-green-600 dark:text-green-400',
+        pulse: false,
+    },
+    idle: {
+        icon: AlertCircle,
+        label: 'Save failed',
+        className: 'text-red-600 dark:text-red-400',
+        pulse: false,
+    },
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Small presentational components                                            */
+/* -------------------------------------------------------------------------- */
+
+function SaveIndicator({ status }) {
+    const state = saveStateMap[status] || saveStateMap.saved
+    const Icon = state.icon
 
     return (
-        <p className={`flex items-center gap-1`}>
-            {Icon && <Icon size={16} />}
-            Status: <span className={`font-semibold ${color}`}>{status ? status.charAt(0).toUpperCase() + status.slice(1) : "—"}</span>
-        </p>
+        <div
+            className={`flex items-center gap-2 text-sm font-medium ${state.className}`}
+            aria-live="polite"
+        >
+            <Icon className={`h-4 w-4 ${state.pulse ? 'animate-pulse' : ''}`} />
+            <span>{state.label}</span>
+        </div>
     )
 }
+
+function StatusTrack({ label }) {
+    const status = label?.toLowerCase?.()
+    const config = statusMap[status]
+    const Icon = config?.icon
+
+    return (
+        <div
+            className="min-w-0 flex-1"
+            role="group"
+            aria-label={`Status: ${config?.label ?? 'Not started'}`}
+        >
+            <div
+                className={`mb-1.5 flex items-center gap-1.5 text-xs font-semibold ${config?.text ?? 'text-muted-foreground'}`}
+            >
+                {Icon && <Icon size={14} />}
+                <span>{config?.label ?? '—'}</span>
+            </div>
+
+            <div className="flex gap-1">
+                {STEPS.map((step, index) => (
+                    <span
+                        key={step}
+                        title={step.charAt(0).toUpperCase() + step.slice(1)}
+                        className={`h-1.5 flex-1 rounded-full transition-colors ${config && index <= config.step ? config.bar : 'bg-muted'
+                            }`}
+                    />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function SubmissionPanel({
+    type,
+    title,
+    data,
+    canUpload,
+    submitting,
+    onSubmit,
+    onCancel,
+    onRequestEdit,
+    onCancelRequestEdit,
+    requestStatus,
+    reasonOpen,
+    onToggleReason,
+}) {
+    const status = data[`${type}_status`]
+    const rejectionMessage = data[`${type}_rejection_message`]
+    const showReason = status == 'rejected' && rejectionMessage
+
+    return (
+        <div className="rounded-xl border bg-card p-3">
+            <div className="mb-3 flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">{title}</h3>
+
+                <div className="flex items-center gap-3">
+                    {showReason && (
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={onToggleReason}
+                                aria-expanded={reasonOpen}
+                                className="flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                            >
+                                <AlertCircle className="h-3 w-3" />
+                                View reason
+                                {reasonOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
+                            </button>
+
+                            {reasonOpen && (
+                                <div className="absolute bottom-full right-0 z-50 mb-2 w-64 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900 shadow-lg dark:border-red-900 dark:bg-red-950 dark:text-red-100">
+                                    {rejectionMessage}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <GradeRequestEditAction
+                        gradeSubmissionStatus={status}
+                        isDisabled={submitting === type}
+                        handleRequestEdit={onRequestEdit}
+                        type={type}
+                        requestStatus={requestStatus}
+                        handleCancelRequestEdit={onCancelRequestEdit}
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+                <StatusTrack label={status} />
+
+                <InstructorGradeSubmitionButton
+                    handleSubmit={onSubmit}
+                    disabledButton={!canUpload || submitting === type}
+                    handleCancel={onCancel}
+                    type={type}
+                    status={{
+                        deployed_at: data[`${type}_deployed_at`],
+                        rejection_message: rejectionMessage,
+                        status,
+                        submitted_at: data[`${type}_submitted_at`],
+                        verified_at: data[`${type}_verified_at`],
+                    }}
+                />
+            </div>
+        </div>
+    )
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
 
 const isValidGrade = (grade) => {
     if (grade === undefined || grade === null || grade === '') return false;
     const num = Number(grade);
     return !isNaN(num) && num >= 1 && num <= 5;
 };
+
+/* -------------------------------------------------------------------------- */
+/*  Main component                                                             */
+/* -------------------------------------------------------------------------- */
 
 function Grades({
     students,
@@ -202,7 +390,6 @@ function Grades({
         reader.readAsArrayBuffer(file)
     }
 
-    // Update your uploadToDatabase function:
     const uploadToDatabase = async (data) => {
         setUploadStatus('uploading')
 
@@ -231,7 +418,6 @@ function Grades({
 
     const timeoutRefs = useRef({}) // Store timeouts per student field
 
-    // Update your handleGradeChange function to set uploading status:
     const handleGradeChange = (index, field, value) => {
         // Update local UI state
         handleChange(index, field, value)
@@ -291,7 +477,7 @@ function Grades({
         };
     }, [handlePrint]);
 
-    // Add cleanup useEffect at the bottom of your component:
+    // Cleanup timers on unmount
     useEffect(() => {
         return () => {
             if (uploadStatusTimeoutRef.current) {
@@ -407,7 +593,6 @@ function Grades({
         );
     }
 
-
     const [midtermRequestStatus, setMidtermRequestStatus] = useState([]);
     const [finalRequestStatus, setFinalRequestStatus] = useState([]);
 
@@ -459,39 +644,23 @@ function Grades({
         );
     }
 
+    const toggleReason = (type) =>
+        setExpandedRejection((prev) => ({ ...prev, [type]: !prev[type] }))
+
     return (
         <>
-            <div className="relative pb-4 overflow-auto space-y-4">
-                <div className="flex justify-between items-center mb-4">
-                    {/* <div className="flex items-center gap-4"> */}
-                    {/* <GradeSubmissionStatus gradeStatus={gradeStatus} /> */}
+            <div className="relative space-y-4 overflow-auto pb-4">
+                {/* Toolbar: save state on the left, actions on the right */}
+                <div className="no-print flex flex-wrap items-center justify-between gap-3 print:hidden">
+                    <SaveIndicator status={uploadStatus} />
 
-                    {/* Upload Status Indicator - Shows uploading or saved */}
-                    {/* {uploadStatus !== 'idle' && (
-                            <div className="flex items-center gap-2 text-sm">
-                                {uploadStatus === 'uploading' && (
-                                    <>
-                                        <CloudUpload className="w-8 h-8 text-blue-500 animate-pulse" />
-                                        <span className="text-blue-600 text-2xl">Uploading...</span>
-                                    </>
-                                )}
-                                {uploadStatus === 'saved' && (
-                                    <>
-                                        <Cloud className="w-8 h-8 text-green-500" />
-                                        <span className="text-green-600 text-2xl">Saved</span>
-                                    </>
-                                )}
-                            </div>
-                        )} */}
-                    {/* </div> */}
-
-                    <div className="flex gap-2 self-end">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Button
                             disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
                             variant="outline"
                             onClick={downloadExcel}
                         >
-                            <Download className="w-4 h-4 mr-2" />
+                            <Download className="mr-2 h-4 w-4" />
                             Download Template
                         </Button>
 
@@ -500,15 +669,14 @@ function Grades({
                             variant="outline"
                             onClick={() => fileInputRef.current?.click()}
                         >
-                            <Upload className="w-4 h-4 mr-2" />
+                            <Upload className="mr-2 h-4 w-4" />
                             Upload Students
                         </Button>
 
-                        <Button
-                            variant="outline"
-                            onClick={handlePrint} // quick print
-                        >
-                            <Printer className="w-4 h-4 mr-2" />
+                        <span className="mx-1 hidden h-6 w-px bg-border sm:block" aria-hidden />
+
+                        <Button variant="outline" onClick={handlePrint}>
+                            <Printer className="mr-2 h-4 w-4" />
                             Print
                         </Button>
 
@@ -522,148 +690,76 @@ function Grades({
                     </div>
                 </div>
 
-                {/* <div className="bg-red-50 border border-red-200 text-red-700 rounded px-4 py-2 mb-4 text-sm">
-                ⚠️ Once submitted, grades cannot yet be edited. Edit request functionality is still under development.
-            </div> */}
+                {/* Grade sheet: framed on screen, flat on paper */}
+                <div
+                    ref={componentRef}
+                    className='print:space-y-4 print:p-4'
+                >
+                    <GradeHeader
+                        subjectCode={subjectCode}
+                        descriptiveTitle={descriptiveTitle}
+                        courseSection={courseSection}
+                        schoolYear={schoolYear}
+                    />
 
-                <div ref={componentRef} className='print:space-y-4 print:p-4'>
-                    <GradeHeader subjectCode={subjectCode} descriptiveTitle={descriptiveTitle} courseSection={courseSection} schoolYear={schoolYear} />
                     {isLoading ? (
-                        <div className='h-full'>
+                        <div className="grid h-full min-h-[240px] place-items-center">
                             <PreLoader />
                         </div>
                     ) : (
-                        <>
-                            <GradesStudentList
-                                grades={grades}
-                                status={data}
-                                missingFields={missingFields}
-                                handleGradeChange={handleGradeChange}
-                                setMissingFields={setMissingFields}
-                                allowMidtermUpload={schoolYear.allow_upload_midterm}
-                                allowFinalUpload={schoolYear.allow_upload_final}
-                                yearSectionSubjectsId={yearSectionSubjectsId}
-                            />
-                        </>
+                        <GradesStudentList
+                            grades={grades}
+                            status={data}
+                            missingFields={missingFields}
+                            handleGradeChange={handleGradeChange}
+                            setMissingFields={setMissingFields}
+                            allowMidtermUpload={schoolYear.allow_upload_midterm}
+                            allowFinalUpload={schoolYear.allow_upload_final}
+                            yearSectionSubjectsId={yearSectionSubjectsId}
+                        />
                     )}
+
                     <GradeSignatories yearSectionSubjectsId={yearSectionSubjectsId} />
                 </div>
-            </div >
+            </div>
 
-            <div className='h-24' />
+            {/* Spacer so the fixed dock never covers the signatories (desktop only) */}
+            <div className="hidden h-36 md:block" />
 
-            {/* OUTSIDE the scrollable container */}
+            {/* Submission dock: fixed on desktop, flows under the sheet on mobile */}
             {!isLoading && (
-                <div className='fixed bottom-0 z-50 flex gap-4 w-full max-w-6xl h-28 px-4'>
-                    {/* Midterm (will appear on the right) */}
-                    <Card className='no-print w-96 mb-4'>
-                        <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
-                            {/* Rejection message for midterm */}
-                            <p className='underline w-max'>Midterm grade</p>
+                <div className="no-print z-50 w-full px-4 pb-4 print:hidden md:fixed md:bottom-0 md:max-w-6xl">
+                    <div className="grid gap-2 rounded-2xl border bg-background/90 p-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/75 md:grid-cols-2">
+                        <SubmissionPanel
+                            type="midterm"
+                            title="Midterm grade"
+                            data={data}
+                            canUpload={schoolYear.allow_upload_midterm}
+                            submitting={submitting}
+                            onSubmit={handleSubmit}
+                            onCancel={handleCancel}
+                            onRequestEdit={handleRequestEdit}
+                            onCancelRequestEdit={handleCancelRequestEdit}
+                            requestStatus={midtermRequestStatus}
+                            reasonOpen={expandedRejection.midterm}
+                            onToggleReason={() => toggleReason('midterm')}
+                        />
 
-                            <GradeRequestEditAction
-                                gradeSubmissionStatus={data.midterm_status}
-                                isDisabled={submitting === 'midterm'}
-                                handleRequestEdit={handleRequestEdit}
-                                type='midterm'
-                                requestStatus={midtermRequestStatus}
-                                handleCancelRequestEdit={handleCancelRequestEdit}
-                            />
-
-                            {(data.midterm_status == 'rejected' && data.midterm_rejection_message) && (
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setExpandedRejection({ ...expandedRejection, midterm: !expandedRejection.midterm })}
-                                        className="flex items-center gap-1 text-xs text-red-500 hover:text-red-800 font-medium"
-                                    >
-                                        <AlertCircle className="w-3 h-3" />
-                                        View reason
-                                        {expandedRejection.midterm ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
-                                    </button>
-                                    {expandedRejection.midterm && (
-                                        <div className="absolute bottom-full left-0 mb-2 p-3 bg-red-50 border border-red-200 rounded-lg shadow-lg text-xs text-red-900 w-64 z-50">
-                                            {data.midterm_rejection_message}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </CardHeader>
-                        <CardContent className='py-2 px-4 space-y-2'>
-                            <div className='w-full flex gap-4 max-w-7xl mx-auto'>
-                                <div className='w-48 flex border px-2 h-[37px]'>
-                                    <StatusLabel label={data.midterm_status} />
-                                </div>
-                                <InstructorGradeSubmitionButton
-                                    handleSubmit={handleSubmit}
-                                    disabledButton={!schoolYear.allow_upload_midterm || submitting === 'midterm'}
-                                    handleCancel={handleCancel}
-                                    type='midterm'
-                                    status={{
-                                        deployed_at: data.midterm_deployed_at,
-                                        rejection_message: data.midterm_rejection_message,
-                                        status: data.midterm_status,
-                                        submitted_at: data.midterm_submitted_at,
-                                        verified_at: data.midterm_verified_at,
-                                    }}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Final (will appear on the left) */}
-                    <Card className='no-print w-96 mb-4'>
-                        <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
-                            {/* Rejection message for midterm */}
-                            <p className='underline w-max'>Final grade</p>
-
-                            <GradeRequestEditAction
-                                gradeSubmissionStatus={data.final_status}
-                                isDisabled={submitting === 'final'}
-                                handleRequestEdit={handleRequestEdit}
-                                type='final'
-                                requestStatus={finalRequestStatus}
-                                handleCancelRequestEdit={handleCancelRequestEdit}
-                            />
-
-                            {(data.final_status == 'rejected' && data.final_rejection_message) && (
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setExpandedRejection({ ...expandedRejection, final: !expandedRejection.final })}
-                                        className="flex items-center gap-1 text-xs text-red-500 hover:text-red-800 font-medium"
-                                    >
-                                        <AlertCircle className="w-3 h-3" />
-                                        View reason
-                                        {expandedRejection.final ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
-                                    </button>
-                                    {expandedRejection.final && (
-                                        <div className="absolute bottom-full left-0 mb-2 p-3 bg-red-50 border border-red-200 rounded-lg shadow-lg text-xs text-red-900 w-64 z-50">
-                                            {data.final_rejection_message}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </CardHeader>
-                        <CardContent className='py-2 px-4 space-y-2'>
-                            <div className='w-full flex gap-4 max-w-7xl mx-auto'>
-                                <div className='w-48 flex border px-2 h-[37px]'>
-                                    <StatusLabel label={data.final_status} />
-                                </div>
-                                <InstructorGradeSubmitionButton
-                                    handleSubmit={handleSubmit}
-                                    disabledButton={!schoolYear.allow_upload_final || submitting === 'final'}
-                                    handleCancel={handleCancel}
-                                    type='final'
-                                    status={{
-                                        deployed_at: data.final_deployed_at,
-                                        rejection_message: data.final_rejection_message,
-                                        status: data.final_status,
-                                        submitted_at: data.final_submitted_at,
-                                        verified_at: data.final_verified_at,
-                                    }}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
+                        <SubmissionPanel
+                            type="final"
+                            title="Final grade"
+                            data={data}
+                            canUpload={schoolYear.allow_upload_final}
+                            submitting={submitting}
+                            onSubmit={handleSubmit}
+                            onCancel={handleCancel}
+                            onRequestEdit={handleRequestEdit}
+                            onCancelRequestEdit={handleCancelRequestEdit}
+                            requestStatus={finalRequestStatus}
+                            reasonOpen={expandedRejection.final}
+                            onToggleReason={() => toggleReason('final')}
+                        />
+                    </div>
                 </div>
             )}
         </>

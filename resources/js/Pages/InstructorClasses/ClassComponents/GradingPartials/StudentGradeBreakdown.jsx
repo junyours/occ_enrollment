@@ -4,7 +4,16 @@ import { CLASS_STANDING_WEIGHT, EXAM_WEIGHT, getGradeStatus } from './gradeCalcu
 
 const formatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 })
 const number = value => value == null ? '—' : formatter.format(value)
-const percent = value => value == null ? '—' : `${Math.round(Number(value) + 1e-9)}%`
+const percent = value =>
+    value == null
+        ? '—'
+        : `${Math.round(Number(value) + 1e-9)}%`
+
+const precisePercent = value =>
+    value == null
+        ? '—'
+        : `${Number(Number(value).toFixed(2))}%`
+
 const points = value => value == null ? '—' : `${number(value)} pts`
 
 const statusLabels = {
@@ -202,14 +211,43 @@ function TermDetails({ label, result, summary, isFinal = false }) {
             </div>
 
             <div className="space-y-1 rounded-lg bg-muted/35 p-3 text-xs text-muted-foreground">
-                <p className="font-medium text-foreground">How the {label.toLowerCase()} grade is calculated</p>
-                <p className="tabular-nums">Class Standing: {percent(standing)} × {CLASS_STANDING_WEIGHT}% ≈ <strong className="text-foreground">{points(standingPoints)}</strong></p>
-                <p className="tabular-nums">Exam score: {number(exam.score)} / {number(exam.maximum)} → {percent(exam.percentage)}.</p>
-                <p className="tabular-nums">Exam: {percent(exam.percentage)} × {EXAM_WEIGHT}% ≈ <strong className="text-foreground">{points(examPoints)}</strong></p>
+                <p className="font-medium text-foreground">
+                    How the {label.toLowerCase()} grade is calculated
+                </p>
+
+                <p className="tabular-nums">
+                    Class Standing: {precisePercent(standing)} ÷ 100 × {CLASS_STANDING_WEIGHT} ={' '}
+                    <strong className="text-foreground">
+                        {points(standingPoints)}
+                    </strong>
+                </p>
+
+                <p className="tabular-nums">
+                    Exam score: {number(exam.score)} ÷ {number(exam.maximum)} × 100 ={' '}
+                    {precisePercent(exam.percentage)}
+                </p>
+
+                <p className="tabular-nums">
+                    Exam: {precisePercent(exam.percentage)} ÷ 100 × {EXAM_WEIGHT} ={' '}
+                    <strong className="text-foreground">
+                        {points(examPoints)}
+                    </strong>
+                </p>
+
                 {complete ? (
-                    <p className="pt-1 font-medium text-foreground tabular-nums">Total: {number(standingPoints)} + {number(examPoints)} ≈ {percent(result.percentage)}</p>
+                    <p className="pt-1 font-medium text-foreground tabular-nums">
+                        Total: {number(standingPoints)} + {number(examPoints)} ={' '}
+                        {precisePercent(result.percentage)}
+                        {' ≈ '}
+                        <strong>{percent(result.percentage)}</strong>
+                    </p>
                 ) : (
-                    <p className="pt-1">{statusLabel}.{result.status === 'incomplete' && ` ${result.missing} score${result.missing === 1 ? '' : 's'} still missing.`} Missing scores are not counted as zero.</p>
+                    <p className="pt-1">
+                        {statusLabel}.
+                        {result.status === 'incomplete' &&
+                            ` ${result.missing} score${result.missing === 1 ? '' : 's'} still missing.`}{' '}
+                        Missing scores are not counted as zero.
+                    </p>
                 )}
             </div>
 

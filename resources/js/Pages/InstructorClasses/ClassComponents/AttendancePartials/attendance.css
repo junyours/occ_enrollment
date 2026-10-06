@@ -1,0 +1,68 @@
+/* Prevent the date strip from widening flex/grid parents. */
+.attendance-panel {
+    container-type: inline-size;
+}
+
+.attendance-dates {
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.22) transparent;
+}
+
+.attendance-dates:hover,
+.attendance-dates:focus-within {
+    scrollbar-color: rgb(148 163 184 / 0.45) transparent;
+}
+
+.attendance-dates::-webkit-scrollbar {
+    height: 4px;
+}
+
+.attendance-dates::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.attendance-dates::-webkit-scrollbar-thumb {
+    background: rgb(148 163 184 / 0.22);
+    border-radius: 999px;
+}
+
+.attendance-dates:hover::-webkit-scrollbar-thumb {
+    background: rgb(148 163 184 / 0.45);
+}
+
+.attendance-dates[data-dragging],
+.attendance-dates[data-dragging] * {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.attendance-roster {
+    max-height: min(65vh, 44rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.35) transparent;
+}
+
+.attendance-roster:focus-visible,
+.attendance-dates:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+/* Respond to available content width, including sidebar layouts. */
+@container (min-width: 960px) {
+    .attendance-row-grid {
+        grid-template-columns:
+            minmax(180px, 1.2fr) 180px minmax(300px, 1.6fr) minmax(140px, 1fr);
+    }
+
+    .attendance-table-head {
+        display: block;
+    }
+
+    .attendance-term-label {
+        display: none;
+    }
+}

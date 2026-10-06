@@ -24,7 +24,7 @@ function GradeHeader({ subjectCode, descriptiveTitle, courseSection, schoolYear,
       }
       return (
             <Card className='hidden print:block'>
-                  <CardContent className='p-2 flex justify-between px-6'>
+                  <CardContent className='p-2 flex justify-between items-center px-6'>
                         <div>
                               <p>Subject: <span className='underline'>{subjectCode} - {descriptiveTitle}</span></p>
                               <p>Course & Section: <span className='underline'>{courseSection}</span></p>
@@ -36,7 +36,7 @@ function GradeHeader({ subjectCode, descriptiveTitle, courseSection, schoolYear,
                                     </span>
                               </p>
                         </div>
-                        <div className='h-24 flex gap-2'>
+                        <div className='h-24 flex gap-2 justify-center items-center'>
                               <div className='items-center text-center self-center font-semibold'>
                                     <p>OPOL COMMUNITY COLLEGE</p>
                                     <p>OPOL, MISAMIS ORIENTAL</p>

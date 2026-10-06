@@ -1,21 +1,17 @@
 import { Toaster } from "@/Components/ui/toaster"
 import { AppSidebar } from "../Components/AppSidebar"
-
-import {
-    SidebarInset,
-    SidebarTrigger,
-    SidebarProvider,
-} from "@/Components/ui/sidebar"
-
+import { SidebarInset, SidebarTrigger, SidebarProvider, } from "@/Components/ui/sidebar"
 import { Separator } from "@/Components/ui/separator"
 import { Head, usePage } from "@inertiajs/react"
 import { Button } from "@/Components/ui/button"
 import axios from "axios"
 import { useState } from "react"
+import AttendanceSyncProvider from "@/Pages/InstructorClasses/ClassComponents/AttendancePartials/AttendanceSyncProvider"
 
 export default function AuthenticatedLayout({ children, title }) {
     const { impersonating } = usePage().props.auth
     const [loading, setLoading] = useState(false)
+    const { auth } = usePage().props
 
     const stopImpersonate = async () => {
         setLoading(true)
@@ -75,10 +71,11 @@ export default function AuthenticatedLayout({ children, title }) {
                     <div className="container mx-auto max-w-7xl">
                         <Head title={title} />
 
-                        {children}
+                        <AttendanceSyncProvider userId={auth.user.id}>
+                            {children}
+                        </AttendanceSyncProvider>
                     </div>
                 </main>
-
                 <Toaster />
             </SidebarInset>
         </SidebarProvider>

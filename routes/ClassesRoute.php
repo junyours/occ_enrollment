@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\InstructorClasses\ClassController;
 use Illuminate\Support\Facades\Route;
 
@@ -114,3 +115,20 @@ Route::middleware(['auth', 'role:faculty,program_head,evaluator'])->group(functi
         [ClassController::class, 'store']
     )->name('exam-scores.save');
 });
+
+
+
+Route::middleware(['auth', 'role:faculty,program_head,evaluator'])
+    ->prefix('classes/{classId}/attendance')
+    ->where(['classId' => '[0-9]+'])
+    ->name('class-attendance.')
+    ->group(function () {
+    Route::get('/', [AttendanceController::class, 'index'])->name('index');
+    Route::get('/export', [AttendanceController::class, 'exportData'])->name('export');
+    Route::post('/sessions', [AttendanceController::class, 'store'])->name('store');
+    Route::get('/sessions/{sessionId}', [AttendanceController::class, 'show'])->whereNumber('sessionId')->name('show');
+    Route::post('/sessions/{sessionId}/start', [AttendanceController::class, 'start'])->whereNumber('sessionId')->name('start');
+    Route::put('/sessions/{sessionId}/records', [AttendanceController::class, 'save'])->whereNumber('sessionId')->name('save');
+    Route::patch('/sessions/{sessionId}/status', [AttendanceController::class, 'setStatus'])->whereNumber('sessionId')->name('status');
+    Route::post('/sessions/{sessionId}/lock', [AttendanceController::class, 'lock'])->whereNumber('sessionId')->name('lock');
+    });

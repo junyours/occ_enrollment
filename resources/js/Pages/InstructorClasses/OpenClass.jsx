@@ -144,7 +144,7 @@ export default function OpenClass({
                 )}
 
                 {tab === 'attendance' && (
-                    <Attendance />
+                    <Attendance classId={id} section={section} />
                 )}
 
                 {tab === 'grades' && (
