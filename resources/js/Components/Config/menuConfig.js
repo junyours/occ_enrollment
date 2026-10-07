@@ -42,6 +42,7 @@ import {
     Shapes,
     FileClock,
     UserX,
+    HardDrive,
 } from "lucide-react";
 
 import { PiStudent } from "react-icons/pi";
@@ -172,7 +173,12 @@ export const MENU_CONFIG = {
                 { name: "Users", route: "users", icon: UsersIcon },
                 { name: "Maintenance", route: "maintenance-settings", icon: Construction },
                 { name: "Reset Credentials", route: "reset-credentials", icon: KeyRound },
-                { name: "System Logs", route: "admin.logs.index", icon: FileText },
+            ],
+        },
+        {
+            label: "Monitoring",
+            items: [
+                { name: "Drive", route: "drive", icon: HardDrive },
             ],
         },
     ],
