@@ -2,7 +2,7 @@ import {
     Tabs,
     TabsList,
     TabsTrigger,
-} from "@/components/ui/tabs";
+} from "@/Components/ui/tabs";
 
 import { cn } from "@/Lib/Utils";
 
