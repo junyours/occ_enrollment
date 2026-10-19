@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { AlertCircle, CalendarDays, Check, LoaderCircle, LockKeyhole, Plus, RotateCcw, Search, WifiOff } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, ClipboardList, Info, LoaderCircle, LockKeyhole, Plus, RotateCcw, Search, WifiOff } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Badge } from '@/Components/ui/badge'
@@ -18,6 +18,7 @@ const filters = [{ value: 'all', label: 'All students' }, { value: 'unmarked', l
 const rowGrid = 'attendance-row-grid'
 import AttendanceMeetingStrip from './AttendancePartials/AttendanceMeetingStrip'
 import AttendanceSummaryCards from './AttendancePartials/AttendanceSummaryCards'
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 
 function Choice({ id, label, value, options, onChange, disabled }) {
     return <Select value={value} onValueChange={onChange} disabled={disabled}>
@@ -220,6 +221,43 @@ function Confirmation({ action, attendance: a, onClose, onClear }) {
 }
 
 export default function Attendance({ classId, initialPeriod = 'midterm', section }) {
+    return (
+        <div className="flex min-h-[320px] w-full items-center justify-center p-4 sm:p-6">
+            <Card className="w-full max-w-md rounded-2xl border-dashed bg-muted/20 py-0 shadow-none">
+                <CardContent className="flex flex-col items-center px-6 py-10 text-center sm:px-10">
+                    <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <ClipboardList
+                            aria-hidden="true"
+                            className="h-8 w-8"
+                            strokeWidth={1.5}
+                        />
+                    </div>
+
+                    <Badge
+                        variant="secondary"
+                        className="mb-3 gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
+                    >
+                        <span
+                            aria-hidden="true"
+                            className="h-1.5 w-1.5 rounded-full bg-primary"
+                        />
+                        In development
+                    </Badge>
+
+                    <h3 className="text-lg font-semibold tracking-tight text-foreground">
+                        Not complete yet
+                    </h3>
+
+                    <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                        The attendance module is still being developed.
+                        Please check back for updates.
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+    )
+
+
     const [search, setSearch] = useState('')
     const [filter, setFilter] = useState('all')
     const [newMeeting, setNewMeeting] = useState(false)
@@ -241,6 +279,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
         return success
     }
     function edit(studentId, values) { setUndo(null); return a.patch(studentId, values) }
+
     return <section
         className="attendance-panel min-w-0 w-full max-w-full space-y-4"
         aria-label="Class attendance"
