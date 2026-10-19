@@ -60,3 +60,18 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });
+
+use App\Http\Controllers\Profile\EmailChangeController;
+
+// Require this file from routes/web.php so session auth and CSRF protection apply.
+// Add your existing role/account-status middleware here if your profile uses it.
+Route::middleware('auth')->prefix('profile/email')->name('profile.email.')->group(function () {
+    Route::get('/', [EmailChangeController::class, 'show'])->name('show');
+
+    Route::middleware('throttle:10,1,profile-email-write:')->group(function () {
+        Route::post('/send', [EmailChangeController::class, 'store'])->name('send');
+        Route::post('/resend', [EmailChangeController::class, 'resend'])->name('resend');
+        Route::post('/verify', [EmailChangeController::class, 'verify'])->name('verify');
+        Route::delete('/', [EmailChangeController::class, 'destroy'])->name('destroy');
+    });
+});
