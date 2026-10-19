@@ -417,4 +417,25 @@ export const MENU_CONFIG = {
             ],
         },
     ],
+    nstp_faculty: [
+        {
+            label: "Academic",
+            items: [
+                { name: "Classes", route: "classes", icon: Presentation },
+            ],
+        },
+        {
+            label: "Grades",
+            items: [
+                { name: "Subjects", route: "subjects-list", icon: BookOpenText },
+                { name: "Requests", route: "requests", icon: Inbox },
+            ],
+        },
+        {
+            label: "Evaluation Result",
+            items: [
+                { name: "Faculty Result", route: "fac.faculty.report", icon: User },
+            ],
+        },
+    ],
 };

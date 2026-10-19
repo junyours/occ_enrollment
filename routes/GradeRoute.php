@@ -76,7 +76,7 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
         Route::post('/nstp-director-name', [GradeController::class, 'nstpDirectorName'])->name('nstp-director-name');
     });
 
-    Route::middleware(['ClassesPermission'])->group(function () {
+    Route::middleware(['role:program_head,registrar,evaluator,faculty,student,nstp_faculty'])->group(function () {
         Route::get('/subjects-list', [GradeController::class, 'gradesSubjectsList'])->name('subjects-list');
         Route::post('/instructor-subjects', [GradeController::class, 'instructorSubjects'])->name('instructor-subjects');
 

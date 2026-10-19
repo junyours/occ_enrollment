@@ -4,7 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\InstructorClasses\ClassController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,student,registrar'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,student,registrar,nstp_faculty'])->group(function () {
     Route::get('/classes', [ClassController::class, 'view'])->name('classes');
     Route::post('/api/get-faculty-classes/{schoolYearId}', [ClassController::class, 'getFacultyClasses'])->name('get.faculty.classes');
 
@@ -54,7 +54,7 @@ Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,s
     Route::post('/nstp-class/grade-submission-details/{id}', [ClassController::class, 'nstpGradeSubmissionDetails'])->name('nstp-class.grade-submission-details');
 });
 
-Route::middleware(['auth', 'maintenance', 'role:evaluator,faculty,registrar,nstp_director'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:evaluator,faculty,registrar,nstp_director,nstp_faculty'])->group(function () {
     Route::post('/nstp-students-grades/{id}', [ClassController::class, 'nstpStudentsGrades'])->name('nstp.students-grades');
     Route::get('/nstp-section/grade-submission-status/{id}', [ClassController::class, 'nstpSectionGradeSubmissionStatus'])->name('nstp-section.grade-submission-status');
 });

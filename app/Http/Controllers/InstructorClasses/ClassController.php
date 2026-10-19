@@ -57,7 +57,7 @@ class ClassController extends Controller
             ->orderBy('school_years.semester_id', 'DESC')
             ->get();
 
-        if ($userRole == 'program_head' || $userRole == 'faculty' || $userRole == 'evaluator' || $userRole == 'registrar') {
+        if ($userRole == 'program_head' || $userRole == 'faculty' || $userRole == 'evaluator' || $userRole == 'registrar' || $userRole == 'nstp_faculty') {
             return Inertia::render('InstructorClasses/ViewClasses', [
                 'schoolYears' => $schoolYears,
             ]);

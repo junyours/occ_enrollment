@@ -187,7 +187,7 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'maintenance', 'faculty'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:faculty,nstp_faculty'])->group(function () {
     Route::get('/faculty-result/', [GuidanceController::class, 'FacultyResult'])->name('fac.faculty.report');
     Route::get('/faculty/subjects/{schoolYearId}', [GuidanceController::class, 'FesfacultySubjects'])->name('fac.facultySubjects');
     Route::get(
