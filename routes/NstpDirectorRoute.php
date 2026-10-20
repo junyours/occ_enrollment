@@ -54,6 +54,11 @@ Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function
     Route::get('/nstp-director/nstp-evaluators', [ComponentController::class, 'nstpEvaluators'])->name('nstp-director.nstp-evaluators');
     Route::post('/nstp-director/nstp-evaluators', [ComponentController::class, 'getEvaluators'])->name('nstp-director.nstp-evaluators');
 
+    Route::get('/nstp-director/nstp-faculties', [ComponentController::class, 'nstpFaculties'])->name('nstp-director.nstp-faculties');
+    Route::post('/nstp-director/nstp-faculties', [ComponentController::class, 'getFaculties'])->name('nstp-director.nstp-faculties');
+    Route::post('/nstp-director/create-nstp-faculty', [ComponentController::class, 'createFaculty'])->name('nstp-director.create-nstp-faculty');
+    Route::post('/nstp-director/update-nstp-faculty', [ComponentController::class, 'updateFaculty'])->name('nstp-director.update-nstp-faculty');
+
     Route::post('/nstp-director/create-nstp-evaluator', [ComponentController::class, 'createEvaluator'])->name('nstp-director.create-nstp-evaluator');
     Route::post('/nstp-director/update-nstp-evaluator', [ComponentController::class, 'updateEvaluator'])->name('nstp-director.update-nstp-evaluator');
     Route::post('/nstp-director/change-evaluator-password', [ComponentController::class, 'changeEvaluatorPassword'])->name('nstp-director.change-evaluator-password');

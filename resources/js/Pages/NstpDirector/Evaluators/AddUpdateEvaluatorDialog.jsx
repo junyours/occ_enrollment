@@ -8,7 +8,7 @@ import { isValidEmail } from "@/Lib/Utils";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
-import CredentialsCard from "./CredentialsCard";
+import CredentialsCard from "../NstpFaculties/CredentialsCarddentialsCard";
 import { Plus, Lock, Eye, EyeOff } from "lucide-react";
 
 function AddUpdateEvaluatorDialog({

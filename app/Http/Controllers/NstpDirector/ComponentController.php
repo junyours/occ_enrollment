@@ -1341,6 +1341,37 @@ class ComponentController extends Controller
             ->paginate(10);
     }
 
+
+    public function nstpFaculties(Request $request)
+    {
+        return Inertia::render('NstpDirector/NstpFaculties/Index');
+    }
+
+    public function getFaculties(Request $request){
+        $search = $request->search;
+
+        return User::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email', 'users.active', 'user_role')
+            ->join('user_information', 'users.id', '=', 'user_information.user_id')
+            ->where('users.user_role', 'nstp_faculty')
+            ->orderByDesc('users.created_at')
+            ->where(function ($query) use ($search) {
+                if ($search) {
+                    $query->where('users.user_id_no', 'like', "%{$search}%")
+                        ->orWhere('user_information.first_name', 'like', "%{$search}%")
+                        ->orWhere('user_information.last_name', 'like', "%{$search}%");
+                }
+            })
+            ->paginate(10);
+    }
+
+    public function createFaculty(){
+
+    }
+
+    public function updateFaculty(){
+
+    }
+
     public function createEvaluator(Request $request)
     {
         $validated = $request->validate([

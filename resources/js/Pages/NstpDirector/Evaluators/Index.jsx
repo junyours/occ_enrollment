@@ -6,7 +6,7 @@ import { router, usePage } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import { Check, Circle, Edit, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
-import AddUpdateEvaluatorDialog from './AddUpdateEvaluatorDialog';
+import AddUpdateEvaluatorDialog from '../NstpFaculties/AddUpdateFacultyDialog';
 import { formatFullName } from '@/Lib/Utils';
 import SearchBar from '@/Components/ui/SearchBar';
 import axios from 'axios';
