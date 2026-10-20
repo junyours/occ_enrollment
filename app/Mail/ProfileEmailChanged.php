@@ -2,21 +2,27 @@
 
 namespace App\Mail;
 
+use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
 
 class ProfileEmailChanged extends Mailable
 {
-    public function __construct(public string $newEmail) {}
+    use Queueable, SerializesModels;
 
-    public function envelope(): Envelope
+    public $newEmail;
+
+    public function __construct(string $newEmail)
     {
-        return new Envelope(subject: config('app.name').' — Your email was changed');
+        $this->newEmail = $newEmail;
     }
 
-    public function content(): Content
+    public function build()
     {
-        return new Content(markdown: 'mail.profile.email-changed');
+        return $this->subject('Your Account Email Was Changed - ' . config('app.name'))
+            ->view('emails.email-changed')
+            ->with([
+                'newEmail' => $this->newEmail,
+            ]);
     }
 }

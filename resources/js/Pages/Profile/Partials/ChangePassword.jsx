@@ -309,7 +309,7 @@ export default function ChangePassword() {
 
     return (
         <Card className="w-full min-w-0 gap-0 overflow-hidden rounded-2xl py-0 shadow-sm">
-            <CardHeader className="border-b bg-muted/20 p-5 sm:p-6">
+            <CardHeader className="border-b bg-muted/20 p-5 sm:p-6 mt-0">
                 <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                         <ShieldCheck aria-hidden="true" className="h-5 w-5" />

@@ -96,7 +96,7 @@ export default function ProfileInformation({ userInfo }) {
 
     return (
         <Card className="w-full min-w-0 gap-0 overflow-hidden rounded-2xl py-0 shadow-sm">
-            <CardHeader className="border-b bg-muted/20 p-5 sm:p-6">
+            <CardHeader className="border-b bg-muted/20 p-5 sm:p-6 PT-0 mt-0">
                 <div className="flex min-w-0 flex-col items-center gap-4 text-center sm:flex-row sm:gap-5 sm:text-left">
                     <Avatar aria-hidden="true" className="h-20 w-20 shrink-0 border-4 border-background shadow-sm">
                         <AvatarFallback className="bg-primary/10 text-2xl font-semibold text-primary">

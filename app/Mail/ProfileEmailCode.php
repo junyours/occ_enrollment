@@ -2,21 +2,30 @@
 
 namespace App\Mail;
 
+use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
 
 class ProfileEmailCode extends Mailable
 {
-    public function __construct(public string $code, public int $expiresInMinutes = 10) {}
+    use Queueable, SerializesModels;
 
-    public function envelope(): Envelope
+    public $code;
+    public $expiresInMinutes;
+
+    public function __construct(string $code, int $expiresInMinutes)
     {
-        return new Envelope(subject: config('app.name') . ' — Confirm your new email');
+        $this->code = $code;
+        $this->expiresInMinutes = $expiresInMinutes;
     }
 
-    public function content(): Content
+    public function build()
     {
-        return new Content(markdown: 'mail.profile.email-code');
+        return $this->subject('Confirm Your New Email - ' . config('app.name'))
+            ->view('emails.email-code')
+            ->with([
+                'code' => $this->code,
+                'expiresInMinutes' => $this->expiresInMinutes,
+            ]);
     }
 }

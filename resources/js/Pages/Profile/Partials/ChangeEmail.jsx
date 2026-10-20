@@ -11,6 +11,14 @@ import { Label } from '@/Components/ui/label';
 import { Separator } from '@/Components/ui/separator';
 import { Skeleton } from '@/Components/ui/skeleton';
 
+import { REGEXP_ONLY_DIGITS } from 'input-otp';
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from '@/Components/ui/input-otp';
+
 // These are ordinary same-origin JSON requests inside your Inertia page.
 // Axios sends Laravel's XSRF-TOKEN cookie in the X-XSRF-TOKEN header.
 const api = axios.create({
@@ -184,7 +192,7 @@ export default function ChangeEmail({ currentEmail = '' }) {
 
     return (
         <Card className="gap-0 overflow-hidden rounded-2xl py-0 shadow-sm">
-            <CardHeader className="border-b bg-muted/20 p-5 sm:p-6">
+            <CardHeader className="border-b bg-muted/20 p-5 sm:p-6 mt-0">
                 <div className="flex items-start gap-3">
                     <div className="rounded-xl border border-primary/10 bg-primary/10 p-2.5 text-primary">
                         <Mail aria-hidden="true" className="h-5 w-5" />
@@ -298,21 +306,66 @@ export default function ChangeEmail({ currentEmail = '' }) {
                                     <p className="text-sm leading-relaxed text-muted-foreground">Enter the code sent to <span className="font-medium text-foreground [overflow-wrap:anywhere]">{pending.email}</span>.</p>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="email-code">Verification code</Label>
-                                    <Input
-                                        ref={codeRef} id="email-code" name="code" type="text" inputMode="numeric" autoComplete="one-time-code"
-                                        pattern="[0-9]{6}" minLength={6} maxLength={6} required placeholder="000000"
-                                        className="h-14 max-w-xs text-center font-mono text-2xl tracking-[0.4em]"
-                                        value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
-                                        disabled={disabled || expiresIn === 0 || reauthExpired}
-                                        aria-invalid={Boolean(errors.code)} aria-describedby={`email-code-hint${errors.code ? ' email-code-error' : ''}`}
-                                    />
-                                    <p id="email-code-hint" className="text-xs text-muted-foreground">
-                                        {reauthExpired ? 'For your security, start again and confirm your password.' : expiresIn > 0 ? `Code expires in ${formatTime(expiresIn)}.` : 'This code has expired. Request a new code below.'}
-                                    </p>
-                                    <FieldError id="email-code-error">{errors.code}</FieldError>
-                                </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email-code">Verification code</Label>
+
+                                            <InputOTP
+                                                ref={codeRef}
+                                                id="email-code"
+                                                name="code"
+                                                maxLength={6}
+                                                minLength={6}
+                                                pattern={REGEXP_ONLY_DIGITS}
+                                                inputMode="numeric"
+                                                autoComplete="one-time-code"
+                                                required
+                                                value={code}
+                                                onChange={setCode}
+                                                pasteTransformer={(value) => value.replace(/\D/g, '')}
+                                                disabled={disabled || expiresIn === 0 || reauthExpired}
+                                                aria-invalid={Boolean(errors.code)}
+                                                aria-describedby={`email-code-hint${errors.code ? ' email-code-error' : ''}`}
+                                                containerClassName="gap-2"
+                                            >
+                                                <InputOTPGroup>
+                                                    {[0, 1, 2].map((index) => (
+                                                        <InputOTPSlot
+                                                            key={index}
+                                                            index={index}
+                                                            aria-invalid={Boolean(errors.code)}
+                                                            className={`h-12 w-9 text-xl sm:h-14 sm:w-12 ${errors.code ? 'border-destructive' : ''
+                                                                }`}
+                                                        />
+                                                    ))}
+                                                </InputOTPGroup>
+
+                                                <InputOTPSeparator />
+
+                                                <InputOTPGroup>
+                                                    {[3, 4, 5].map((index) => (
+                                                        <InputOTPSlot
+                                                            key={index}
+                                                            index={index}
+                                                            aria-invalid={Boolean(errors.code)}
+                                                            className={`h-12 w-9 text-xl sm:h-14 sm:w-12 ${errors.code ? 'border-destructive' : ''
+                                                                }`}
+                                                        />
+                                                    ))}
+                                                </InputOTPGroup>
+                                            </InputOTP>
+
+                                            <p id="email-code-hint" className="text-xs text-muted-foreground">
+                                                {reauthExpired
+                                                    ? 'For your security, start again and confirm your password.'
+                                                    : expiresIn > 0
+                                                        ? `Code expires in ${formatTime(expiresIn)}.`
+                                                        : 'This code has expired. Request a new code below.'}
+                                            </p>
+
+                                            <FieldError id="email-code-error">
+                                                {errors.code}
+                                            </FieldError>
+                                        </div>
 
                                 <div className="flex flex-col gap-2 sm:flex-row">
                                     <Button type="submit" className="min-h-11 gap-2" disabled={disabled || code.length !== 6 || expiresIn === 0 || reauthExpired}>

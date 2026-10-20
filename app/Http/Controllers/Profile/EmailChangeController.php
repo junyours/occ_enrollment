@@ -82,6 +82,7 @@ class EmailChangeController extends Controller
             } catch (Throwable $exception) {
                 Log::warning('Profile email change notification could not be sent.', [
                     'exception_type' => $exception::class,
+                    'message' => $exception->getMessage(),
                 ]);
             }
         }
