@@ -26,6 +26,10 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ComponentController extends Controller
 {
@@ -1346,30 +1350,397 @@ class ComponentController extends Controller
 
     public function nstpFaculties(Request $request)
     {
-        return Inertia::render('NstpDirector/NstpFaculties/Index');
+        return $this->facultyIndex($request);
     }
 
     public function getFaculties(Request $request)
     {
-        $search = $request->search;
-
-        return User::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email', 'users.active', 'user_role')
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->where('users.user_role', 'nstp_faculty')
-            ->orderByDesc('users.created_at')
-            ->where(function ($query) use ($search) {
-                if ($search) {
-                    $query->where('users.user_id_no', 'like', "%{$search}%")
-                        ->orWhere('user_information.first_name', 'like', "%{$search}%")
-                        ->orWhere('user_information.last_name', 'like', "%{$search}%");
-                }
-            })
-            ->paginate(10);
+        return $this->facultyData($request);
     }
 
-    public function createFaculty() {}
+    public function facultyIndex(Request $request)
+    {
+        $this->authorizeNstpFacultyManagement($request);
 
-    public function updateFaculty() {}
+        return Inertia::render('NstpDirector/NstpFaculties/Index', [
+            'search' => (string) $request->query('search', ''),
+        ]);
+    }
+
+    public function facultyData(Request $request)
+    {
+        $this->authorizeNstpFacultyManagement($request);
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+        $search = trim($filters['search'] ?? '');
+
+        $query = $this->nstpFacultyQuery()->select([
+            'u.id',
+            'u.user_id_no',
+            'u.email',
+            'u.active',
+            'info.first_name',
+            'info.middle_name',
+            'info.last_name',
+        ]);
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                foreach (['u.user_id_no', 'u.email', 'info.first_name', 'info.middle_name', 'info.last_name'] as $column) {
+                    $query->orWhere($column, 'like', '%' . $search . '%');
+                }
+            });
+        }
+
+        return response()->json(
+            $query->orderBy('info.last_name')->orderBy('info.first_name')->orderBy('u.id')
+                ->paginate(10)
+                ->withPath(route('nstp-director.nstp-faculties'))
+                ->appends(['search' => $search])
+        );
+    }
+
+    public function facultyDetails(Request $request, int $id)
+    {
+        $this->authorizeNstpFacultyManagement($request);
+
+        return response()->json(['faculty' => $this->nstpFacultyDetails($id)])
+            ->header('Cache-Control', 'no-store');
+    }
+
+    public function createFaculty(Request $request)
+    {
+        $this->authorizeNstpFacultyManagement($request);
+        $validated = $this->validateNstpFaculty($request);
+        $password = Str::random(20);
+
+        $yearLastTwoDigits = date('y');
+
+        $randomNumber = rand(0, 999);
+        $randomNumberPadded = str_pad($randomNumber, 3, '0', STR_PAD_LEFT);
+        $userIdNo = "FAC-" . $yearLastTwoDigits . $randomNumberPadded;
+
+        try {
+            $userId = DB::transaction(function () use ($validated, $password, $userIdNo) {
+                $now = now();
+                $userId = DB::table('users')->insertGetId([
+                    'user_id_no' => $userIdNo,
+                    'email' => $validated['email_address'],
+                    'password' => Hash::make($password),
+                    'user_role' => 'nstp_faculty',
+                    'active' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+
+                DB::table('user_information')->insert(array_merge(
+                    $this->nstpFacultyProfile($validated),
+                    ['user_id' => $userId, 'created_at' => $now, 'updated_at' => $now]
+                ));
+
+                $this->saveNstpFacultyAddress($userId, $validated);
+
+                return $userId;
+            }, 3);
+        } catch (QueryException $exception) {
+            $this->rethrowNstpFacultyDatabaseError($exception);
+        }
+
+        return response()->json([
+            'success' => 'NSTP faculty created successfully.',
+            'faculty' => $this->nstpFacultyDetails($userId),
+            'credentials' => [
+                'user_id_no' => $userIdNo,
+                'username' => $userIdNo,
+                'email' => $validated['email_address'],
+                'password' => $password,
+            ],
+        ], 201)->header('Cache-Control', 'no-store');
+    }
+
+    public function updateFaculty(Request $request)
+    {
+        $this->authorizeNstpFacultyManagement($request);
+        $identity = $request->validate(['id' => ['required', 'integer', 'min:1']]);
+
+        try {
+            $userId = DB::transaction(function () use ($request, $identity) {
+                $user = $this->lockNstpFaculty((int) $identity['id']);
+                $information = DB::table('user_information')->where('user_id', $user->id)->first();
+                $validated = $this->validateNstpFaculty($request, (int) $user->id);
+
+                if (
+                    $validated['address_mode'] === 'keep' &&
+                    !DB::table('user_present_address')->where('user_id', $user->id)->exists() &&
+                    empty($information?->present_address)
+                ) {
+                    throw ValidationException::withMessages([
+                        'present_address' => 'Please select a complete address.',
+                    ]);
+                }
+
+                // "keep" preserves the stored address and ZIP, including legacy records.
+                $profile = $this->nstpFacultyProfile($validated);
+                $now = now();
+                DB::table('users')->where('id', $user->id)->update([
+                    'email' => $validated['email_address'],
+                    'updated_at' => $now,
+                ]);
+
+                if ($information) {
+                    DB::table('user_information')->where('user_id', $user->id)->update(
+                        array_merge($profile, ['updated_at' => $now])
+                    );
+                } else {
+                    DB::table('user_information')->insert(array_merge($profile, [
+                        'user_id' => $user->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]));
+                }
+
+                $this->saveNstpFacultyAddress((int) $user->id, $validated);
+
+                return (int) $user->id;
+            }, 3);
+        } catch (QueryException $exception) {
+            $this->rethrowNstpFacultyDatabaseError($exception);
+        }
+
+        return response()->json([
+            'success' => 'NSTP faculty updated successfully.',
+            'faculty' => $this->nstpFacultyDetails($userId),
+        ]);
+    }
+
+    public function changeFacultyPassword(Request $request)
+    {
+        $this->authorizeNstpFacultyManagement($request);
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+            'password' => ['required', 'string', 'min:8', 'max:72', 'confirmed'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $user = $this->lockNstpFaculty((int) $validated['id']);
+            DB::table('users')->where('id', $user->id)->update([
+                'password' => Hash::make($validated['password']),
+                'remember_token' => null,
+                'updated_at' => now(),
+            ]);
+        }, 3);
+
+        return response()->json(['success' => 'Password changed successfully.']);
+    }
+
+    public function toggleFacultyActive(Request $request)
+    {
+        $this->authorizeNstpFacultyManagement($request);
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+            'value' => ['required', 'boolean'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $user = $this->lockNstpFaculty((int) $validated['id']);
+            DB::table('users')->where('id', $user->id)->update([
+                'active' => (bool) $validated['value'],
+                'updated_at' => now(),
+            ]);
+        }, 3);
+
+        return response()->json([
+            'success' => 'Faculty status updated.',
+            'active' => (bool) $validated['value'],
+        ]);
+    }
+
+    private function authorizeNstpFacultyManagement(Request $request): void
+    {
+        $actor = $request->user();
+        abort_unless($actor && $actor->user_role === 'nstp_director' && (bool) $actor->active, 403);
+    }
+
+    private function nstpFacultyQuery()
+    {
+        return DB::table('users as u')
+            ->leftJoin('user_information as info', 'info.user_id', '=', 'u.id')
+            ->where('u.user_role', 'nstp_faculty');
+    }
+
+    private function lockNstpFaculty(int $id): object
+    {
+        $user = DB::table('users')->where('id', $id)
+            ->where('user_role', 'nstp_faculty')->lockForUpdate()->first();
+        abort_unless($user, 404, 'NSTP faculty not found.');
+
+        return $user;
+    }
+
+    private function nstpFacultyDetails(int $id): object
+    {
+        $faculty = $this->nstpFacultyQuery()
+            ->leftJoin('user_present_address as address', 'address.user_id', '=', 'u.id')
+            ->where('u.id', $id)->select([
+                'u.id',
+                'u.user_id_no',
+                'u.user_role',
+                'u.email',
+                'u.active',
+                'info.first_name',
+                'info.middle_name',
+                'info.last_name',
+                'info.gender',
+                'info.birthday',
+                'info.contact_number',
+                'info.email_address',
+                'info.present_address',
+                'info.zip_code as legacy_zip_code',
+                'address.user_id as address_user_id',
+                'address.zip_code',
+                'address.street',
+                'address.region',
+                'address.region_code',
+                'address.province',
+                'address.province_code',
+                'address.city',
+                'address.city_code',
+                'address.barangay',
+                'address.barangay_code',
+            ])->first();
+        abort_unless($faculty, 404, 'NSTP faculty not found.');
+        $faculty->email_address ??= $faculty->email;
+
+        if ($faculty->address_user_id !== null) {
+            $faculty->present_address = $this->formatNstpFacultyAddress((array) $faculty);
+        } else {
+            // Read-only fallback for profiles created before structured addresses.
+            $faculty->zip_code = $faculty->legacy_zip_code;
+        }
+        unset($faculty->address_user_id, $faculty->legacy_zip_code);
+
+        return $faculty;
+    }
+
+    private function validateNstpFaculty(Request $request, ?int $userId = null): array
+    {
+        $accountEmail = Rule::unique('users', 'email');
+        $profileEmail = Rule::unique('user_information', 'email_address');
+        if ($userId !== null) {
+            // Only a verified, role-scoped user ID reaches these ignore clauses.
+            $accountEmail->ignore($userId);
+            $profileEmail->ignore($userId, 'user_id');
+        }
+
+        $rules = [
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'gender' => ['required', Rule::in(['Male', 'Female'])],
+            'birthday' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'contact_number' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
+            'email_address' => ['required', 'email', 'max:255', $accountEmail, $profileEmail],
+            'address_mode' => ['required', Rule::in($userId === null ? ['structured'] : ['structured', 'keep'])],
+        ];
+
+        $addressMode = $request->input('address_mode');
+        if (is_string($addressMode) && trim($addressMode) === 'structured') {
+            $rules['street'] = ['nullable', 'string', 'max:255'];
+            $rules['zip_code'] = ['required', 'string', 'max:20'];
+            foreach (['region', 'province', 'city', 'barangay'] as $field) {
+                $rules[$field] = ['required', 'string', 'max:255'];
+                $rules[$field . '_code'] = ['required', 'string', 'regex:/^[0-9]{1,20}$/'];
+            }
+        }
+
+        // Explicitly trim strings; do not depend on the application's middleware configuration.
+        $input = $request->all();
+        foreach (array_keys($rules) as $key) {
+            if (isset($input[$key]) && is_string($input[$key])) {
+                $input[$key] = trim($input[$key]);
+            }
+        }
+
+        return validator($input, $rules, [
+            'contact_number.regex' => 'Enter an 11-digit contact number starting with 09.',
+        ])->validate();
+    }
+
+    private function nstpFacultyProfile(array $validated): array
+    {
+        $profile = [];
+        foreach (['first_name', 'last_name', 'gender', 'birthday', 'contact_number', 'email_address'] as $field) {
+            $profile[$field] = $validated[$field];
+        }
+        $profile['middle_name'] = ($validated['middle_name'] ?? '') !== '' ? $validated['middle_name'] : null;
+
+        return $profile;
+    }
+
+    private function nstpFacultyAddress(array $validated): array
+    {
+        if ($validated['address_mode'] !== 'structured') {
+            return [];
+        }
+
+        $address = [
+            'street' => ($validated['street'] ?? '') !== '' ? $validated['street'] : null,
+            'zip_code' => $validated['zip_code'],
+        ];
+        foreach (['region', 'province', 'city', 'barangay'] as $field) {
+            $address[$field] = $validated[$field];
+            $address[$field . '_code'] = $validated[$field . '_code'];
+        }
+
+        return $address;
+    }
+
+    private function saveNstpFacultyAddress(int $userId, array $validated): void
+    {
+        $address = $this->nstpFacultyAddress($validated);
+        if ($address === []) {
+            return; // Keep the existing address row and ZIP untouched.
+        }
+
+        $now = now();
+        // The supplied schema has UNIQUE(user_id). Update that user's row or
+        // insert a missing one, preserving its original id and created_at.
+        DB::table('user_present_address')->upsert([
+            array_merge($address, [
+                'user_id' => $userId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]),
+        ], ['user_id'], array_merge(array_keys($address), ['updated_at']));
+    }
+
+    private function formatNstpFacultyAddress(array $address): string
+    {
+        return implode(', ', array_values(array_filter([
+            $address['street'] ?? null,
+            $address['barangay'] ?? null,
+            $address['city'] ?? null,
+            $address['province'] ?? null,
+            $address['region'] ?? null,
+        ], static fn($part) => $part !== null && $part !== '')));
+    }
+
+    private function rethrowNstpFacultyDatabaseError(QueryException $exception): never
+    {
+        // The database index also catches simultaneous requests for the same email.
+        if (
+            (int) ($exception->errorInfo[1] ?? 0) === 1062 &&
+            str_contains($exception->getMessage(), 'users_email_unique')
+        ) {
+            throw ValidationException::withMessages([
+                'email_address' => 'This email address is already in use.',
+            ]);
+        }
+
+        throw $exception;
+    }
 
     public function createEvaluator(Request $request)
     {

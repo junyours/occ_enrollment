@@ -76,6 +76,21 @@ function getEmptyAddress() {
     };
 }
 
+function hasStructuredAddress(faculty) {
+    return ADDRESS_FIELDS.every((field) => faculty?.[`${field}_code`] && faculty?.[field]);
+}
+
+function getAddressData(faculty) {
+    if (!hasStructuredAddress(faculty)) return getEmptyAddress();
+    return {
+        street: faculty.street ?? "",
+        ...Object.fromEntries(ADDRESS_FIELDS.flatMap((field) => [
+            [field, faculty[field]],
+            [`${field}Code`, String(faculty[`${field}_code`])],
+        ])),
+    };
+}
+
 function formatAddress(address) {
     if (ADDRESS_FIELDS.some((field) => !address[`${field}Code`])) return "";
     return [
@@ -87,20 +102,20 @@ function formatAddress(address) {
     ].filter(Boolean).join(", ");
 }
 
-function getFormData(evaluator) {
+function getFormData(faculty) {
     return {
-        id: evaluator?.id ?? null,
-        user_role: evaluator?.user_role ?? null,
-        user_id_no: evaluator?.user_id_no ?? null,
-        first_name: evaluator?.first_name ?? "",
-        middle_name: evaluator?.middle_name ?? "",
-        last_name: evaluator?.last_name ?? "",
-        gender: evaluator?.gender ?? "",
-        birthday: evaluator?.birthday?.slice(0, 10) ?? "",
-        contact_number: String(evaluator?.contact_number ?? "09").replace(/-/g, "") || "09",
-        email_address: evaluator?.email_address ?? evaluator?.email ?? "",
-        present_address: evaluator?.present_address ?? "",
-        zip_code: String(evaluator?.zip_code ?? ""),
+        id: faculty?.id ?? null,
+        user_role: faculty?.user_role ?? null,
+        user_id_no: faculty?.user_id_no ?? null,
+        first_name: faculty?.first_name ?? "",
+        middle_name: faculty?.middle_name ?? "",
+        last_name: faculty?.last_name ?? "",
+        gender: faculty?.gender ?? "",
+        birthday: faculty?.birthday?.slice(0, 10) ?? "",
+        contact_number: String(faculty?.contact_number ?? "09").replace(/-/g, "") || "09",
+        email_address: faculty?.email_address ?? faculty?.email ?? "",
+        present_address: faculty?.present_address ?? "",
+        zip_code: String(faculty?.zip_code ?? ""),
     };
 }
 
@@ -116,7 +131,9 @@ function getToday() {
 function normalizeErrors(serverErrors = {}) {
     return Object.fromEntries(
         Object.entries(serverErrors).map(([field, message]) => [
-            field === "email" ? "email_address" : field,
+            field === "email" ? "email_address"
+                : ADDRESS_FIELDS.includes(field.replace(/_code$/, ""))
+                    ? field.replace(/_code$/, "") : field,
             Array.isArray(message) ? message[0] : message,
         ]),
     );
@@ -163,11 +180,10 @@ function validateFields(data, fields) {
     return validationErrors;
 }
 
-function AddUpdateEvaluatorDialog({
+function AddUpdateFacultyDialog({
     open,
     setOpen,
-    selectedEvaluator,
-    setSelectedEvaluator,
+    facultyId = null,
     refetch,
 }) {
     const formId = useId();
@@ -184,7 +200,13 @@ function AddUpdateEvaluatorDialog({
     const [birthdayOpen, setBirthdayOpen] = useState(false);
     const [address, setAddress] = useState(getEmptyAddress());
     const [replaceAddress, setReplaceAddress] = useState(false);
-    const busy = submitting || passwordSubmitting;
+    const [selectedFaculty, setSelectedFaculty] = useState(null);
+    const [loadedFacultyId, setLoadedFacultyId] = useState(null);
+    const [loading, setLoading] = useState(Boolean(facultyId));
+    const [loadError, setLoadError] = useState("");
+    const [loadVersion, setLoadVersion] = useState(0);
+    const detailsReady = !facultyId || String(loadedFacultyId) === String(facultyId);
+    const busy = submitting || passwordSubmitting || loading || !detailsReady;
 
     const regions = useMemo(() => getRegions() ?? [], []);
     const provinces = useMemo(
@@ -199,7 +221,8 @@ function AddUpdateEvaluatorDialog({
         () => address.cityCode ? getBarangays(address.cityCode) ?? [] : [],
         [address.cityCode],
     );
-    const hasSavedAddress = Boolean(selectedEvaluator?.present_address?.trim());
+    const hasSavedAddress = Boolean(selectedFaculty?.present_address?.trim()) &&
+        !hasStructuredAddress(selectedFaculty);
     const editingAddress = !hasSavedAddress || replaceAddress;
 
     const { data, setData, errors, setError, clearErrors } = useForm(getFormData());
@@ -218,7 +241,11 @@ function AddUpdateEvaluatorDialog({
     useEffect(() => {
         if (!open) return;
 
-        setData(getFormData(selectedEvaluator));
+        const controller = new AbortController();
+        setSelectedFaculty(null);
+        setLoadedFacultyId(null);
+        setLoadError("");
+        setData(getFormData());
         clearErrors();
         setStep(0);
         setAddingSuccess(false);
@@ -231,10 +258,41 @@ function AddUpdateEvaluatorDialog({
         clearPasswordErrors();
         setShowPassword(false);
         setShowPasswordConfirm(false);
-    }, [open, selectedEvaluator, setData, clearErrors, resetPasswordForm, clearPasswordErrors]);
+        if (!facultyId) {
+            setLoading(false);
+            return () => controller.abort();
+        }
 
-    const resetEvaluatorForm = () => {
-        setSelectedEvaluator(null);
+        setLoading(true);
+        const loadFaculty = async () => {
+            try {
+                const response = await axios.get(
+                    route("nstp-director.faculty-details", { id: facultyId }),
+                    { signal: controller.signal, headers: { Accept: "application/json" } },
+                );
+                if (controller.signal.aborted) return;
+                const faculty = response.data.faculty;
+                if (!faculty || String(faculty.id) !== String(facultyId)) {
+                    throw new Error("The server returned an unexpected faculty record.");
+                }
+                setSelectedFaculty(faculty);
+                setData(getFormData(faculty));
+                setAddress(getAddressData(faculty));
+                setLoadedFacultyId(faculty.id);
+            } catch (error) {
+                if (controller.signal.aborted) return;
+                setLoadError(error.response?.data?.message || error.message || "Unable to load faculty details.");
+            } finally {
+                if (!controller.signal.aborted) setLoading(false);
+            }
+        };
+        loadFaculty();
+        return () => controller.abort();
+    }, [open, facultyId, loadVersion, setData, clearErrors, resetPasswordForm, clearPasswordErrors]);
+
+    const resetFacultyForm = () => {
+        setSelectedFaculty(null);
+        setLoadedFacultyId(null);
         setData(getFormData());
         clearErrors();
         setStep(0);
@@ -247,13 +305,13 @@ function AddUpdateEvaluatorDialog({
         resetPasswordFields();
     };
 
-    const closeEvaluatorDialog = () => {
+    const closeFacultyDialog = () => {
         setOpen(false);
-        resetEvaluatorForm();
+        resetFacultyForm();
     };
 
     const handleClose = () => {
-        if (!busy) closeEvaluatorDialog();
+        if (!submitting && !passwordSubmitting) closeFacultyDialog();
     };
 
     const resetPasswordFields = () => {
@@ -378,8 +436,8 @@ function AddUpdateEvaluatorDialog({
         setReplaceAddress(false);
         setData({
             ...data,
-            present_address: selectedEvaluator.present_address,
-            zip_code: String(selectedEvaluator.zip_code ?? ""),
+            present_address: selectedFaculty.present_address,
+            zip_code: String(selectedFaculty.zip_code ?? ""),
         });
         clearErrors(...ADDRESS_FIELDS, "present_address", "zip_code");
     };
@@ -439,18 +497,23 @@ function AddUpdateEvaluatorDialog({
         }
 
         const payload = {
-            ...data,
+            ...(facultyId ? { id: facultyId } : {}),
             ...Object.fromEntries(
                 PROFILE_FIELDS.map((field) => [field, data[field].trim()]),
             ),
+            address_mode: editingAddress ? "structured" : "keep",
+            ...(editingAddress ? {
+                street: address.street.trim(),
+                ...Object.fromEntries(ADDRESS_FIELDS.flatMap((field) => [
+                    [field, address[field]],
+                    [`${field}_code`, address[`${field}Code`]],
+                ])),
+            } : {}),
         };
 
-        // Keep compatibility with the existing endpoint's email field.
-        payload.email = payload.email_address;
-
-        const url = selectedEvaluator?.id
-            ? route("nstp-director.update-nstp-evaluator")
-            : route("nstp-director.create-nstp-evaluator");
+        const url = facultyId
+            ? route("nstp-director.update-nstp-faculty")
+            : route("nstp-director.create-nstp-faculty");
 
         setSubmitting(true);
         try {
@@ -460,13 +523,14 @@ function AddUpdateEvaluatorDialog({
                 toast.success(response.data.success);
                 refetch();
                 if (response.data.credentials) {
+                    if (response.data.faculty) setData(getFormData(response.data.faculty));
                     setCredentials(response.data.credentials);
                     setAddingSuccess(true);
                 } else {
-                    closeEvaluatorDialog();
+                    closeFacultyDialog();
                 }
             } else {
-                toast.error(response.data.message || "Unable to save the evaluator");
+                toast.error(response.data.message || "Unable to save the faculty");
             }
         } catch (error) {
             if (error.response?.data?.errors) {
@@ -481,7 +545,7 @@ function AddUpdateEvaluatorDialog({
 
     const submitPassword = async (event) => {
         event.preventDefault();
-        if (busy || activeSection !== "security" || !selectedEvaluator?.id) return;
+        if (busy || activeSection !== "security" || !selectedFaculty?.id) return;
         clearPasswordErrors();
 
         const validationErrors = {};
@@ -505,8 +569,8 @@ function AddUpdateEvaluatorDialog({
         setPasswordSubmitting(true);
         try {
             const response = await axios.post(
-                route("nstp-director.change-evaluator-password"),
-                { ...passwordData, evaluator_id: selectedEvaluator.id },
+                route("nstp-director.change-faculty-password"),
+                { ...passwordData, id: selectedFaculty.id },
             );
 
             if (response.data.success) {
@@ -526,7 +590,7 @@ function AddUpdateEvaluatorDialog({
         }
     };
 
-    const isEditing = Boolean(selectedEvaluator?.id);
+    const isEditing = Boolean(facultyId);
     const isLastStep = step === STEPS.length - 1;
     const buttonText = submitting
         ? isEditing ? "Updating..." : "Creating..."
@@ -654,22 +718,22 @@ function AddUpdateEvaluatorDialog({
                     <AlertDialogHeader className="space-y-2 text-left">
                         <AlertDialogTitle className="text-2xl font-semibold tracking-tight sm:text-3xl">
                             {addingSuccess
-                                ? "Evaluator saved"
-                                : isEditing ? "Update Evaluator" : "Add Evaluator"}
+                                ? "Faculty saved"
+                                : isEditing ? "Update Faculty" : "Add Faculty"}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-base">
                             {addingSuccess
                                 ? "Save the account credentials before closing."
                                 : isEditing
-                                    ? "Update the evaluator's personal and contact details."
-                                    : "Enter the evaluator's personal and contact details."}
+                                    ? "Update the faculty's personal and contact details."
+                                    : "Enter the faculty's personal and contact details."}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
 
-                    {isEditing && !addingSuccess && (
+                    {isEditing && detailsReady && !addingSuccess && (
                         <div
                             role="tablist"
-                            aria-label="Evaluator settings"
+                            aria-label="Faculty settings"
                             onKeyDown={handleTabKeyDown}
                             className="flex gap-6 border-b"
                         >
@@ -689,8 +753,8 @@ function AddUpdateEvaluatorDialog({
                                     disabled={busy}
                                     onClick={() => changeSection(key)}
                                     className={`-mb-px inline-flex items-center gap-2 border-b-2 px-1 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${activeSection === key
-                                            ? "border-primary text-primary"
-                                            : "border-transparent text-muted-foreground hover:text-foreground"
+                                        ? "border-primary text-primary"
+                                        : "border-transparent text-muted-foreground hover:text-foreground"
                                         }`}
                                 >
                                     {key === "security" && <Lock size={16} aria-hidden="true" />}
@@ -701,7 +765,27 @@ function AddUpdateEvaluatorDialog({
                     )}
 
                     {/* Each section has its own form inside the portaled dialog. */}
-                    {activeSection === "profile" || addingSuccess ? (
+                    {!detailsReady ? (
+                        <div className="space-y-5">
+                            {loading || !loadError ? (
+                                <p role="status" className="py-8 text-center text-muted-foreground">
+                                    Loading complete faculty details...
+                                </p>
+                            ) : (
+                                <div role="alert" className="space-y-3 rounded-md border border-destructive p-4">
+                                    <p className="text-sm text-destructive">{loadError}</p>
+                                    <Button type="button" variant="outline" onClick={() => setLoadVersion((version) => version + 1)}>
+                                        Retry
+                                    </Button>
+                                </div>
+                            )}
+                            <AlertDialogFooter className="flex-row justify-start border-t pt-5 sm:justify-start">
+                                <AlertDialogCancel asChild className="mt-0 border-0 bg-transparent shadow-none sm:mt-0">
+                                    <Button type="button" variant="ghost">Cancel</Button>
+                                </AlertDialogCancel>
+                            </AlertDialogFooter>
+                        </div>
+                    ) : activeSection === "profile" || addingSuccess ? (
                         <form
                             id={`${formId}-profile-panel`}
                             role={isEditing && !addingSuccess ? "tabpanel" : undefined}
@@ -874,7 +958,7 @@ function AddUpdateEvaluatorDialog({
                                                         </p>
                                                     </Field>
 
-                                                    <fieldset className="min-w-0 rounded-md border p-4">
+                                                    <fieldset className="min-w-0 space-y-4 rounded-md border p-4">
                                                         <legend className="px-1 text-sm font-medium">
                                                             Present address <Required />
                                                         </legend>
@@ -897,7 +981,7 @@ function AddUpdateEvaluatorDialog({
                                                                         })}
                                                                     />
                                                                 </Field>
-                                                                {/* {renderAddressSelect("region", "Region", regions, handleRegionChange)} */}
+                                                                {renderAddressSelect("region", "Region", regions, handleRegionChange)}
                                                                 {renderAddressSelect("province", "Province", provinces, handleProvinceChange, !address.regionCode)}
                                                                 {renderAddressSelect("city", "City/Municipality", cities, handleCityChange, !address.provinceCode)}
                                                                 {renderAddressSelect("barangay", "Barangay", barangays, handleBarangayChange, !address.cityCode)}
@@ -906,7 +990,7 @@ function AddUpdateEvaluatorDialog({
                                                         <Label htmlFor={`${formId}-present-address`} className="sr-only">
                                                             {editingAddress ? "Selected address" : "Saved address"}
                                                         </Label>
-                                                        {/* <textarea
+                                                        <textarea
                                                             id={`${formId}-present-address`}
                                                             name="present_address"
                                                             rows={3}
@@ -917,7 +1001,7 @@ function AddUpdateEvaluatorDialog({
                                                             aria-invalid={Boolean(errors.present_address)}
                                                             aria-describedby={errors.present_address ? `${formId}-address-error` : undefined}
                                                             className={`flex w-full resize-y rounded-md border border-input bg-muted/30 px-3 py-2 text-sm ${fieldClass(errors.present_address)}`}
-                                                        /> */}
+                                                        />
                                                         {errors.present_address && (
                                                             <p id={`${formId}-address-error`} role="alert" className="text-sm text-destructive">
                                                                 {errors.present_address}
@@ -937,7 +1021,13 @@ function AddUpdateEvaluatorDialog({
                                                     {renderInput("zip_code", "ZIP code", {
                                                         type: "text",
                                                         autoComplete: "postal-code",
+                                                        readOnly: !editingAddress,
                                                     })}
+                                                    {!editingAddress && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Choose Change address to update the saved address and ZIP code.
+                                                        </p>
+                                                    )}
                                                 </>
                                             )}
                                         </FieldGroup>
@@ -951,8 +1041,8 @@ function AddUpdateEvaluatorDialog({
                                         <AlertDialogCancel asChild className="mt-0 border-0 bg-transparent shadow-none sm:mt-0">
                                             <Button type="button" variant="ghost" disabled={busy}>Close</Button>
                                         </AlertDialogCancel>
-                                        <Button type="button" disabled={submitting} onClick={resetEvaluatorForm}>
-                                            <Plus size={16} /> Add Evaluator
+                                        <Button type="button" disabled={submitting} onClick={resetFacultyForm}>
+                                            <Plus size={16} /> Add Faculty
                                         </Button>
                                     </>
                                 ) : (
@@ -1028,4 +1118,4 @@ function AddUpdateEvaluatorDialog({
     );
 }
 
-export default AddUpdateEvaluatorDialog;
+export default AddUpdateFacultyDialog;
