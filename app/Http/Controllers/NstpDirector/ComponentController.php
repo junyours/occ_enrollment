@@ -163,6 +163,7 @@ class ComponentController extends Controller
                 }
             })
             ->select(
+                'enrolled_students.id as enrlled_student_id',
                 'users.user_id_no',
                 'user_information.first_name',
                 'user_information.middle_name',
@@ -202,6 +203,7 @@ class ComponentController extends Controller
             })
             ->whereNull('student_subject_nstp_schedule.id')
             ->select(
+                'enrolled_students.id as enrlled_student_id',
                 'users.user_id_no',
                 'user_information.first_name',
                 'user_information.middle_name',
@@ -1347,7 +1349,8 @@ class ComponentController extends Controller
         return Inertia::render('NstpDirector/NstpFaculties/Index');
     }
 
-    public function getFaculties(Request $request){
+    public function getFaculties(Request $request)
+    {
         $search = $request->search;
 
         return User::select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email', 'users.active', 'user_role')
@@ -1364,13 +1367,9 @@ class ComponentController extends Controller
             ->paginate(10);
     }
 
-    public function createFaculty(){
+    public function createFaculty() {}
 
-    }
-
-    public function updateFaculty(){
-
-    }
+    public function updateFaculty() {}
 
     public function createEvaluator(Request $request)
     {

@@ -569,6 +569,26 @@ class EnrollmentCourseSectionController extends Controller
         return response()->json($studentInfo, 200);
     }
 
+    public function getStudentCor($enrolledStudentId)
+    {
+        $studentInfo = EnrolledStudent::where('enrolled_students.id', '=', $enrolledStudentId)
+            ->with(
+                'Evaluator.EvaluatorInformation',
+                'StudentType',
+                'YearSection.Course',
+                'YearSection.YearLevel',
+                'YearSection.SchoolYear.Semester',
+                'StudentSubject.YearSectionSubjects.Subject',
+                'StudentSubject.YearSectionSubjects.Instructor.InstructorInformation',
+                'StudentSubject.YearSectionSubjects.Room',
+                'StudentSubject.YearSectionSubjects.SubjectSecondarySchedule.Room',
+                'Student.StudentInformation'
+            )
+            ->first();
+
+        return response()->json($studentInfo, 200);
+    }
+
     public function getStudentSubjects(Request $request)
     {
         $student = User::where('user_id_no', '=', $request->studentId)

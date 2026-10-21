@@ -1,23 +1,31 @@
-import OCC_LOGO from '../../../images/OCC_LOGO.png'
+import { useEffect, useId, useState } from 'react';
+import { Settings2 } from 'lucide-react';
+
+import OCC_LOGO from '../../../images/OCC_LOGO.png';
 import { formatFullName } from '@/Lib/Utils';
+
+import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/Components/ui/popover';
+import { Separator } from '@/Components/ui/separator';
+
 import CorStudentSubjects from './CorStudentSubjects';
 import CorStudentInfo from './CorStudentInfo';
 import CorFees from './CorFees';
 import Signatories from './Signatories';
-import { useState, useEffect } from 'react';
 
-// Shadcn UI Imports
-import { Button } from "@/Components/ui/button";
-import { Checkbox } from "@/Components/ui/checkbox";
-import { Label } from "@/Components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover";
-import { Separator } from "@/Components/ui/separator";
-import { Settings2 } from "lucide-react";
+const STORAGE_KEY = 'cor_table_settings';
 
-const defaultSettings = {
+const DEFAULT_SETTINGS = {
     showSubjectCode: true,
     showCourseSection: true,
     showDescriptiveTitle: true,
+    showInstructor: true,
     showUnits: true,
     showLecUnits: true,
     showLabUnits: true,
@@ -26,246 +34,409 @@ const defaultSettings = {
     showDay: true,
     showTime: true,
     showRoom: true,
-    showInstructor: true
 };
 
-function CorGenerator({ data, showSeal }) {
-    // 1. Initialize global table settings from localStorage
-    const [settings, setSettings] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const savedSettings = localStorage.getItem('cor_table_settings');
-            if (savedSettings) {
-                try {
-                    return JSON.parse(savedSettings);
-                } catch (error) {
-                    console.error("Failed to parse local storage settings:", error);
-                }
-            }
-        }
-        return defaultSettings;
-    });
+const SETTING_GROUPS = [
+    {
+        title: 'Main Columns',
+        fields: [
+            { key: 'showSubjectCode', label: 'Subject Code' },
+            { key: 'showCourseSection', label: 'Course Section' },
+            { key: 'showDescriptiveTitle', label: 'Descriptive Title' },
+            { key: 'showInstructor', label: 'Instructor' },
+        ],
+    },
+    {
+        title: 'Units Display',
+        master: { key: 'showUnits', label: 'Show All Units' },
+        fields: [
+            { key: 'showLecUnits', label: 'Lecture' },
+            { key: 'showLabUnits', label: 'Laboratory' },
+            { key: 'showCreditUnits', label: 'Credit' },
+        ],
+    },
+    {
+        title: 'Schedule Display',
+        master: { key: 'showSchedule', label: 'Show All Schedule' },
+        fields: [
+            { key: 'showDay', label: 'Day' },
+            { key: 'showTime', label: 'Time' },
+            { key: 'showRoom', label: 'Room' },
+        ],
+    },
+];
 
-    // 2. Local State for hiding specific subjects (NOT saved to localStorage)
-    const [hiddenSubjects, setHiddenSubjects] = useState([]);
+function loadSettings() {
+    if (typeof window === 'undefined') {
+        return DEFAULT_SETTINGS;
+    }
 
-    // Save table settings to localStorage
+    try {
+        const saved = JSON.parse(
+            window.localStorage.getItem(STORAGE_KEY) ?? 'null'
+        );
+
+        // Use defaults for missing or invalid saved values.
+        return Object.fromEntries(
+            Object.entries(DEFAULT_SETTINGS).map(([key, defaultValue]) => [
+                key,
+                typeof saved?.[key] === 'boolean'
+                    ? saved[key]
+                    : defaultValue,
+            ])
+        );
+    } catch {
+        return DEFAULT_SETTINGS;
+    }
+}
+
+export default function CorGenerator({
+    data,
+    showSeal = false,
+    printable = true,
+}) {
+    const [settings, setSettings] = useState(loadSettings);
+    const [hiddenSubjectIds, setHiddenSubjectIds] = useState([]);
+
     useEffect(() => {
-        localStorage.setItem('cor_table_settings', JSON.stringify(settings));
+        try {
+            window.localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(settings)
+            );
+        } catch (error) {
+            console.warn('Unable to save COR settings:', error);
+        }
     }, [settings]);
 
-    const toggle = (key) => setSettings(s => ({ ...s, [key]: !s[key] }));
+    if (!data) {
+        return <p>No registration document available.</p>;
+    }
 
-    // Toggle individual subject visibility based on its unique ID
-    const toggleSubjectVisibility = (subjectId) => {
-        setHiddenSubjects(prev =>
-            prev.includes(subjectId)
-                ? prev.filter(id => id !== subjectId) // Remove from hidden list
-                : [...prev, subjectId] // Add to hidden list
-        );
-    };
+    const subjects = data.student_subject ?? [];
 
-    if (!data) return <>No Data</>
-
-    // 3. Filter subjects before passing them to child components
-    const visibleSubjects = data.student_subject.filter(
-        sub => !hiddenSubjects.includes(sub.id)
+    const visibleSubjects = subjects.filter(
+        (subject) => !hiddenSubjectIds.includes(subject.id)
     );
 
     return (
-        <div className="flex flex-col items-center min-h-screen">
+        <div className="flex min-h-screen flex-col items-center print:min-h-0">
+            <CustomizeView
+                settings={settings}
+                setSettings={setSettings}
+                subjects={subjects}
+                hiddenSubjectIds={hiddenSubjectIds}
+                setHiddenSubjectIds={setHiddenSubjectIds}
+            />
 
-            <div className="fixed top-6 right-6 z-50 print:hidden">
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant="outline" className="shadow-sm flex items-center gap-2">
-                            <Settings2 className="w-4 h-4" />
-                            Customize View
-                        </Button>
-                    </PopoverTrigger>
-
-                    {/* Increased width to accommodate longer subject names and added max-height for scrolling */}
-                    <PopoverContent className="w-96 p-5 shadow-xl rounded-xl max-h-[85vh] overflow-y-auto" align="end">
-                        <div className="space-y-4">
-                            <div>
-                                <h3 className="font-semibold leading-none tracking-tight">Table Settings</h3>
-                                <p className="text-sm text-muted-foreground mt-1.5">Toggle column visibility for printing.</p>
-                            </div>
-
-                            <Separator />
-
-                            {/* Main Columns */}
-                            <div className="space-y-3">
-                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Main Columns</h4>
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="showSubjectCode" checked={settings.showSubjectCode} onCheckedChange={() => toggle('showSubjectCode')} />
-                                        <Label htmlFor="showSubjectCode" className="cursor-pointer text-sm font-medium leading-none">Subject Code</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="showCourseSection" checked={settings.showCourseSection} onCheckedChange={() => toggle('showCourseSection')} />
-                                        <Label htmlFor="showCourseSection" className="cursor-pointer text-sm font-medium leading-none">Course Section</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="showDescriptiveTitle" checked={settings.showDescriptiveTitle} onCheckedChange={() => toggle('showDescriptiveTitle')} />
-                                        <Label htmlFor="showDescriptiveTitle" className="cursor-pointer text-sm font-medium leading-none">Descriptive Title</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="showInstructor" checked={settings.showInstructor} onCheckedChange={() => toggle('showInstructor')} />
-                                        <Label htmlFor="showInstructor" className="cursor-pointer text-sm font-medium leading-none">Instructor</Label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            {/* Units Settings */}
-                            <div className="space-y-3">
-                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Units Display</h4>
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="showUnits" checked={settings.showUnits} onCheckedChange={() => toggle('showUnits')} />
-                                        <Label htmlFor="showUnits" className="cursor-pointer font-bold text-sm leading-none">Show All Units</Label>
-                                    </div>
-                                    <div className="flex flex-col gap-3 ml-6">
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="showLecUnits" checked={settings.showLecUnits} onCheckedChange={() => toggle('showLecUnits')} disabled={!settings.showUnits} />
-                                            <Label htmlFor="showLecUnits" className={`cursor-pointer text-sm font-medium leading-none ${!settings.showUnits && 'text-muted-foreground opacity-70'}`}>Lecture</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="showLabUnits" checked={settings.showLabUnits} onCheckedChange={() => toggle('showLabUnits')} disabled={!settings.showUnits} />
-                                            <Label htmlFor="showLabUnits" className={`cursor-pointer text-sm font-medium leading-none ${!settings.showUnits && 'text-muted-foreground opacity-70'}`}>Laboratory</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="showCreditUnits" checked={settings.showCreditUnits} onCheckedChange={() => toggle('showCreditUnits')} disabled={!settings.showUnits} />
-                                            <Label htmlFor="showCreditUnits" className={`cursor-pointer text-sm font-medium leading-none ${!settings.showUnits && 'text-muted-foreground opacity-70'}`}>Credit</Label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            {/* Schedule Settings */}
-                            <div className="space-y-3">
-                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Schedule Display</h4>
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="showSchedule" checked={settings.showSchedule} onCheckedChange={() => toggle('showSchedule')} />
-                                        <Label htmlFor="showSchedule" className="cursor-pointer font-bold text-sm leading-none">Show All Schedule</Label>
-                                    </div>
-                                    <div className="flex flex-col gap-3 ml-6">
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="showDay" checked={settings.showDay} onCheckedChange={() => toggle('showDay')} disabled={!settings.showSchedule} />
-                                            <Label htmlFor="showDay" className={`cursor-pointer text-sm font-medium leading-none ${!settings.showSchedule && 'text-muted-foreground opacity-70'}`}>Day</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="showTime" checked={settings.showTime} onCheckedChange={() => toggle('showTime')} disabled={!settings.showSchedule} />
-                                            <Label htmlFor="showTime" className={`cursor-pointer text-sm font-medium leading-none ${!settings.showSchedule && 'text-muted-foreground opacity-70'}`}>Time</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="showRoom" checked={settings.showRoom} onCheckedChange={() => toggle('showRoom')} disabled={!settings.showSchedule} />
-                                            <Label htmlFor="showRoom" className={`cursor-pointer text-sm font-medium leading-none ${!settings.showSchedule && 'text-muted-foreground opacity-70'}`}>Room</Label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <Separator />
-
-                            {/* --- NEW: FILTER SUBJECTS SECTION --- */}
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Filter Subjects</h4>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-5 text-[10px] px-2 text-blue-600 hover:text-blue-800"
-                                        onClick={() => setHiddenSubjects([])}
-                                    >
-                                        Show All
-                                    </Button>
-                                </div>
-                                <div className="flex flex-col gap-3 max-h-48 overflow-y-auto pr-2 scrollbar-thin">
-                                    {data.student_subject.map((sub) => (
-                                        <div key={sub.id} className="flex items-start space-x-2">
-                                            <Checkbox
-                                                id={`sub-${sub.id}`}
-                                                checked={!hiddenSubjects.includes(sub.id)}
-                                                onCheckedChange={() => toggleSubjectVisibility(sub.id)}
-                                                className="mt-0.5"
-                                            />
-                                            <Label htmlFor={`sub-${sub.id}`} className="cursor-pointer text-xs font-medium leading-tight">
-                                                <span className="font-bold">{sub.year_section_subjects.subject.subject_code}</span>
-                                                <span className="text-muted-foreground block text-[10px] mt-0.5">{sub.year_section_subjects.subject.descriptive_title}</span>
-                                            </Label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full text-xs text-muted-foreground hover:text-red-600"
-                                onClick={() => setSettings(defaultSettings)}
-                            >
-                                Reset Layout to Defaults
-                            </Button>
-
-                        </div>
-                    </PopoverContent>
-                </Popover>
-            </div>
-
-            {/* Main Document */}
-            <div className="relative space-y-4 p-5 flex justify-center bg-white rounded-lg text-black w-[800px]">
+            <div className="relative w-[800px] rounded-lg bg-white p-5 text-black">
+                {/* Screen-only seal */}
                 {showSeal && (
-                    <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none print:hidden">
-                        <div className="bg-red-600 text-white font-bold text-4xl px-4 py-2 rounded-lg opacity-80 rotate-[20deg]">
+                    <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center print:hidden">
+                        <div className="rotate-[20deg] rounded-lg bg-red-600 px-4 py-2 text-4xl font-bold text-white opacity-80">
                             NO PERMISSION TO VIEW
                         </div>
                     </div>
                 )}
 
-                <div className="p-5 border border-gray-600 w-full space-y-4 relative z-10">
-                    <div className="flex items-center justify-center space-x-4">
-                        <div className="text-center flex flex-col relative">
-                            <img src={OCC_LOGO} alt="Logo" className="h-full absolute -left-40" />
-                            <h1 className="text-lg font-bold">OPOL COMMUNITY COLLEGE</h1>
-                            <p className="text-sm">Opol, Misamis Oriental</p>
-                            <h2 className="text-xl font-bold">CERTIFICATE OF REGISTRATION</h2>
+                {/* Print-only notice */}
+                {!printable && (
+                    <div className="hidden min-h-[400px] items-center justify-center p-8 print:flex">
+                        <div className="w-full max-w-lg rounded-xl border-2 border-red-600 p-8 text-center">
+                            <p className="text-2xl font-bold tracking-wide text-red-600">
+                                PRINTING NOT AVAILABLE
+                            </p>
+
+                            <p className="mt-3 text-sm leading-relaxed text-gray-600">
+                                This Certificate of Registration is
+                                available for on-screen viewing only.
+                            </p>
                         </div>
                     </div>
+                )}
 
-                    <CorStudentInfo data={data} showSeal={showSeal} />
-
-                    {/* PASSING FILTERED SUBJECTS HERE */}
-                    <CorStudentSubjects data={visibleSubjects} showSeal={showSeal} settings={settings} />
-
-                    <div className='flex justify-around gap-4'>
-                        {/* PASSING FILTERED SUBJECTS HERE */}
-                        <CorFees
-                            subjects={visibleSubjects}
-                            course={data.year_section.course.course_name_abbreviation}
-                            courseId={data.year_section.course.id}
-                            yearLevel={data.year_section.year_level_id}
-                            showSeal={showSeal}
-                            semester={data.year_section.school_year.semester.semester_name}
-                            studentType={data.student_type_id}
-                        />
-                        <Signatories showSeal={showSeal} />
-                    </div>
-
-                    <div className="mt-2 text-[8px]">
-                        Evaluator: {formatFullName(data.evaluator.evaluator_information)}
-                    </div>
+                {/* Visible on screen regardless of printable */}
+                <div
+                    className={`
+                        relative z-10 space-y-4 border border-gray-600 p-5
+                        ${!printable ? 'print:!hidden' : ''}
+                    `}
+                >
+                    <CorDocument
+                        data={data}
+                        subjects={visibleSubjects}
+                        settings={settings}
+                        showSeal={showSeal}
+                    />
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default CorGenerator
+function CheckboxField({
+    label,
+    checked,
+    onChange,
+    disabled = false,
+    bold = false,
+}) {
+    const id = useId();
+
+    return (
+        <div className="flex items-start gap-2">
+            <Checkbox
+                id={id}
+                checked={checked}
+                disabled={disabled}
+                onCheckedChange={(value) => onChange(value === true)}
+                className="mt-0.5"
+            />
+
+            <Label
+                htmlFor={id}
+                className={`
+                    cursor-pointer text-sm leading-tight
+                    ${bold ? 'font-semibold' : 'font-medium'}
+                    ${disabled ? 'cursor-not-allowed text-muted-foreground opacity-70' : ''}
+                `}
+            >
+                {label}
+            </Label>
+        </div>
+    );
+}
+
+function CustomizeView({
+    settings,
+    setSettings,
+    subjects,
+    hiddenSubjectIds,
+    setHiddenSubjectIds,
+}) {
+    const updateSetting = (key, checked) => {
+        setSettings((previous) => ({
+            ...previous,
+            [key]: checked,
+        }));
+    };
+
+    const updateSubjectVisibility = (subjectId, visible) => {
+        setHiddenSubjectIds((previous) => {
+            if (visible) {
+                return previous.filter((id) => id !== subjectId);
+            }
+
+            return previous.includes(subjectId)
+                ? previous
+                : [...previous, subjectId];
+        });
+    };
+
+    return (
+        <div className="fixed right-6 top-6 z-50 print:hidden">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="gap-2 shadow-sm"
+                    >
+                        <Settings2 className="size-4" />
+                        Customize View
+                    </Button>
+                </PopoverTrigger>
+
+                <PopoverContent
+                    align="end"
+                    className="max-h-[85vh] w-96 overflow-y-auto rounded-xl p-5 shadow-xl print:hidden"
+                >
+                    <div className="space-y-4">
+                        <div>
+                            <h3 className="font-semibold leading-none tracking-tight">
+                                Table Settings
+                            </h3>
+
+                            <p className="mt-1.5 text-sm text-muted-foreground">
+                                Choose which columns and subjects to display.
+                            </p>
+                        </div>
+
+                        <Separator />
+
+                        {SETTING_GROUPS.map(({ title, master, fields }) => {
+                            const disabled = master
+                                ? !settings[master.key]
+                                : false;
+
+                            return (
+                                <div key={title} className="space-y-3">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                        {title}
+                                    </h4>
+
+                                    {master && (
+                                        <CheckboxField
+                                            label={master.label}
+                                            checked={settings[master.key]}
+                                            onChange={(checked) =>
+                                                updateSetting(master.key, checked)
+                                            }
+                                            bold
+                                        />
+                                    )}
+
+                                    <div
+                                        className={`space-y-3 ${master ? 'ml-6' : ''}`}
+                                    >
+                                        {fields.map(({ key, label }) => (
+                                            <CheckboxField
+                                                key={key}
+                                                label={label}
+                                                checked={settings[key]}
+                                                disabled={disabled}
+                                                onChange={(checked) =>
+                                                    updateSetting(key, checked)
+                                                }
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <Separator />
+                                </div>
+                            );
+                        })}
+
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                    Filter Subjects
+                                </h4>
+
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
+                                    disabled={hiddenSubjectIds.length === 0}
+                                    onClick={() => setHiddenSubjectIds([])}
+                                >
+                                    Show All
+                                </Button>
+                            </div>
+
+                            <div className="max-h-48 space-y-3 overflow-y-auto pr-2">
+                                {subjects.map((subject) => {
+                                    const {
+                                        subject_code,
+                                        descriptive_title,
+                                    } = subject.year_section_subjects.subject;
+
+                                    return (
+                                        <CheckboxField
+                                            key={subject.id}
+                                            checked={
+                                                !hiddenSubjectIds.includes(
+                                                    subject.id
+                                                )
+                                            }
+                                            onChange={(visible) =>
+                                                updateSubjectVisibility(
+                                                    subject.id,
+                                                    visible
+                                                )
+                                            }
+                                            label={
+                                                <>
+                                                    <span className="text-xs font-bold">
+                                                        {subject_code}
+                                                    </span>
+
+                                                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                                                        {descriptive_title}
+                                                    </span>
+                                                </>
+                                            }
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <Separator />
+
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-xs text-muted-foreground hover:text-red-600"
+                            onClick={() => setSettings(DEFAULT_SETTINGS)}
+                        >
+                            Reset Layout to Defaults
+                        </Button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
+}
+
+function CorDocument({ data, subjects, settings, showSeal }) {
+    const { course, school_year, year_level_id } = data.year_section;
+
+    return (
+        <>
+            <div className="flex items-center justify-center gap-4">
+                <div className="relative flex flex-col text-center">
+                    <img
+                        src={OCC_LOGO}
+                        alt="Opol Community College logo"
+                        className="absolute -left-40 h-full"
+                    />
+
+                    <h1 className="text-lg font-bold">
+                        OPOL COMMUNITY COLLEGE
+                    </h1>
+
+                    <p className="text-sm">
+                        Opol, Misamis Oriental
+                    </p>
+
+                    <h2 className="text-xl font-bold">
+                        CERTIFICATE OF REGISTRATION
+                    </h2>
+                </div>
+            </div>
+
+            <CorStudentInfo
+                data={data}
+                showSeal={showSeal}
+            />
+
+            <CorStudentSubjects
+                data={subjects}
+                showSeal={showSeal}
+                settings={settings}
+            />
+
+            <div className="flex justify-around gap-4">
+                <CorFees
+                    subjects={subjects}
+                    course={course.course_name_abbreviation}
+                    courseId={course.id}
+                    yearLevel={year_level_id}
+                    showSeal={showSeal}
+                    semester={school_year.semester.semester_name}
+                    studentType={data.student_type_id}
+                />
+
+                <Signatories showSeal={showSeal} />
+            </div>
+
+            <div className="mt-2 text-[8px]">
+                Evaluator:{' '}
+                {formatFullName(data.evaluator.evaluator_information)}
+            </div>
+        </>
+    );
+}

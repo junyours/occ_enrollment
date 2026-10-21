@@ -14,10 +14,14 @@ import { DownloadButton } from './DownloadButton'
 import { Skeleton } from '@/Components/ui/skeleton'
 import SearchBar from '@/Components/ui/SearchBar'
 import PaginationPages from '@/Components/ui/PaginationPages'
+import StudentCor from './StudentCor'
 
 export default function Index({ tab, search }) {
 
-    const { selectedSchoolYearEntry } = useSchoolYearStore()
+    const { selectedSchoolYearEntry } = useSchoolYearStore();
+
+    const [selectedStudentId, setSelectedStudentId] = useState(null);
+    const [open, setOpen] = useState(false);
 
     const getDashboardData = async () => {
         const res = await axios.post('', {
@@ -42,7 +46,7 @@ export default function Index({ tab, search }) {
         enabled: !!selectedSchoolYearEntry?.id,
         staleTime: 10000 * 60,
     })
-    
+
     const [searchKey, setSearchKey] = useState(search || '');
 
     const students = data?.data || [];
@@ -120,7 +124,7 @@ export default function Index({ tab, search }) {
                         </div>
 
                         {/* Enrolled Tab */}
-                        <TabsContent value="enrolled" className="mt-4"> 
+                        <TabsContent value="enrolled" className="mt-4">
                             <Card>
                                 <Table>
                                     <TableHeader>
@@ -162,6 +166,9 @@ export default function Index({ tab, search }) {
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         {formatDate(student.enrolled_date)}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button onClick={() =>{ setSelectedStudentId(student.enrlled_student_id); setOpen(true)}}>COR</Button>
                                                     </TableCell>
                                                 </TableRow>
                                             ));
@@ -207,6 +214,9 @@ export default function Index({ tab, search }) {
                                                         {student.course_section}
                                                     </TableCell>
                                                     <TableCell className="text-right">{student.contact_number ?? "-"}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button onClick={() => { setSelectedStudentId(student.enrlled_student_id); setOpen(true) }}>COR</Button>
+                                                    </TableCell>
                                                 </TableRow>
                                             ));
                                         })()}
@@ -221,6 +231,7 @@ export default function Index({ tab, search }) {
                     <PaginationPages data={data} />
                 </CardFooter>
             </Card>
+            <StudentCor open={open} setOpen={setOpen} id={selectedStudentId} />
         </div>
 
     )

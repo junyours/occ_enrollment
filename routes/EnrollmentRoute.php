@@ -6,7 +6,7 @@ use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
 use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
 use App\Http\Controllers\SchoolYear\SchoolYearController;
 
-Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(function () {
+Route::middleware(['auth', 'maintenance', 'role:program_head,registrar,evaluator,nstp_director'])->group(function () {
     Route::get('/dashboard', [EnrollmentDashboardController::class, 'view'])->name('dashboard');
 
     Route::get('/enrollment/{id}', [EnrollmentCourseSectionController::class, 'view'])->name('enrollment.view');
@@ -19,6 +19,7 @@ Route::middleware(['auth', 'maintenance', 'EnrollmentPermission'])->group(functi
     Route::get('/enrollment/{id}/students/{yearlevel}/subjects', [EnrollmentCourseSectionController::class, 'viewStudentSubjects'])->name('enrollment.view.student.subjects');
     Route::get('/enrollment/{id}/students/{yearlevel}/cor', [EnrollmentCourseSectionController::class, 'viewStudentCor'])->name('enrollment.view.student.cor');
     Route::post('/enrollment/student-info/cor/{courseId}/{section}/{yearlevel}/{studentIdNo}/{schoolYearId}', [EnrollmentCourseSectionController::class, 'getStudentEnrollmentInfo'])->name('enrollment.student.info.cor');
+    Route::post('/student/cor/{enrolledStudentId}', [EnrollmentCourseSectionController::class, 'getStudentCor'])->name('student.cor');
     Route::post('/enrollment/corinfo/mark-printed', [EnrollmentCourseSectionController::class, 'corMarkPrinted'])->name('enrollment.corinfo.mark-printed');
     Route::post('/enrollment/corinfo', [EnrollmentCourseSectionController::class, 'corInfo'])->name('enrollment.corinfo');
 
