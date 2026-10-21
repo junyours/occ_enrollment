@@ -7,6 +7,7 @@ import {
     ChevronsUpDown,
     LogOut,
     Palette,
+    Settings,
 } from "lucide-react";
 
 import {
@@ -104,11 +105,12 @@ export function NavUser() {
                         {/* Profile */}
                         <DropdownMenuItem asChild>
                             <Link
-                                href={route("profile")}
+                                href={route("settings")}
                                 onClick={() => setOpenMobile(false)}
+                                className="hover:cursor-pointer"
                             >
-                                <BadgeCheck className="mr-2 h-4 w-4" />
-                                Profile
+                                <Settings className="mr-2 h-4 w-4" />
+                                Settings
                             </Link>
                         </DropdownMenuItem>
 
@@ -116,7 +118,7 @@ export function NavUser() {
 
                         {/* Theme Toggle */}
                         <div className="px-2 flex justify-between items-center">
-                            <div className="flex items-center text-sm">
+                            <div className="flex items-center text-sm gap-2">
                                 <Palette className="h-4 w-4 mr-2" />
                                 Theme
                             </div>

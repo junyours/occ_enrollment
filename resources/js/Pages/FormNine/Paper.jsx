@@ -6,6 +6,7 @@ import Header from './components/Header';
 import { cn } from '@/Lib/Utils';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Card } from '@/Components/ui/card';
 
 const THead = React.forwardRef((props, ref) => (
     <thead ref={ref} className="table-header-group">
@@ -116,9 +117,9 @@ export default function Paper({ data, className }) {
     return (
         <div>
             {/* Page Control */}
-            <div className="print:hidden mb-4 p-3 bg-gray-50 rounded border flex items-center gap-4">
+            <Card className="print:hidden mb-4 p-3 rounded border flex items-center gap-4">
                 <div className="text-sm flex items-center gap-2">
-                    <span className="font-medium text-gray-700">Pages:</span>
+                    <span className="font-medium">Pages:</span>
                     <Input
                         type="number"
                         min="1"
@@ -135,7 +136,7 @@ export default function Paper({ data, className }) {
                 >
                     Reset
                 </Button>
-            </div>
+            </Card>
 
             <div
                 ref={wrapperRef}
