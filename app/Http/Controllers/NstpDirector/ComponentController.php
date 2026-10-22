@@ -683,6 +683,18 @@ class ComponentController extends Controller
         return response()->json($instructors);
     }
 
+    public function getNstpInstructors()
+    {
+        $instructors = User::select('users.id', 'first_name', 'last_name', 'middle_name')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->where('users.active', '=', 1)
+            ->where('users.user_role', '=', 'nstp_faculty')
+            ->orderBy('last_name', 'ASC')
+            ->get();
+
+        return response()->json($instructors);
+    }
+
     public function updateSection(Request $request)
     {
         // Find the record by ID

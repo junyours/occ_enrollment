@@ -34,6 +34,7 @@ Route::middleware(['auth', 'maintenance', 'role:nstp_director'])->group(function
 
     Route::post('/nstp-director/all-rooms/list', [ComponentController::class, 'getAllRooms'])->name('nstp-director.all-rooms');
     Route::post('/nstp-director/all-isntructors/list', [ComponentController::class, 'getAllInstructors'])->name('nstp-director.all-instructors');
+    Route::post('/nstp-director/nstp-isntructors/list', [ComponentController::class, 'getNstpInstructors'])->name('nstp-director.nstp-instructors');
 
     Route::post('/nstp-director/update-section', [ComponentController::class, 'updateSection'])->name('nstp-director.update.class');
 

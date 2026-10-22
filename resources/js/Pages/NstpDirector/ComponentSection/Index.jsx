@@ -116,6 +116,10 @@ export default function Index({ component }) {
         enabled: !!selectedSchoolYearEntry?.id && !!component,
     });
 
+    const selectedInstructor = selectedSection.faculty_id
+        ? instructors.find(instructor => instructor.id == selectedSection.faculty_id)
+        : undefined;
+
     if (!selectedSchoolYearEntry?.id) return <></>
 
     const addSection = async () => {
@@ -182,7 +186,7 @@ export default function Index({ component }) {
     const getInstructors = async () => {
         if (instructors.length > 0) return;
 
-        const response = await axios.post(route('nstp-director.all-instructors'));
+        const response = await axios.post(route('nstp-director.nstp-instructors'));
         setInstructors(response.data);
     };
 
@@ -466,22 +470,12 @@ export default function Index({ component }) {
                         <></>
                     )}
 
-                    {(selectedSection.faculty_id && instructors.length > 0) ? (
-                        <>
-                            {(() => {
-                                const instructor = instructors.find(instructor => instructor.id == selectedSection.faculty_id)
-
-                                return (
-                                    <InstructorSchedules
-                                        instructorId={selectedSection.faculty_id}
-                                        instructorName={formatFullName(instructor)}
-                                    />
-                                )
-                            })()}
-                        </>
-                    ) : (
-                        <></>
-                    )}
+                    {(selectedSection.faculty_id && selectedInstructor) ? (
+                        <InstructorSchedules
+                            instructorId={selectedSection.faculty_id}
+                            instructorName={formatFullName(selectedInstructor)}
+                        />
+                    ) : null}
                 </div>
             )}
 
