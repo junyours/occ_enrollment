@@ -13,6 +13,16 @@ export default function CredentialsCard({ data, credentials }) {
             <p className="text-sm text-muted-foreground">
                 Save these credentials before closing. The generated password is shown only after creation.
             </p>
+            {credentials.email_sent === true && (
+                <p role="status" className="text-sm text-muted-foreground">
+                    Credentials email sent to {credentials.email}.
+                </p>
+            )}
+            {credentials.email_sent === false && (
+                <p role="alert" className="rounded-md border border-destructive p-3 text-sm text-destructive">
+                    The account was created, but the credentials email could not be sent. Save the ID number and password before closing, and check the mail configuration.
+                </p>
+            )}
             <dl className="space-y-3 text-sm">
                 <div>
                     <dt className="font-medium">ID number</dt>

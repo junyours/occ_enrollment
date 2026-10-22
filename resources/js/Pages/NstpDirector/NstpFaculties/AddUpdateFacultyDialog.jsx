@@ -114,7 +114,7 @@ function getFormData(faculty) {
         birthday: faculty?.birthday?.slice(0, 10) ?? "",
         contact_number: String(faculty?.contact_number ?? "09").replace(/-/g, "") || "09",
         email_address: faculty?.email_address ?? faculty?.email ?? "",
-        present_address: faculty?.present_address ?? "",
+        present_address: faculty?.has_present_address === false ? "" : faculty?.present_address ?? "",
         zip_code: String(faculty?.zip_code ?? ""),
     };
 }
@@ -221,8 +221,9 @@ function AddUpdateFacultyDialog({
         () => address.cityCode ? getBarangays(address.cityCode) ?? [] : [],
         [address.cityCode],
     );
+    const needsAddressRecord = Boolean(facultyId) && selectedFaculty?.has_present_address === false;
     const hasSavedAddress = Boolean(selectedFaculty?.present_address?.trim()) &&
-        !hasStructuredAddress(selectedFaculty);
+        !hasStructuredAddress(selectedFaculty) && !needsAddressRecord;
     const editingAddress = !hasSavedAddress || replaceAddress;
 
     const { data, setData, errors, setError, clearErrors } = useForm(getFormData());
@@ -521,6 +522,7 @@ function AddUpdateFacultyDialog({
 
             if (response.data.success) {
                 toast.success(response.data.success);
+                if (response.data.warning) toast.error(response.data.warning);
                 refetch();
                 if (response.data.credentials) {
                     if (response.data.faculty) setData(getFormData(response.data.faculty));
@@ -962,6 +964,14 @@ function AddUpdateFacultyDialog({
                                                         <legend className="px-1 text-sm font-medium">
                                                             Present address <Required />
                                                         </legend>
+                                                        {needsAddressRecord && (
+                                                            <div className="space-y-2 text-sm text-muted-foreground">
+                                                                <p>No address record is saved yet. Complete the address fields below; clicking Update will create it.</p>
+                                                                {selectedFaculty.present_address && (
+                                                                    <p><span className="font-medium">Previous address:</span> {selectedFaculty.present_address}</p>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                         {editingAddress && (
                                                             <div className="space-y-4">
                                                                 <Field className="gap-2">
@@ -981,7 +991,7 @@ function AddUpdateFacultyDialog({
                                                                         })}
                                                                     />
                                                                 </Field>
-                                                                {renderAddressSelect("region", "Region", regions, handleRegionChange)}
+                                                                {/* {renderAddressSelect("region", "Region", regions, handleRegionChange)} */}
                                                                 {renderAddressSelect("province", "Province", provinces, handleProvinceChange, !address.regionCode)}
                                                                 {renderAddressSelect("city", "City/Municipality", cities, handleCityChange, !address.provinceCode)}
                                                                 {renderAddressSelect("barangay", "Barangay", barangays, handleBarangayChange, !address.cityCode)}

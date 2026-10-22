@@ -60,10 +60,7 @@ export default function Index({ search = "" }) {
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>NSTP Faculty</CardTitle>
-            </CardHeader>
+        <Card className="pt-6">
             <CardContent className="space-y-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <Button

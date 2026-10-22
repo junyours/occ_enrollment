@@ -30,6 +30,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Mail\NstpFacultyCredentialsMail;
+use Illuminate\Support\Facades\Log;
 
 class ComponentController extends Controller
 {
@@ -1414,48 +1416,106 @@ class ComponentController extends Controller
     {
         $this->authorizeNstpFacultyManagement($request);
         $validated = $this->validateNstpFaculty($request);
-        $password = Str::random(20);
+        $password = Str::random(8);
 
         $yearLastTwoDigits = date('y');
+        $suffixes = range(0, 999);
+        shuffle($suffixes);
 
-        $randomNumber = rand(0, 999);
-        $randomNumberPadded = str_pad($randomNumber, 3, '0', STR_PAD_LEFT);
-        $userIdNo = "FAC-" . $yearLastTwoDigits . $randomNumberPadded;
+        $userId = null;
+        $userIdNo = null;
+
+        foreach ($suffixes as $suffix) {
+            $candidate = 'FAC-' . $yearLastTwoDigits
+                . str_pad((string) $suffix, 3, '0', STR_PAD_LEFT);
+
+            if (DB::table('users')->where('user_id_no', $candidate)->exists()) {
+                continue;
+            }
+
+            try {
+                $userId = DB::transaction(function () use ($validated, $password, $candidate) {
+                    $now = now();
+                    $userId = DB::table('users')->insertGetId([
+                        'user_id_no' => $candidate,
+                        'email' => $validated['email_address'],
+                        'password' => Hash::make($password),
+                        'user_role' => 'nstp_faculty',
+                        'active' => 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+
+                    DB::table('user_information')->insert(array_merge(
+                        $this->nstpFacultyProfile($validated),
+                        ['user_id' => $userId, 'created_at' => $now, 'updated_at' => $now]
+                    ));
+
+                    $this->saveNstpFacultyAddress($userId, $validated);
+
+                    return $userId;
+                }, 3);
+
+                $userIdNo = $candidate;
+                break;
+            } catch (QueryException $exception) {
+                // Retry only a duplicate faculty ID, including a concurrent insert.
+                $sqlState = (string) ($exception->errorInfo[0] ?? $exception->getCode());
+                $databaseMessage = (string) ($exception->errorInfo[2] ?? '');
+
+                $isIdCollision = in_array($sqlState, ['23000', '23505'], true)
+                    && (
+                        strpos($databaseMessage, 'users_user_id_no_unique') !== false
+                        || strpos($databaseMessage, 'users.user_id_no') !== false
+                    );
+
+                if ($isIdCollision) {
+                    continue;
+                }
+
+                $this->rethrowNstpFacultyDatabaseError($exception);
+                throw $exception;
+            }
+        }
+
+        if ($userId === null) {
+            return response()->json([
+                'message' => 'All faculty ID numbers for this year are already in use. Expand the ID format before creating another account.',
+            ], 422);
+        }
+
+        // Send only after the account, profile, and address have committed.
+        $faculty = $this->nstpFacultyDetails($userId);
+        $emailSent = false;
 
         try {
-            $userId = DB::transaction(function () use ($validated, $password, $userIdNo) {
-                $now = now();
-                $userId = DB::table('users')->insertGetId([
-                    'user_id_no' => $userIdNo,
-                    'email' => $validated['email_address'],
-                    'password' => Hash::make($password),
-                    'user_role' => 'nstp_faculty',
-                    'active' => 1,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
+            Mail::to($validated['email_address'])->send(new NstpFacultyCredentialsMail([
+                'first_name' => $validated['first_name'],
+                'middle_name' => $validated['middle_name'] ?? null,
+                'last_name' => $validated['last_name'],
+                'user_id_no' => $userIdNo,
+                'email' => $validated['email_address'],
+            ], $password));
 
-                DB::table('user_information')->insert(array_merge(
-                    $this->nstpFacultyProfile($validated),
-                    ['user_id' => $userId, 'created_at' => $now, 'updated_at' => $now]
-                ));
-
-                $this->saveNstpFacultyAddress($userId, $validated);
-
-                return $userId;
-            }, 3);
-        } catch (QueryException $exception) {
-            $this->rethrowNstpFacultyDatabaseError($exception);
+            $emailSent = true;
+        } catch (\Throwable $exception) {
+            // Do not log exception messages or mail data containing the password.
+            Log::warning('NSTP faculty credentials email failed.', [
+                'user_id' => $userId,
+                'exception_type' => get_class($exception),
+            ]);
         }
 
         return response()->json([
             'success' => 'NSTP faculty created successfully.',
-            'faculty' => $this->nstpFacultyDetails($userId),
+            'faculty' => $faculty,
+            'warning' => $emailSent ? null : 'The account was created, but its credentials email could not be sent. Save the credentials below before closing.',
             'credentials' => [
                 'user_id_no' => $userIdNo,
                 'username' => $userIdNo,
                 'email' => $validated['email_address'],
                 'password' => $password,
+                'email_sent' => $emailSent,
             ],
         ], 201)->header('Cache-Control', 'no-store');
     }
@@ -1473,15 +1533,14 @@ class ComponentController extends Controller
 
                 if (
                     $validated['address_mode'] === 'keep' &&
-                    !DB::table('user_present_address')->where('user_id', $user->id)->exists() &&
-                    empty($information?->present_address)
+                    !DB::table('user_present_address')->where('user_id', $user->id)->exists()
                 ) {
                     throw ValidationException::withMessages([
-                        'present_address' => 'Please select a complete address.',
+                        'present_address' => 'Complete the address fields to create this faculty\'s address record.',
                     ]);
                 }
 
-                // "keep" preserves the stored address and ZIP, including legacy records.
+                // "keep" preserves an existing address row; missing rows must be completed.
                 $profile = $this->nstpFacultyProfile($validated);
                 $now = now();
                 DB::table('users')->where('id', $user->id)->update([
@@ -1612,11 +1671,12 @@ class ComponentController extends Controller
             ])->first();
         abort_unless($faculty, 404, 'NSTP faculty not found.');
         $faculty->email_address ??= $faculty->email;
+        $faculty->has_present_address = $faculty->address_user_id !== null;
 
-        if ($faculty->address_user_id !== null) {
+        if ($faculty->has_present_address) {
             $faculty->present_address = $this->formatNstpFacultyAddress((array) $faculty);
         } else {
-            // Read-only fallback for profiles created before structured addresses.
+            // Show old free-text details as a reference while a new address is completed.
             $faculty->zip_code = $faculty->legacy_zip_code;
         }
         unset($faculty->address_user_id, $faculty->legacy_zip_code);
