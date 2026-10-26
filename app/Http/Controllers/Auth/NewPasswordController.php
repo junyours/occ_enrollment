@@ -3,67 +3,108 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\PasswordRecoverySession;
+use App\Services\PasswordResetOtp;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class NewPasswordController extends Controller
 {
-    /**
-     * Display the password reset view.
-     */
-    public function create(Request $request): Response
+    public function __construct(
+        private PasswordResetOtp $codes,
+        private PasswordRecoverySession $recovery,
+    ) {}
+
+    public function create(Request $request): Response|RedirectResponse
     {
-        return Inertia::render('Auth/ResetPassword', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
-        ]);
-    }
-
-    /**
-     * Handle an incoming new password request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                event(new PasswordReset($user));
-            }
-        );
-
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        if ($status == Password::PASSWORD_RESET) {
-            return redirect()->route('login')->with('status', __($status));
+        $user = $this->recovery->user($request);
+        $state = $user ? $this->codes->state(
+            $user,
+            $request->session()->get('password_recovery.request_id'),
+            $request->session()->get('password_recovery.verified_request_id'),
+        ) : null;
+        if (! $state || ! $state['otp_sent']) {
+            return redirect()->route('password.request')->withErrors([
+                'general' => 'Request a new password reset code to continue.',
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
-        ]);
+        return Inertia::render('Auth/ResetPassword', array_merge($state, [
+            'user_data' => $this->recovery->props($user),
+            'status' => $request->session()->get('status'),
+        ]));
+    }
+
+    public function verify(Request $request): RedirectResponse
+    {
+        $user = $this->recovery->user($request);
+        $requestId = $request->session()->get('password_recovery.request_id');
+        if (! $user || ! is_string($requestId)) {
+            return redirect()->route('password.request')->withErrors([
+                'general' => 'Your recovery session has expired. Find your account and request a new code.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'otp' => ['bail', 'required', 'string', 'regex:/\A[0-9]{6}\z/'],
+        ], ['otp.regex' => 'Enter the six-digit code from your email.']);
+
+        $result = $this->codes->verify($user, $requestId, $validated['otp']);
+        if (isset($result['error'])) {
+            throw ValidationException::withMessages(['otp' => $result['error']]);
+        }
+
+        $request->session()->regenerate();
+        $request->session()->put('password_recovery.verified_request_id', $requestId);
+        $request->session()->put('password_recovery.selected_at', now()->timestamp);
+
+        return redirect()->route('password.reset')->with('status', 'Email verified. You can now choose a new password.');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $user = $this->recovery->user($request);
+        $requestId = $request->session()->get('password_recovery.request_id');
+        if (! $user || ! is_string($requestId)) {
+            return redirect()->route('password.request')->withErrors([
+                'general' => 'Your recovery session has expired. Find your account and request a new code.',
+            ]);
+        }
+
+        if ($request->session()->get('password_recovery.verified_request_id') !== $requestId) {
+            return redirect()->route('password.reset')->withErrors([
+                'otp' => 'Verify your email code before choosing a new password.',
+            ]);
+        }
+
+        $validated = $request->validate([
+            'password' => ['bail', 'required', 'string', 'not_regex:/\x00/', 'max:72', 'confirmed', Password::min(8)->mixedCase()->numbers(),
+                static function (string $attribute, mixed $value, \Closure $fail) {
+                    if (is_string($value) && strlen($value) > 72) {
+                        $fail('The password must not exceed 72 bytes.');
+                    }
+                }],
+        ], ['password.not_regex' => 'The password must not contain null characters.']);
+
+        $result = $this->codes->reset($user, $requestId, $validated['password']);
+        if (isset($result['error'])) {
+            $request->session()->forget('password_recovery.verified_request_id');
+
+            return redirect()->route('password.request')->withErrors(['general' => $result['error']]);
+        }
+        if (isset($result['password_error'])) {
+            throw ValidationException::withMessages(['password' => $result['password_error']]);
+        }
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        event(new PasswordReset($result['user']));
+
+        return redirect()->route('login')->with('status', 'Your password has been changed. Sign in with your new password.');
     }
 }

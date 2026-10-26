@@ -5,31 +5,16 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\User;
 
 class PasswordResetMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $user;
-    public $resetUrl;
-    public $token;
+    public function __construct(public string $code, public int $expiresInMinutes = 10) {}
 
-    public function __construct(User $user, string $resetUrl, string $token)
+    public function build(): static
     {
-        $this->user = $user;
-        $this->resetUrl = $resetUrl;
-        $this->token = $token;
-    }
-
-    public function build()
-    {
-        return $this->subject('Reset Your Password - ' . config('app.name'))
-            ->view('emails.password-reset')
-            ->with([
-                'user' => $this->user,
-                'resetUrl' => $this->resetUrl,
-                'token' => $this->token,
-            ]);
+        return $this->subject('Your password reset code - '.config('app.name'))
+            ->view('emails.password-reset');
     }
 }

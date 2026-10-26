@@ -54,6 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->dontFlash(['otp']);
         $exceptions->render(function (TokenMismatchException $e, Request $request) {
             return Inertia::location(route('login'));
         });

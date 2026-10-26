@@ -26,16 +26,24 @@ Route::middleware('guest')->group(function () {
         ->name('password.request');
 
     Route::match(['GET', 'POST'], '/find-user', [PasswordResetLinkController::class, 'findUser'])
-        ->name('password.find-user');
+        ->middleware('throttle:10,1,password-lookup:')->name('password.find-user');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->name('password.email');
+        ->middleware('throttle:10,1,password-send:')->name('password.email');
 
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
+    Route::post('forgot-password/restart', [PasswordResetLinkController::class, 'restart'])
+        ->name('password.restart');
+
+    Route::get('reset-password/{token}', static fn () => redirect()->route('password.request'));
+
+    Route::get('reset-password', [NewPasswordController::class, 'create'])
         ->name('password.reset');
 
+    Route::post('reset-password/verify', [NewPasswordController::class, 'verify'])
+        ->middleware('throttle:10,1,password-verify:')->name('password.verify');
+
     Route::post('reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.store');
+        ->middleware('throttle:10,1,password-reset:')->name('password.store');
 });
 
 Route::middleware('auth')->group(function () {

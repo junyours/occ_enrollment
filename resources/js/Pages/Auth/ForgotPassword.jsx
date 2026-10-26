@@ -1,308 +1,96 @@
-import { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
-import { Mail, ArrowLeft, CheckCircle, Loader2, CheckCircle2, User, AlertCircle, KeyRound } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { AlertCircle, ArrowLeft, CheckCircle2, KeyRound, Loader2, Mail, User } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import AppLogo from '@/Components/AppLogo';
 import { TwoModeToggle } from '@/Components/two-modes-toggle';
 
-export default function ForgotPassword({ status, user_found, user_data }) {
-    const { data, setData, post, processing, errors } = useForm({
-        user_id_no: '',
-        email: '',
-    });
+export default function ForgotPassword({ status, errors: pageErrors = {}, server_time = null, expires_at = null, user_found = false, user_data = null, otp_sent = false, resend_available_at = null, expires_in_minutes = 10, max_attempts = 5 }) {
+    const lookup = useForm({ user_id_no: '' });
+    const action = useForm({});
+    const serverOffset = useRef(server_time == null ? 0 : server_time - Date.now() / 1000);
+    const [now, setNow] = useState(() => server_time ?? Math.floor(Date.now() / 1000));
+    const found = user_found && user_data;
+    const busy = lookup.processing || action.processing;
+    const cooldown = Math.max(0, (resend_available_at || 0) - now);
+    const errors = { ...pageErrors, ...lookup.errors, ...action.errors };
+    const error = errors.user_id_no || errors.general || errors.email;
 
-    const [step, setStep] = useState(user_found ? 2 : 1);
-    const [foundUser, setFoundUser] = useState(user_data || null);
+    useEffect(() => {
+        serverOffset.current = server_time == null ? 0 : server_time - Date.now() / 1000;
+        const updateClock = () => setNow(Math.floor(Date.now() / 1000 + serverOffset.current));
+        updateClock();
+        const timer = window.setInterval(updateClock, 1000);
+        return () => window.clearInterval(timer);
+    }, [server_time, expires_at, resend_available_at]);
 
-    const findUser = (e) => {
-        e.preventDefault();
-        post(route('password.find-user'), {
-            preserveScroll: true,
-            preserveState: true,
-            onSuccess: (page) => {
-                if (page.props.user_found) {
-                    setStep(2);
-                    setFoundUser(page.props.user_data);
-                    setData('email', page.props.user_data.email);
-                }
-            },
-        });
+    const findAccount = (event) => {
+        event.preventDefault();
+        action.clearErrors();
+        lookup.post(route('password.find-user'), { preserveScroll: true });
     };
-
-    const sendResetLink = (e) => {
-        e.preventDefault();
-        post(route('password.email'), {
-            preserveScroll: true,
-            preserveState: true,
-        });
+    const sendCode = (event) => {
+        event.preventDefault();
+        lookup.clearErrors();
+        action.post(route('password.email'), { preserveScroll: true });
     };
-
     const startOver = () => {
-        setStep(1);
-        setFoundUser(null);
-        setData({ user_id_no: '', email: '' });
+        lookup.reset();
+        lookup.clearErrors();
+        action.post(route('password.restart'), { preserveScroll: true });
     };
 
     return (
-        <div className='h-svh w-full flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900'>
+        <main className="min-h-svh w-full bg-gradient-to-br from-slate-50 to-blue-50 px-4 py-6 dark:from-slate-950 dark:to-slate-900 sm:py-10 flex  items-center justify-center">
             <Head title="Forgot Password" />
-
-            {/* Theme Toggle */}
-            <div className="absolute top-4 right-4">
-                <TwoModeToggle />
-            </div>
-
-            <div className="w-full max-w-md space-y-6">
-                {/* Logo */}
-                {/* <div className="text-center">
-                    <a href="/" className="inline-block">
-                        <div className="w-16 h-16 mx-auto hover:scale-105 transition-transform">
-                            <AppLogo />
-                        </div>
-                    </a>
-                </div> */}
-
-                {/* Main Card */}
-                <Card className="shadow-xl border-0 overflow-hidden">
-                    <CardHeader className="text-center space-y-3 pb-0 bg-gradient-to-b from-primary/5 to-transparent mt-0 pt-6">
-                        {/* <div className="mx-auto w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center ring-8 ring-primary/5 mt-4">
-                            <KeyRound className="w-7 h-7 text-primary" />
-                        </div> */}
-                        <CardTitle className="text-2xl font-bold text-foreground">
-                            Forgot Password?
-                        </CardTitle>
-                        <CardDescription className="text-muted-foreground">
-                            {step === 1
-                                ? "No worries! Enter your Student ID and we'll help you recover your account."
-                                : "We'll send a secure password reset link to your registered email."
-                            }
-                        </CardDescription>
+            {/* <div className="mx-auto mb-6 flex w-full max-w-md justify-end"><TwoModeToggle /></div> */}
+            <div className="mx-auto w-full max-w-md">
+                <Card className="overflow-hidden rounded-none border-0 bg-transparent shadow-none sm:rounded-lg sm:bg-card sm:shadow-xl">
+                    <CardHeader className="mt-0 space-y-3 px-0 pt-4 text-center sm:bg-gradient-to-b sm:from-primary/5 sm:to-transparent sm:px-6">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><KeyRound className="h-6 w-6" aria-hidden="true" /></div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-primary">Account recovery · Step {found ? '2' : '1'} of 3</p>
+                        <CardTitle className="text-2xl font-bold">{found ? 'Confirm your account' : 'Forgot your password?'}</CardTitle>
+                        <CardDescription>{found ? 'We’ll email a one-time code to your registered address.' : 'Enter your ID Number to recover your account.'}</CardDescription>
                     </CardHeader>
-
-                    <CardContent className="space-y-6 p-6">
-                        {/* Success Status */}
-                        {status && (
-                            <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-900">
-                                <div className='flex gap-3 items-center'>
-                                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0" />
-                                    <AlertTitle className="text-green-700 dark:text-green-300 font-medium mb-0 text-sm">
-                                        {status}
-                                    </AlertTitle>
-                                </div>
-                            </Alert>
-                        )}
-
-                        {/* Error Messages */}
-                        {(errors.user_id_no || errors.email || errors.general) && (
-                            <Alert className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900">
-                                <div className='flex gap-3 items-start'>
-                                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                                    <div className="space-y-1">
-                                        {errors.user_id_no && (
-                                            <p className="text-sm font-medium text-red-600 dark:text-red-400">{errors.user_id_no}</p>
-                                        )}
-                                        {errors.email && (
-                                            <p className="text-sm font-medium text-red-600 dark:text-red-400">{errors.email}</p>
-                                        )}
-                                        {errors.general && (
-                                            <p className="text-sm font-medium text-red-600 dark:text-red-400">{errors.general}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </Alert>
-                        )}
-
-                        {/* Step 1: Find User */}
-                        {step === 1 && (
-                            <form onSubmit={findUser} className="space-y-5">
+                    <CardContent className="space-y-5 px-1 py-6 sm:p-6">
+                        {status && <div role="status" className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/30 dark:text-green-300"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><p>{status}</p></div>}
+                        {error && <div id="recovery-error" role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /><p>{error}</p></div>}
+                        {!found ? (
+                            <form onSubmit={findAccount} className="space-y-5" aria-busy={busy}>
                                 <div className="space-y-2">
-                                    <Label htmlFor="user_id_no" className="text-sm font-semibold text-foreground">
-                                        Student ID Number <span className="text-destructive">*</span>
-                                    </Label>
+                                    <Label htmlFor="user_id_no">ID Number</Label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                                        <Input
-                                            id="user_id_no"
-                                            type="text"
-                                            name="user_id_no"
-                                            value={data.user_id_no}
-                                            onChange={(e) => setData('user_id_no', e.target.value)}
-                                            className={`pl-11 h-12 text-base ${errors.user_id_no ? 'border-destructive focus-visible:ring-destructive' : ''}`}
-                                            placeholder="Enter your student ID"
-                                            autoFocus
-                                            disabled={processing}
-                                        />
+                                        <User className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                                        <Input id="user_id_no" name="user_id_no" value={lookup.data.user_id_no} onChange={(event) => lookup.setData('user_id_no', event.target.value)} className="h-12 pl-11" placeholder="Enter your ID number" autoComplete="username" maxLength={255} autoFocus required disabled={busy} aria-invalid={Boolean(errors.user_id_no)} aria-describedby={error ? 'recovery-error' : undefined} />
                                     </div>
-                                    {errors.user_id_no && (
-                                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                                            <span className="inline-block w-1 h-1 bg-muted-foreground rounded-full"></span>
-                                            Please enter a valid student ID
-                                        </p>
-                                    )}
                                 </div>
-
-                                <Button
-                                    type="submit"
-                                    className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
-                                    disabled={processing || !data.user_id_no}
-                                >
-                                    {processing ? (
-                                        <span className="flex items-center gap-2">
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            Finding Account...
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center gap-2">
-                                            <User className="w-5 h-5" />
-                                            Find My Account
-                                        </span>
-                                    )}
-                                </Button>
+                                <Button type="submit" className="h-12 w-full font-semibold" disabled={busy || !lookup.data.user_id_no.trim()}>{lookup.processing ? <Loader2 className="animate-spin" aria-hidden="true" /> : <User aria-hidden="true" />}{lookup.processing ? 'Finding account…' : 'Find my account'}</Button>
                             </form>
-                        )}
-
-                        {/* Step 2: Confirm Email and Send Reset Link */}
-                        {step === 2 && foundUser && (
+                        ) : (
                             <div className="space-y-5">
-                                {/* User Found Display */}
-                                <div className="bg-green-50 dark:bg-green-950/20 border-2 border-green-200 dark:border-green-900 rounded-lg p-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full">
-                                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-green-800 dark:text-green-300">Account Found!</p>
-                                            <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-                                                {foundUser.name}
-                                            </p>
-                                            <p className="text-xs text-green-600 dark:text-green-500 mt-0.5 flex items-center gap-1.5">
-                                                <Mail className="w-3.5 h-3.5" />
-                                                {foundUser.masked_email}
-                                            </p>
-                                        </div>
-                                    </div>
+                                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                                    <p className="font-semibold text-foreground">{user_data.name || 'Your account'}</p>
+                                    <p className="mt-1 text-sm text-muted-foreground">ID: {user_data.user_id_no}</p>
+                                    <p className="mt-3 flex items-center gap-2 break-all text-sm font-medium"><Mail className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />{user_data.masked_email}</p>
                                 </div>
-
-                                <form onSubmit={sendResetLink} className="space-y-4">
-                                    <div className="bg-muted/50 rounded-lg p-4 border border-border">
-                                        <div className="flex gap-3">
-                                            <div className="p-2 bg-primary/10 rounded-full h-fit">
-                                                <Mail className="w-4 h-4 text-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-foreground">
-                                                    Ready to reset your password?
-                                                </p>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    Click the button below to receive a secure reset link via email. The link will expire in 60 minutes.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-3">
-                                        <Button
-                                            type="button"
-                                            onClick={startOver}
-                                            variant="outline"
-                                            className="flex-1 h-11 font-medium"
-                                            disabled={processing}
-                                        >
-                                            <ArrowLeft className="w-4 h-4 mr-2" />
-                                            Try Again
-                                        </Button>
-
-                                        <Button
-                                            type="submit"
-                                            className="flex-1 h-11 font-semibold shadow-lg hover:shadow-xl transition-all"
-                                            disabled={processing}
-                                        >
-                                            {processing ? (
-                                                <span className="flex items-center gap-2">
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                    Sending...
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center gap-2">
-                                                    <Mail className="w-4 h-4" />
-                                                    Send Reset Link
-                                                </span>
-                                            )}
-                                        </Button>
-                                    </div>
+                                <p className="text-sm leading-relaxed text-muted-foreground">Your six-digit code expires in {expires_in_minutes} minutes and allows up to {max_attempts} incorrect attempts. Keep this page open to enter the code and choose your new password.</p>
+                                <form onSubmit={sendCode} className="space-y-3" aria-busy={busy}>
+                                    <Button type="submit" className="h-12 w-full font-semibold" disabled={busy || cooldown > 0}>{action.processing ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Mail aria-hidden="true" />}{action.processing ? 'Sending code…' : cooldown > 0 ? `Send again in ${cooldown}s` : otp_sent ? 'Send a new code' : 'Send verification code'}</Button>
+                                    {otp_sent && <Button asChild variant="outline" className="h-11 w-full"><Link href={route('password.reset')}>I already have a code</Link></Button>}
+                                    <Button type="button" variant="ghost" className="h-11 w-full" disabled={busy} onClick={startOver}><ArrowLeft aria-hidden="true" />Use a different account</Button>
                                 </form>
                             </div>
                         )}
-
-                        {/* Divider */}
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-border" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-card px-2 text-muted-foreground">
-                                    or
-                                </span>
-                            </div>
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                            <p className="font-semibold">Can’t access your registered email?</p>
+                            <p className="mt-1">Contact the school’s CICT office for help updating your email and recovering your account.</p>
                         </div>
-
-                        {/* Back to Login */}
-                        <div className="text-center">
-                            <p className="text-sm text-muted-foreground">
-                                Remember your password?{' '}
-                                <a
-                                    href={route('login')}
-                                    className="font-semibold text-primary hover:underline transition-all"
-                                >
-                                    Sign in here
-                                </a>
-                            </p>
-                        </div>
-
-                        {/* Email Incorrect Notice - Always Visible */}
-                        <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 border border-amber-200 dark:border-amber-900">
-                            <div className="flex gap-3 items-start">
-                                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                                <div className="flex-1">
-                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                                        Email Incorrect or Changed?
-                                    </p>
-                                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
-                                        If your registered email is incorrect or outdated, please{' '}
-                                        <a
-                                            href="https://docs.google.com/forms/d/e/1FAIpQLSem_KPPd2CsZ-HgAd_22u1zKNZbN_PCTE6CROGA0EAXycFumg/viewform"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-200 transition-colors"
-                                        >
-                                            fill out this form
-                                        </a>
-                                        {' '}to update your information.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Help Text */}
-                        {step === 1 && (
-                            <div className="bg-muted/30 rounded-lg p-4 border border-border">
-                                <p className="text-xs text-muted-foreground text-center">
-                                    💡 <span className="font-medium">Tip:</span> Your Student ID is the number you use to log in to the system
-                                </p>
-                            </div>
-                        )}
+                        <div className="border-t border-border pt-4 text-center text-sm"><Link href={route('login')} className="inline-flex items-center gap-2 font-semibold text-primary hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden="true" />Back to sign in</Link></div>
                     </CardContent>
                 </Card>
-
-                {/* Footer */}
-                <p className="text-xs text-muted-foreground text-center">
-                    Need help? Contact your system administrator
-                </p>
             </div>
-        </div>
+        </main>
     );
 }

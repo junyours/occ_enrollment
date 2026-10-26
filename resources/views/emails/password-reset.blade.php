@@ -1,223 +1,31 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        /* Base styles */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #334155;
-            margin: 0;
-            padding: 0;
-            background-color: #f1f5f9;
-        }
-
-        .wrapper {
-            width: 100%;
-            table-layout: fixed;
-            background-color: #f1f5f9;
-            padding: 40px 0;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Header Theme - Solid Institutional Blue */
-        .header {
-            background-color: #1e3a8a;
-            padding: 35px 20px;
-            text-align: center;
-            color: #ffffff;
-        }
-
-        .school-name {
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin: 0;
-            text-transform: uppercase;
-        }
-
-        .sub-header {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-top: 5px;
-            letter-spacing: 2px;
-        }
-
-        /* Content Area */
-        .content {
-            padding: 40px 30px;
-        }
-
-        h3 {
-            color: #1e3a8a;
-            margin-top: 0;
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
-
-        .message-text {
-            font-size: 16px;
-            color: #475569;
-            margin-bottom: 25px;
-        }
-
-        /* Info & Security Boxes */
-        .info-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        .info-box.warning {
-            background-color: #fffbeb;
-            border-color: #fde68a;
-        }
-
-        .info-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: #1e3a8a;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        .info-box.warning .info-title {
-            color: #92400e;
-        }
-
-        .info-content {
-            font-size: 14px;
-            color: #64748b;
-            margin: 0;
-        }
-
-        .info-box.warning .info-content {
-            color: #92400e;
-        }
-
-        /* Button */
-        .btn-container {
-            text-align: center;
-            margin: 35px 0;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 16px 40px;
-            background-color: #1e3a8a;
-            color: #ffffff !important;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        /* Link Fallback */
-        .fallback {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .fallback-text {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 8px;
-        }
-
-        .url-box {
-            font-family: monospace;
-            font-size: 11px;
-            color: #64748b;
-            word-break: break-all;
-            background: #f8fafc;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 30px 20px;
-            font-size: 12px;
-            color: #94a3b8;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        @media screen and (max-width: 600px) {
-            .content {
-                padding: 30px 20px;
-            }
-
-            .school-name {
-                font-size: 20px;
-            }
-
-            .button {
-                width: 100%;
-                box-sizing: border-box;
-            }
-        }
-    </style>
+    <title>Your password reset code</title>
 </head>
-
-<body>
-    <div class="wrapper">
-        <div class="container">
-            <div class="header">
-                <p class="school-name">Opol Community College</p>
-                <p class="sub-header">ACCOUNT SECURITY</p>
-            </div>
-
-            <div class="content">
-                <h3>Password Reset Request</h3>
-
-                <p class="message-text">
-                    Hello {{ trim($user->first_name . ' ' . ($user->middle_name ? $user->middle_name . ' ' : '') . $user->last_name) ?: 'there' }},<br><br>
-                    We received a request to reset the password for your account. Please use the button below to proceed.
-                </p>
-
-                <div class="btn-container">
-                    <a href="{{ $resetUrl }}" class="button">Reset My Password</a>
-                </div>
-
-                <div class="info-box">
-                    <span class="info-title">⏰ Expiration</span>
-                    <p class="info-content">This reset link will expire in {{ config('auth.passwords.users.expire', 60) }} minutes.</p>
-                </div>
-
-                <div class="info-box warning">
-                    <span class="info-title">🔒 Security Notice</span>
-                    <p class="info-content">If you did not request this change, please disregard this email. Your password will remain unchanged.</p>
-                </div>
-
-                <div class="fallback">
-                    <p class="fallback-text">If the button above doesn't work, copy and paste this URL into your browser:</p>
-                    <div class="url-box">{{ $resetUrl }}</div>
-                </div>
-            </div>
-
-            <div class="footer">
-                &copy; {{ date('Y') }} Opol Community College. All rights reserved.<br>
-                Opol, Misamis Oriental, Philippines.
-            </div>
-        </div>
-    </div>
+<body style="margin:0;padding:24px 12px;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#334155;line-height:1.6;">
+    <table role="presentation" style="width:100%;max-width:600px;margin:0 auto;border-collapse:collapse;background:#ffffff;">
+        <tr>
+            <td style="padding:28px 24px;background:#1e3a8a;color:#ffffff;text-align:center;">
+                <h1 style="margin:0;font-size:22px;">Opol Community College</h1>
+                <p style="margin:6px 0 0;font-size:12px;letter-spacing:2px;">ACCOUNT RECOVERY</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:32px 24px;">
+                <h2 style="margin:0 0 16px;font-size:22px;color:#1e3a8a;">Your password reset code</h2>
+                <p>Enter this six-digit code on the password recovery screen, then choose your new password.</p>
+                <div style="margin:24px 0;padding:20px;background:#eff6ff;border:1px solid #bfdbfe;text-align:center;font-family:monospace;font-size:36px;font-weight:bold;letter-spacing:8px;color:#1e3a8a;">{{ $code }}</div>
+                <p>This code expires in <strong>{{ $expiresInMinutes }} minutes</strong> and can be used only once. If you request another code, use the most recent email.</p>
+                <p style="padding:16px;background:#fffbeb;border:1px solid #fde68a;color:#92400e;font-size:14px;">Keep this code private. College staff will never ask you to share it. If you did not request a password change, you can ignore this email. Your password has not changed.</p>
+                <p style="font-size:14px;color:#64748b;">Return to the same browser where you requested the code. This email does not contain a password reset link.</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:20px 24px;border-top:1px solid #e2e8f0;text-align:center;color:#64748b;font-size:12px;">&copy; {{ date('Y') }} Opol Community College<br>Opol, Misamis Oriental, Philippines</td>
+        </tr>
+    </table>
 </body>
-
 </html>
