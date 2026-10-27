@@ -1,0 +1,297 @@
+.tor-header,
+.tor-student-details,
+.tor-footer {
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    line-height: 1.25;
+    flex-shrink: 0;
+    overflow-wrap: anywhere;
+}
+.tor-header h1,
+.tor-header h2,
+.tor-header p,
+.tor-student-details h3,
+.tor-footer h3,
+.tor-footer p {
+    margin: 0;
+}
+.tor-college-identity {
+    display: grid;
+    grid-template-columns: 25mm minmax(0, 1fr);
+    align-items: center;
+    gap: 3mm;
+    min-height: 25mm;
+}
+.tor-college-identity .tor-college-logo {
+    width: 25mm;
+    height: 25mm;
+    max-width: 100%;
+    object-fit: contain;
+}
+.tor-college-copy {
+    text-align: center;
+    min-width: 0;
+}
+.tor-college-copy h1 {
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-size: 21px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: .1px;
+}
+.tor-college-copy .tor-college-location {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 1px;
+}
+.tor-college-contact {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    column-gap: 12px;
+    font-size: 9px;
+    padding: 1px 0 3px;
+}
+.tor-college-contact span::before {
+    content: '\2022';
+    margin-right: 4px;
+}
+.tor-college-copy h2 {
+    font-family: 'Arial Black', Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    border-bottom: 1.5px solid #000;
+    padding-bottom: 1px;
+}
+.tor-header .tor-document-title {
+    margin-top: 3mm;
+    padding: 2px 0;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+    text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.15;
+}
+.tor-student-name {
+    display: grid;
+    grid-template-columns: 15mm repeat(3, minmax(0, 1fr));
+    align-items: start;
+    margin: 3mm 0 2mm;
+}
+.tor-name-label {
+    font-size: 11px;
+    padding-top: 1px;
+}
+.tor-name-part {
+    min-width: 0;
+    text-align: center;
+}
+.tor-name-part strong {
+    display: block;
+    min-height: 16px;
+    font-size: 12px;
+    border-bottom: 1px solid #000;
+    padding: 0 3px 2px;
+}
+.tor-name-part > span {
+    display: block;
+    font-style: italic;
+    padding-top: 1px;
+    font-size: 9px;
+}
+.tor-student-details {
+    margin: 0 0 3mm;
+}
+.tor-profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32mm;
+    gap: 3mm;
+    align-items: start;
+}
+.tor-profile-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    column-gap: 2mm;
+    row-gap: 3px;
+}
+.tor-detail {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    min-width: 0;
+}
+.tor-detail-full {
+    grid-column: 1 / -1;
+}
+.tor-detail-label {
+    flex-shrink: 0;
+    font-weight: 600;
+}
+.tor-detail-value {
+    flex: 1;
+    min-width: 0;
+    min-height: 13px;
+    border-bottom: 1px solid #000;
+    padding: 0 3px 1px;
+    text-align: center;
+    white-space: pre-wrap;
+}
+.tor-photo-and-id {
+    min-width: 0;
+    text-align: center;
+}
+.tor-student-photo {
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30mm;
+    height: 35mm;
+    margin: 0 auto 2mm;
+    border: 1px solid #777;
+    color: #666;
+}
+.tor-student-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.tor-photo-and-id > strong {
+    font-size: 10px;
+}
+.tor-degree-details {
+    display: grid;
+    row-gap: 3px;
+    margin-top: 2mm;
+}
+.tor-preliminary-education {
+    margin-top: 3mm;
+}
+.tor-preliminary-education h3 {
+    text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 2px;
+}
+.tor-preliminary-education table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 9px;
+}
+.tor-education-level { width: 17%; }
+.tor-education-school { width: 33%; }
+.tor-education-address { width: 35%; }
+.tor-education-year { width: 15%; }
+.tor-preliminary-education th,
+.tor-preliminary-education td {
+    padding: 2px 3px;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+.tor-preliminary-education thead th {
+    font-weight: 400;
+    font-style: italic;
+    text-align: center;
+}
+.tor-preliminary-education tbody th {
+    font-weight: 600;
+    text-align: left;
+}
+.tor-preliminary-education tbody td {
+    border-bottom: 1px solid #000;
+    text-align: center;
+}
+.tor-footer {
+    padding-top: 2mm;
+    font-size: 10px;
+}
+.tor-grade-legend {
+    font-weight: 600;
+    line-height: 1.2;
+}
+.tor-remarks {
+    margin-top: 1mm;
+}
+.tor-footer .tor-purpose {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 1px;
+}
+.tor-additional-remarks {
+    white-space: pre-wrap;
+    margin-top: 1mm !important;
+}
+.tor-certification {
+    margin-top: 1mm;
+}
+.tor-certification h3 {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin-bottom: 1px;
+}
+.tor-certification > p:not(.tor-seal-note) {
+    font-weight: 600;
+    text-align: justify;
+    line-height: 1.25;
+}
+.tor-footer .tor-seal-note {
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    margin-top: 1px;
+}
+.tor-signatories {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4mm;
+    margin-top: 3mm;
+}
+.tor-signatory {
+    min-width: 0;
+}
+.tor-signatory-label {
+    font-size: 10px;
+}
+.tor-signature-space {
+    height: 7mm;
+}
+.tor-signatory-name {
+    display: block;
+    min-height: 12px;
+    font-size: 11px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+.tor-signatory-title {
+    font-size: 10px;
+    margin-top: 1px !important;
+}
+.tor-issuance {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2mm;
+    align-items: end;
+    margin-top: 3mm;
+    padding-top: 1mm;
+    border-top: 1px solid #000;
+    font-size: 9px;
+}
+.tor-issuance > span {
+    min-width: 0;
+}
+.tor-page-number {
+    text-align: center;
+}
+.tor-form-revision {
+    text-align: right;
+}

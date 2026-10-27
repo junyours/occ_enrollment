@@ -1,46 +1,29 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from 'react';
+import { useForm9Field } from '../form9Fields';
 
-const FormField = ({ label, value, labelWidth = '80px' }) => {
+const FormField = ({ label, value, labelWidth = '80px', fieldKey }) => {
     const textareaRef = useRef(null);
-
-    // This function adjusts the height whenever the user types
-    const handleInput = (e) => {
-        const target = e.target;
-        // Reset height to 'auto' first so it shrinks when text is deleted
+    const field = useForm9Field(fieldKey, value);
+    const resize = target => {
+        if (!target) return;
         target.style.height = 'auto';
-        // Expand to fit the current content
         target.style.height = `${target.scrollHeight}px`;
     };
-
-    // This ensures the height is correct on the initial render 
-    // if 'value' already contains multiple lines of text
-    useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-        }
-    }, [value]);
+    useLayoutEffect(() => { resize(textareaRef.current); }, [field.value, value]);
+    const inputProps = field.controlled
+        ? { value: field.value, onChange: field.onChange }
+        : { defaultValue: value };
 
     return (
-        <div className='flex items-end gap-2'>
-            <span className={`text-xs whitespace-nowrap self-start`} style={{ width: labelWidth }}>
-                {label}
-            </span>
-            {/* {(!!value && !value.toUpperCase().includes('N/A')) ? (
-                <div className='flex-grow border-b border-black text-xs px-2'>
-                    {value}
-                </div>
-            ) : ( */}
-            <textarea
-                ref={textareaRef}
-                defaultValue={value}
-                onInput={handleInput}
-                rows={1} // Forces it to start as a single line
-                className="flex-grow border-b border-black text-xs px-2 outline-none bg-transparent resize-none overflow-hidden"
-            />
-            {/* )} */}
+        <div className="flex min-w-0 items-end gap-2">
+            <span className="shrink-0 text-xs whitespace-nowrap self-start" style={{ width: labelWidth }}>{label}</span>
+            <textarea ref={textareaRef} {...inputProps} onInput={event => resize(event.target)} rows={1}
+                data-form9-field-key={field.controlled ? fieldKey : undefined}
+                aria-label={field.controlled ? label : undefined}
+                readOnly={field.measurement} tabIndex={field.measurement ? -1 : undefined}
+                className="min-w-0 flex-grow border-b border-black text-xs px-2 outline-none bg-transparent resize-none overflow-hidden" />
         </div>
-    )
+    );
 };
 
-export default FormField
+export default FormField;

@@ -8,7 +8,7 @@ import axios from "axios"
 import { useState } from "react"
 import AttendanceSyncProvider from "@/Pages/InstructorClasses/ClassComponents/AttendancePartials/AttendanceSyncProvider"
 
-export default function AuthenticatedLayout({ children, title }) {
+export default function AuthenticatedLayout({ children, title, fullWidth = false }) {
     const { impersonating } = usePage().props.auth
     const [loading, setLoading] = useState(false)
     const { auth } = usePage().props
@@ -68,7 +68,7 @@ export default function AuthenticatedLayout({ children, title }) {
                 </header>
 
                 <main className="flex-1 overflow-auto p-4">
-                    <div className="container mx-auto max-w-7xl">
+                    <div className={fullWidth ? "mx-auto w-full" : "container mx-auto max-w-7xl"}>
                         <Head title={title} />
 
                         <AttendanceSyncProvider userId={auth.user.id}>

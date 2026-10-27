@@ -1,9 +1,16 @@
 import React from 'react';
 import FormField from './components/FormField';
+import { Form9Input } from './form9Fields';
 import { formatName } from '@/Lib/InfoUtils';
+import { nameFields } from './torNames';
 
 export default function StudentInfo({ info, lastRecord }) {
-    const { information, parent, preliminary_education } = info;
+    const information = info?.information || {};
+    const parent = info?.parent || {};
+    const preliminary_education = info?.preliminary_education || {};
+    const studentName = nameFields(information);
+    const fatherName = nameFields({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name });
+    const motherName = nameFields({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name });
 
     return (
         <div className='w-full max-w-4xl mx-auto font-sans text-black font-semibold'>
@@ -15,10 +22,10 @@ export default function StudentInfo({ info, lastRecord }) {
             {/* Section 1: Personal Details */}
             <div className='grid grid-cols-[1fr_260px] gap-x-4 pl-8'>
                 <div className='flex flex-col'>
-                    <FormField label="ID Number:" value={info.user_id_no || ''} />
-                    <FormField label="Name:" value={formatName(information) ? formatName(information, { format: 'FULL' }).toUpperCase() : ''} />
+                    <FormField fieldKey="student:user_id_no" label="ID Number:" value={info?.user_id_no || ''} />
+                    <FormField fieldKey="student:name" label="Name:" value={formatName(studentName, { format: 'FULL', defaultValue: '' }).toUpperCase()} />
                     <FormField
-                        label="Date of Birth:"
+                        fieldKey="student:birthday" label="Date of Birth:"
                         value={
                             information.birthday
                                 ? new Date(information.birthday).toLocaleDateString("en-US", {
@@ -29,19 +36,19 @@ export default function StudentInfo({ info, lastRecord }) {
                                 : ''
                         }
                     />
-                    <FormField label=" Place of Birth:" value={information.place_of_birth ? information.place_of_birth.toUpperCase() : ''} />
-                    <FormField label="Home Address:" value={information.address ? information.address.toUpperCase() : ''} />
+                    <FormField fieldKey="student:place_of_birth" label=" Place of Birth:" value={information.place_of_birth ? information.place_of_birth.toUpperCase() : ''} />
+                    <FormField fieldKey="student:address" label="Home Address:" value={information.address ? information.address.toUpperCase() : ''} />
                 </div>
                 <div className='flex flex-col'>
-                    <FormField label="Gender:" value={information.gender ? information.gender.toUpperCase() : ''} />
-                    <FormField label="Civil Status:" value={information.civil_status ? information.civil_status.toUpperCase() : ''} />
+                    <FormField fieldKey="student:gender" label="Gender:" value={information.gender ? information.gender.toUpperCase() : ''} />
+                    <FormField fieldKey="student:civil_status" label="Civil Status:" value={information.civil_status ? information.civil_status.toUpperCase() : ''} />
                     <FormField
-                        label="Father's Name:"
-                        value={formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.father_first_name, last_name: parent?.father_last_name, middle_name: parent?.father_middle_name }, { format: 'capitalize' }).toUpperCase() : ''}
+                        fieldKey="student:father_name" label="Father's Name:"
+                        value={formatName(fatherName, { format: 'capitalize', defaultValue: '' }).toUpperCase()}
                     />
                     <FormField
-                        label="Mother's Name:"
-                        value={formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }).toLowerCase() != "unknown" ? formatName({ first_name: parent?.mother_first_name, last_name: parent?.mother_maiden_last_name, middle_name: parent?.mother_middle_name }, { format: 'capitalize' }).toUpperCase() : ''}
+                        fieldKey="student:mother_name" label="Mother's Name:"
+                        value={formatName(motherName, { format: 'capitalize', defaultValue: '' }).toUpperCase()}
                     />
                 </div>
             </div>
@@ -68,14 +75,14 @@ export default function StudentInfo({ info, lastRecord }) {
                 <div className='flex flex-col space-y-1'>
                     {/* Elementary */}
                     <div className='grid grid-cols-[1fr_140px] items-end gap-12'>
-                        <FormField label="Elementary:" value={preliminary_education?.elementary_name ? `${preliminary_education?.elementary_name.toUpperCase()} / ${preliminary_education?.elementary_address.toUpperCase()}` : ''} />
-                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' defaultValue={preliminary_education?.elementary_year ? preliminary_education?.elementary_year : ''} />
+                        <FormField fieldKey="student:elementary" label="Elementary:" value={preliminary_education?.elementary_name ? `${preliminary_education?.elementary_name.toUpperCase()} / ${String(preliminary_education?.elementary_address || '').toUpperCase()}` : ''} />
+                        <Form9Input fieldKey="student:elementary_year" type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' defaultValue={preliminary_education?.elementary_year ? preliminary_education?.elementary_year : ''} />
                     </div>
 
                     {/* Secondary */}
                     <div className='grid grid-cols-[1fr_140px] items-end gap-12'>
-                        <FormField label="Secondary:" value={preliminary_education?.secondary_name ? `${preliminary_education?.secondary_name.toUpperCase()} / ${preliminary_education?.secondary_address.toUpperCase() }` : ''}/>
-                        <input type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' defaultValue={preliminary_education?.secondary_year ? preliminary_education?.secondary_year : ''}/>
+                        <FormField fieldKey="student:secondary" label="Secondary:" value={preliminary_education?.secondary_name ? `${preliminary_education?.secondary_name.toUpperCase()} / ${String(preliminary_education?.secondary_address || '').toUpperCase() }` : ''}/>
+                        <Form9Input fieldKey="student:secondary_year" type="text" className='border-b border-black text-xs px-2 outline-none w-full text-center bg-transparent' defaultValue={preliminary_education?.secondary_year ? preliminary_education?.secondary_year : ''}/>
                     </div>
                 </div>
             </div>
@@ -84,10 +91,10 @@ export default function StudentInfo({ info, lastRecord }) {
             <div className='w-full border-t-[2px] border-black pl-8 mt-2'>
                 <div className='flex flex-col w-full'>
                     <div className='w-full'>
-                        <FormField label="Candidate for the Degree:" labelWidth='147px' value={lastRecord?.program || ''} />
+                        <FormField fieldKey="student:program" label="Candidate for the Degree:" labelWidth='147px' value={lastRecord?.program || ''} />
                     </div>
                     <div className='w-full'>
-                        <FormField label="Date of Graduation:" labelWidth='147px' />
+                        <FormField fieldKey="student:date_graduation" label="Date of Graduation:" labelWidth='147px' />
                     </div>
                 </div>
             </div>

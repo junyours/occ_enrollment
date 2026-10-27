@@ -1,540 +1,455 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from '@inertiajs/react';
+import { useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle
-} from '@/Components/ui/alert-dialog';
+    Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from '@/Components/ui/dialog';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from "@/Components/ui/select";
-import { CFloatingInput } from "@/Components/ui/CFloatingInput";
-import RequiredLabel from '@/Components/ui/RequiredLabel';
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/Components/ui/select';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import { Separator } from '@/Components/ui/separator';
 import { formatName } from '@/Lib/InfoUtils';
-import React, { useState, useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
-
+import { cn } from '@/Lib/Utils';
 import {
-    getRegions,
-    getProvinces,
-    getCities,
-    getBarangays,
-    getZipCode,
+    getRegions, getProvinces, getCities, getBarangays, getZipCode,
 } from '@/Lib/PhilippinesAddressData/AddressesFinder';
-import axios from 'axios';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { cn, formatPhoneNumber } from '@/Lib/Utils';
-import { Calendar } from '@/Components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
-import { Field, FieldLabel } from '@/Components/ui/field';
-import { Button } from '@/Components/ui/button';
-import { format } from 'date-fns';
+import { Calendar } from '@/Components/ui/calendar';
+
+const INITIAL_DATA = {
+    gender: '', civil_status: '', birthday: '', place_of_birth: '', contact_number: '',
+    street: '', region: 'Region X (Northern Mindanao)', regionCode: '10',
+    province: 'Misamis Oriental', provinceCode: '1043',
+    city: '', cityCode: '', barangay: '', barangayCode: '', zipCode: '',
+    father_first_name: '', father_last_name: '', father_middle_name: '', father_suffix: '',
+    mother_first_name: '', mother_maiden_last_name: '', mother_middle_name: '', mother_suffix: '',
+    elementary_name: '', elementary_address: '', elementary_year: '',
+    secondary_name: '', secondary_address: '', secondary_year: '',
+};
+
+const REQUIRED_FIELDS = new Set([
+    'gender', 'civil_status', 'birthday', 'place_of_birth',
+    'regionCode', 'provinceCode', 'cityCode', 'barangayCode',
+    'father_first_name', 'father_last_name', 'mother_first_name', 'mother_maiden_last_name',
+    'elementary_name', 'elementary_address', 'elementary_year',
+    'secondary_name', 'secondary_address', 'secondary_year',
+]);
+
+function FormField({ name, label, error, children, hint, className }) {
+    const required = REQUIRED_FIELDS.has(name);
+    return (
+        <div className={cn('min-w-0 space-y-2', className)}>
+            <Label htmlFor={name}>
+                {label}
+                {required ? <span aria-hidden="true" className="ml-1 text-destructive">*</span>
+                    : <span className="ml-1 font-normal text-muted-foreground">(optional)</span>}
+            </Label>
+            {children}
+            {hint && <p id={`${name}-hint`} className="text-xs text-muted-foreground">{hint}</p>}
+            {error && <p id={`${name}-error`} className="text-sm text-destructive">{error}</p>}
+        </div>
+    );
+}
+
+function fieldProps(name, error, hint) {
+    return {
+        id: name,
+        name,
+        'aria-required': REQUIRED_FIELDS.has(name),
+        'aria-invalid': Boolean(error),
+        'aria-describedby': [error && `${name}-error`, hint && `${name}-hint`].filter(Boolean).join(' ') || undefined,
+        className: cn('h-12 w-full', error && 'border-destructive focus-visible:ring-destructive'),
+    };
+}
 
 export default function AddStudentInfo({ student, open, onClose }) {
+    const studentId = student?.id;
+    const formRef = useRef(null);
+    const submittingRef = useRef(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isFetching, setIsFetching] = useState(false); // Added fetching state
+    const [isFetching, setIsFetching] = useState(false);
+    const [loadedStudentId, setLoadedStudentId] = useState(null);
+    const [hasExistingInfo, setHasExistingInfo] = useState(false);
+    const [fetchError, setFetchError] = useState('');
+    const [retryCount, setRetryCount] = useState(0);
     const queryClient = useQueryClient();
+    const { data, setData, errors, clearErrors, reset, setError } = useForm({ ...INITIAL_DATA });
 
-    const [addressOptions, setAddressOptions] = useState({
-        regions: [],
-        provinces: [],
-        cities: [],
-        barangays: []
-    });
-
-    const { data, setData, post, processing, errors, clearErrors, reset, setError } = useForm({
-        gender: '', civil_status: '', birthday: '', contact_number: '',
-        street: '', region: 'Region X (Northern Mindanao)', regionCode: '10', province: 'Misamis Oriental', provinceCode: '1043',
-        city: '', cityCode: '', barangay: '', barangayCode: '', zipCode: '',
-        father_first_name: '', father_last_name: '', father_middle_name: '', father_suffix: '',
-        mother_first_name: '', mother_maiden_last_name: '', mother_middle_name: '', mother_suffix: '',
-        elementary_name: '', elementary_address: '', elementary_year: '',
-        secondary_name: '', secondary_address: '', secondary_year: ''
-    });
-
-    // --- Data Fetching Logic --- //
     useEffect(() => {
-        if (open && student?.id) {
-            fetchExistingInfo();
-        } else {
-            reset(); // Clear form if closed
-        }
-    }, [open, student]);
+        if (!open || !studentId) return;
 
-    const fetchExistingInfo = async () => {
+        const controller = new AbortController();
         setIsFetching(true);
-        try {
-            // Adjust this route to match your actual GET route for the info
-            const response = await axios.get(route('permanent-record.get-student-info', student.id));
-            const existingData = response.data.data; // Assuming your backend returns { data: { ... } }
+        setFetchError('');
+        setHasExistingInfo(false);
+        setData({ ...INITIAL_DATA });
+        clearErrors();
 
-            if (existingData) {
-                setData({
-                    // Information Table
-                    gender: existingData.information?.gender || '',
-                    civil_status: existingData.information?.civil_status || '',
-                    birthday: existingData.information?.birthday || '',
-                    contact_number: existingData.information?.contact_number || '',
-                    place_of_birth: existingData.information?.place_of_birth || '',
-
-                    // Address Table
-                    street: existingData.address?.street || '',
-                    region: existingData.address?.region || 'Region X (Northern Mindanao)',         // ADDED
-                    regionCode: existingData.address?.region_code || '10',
-                    province: existingData.address?.province || 'Misamis Oriental',     // ADDED
-                    provinceCode: existingData.address?.province_code || '1043',
-                    city: existingData.address?.city || '',             // ADDED
-                    cityCode: existingData.address?.city_code || '',
-                    barangay: existingData.address?.barangay || '',     // ADDED
-                    barangayCode: existingData.address?.barangay_code || '',
-                    zipCode: existingData.address?.zip_code || '',
-
-                    // Parents Table
-                    father_first_name: existingData.parents?.father_first_name || '',
-                    father_last_name: existingData.parents?.father_last_name || '',
-                    father_middle_name: existingData.parents?.father_middle_name || '',
-                    father_suffix: existingData.parents?.father_suffix || '',
-                    mother_first_name: existingData.parents?.mother_first_name || '',
-                    mother_maiden_last_name: existingData.parents?.mother_maiden_last_name || '',
-                    mother_middle_name: existingData.parents?.mother_middle_name || '',
-                    mother_suffix: existingData.parents?.mother_suffix || '',
-
-                    // Education Table
-                    elementary_name: existingData.education?.elementary_name || '',
-                    elementary_address: existingData.education?.elementary_address || '',
-                    elementary_year: existingData.education?.elementary_year || '',
-                    secondary_name: existingData.education?.secondary_name || '',
-                    secondary_address: existingData.education?.secondary_address || '',
-                    secondary_year: existingData.education?.secondary_year || ''
+        const loadRecord = async () => {
+            try {
+                const response = await axios.get(route('permanent-record.get-student-info', studentId), {
+                    signal: controller.signal,
                 });
+                if (controller.signal.aborted) return;
+
+                const record = response.data.data || {};
+                const information = record.information || {};
+                const address = record.address || {};
+                const parents = record.parents || {};
+                const education = record.education || {};
+                const nextData = { ...INITIAL_DATA };
+
+                ['gender', 'civil_status', 'birthday', 'place_of_birth', 'contact_number'].forEach(name => {
+                    nextData[name] = information[name] ?? '';
+                });
+                nextData.birthday = String(nextData.birthday).split('T')[0];
+                ['street', 'region', 'province', 'city', 'barangay'].forEach(name => {
+                    nextData[name] = address[name] ?? INITIAL_DATA[name];
+                });
+                ['region', 'province', 'city', 'barangay'].forEach(name => {
+                    nextData[`${name}Code`] = String(address[`${name}_code`] ?? INITIAL_DATA[`${name}Code`]);
+                });
+                nextData.zipCode = address.zip_code ?? '';
+                Object.keys(INITIAL_DATA).filter(name => /^(father_|mother_)/.test(name)).forEach(name => {
+                    nextData[name] = parents[name] ?? '';
+                });
+                Object.keys(INITIAL_DATA).filter(name => /^(elementary_|secondary_)/.test(name)).forEach(name => {
+                    nextData[name] = education[name] ?? '';
+                });
+                setData(nextData);
+                setHasExistingInfo(Object.values(record).some(Boolean));
+            } catch (error) {
+                if (!controller.signal.aborted) {
+                    setFetchError('Student information could not be loaded. Retry before making changes.');
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setLoadedStudentId(studentId);
+                    setIsFetching(false);
+                }
             }
-        } catch (error) {
-            console.error("Failed to fetch existing data", error);
-        } finally {
-            setIsFetching(false);
-        }
-    };
+        };
 
-    // --- Address Cascade Effects --- //
-    useEffect(() => {
-        setAddressOptions(prev => ({ ...prev, regions: getRegions() }));
-    }, []);
+        loadRecord();
+        return () => controller.abort();
+    }, [open, studentId, retryCount]);
 
-    useEffect(() => {
-        if (data.regionCode) {
-            setAddressOptions(prev => ({ ...prev, provinces: getProvinces(data.regionCode) }));
-        } else {
-            setAddressOptions(prev => ({ ...prev, provinces: [], cities: [], barangays: [] }));
-        }
-    }, [data.regionCode]);
+    const addressOptions = useMemo(() => ({
+        regions: getRegions(),
+        provinces: getProvinces(data.regionCode),
+        cities: getCities(data.provinceCode),
+        barangays: getBarangays(data.cityCode),
+    }), [data.regionCode, data.provinceCode, data.cityCode]);
 
-    useEffect(() => {
-        if (data.provinceCode) {
-            setAddressOptions(prev => ({ ...prev, cities: getCities(data.provinceCode) }));
-        } else {
-            setAddressOptions(prev => ({ ...prev, cities: [], barangays: [] }));
-        }
-    }, [data.provinceCode]);
+    const isLoading = open && Boolean(studentId) && (isFetching || loadedStudentId !== studentId);
+    const canEdit = Boolean(studentId) && !isLoading && !fetchError;
+    const today = format(new Date(), 'yyyy-MM-dd');
 
-    useEffect(() => {
-        if (data.cityCode) {
-            setAddressOptions(prev => ({ ...prev, barangays: getBarangays(data.cityCode) }));
-        } else {
-            setAddressOptions(prev => ({ ...prev, barangays: [] }));
-        }
-    }, [data.cityCode]);
-
-    useEffect(() => {
-        if (data.city) {
-            const zipCodeData = getZipCode(data.city);
-            setData(prev => ({ ...prev, zipCode: zipCodeData?.zip_code || '' }));
-            if (zipCodeData) clearErrors('zipCode');
-        }
-    }, [data.city]);
-
-    // --- Handlers --- //
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+    const handleChange = ({ target: { name, value } }) => {
         setData(name, value);
-
-        if (value.trim() === '') {
-            setError(name, 'This field is required.');
-        } else {
-            clearErrors(name);
-        }
+        clearErrors(name);
     };
 
-    const handleRegionChange = (value) => {
-        const region = addressOptions.regions.find(r => r.region_code === value);
-        if (region) {
-            setData(prev => ({
-                ...prev,
-                region: region.region_name, // Make sure you are setting the NAME
-                regionCode: region.region_code,
-                // ... clear subsequent levels
-            }));
-        }
+    const handleRegionChange = value => {
+        const region = addressOptions.regions.find(item => String(item.region_code) === value);
+        if (!region) return;
+        setData(previous => ({
+            ...previous, region: region.region_name, regionCode: value,
+            province: '', provinceCode: '', city: '', cityCode: '', barangay: '', barangayCode: '', zipCode: '',
+        }));
+        clearErrors('regionCode', 'provinceCode', 'cityCode', 'barangayCode', 'zipCode');
     };
 
-    const handleProvinceChange = (value) => {
-        const province = addressOptions.provinces.find(p => p.province_code === value);
-        if (province) {
-            setData(prev => ({
-                ...prev,
-                province: province.province_name, // ADDED
-                provinceCode: province.province_code,
-                city: '', cityCode: '',
-                barangay: '', barangayCode: '',
-                zipCode: ''
-            }));
-            clearErrors('provinceCode');
-        }
+    const handleProvinceChange = value => {
+        const province = addressOptions.provinces.find(item => String(item.province_code) === value);
+        if (!province) return;
+        setData(previous => ({
+            ...previous, province: province.province_name, provinceCode: value,
+            city: '', cityCode: '', barangay: '', barangayCode: '', zipCode: '',
+        }));
+        clearErrors('provinceCode', 'cityCode', 'barangayCode', 'zipCode');
     };
 
-    const handleCityChange = (value) => {
-        const city = addressOptions.cities.find(c => c.city_code === value);
-        if (city) {
-            setData(prev => ({
-                ...prev,
-                city: city.city_name, // ADDED
-                cityCode: city.city_code,
-                barangay: '', barangayCode: '',
-                zipCode: ''
-            }));
-            clearErrors('cityCode');
-        }
+    const handleCityChange = value => {
+        const city = addressOptions.cities.find(item => String(item.city_code) === value);
+        if (!city) return;
+        setData(previous => ({
+            ...previous, city: city.city_name, cityCode: value, barangay: '', barangayCode: '',
+            zipCode: getZipCode(city.city_name)?.zip_code || '',
+        }));
+        clearErrors('cityCode', 'barangayCode', 'zipCode');
     };
 
-    const handleBarangayChange = (value) => {
-        const barangay = addressOptions.barangays.find(b => b.barangay_code === value);
-        if (barangay) {
-            setData(prev => ({
-                ...prev,
-                barangay: barangay.barangay_name,
-                barangayCode: barangay.barangay_code
-            }));
-            clearErrors('barangayCode');
-        }
+    const handleBarangayChange = value => {
+        const barangay = addressOptions.barangays.find(item => String(item.barangay_code) === value);
+        if (!barangay) return;
+        setData(previous => ({ ...previous, barangay: barangay.barangay_name, barangayCode: value }));
+        clearErrors('barangayCode');
     };
-
-    const handleContactChange = (e) => {
-        const value = e.target.value.replace(/-/g, '')
-
-        if (value.length <= 11 && isNaN(value)) {
-            return
-        }
-
-        if (value.trim() == '') {
-            setError('contact_number', 'This field is required.');
-            setData('contact_number', '09')
-            return
-        } else if (!value.startsWith('09')) {
-            setError('contact_number', 'This field is required.');
-            return;
-        } else if (value.length > 11) {
-            return
-        } else {
-            clearErrors('contact_number');
-        }
-
-        setData('contact_number', value);
-    };
-
 
     const handleClose = () => {
         reset();
         clearErrors();
+        setLoadedStudentId(null);
         onClose(false);
     };
 
-    const handleSubmit = async (e) => {
-        console.log(data);
+    const focusFirstError = () => {
+        requestAnimationFrame(() => {
+            const field = formRef.current?.querySelector('[aria-invalid="true"]');
+            field?.focus();
+            field?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        });
+    };
 
-        e.preventDefault();
-        clearErrors();
+    const handleSubmit = async event => {
+        event.preventDefault();
+        if (submittingRef.current || !canEdit) return;
 
-        const requiredFields = [
-            'gender', 'civil_status', 'birthday', 'place_of_birth',
-            'regionCode', 'provinceCode', 'cityCode', 'barangayCode',
-            'father_first_name', 'father_last_name',
-            'mother_first_name', 'mother_maiden_last_name',
-            'elementary_name', 'elementary_address', 'elementary_year',
-            'secondary_name', 'secondary_address', 'secondary_year',
-        ];
-
-        let hasFrontendErrors = false;
-
-        requiredFields.forEach(field => {
-            if (!data[field] || String(data[field]).trim() === '') {
-                setError(field, 'This field is required.');
-                hasFrontendErrors = true;
+        const validationErrors = {};
+        REQUIRED_FIELDS.forEach(name => {
+            if (!String(data[name] ?? '').trim()) validationErrors[name] = 'This field is required.';
+        });
+        const birthday = new Date(`${data.birthday}T00:00:00`);
+        if (data.birthday && (!/^\d{4}-\d{2}-\d{2}$/.test(data.birthday)
+            || Number.isNaN(birthday.getTime()) || format(birthday, 'yyyy-MM-dd') !== data.birthday || data.birthday > today)) {
+            validationErrors.birthday = 'Enter a valid birthday that is not in the future.';
+        }
+        ['elementary_year', 'secondary_year'].forEach(name => {
+            if (data[name] && (!/^\d{4}$/.test(String(data[name])) || Number(data[name]) > Number(today.slice(0, 4)))) {
+                validationErrors[name] = 'Enter a four-digit graduation year that is not in the future.';
             }
         });
-        if (hasFrontendErrors) return;
+        clearErrors();
+        if (Object.keys(validationErrors).length) {
+            setError(validationErrors);
+            focusFirstError();
+            return;
+        }
 
+        submittingRef.current = true;
         setIsSubmitting(true);
-
         try {
-            await axios.post(route('permanent-record.add-student-info', student?.id), data);
-            await queryClient.invalidateQueries({ queryKey: ['permanent-record-student', student.id] });
-
-            toast.success('Record saved successfully!');
-            handleClose();
-
+            await axios.post(route('permanent-record.add-student-info', studentId), data);
         } catch (error) {
-            console.error("Error submitting form:", error);
-            if (error.response && error.response.status === 422) {
-                const backendErrors = error.response.data.errors;
-                for (const field in backendErrors) {
-                    setError(field, backendErrors[field][0]);
-                }
+            if (error.response?.status === 422) {
+                const backendErrors = error.response.data.errors || {};
+                setError(Object.fromEntries(Object.entries(backendErrors).map(([name, messages]) => [
+                    name, Array.isArray(messages) ? messages[0] : messages,
+                ])));
+                toast.error('Please check the highlighted fields.');
+                focusFirstError();
             } else {
-                toast.error("An unexpected error occurred. Please try again.");
+                toast.error('Student information could not be saved. Your changes are still here. Please try again.');
             }
-        } finally {
+            submittingRef.current = false;
             setIsSubmitting(false);
+            return;
+        }
+
+        // A refresh failure must not report that an already-saved record failed to save.
+        try {
+            await queryClient.invalidateQueries({ queryKey: ['permanent-record-student', studentId] });
+            toast.success('Student information saved.');
+        } catch {
+            toast.success('Student information saved. Reopen the record to refresh the view.');
+        } finally {
+            submittingRef.current = false;
+            setIsSubmitting(false);
+            handleClose();
         }
     };
 
+    const renderBirthdayInput = () => {
+        const error = errors.birthday;
+        const birthday = data.birthday
+            ? new Date(data.birthday + 'T00:00:00')
+            : undefined;
+        const selectedDate = birthday && !Number.isNaN(birthday.getTime())
+            ? birthday
+            : undefined;
+
+        return (
+            <FormField name="birthday" label="Birthday" error={error}>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            {...fieldProps('birthday', error)}
+                            className={cn(
+                                fieldProps('birthday', error).className,
+                                'justify-between font-normal',
+                            )}
+                        >
+                            {selectedDate ? format(selectedDate, 'MMM d, yyyy') : 'Select date'}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            defaultMonth={selectedDate}
+                            captionLayout="dropdown"
+                            disabled={date => date > new Date()}
+                            onSelect={date => {
+                                setData('birthday', date ? format(date, 'yyyy-MM-dd') : '');
+                                clearErrors('birthday');
+                            }}
+                        />
+                    </PopoverContent>
+                </Popover>
+            </FormField>
+        );
+    };
+
+    const renderInput = (name, label, options = {}) => {
+        const { hint, className, ...inputOptions } = options;
+        return (
+            <FormField name={name} label={label} error={errors[name]} hint={hint} className={className}>
+                <Input
+                    {...fieldProps(name, errors[name], hint)}
+                    value={data[name]}
+                    onChange={handleChange}
+                    {...inputOptions}
+                />
+            </FormField>
+        );
+    };
+
+    const renderSelect = (name, label, options, onValueChange, disabled = false) => (
+        <FormField name={name} label={label} error={errors[name]}>
+            <Select name={name} value={data[name]} onValueChange={onValueChange} disabled={disabled || isSubmitting}>
+                <SelectTrigger {...fieldProps(name, errors[name])}>
+                    <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+                </SelectTrigger>
+                <SelectContent>
+                    {options.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
+                </SelectContent>
+            </Select>
+        </FormField>
+    );
+
     return (
-        <AlertDialog open={open}>
-            <AlertDialogContent className="sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        {isFetching ? "Loading Record..." : "Adding Record"}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Student: {student ? formatName(student, { format: 'FML' }) : 'Unknown Student'}
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
+        <Dialog open={open} onOpenChange={nextOpen => {
+            if (!nextOpen && !submittingRef.current) handleClose();
+        }}>
+            <DialogContent
+                className={cn('flex max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0',
+                    isSubmitting && '[&>button]:hidden')}
+                onInteractOutside={event => event.preventDefault()}
+                onEscapeKeyDown={event => { if (submittingRef.current) event.preventDefault(); }}
+            >
+                <DialogHeader className="shrink-0 border-b px-6 py-5 pr-12 text-left">
+                    <DialogTitle>{hasExistingInfo ? 'Edit student information' : 'Add student information'}</DialogTitle>
+                    <DialogDescription>
+                        Student: {student ? formatName(student, { format: 'FML' }) : 'No student selected'}
+                    </DialogDescription>
+                    <p className="text-xs text-muted-foreground">Fields marked <span className="text-destructive">*</span> are required.</p>
+                </DialogHeader>
 
-                <Separator />
-
-                {/* You can wrap this in a ternary to hide the form or dim it while fetching */}
-                <div className={`space-y-8 py-4 transition-opacity duration-200 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-                    {/* Basic Info */}
-                    <div className='flex flex-col gap-4'>
-                    <h3 className="text-lg font-semibold">Personal Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 items-start">
-                            <div className="flex flex-col space-y-1 justify-end">
-                                <RequiredLabel>Birthday</RequiredLabel>
-                                <Field>
-                                    <Popover>
-                                        <PopoverTrigger>
-                                            <Button variant="outline" id="birthday" className="justify-start font-normal w-full h-12">{data.birthday ? data.birthday : "Select date"}</Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                            <Calendar
-                                                mode="single"
-                                                selected={data.birthday ? new Date(data.birthday) : undefined}
-                                                defaultMonth={data.birthday ? new Date(data.birthday) : undefined}
-                                                captionLayout="dropdown"
-                                                onSelect={(date) => {
-                                                    setData("birthday", date ? format(date, "yyyy-MM-dd") : "");
-                                                }}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                </Field>
+                <form ref={formRef} onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col" aria-busy={isLoading || isSubmitting}>
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-6">
+                        {isLoading ? (
+                            <div role="status" className="flex min-h-48 items-center justify-center gap-3 text-sm text-muted-foreground">
+                                <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin" />
+                                Loading student information...
                             </div>
-
-                            <div className="flex flex-col space-y-1 justify-end">
-                                <RequiredLabel>Gender</RequiredLabel>
-                                <Select
-                                    value={data.gender}
-                                    onValueChange={(val) => {
-                                        setData('gender', val);
-                                        clearErrors('gender');
-                                    }}
-                                >
-                                    {/* Matches the height and border styling of your standard inputs */}
-                                    <SelectTrigger className={`h-12 ${errors.civil_status ? "border-destructive" : ""}`}>
-                                        <SelectValue placeholder="Select gender" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Male">Male</SelectItem>
-                                        <SelectItem value="Female">Female</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {errors.civil_status && <p className="text-xs text-destructive mt-1">{errors.civil_status}</p>}
+                        ) : fetchError || !studentId ? (
+                            <div role="alert" className="space-y-4 rounded-lg border p-4 text-sm">
+                                <p>{fetchError || 'Select a student before adding information.'}</p>
+                                {studentId && <Button type="button" variant="outline" onClick={() => setRetryCount(count => count + 1)}>Retry loading</Button>}
                             </div>
+                        ) : (
+                            <fieldset disabled={isSubmitting} className="min-w-0 space-y-8">
+                                {Object.keys(errors).length > 0 && (
+                                    <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                                        Please correct the highlighted fields before saving.
+                                    </div>
+                                )}
+                                <section aria-labelledby="personal-information-heading" className="space-y-4">
+                                    <h3 id="personal-information-heading" className="text-base font-semibold">Personal information</h3>
+                                    <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
+                                        {renderBirthdayInput()}
+                                        {renderInput('place_of_birth', 'Place of birth')}
+                                        {renderSelect('gender', 'Gender', ['Male', 'Female'].map(value => ({ value, label: value })), value => {
+                                            setData('gender', value); clearErrors('gender');
+                                        })}
+                                        {renderSelect('civil_status', 'Civil status', ['Single', 'Married', 'Widowed', 'Divorced'].map(value => ({ value, label: value })), value => {
+                                            setData('civil_status', value); clearErrors('civil_status');
+                                        })}
+                                    </div>
+                                </section>
 
-                            {/* Civil Status Container with fixed height to match CFloatingInput */}
-                            <div className="flex flex-col space-y-1 justify-end">
-                                <RequiredLabel>Civil Status</RequiredLabel>
-                                <Select
-                                    value={data.civil_status}
-                                    onValueChange={(val) => {
-                                        setData('civil_status', val);
-                                        clearErrors('civil_status');
-                                    }}
-                                >
-                                    {/* Matches the height and border styling of your standard inputs */}
-                                    <SelectTrigger className={`h-12 ${errors.civil_status ? "border-destructive" : ""}`}>
-                                        <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Single">Single</SelectItem>
-                                        <SelectItem value="Married">Married</SelectItem>
-                                        <SelectItem value="Widowed">Widowed</SelectItem>
-                                        <SelectItem value="Divorced">Divorced</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {errors.civil_status && <p className="text-xs text-destructive mt-1">{errors.civil_status}</p>}
-                            </div>
+                                <Separator />
 
-                            <CFloatingInput
-                                required='true'
-                                className="mt-2"
-                                type="text"
-                                name="place_of_birth"
-                                label="Place of Birth"
-                                value={data.place_of_birth}
-                                onChange={handleChange}
-                                error={errors.place_of_birth}
-                            />
+                                <section aria-labelledby="current-address-heading" className="space-y-4">
+                                    <h3 id="current-address-heading" className="text-base font-semibold">Current address</h3>
+                                    <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
+                                        {renderSelect('regionCode', 'Region', addressOptions.regions.map(item => ({ value: String(item.region_code), label: item.region_name })), handleRegionChange)}
+                                        {renderSelect('provinceCode', 'Province', addressOptions.provinces.map(item => ({ value: String(item.province_code), label: item.province_name })), handleProvinceChange, !data.regionCode)}
+                                        {renderSelect('cityCode', 'City / municipality', addressOptions.cities.map(item => ({ value: String(item.city_code), label: item.city_name })), handleCityChange, !data.provinceCode)}
+                                        {renderSelect('barangayCode', 'Barangay', addressOptions.barangays.map(item => ({ value: String(item.barangay_code), label: item.barangay_name })), handleBarangayChange, !data.cityCode)}
+                                        {renderInput('street', 'Street / house no.', { autoComplete: 'address-line1' })}
+                                        {renderInput('zipCode', 'ZIP code', {
+                                            autoComplete: 'postal-code', inputMode: 'numeric', disabled: !data.cityCode,
+                                            hint: 'Filled when available. Check and correct it if needed.',
+                                        })}
+                                    </div>
+                                </section>
 
-                        </div>
+                                <Separator />
+
+                                <section aria-labelledby="parents-information-heading" className="space-y-6">
+                                    <h3 id="parents-information-heading" className="text-base font-semibold">Parents' information</h3>
+                                    {['father', 'mother'].map(parent => (
+                                        <div key={parent} className="space-y-4" role="group" aria-labelledby={`${parent}-heading`}>
+                                            <h4 id={`${parent}-heading`} className="text-sm font-medium text-muted-foreground">{parent === 'father' ? "Father's details" : "Mother's details"}</h4>
+                                            <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
+                                                {renderInput(`${parent}_first_name`, 'First name')}
+                                                {renderInput(parent === 'father' ? 'father_last_name' : 'mother_maiden_last_name', parent === 'father' ? 'Last name' : 'Maiden last name')}
+                                                {renderInput(`${parent}_middle_name`, 'Middle name')}
+                                                {renderInput(`${parent}_suffix`, 'Suffix', { placeholder: 'e.g., Jr.', className: 'md:max-w-40' })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </section>
+
+                                <Separator />
+
+                                <section aria-labelledby="education-heading" className="space-y-6">
+                                    <h3 id="education-heading" className="text-base font-semibold">Educational background</h3>
+                                    {['elementary', 'secondary'].map(level => (
+                                        <div key={level} className="space-y-4" role="group" aria-labelledby={`${level}-heading`}>
+                                            <h4 id={`${level}-heading`} className="text-sm font-medium capitalize text-muted-foreground">{level}</h4>
+                                            <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
+                                                {renderInput(`${level}_name`, 'School name')}
+                                                {renderInput(`${level}_year`, 'Year graduated', { inputMode: 'numeric', maxLength: 4, placeholder: 'YYYY', className: 'md:max-w-40' })}
+                                                {renderInput(`${level}_address`, 'School address', { className: 'md:col-span-2' })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </section>
+                            </fieldset>
+                        )}
                     </div>
 
-                    {/* Address Information */}
-                    <div>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Current Address</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-                            <div className="space-y-1">
-                                <RequiredLabel>Region</RequiredLabel>
-                                <Select value={data.regionCode} onValueChange={handleRegionChange}>
-                                    <SelectTrigger className={cn(errors.regionCode ? "border-destructive" : "", "h-12")}>
-                                        <SelectValue placeholder="Select Region" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {addressOptions.regions.map(r => (
-                                            <SelectItem key={r.region_code} value={r.region_code}>{r.region_name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.regionCode && <p className="text-xs text-destructive">{errors.regionCode}</p>}
-                            </div>
-
-                            <div className="space-y-1">
-                                <RequiredLabel>Province</RequiredLabel>
-                                <Select value={data.provinceCode} onValueChange={handleProvinceChange} disabled={!data.regionCode}>
-                                    <SelectTrigger className={cn(errors.provinceCode ? "border-destructive" : "", "h-12")}>
-                                        <SelectValue placeholder="Select Province" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {addressOptions.provinces.map(p => (
-                                            <SelectItem key={p.province_code} value={p.province_code}>{p.province_name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.provinceCode && <p className="text-xs text-destructive">{errors.provinceCode}</p>}
-                            </div>
-
-                            <div className="space-y-1">
-                                <RequiredLabel>City / Municipality</RequiredLabel>
-                                <Select value={data.cityCode} onValueChange={handleCityChange} disabled={!data.provinceCode}>
-                                    <SelectTrigger className={cn(errors.cityCode ? "border-destructive" : "", "h-12")}>
-                                        <SelectValue placeholder="Select City" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {addressOptions.cities.map(c => (
-                                            <SelectItem key={c.city_code} value={c.city_code}>{c.city_name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.cityCode && <p className="text-xs text-destructive">{errors.cityCode}</p>}
-                            </div>
-
-                            <div className="space-y-1">
-                                <RequiredLabel>Barangay</RequiredLabel>
-                                <Select value={data.barangayCode} onValueChange={handleBarangayChange} disabled={!data.cityCode}>
-                                    <SelectTrigger className={cn(errors.barangayCode ? "border-destructive" : "", "h-[44px]")}>
-                                        <SelectValue placeholder="Select Barangay" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {addressOptions.barangays.map(b => (
-                                            <SelectItem key={b.barangay_code} value={b.barangay_code}>{b.barangay_name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.barangayCode && <p className="text-xs text-destructive">{errors.barangayCode}</p>}
-                            </div>
-
-                            <div className="mt-6">
-                                <CFloatingInput required='true' name="zipCode" label="Zip Code" value={data.zipCode} onChange={handleChange} disabled={!data.cityCode} error={errors.zipCode} />
-                            </div>
-
-                            <div className="mt-6">
-                                <CFloatingInput required='true' name="street" label="Street / House No." value={data.street} onChange={handleChange} error={errors.street} />
-                            </div>
-                        </div>
-                    </div>
-
-                    <Separator />
-
-                    {/* Parents Information */}
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">Parents Information</h3>
-
-                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Father's Details</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                            <CFloatingInput required='true' name="father_first_name" label="First Name" value={data.father_first_name} onChange={handleChange} error={errors.father_first_name} />
-                            <CFloatingInput required='true' name="father_last_name" label="Last Name" value={data.father_last_name} onChange={handleChange} error={errors.father_last_name} />
-                            <CFloatingInput name="father_middle_name" label="Middle Name" value={data.father_middle_name} onChange={handleChange} error={errors.father_middle_name} />
-                            <CFloatingInput name="father_suffix" label="Suffix (e.g., Jr.)" value={data.father_suffix} onChange={handleChange} error={errors.father_suffix} />
-                        </div>
-
-                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Mother's Details</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <CFloatingInput required='true' name="mother_first_name" label="First Name" value={data.mother_first_name} onChange={handleChange} error={errors.mother_first_name} />
-                            <CFloatingInput required='true' name="mother_maiden_last_name" label="Maiden Last Name" value={data.mother_maiden_last_name} onChange={handleChange} error={errors.mother_maiden_last_name} />
-                            <CFloatingInput name="mother_middle_name" label="Middle Name" value={data.mother_middle_name} onChange={handleChange} error={errors.mother_middle_name} />
-                            <CFloatingInput name="mother_suffix" label="Suffix" value={data.mother_suffix} onChange={handleChange} error={errors.mother_suffix} />
-                        </div>
-                    </div>
-
-                    <Separator />
-
-                    {/* Educational Background */}
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">Educational Background</h3>
-
-                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Elementary</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pt-1">
-                            <CFloatingInput required='true' name="elementary_name" label="School Name" value={data.elementary_name} onChange={handleChange} error={errors.elementary_name} />
-                            <CFloatingInput required='true' name="elementary_address" label="School Address" value={data.elementary_address} onChange={handleChange} error={errors.elementary_address} />
-                            <CFloatingInput required='true' name="elementary_year" label="Year Graduated" value={data.elementary_year} onChange={handleChange} error={errors.elementary_year} />
-                        </div>
-
-                        <h4 className="text-sm font-medium text-muted-foreground mb-4">Secondary</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-                            <CFloatingInput required='true' name="secondary_name" label="School Name" value={data.secondary_name} onChange={handleChange} error={errors.secondary_name} />
-                            <CFloatingInput required='true' name="secondary_address" label="School Address" value={data.secondary_address} onChange={handleChange} error={errors.secondary_address} />
-                            <CFloatingInput required='true' name="secondary_year" label="Year Graduated" value={data.secondary_year} onChange={handleChange} error={errors.secondary_year} />
-                        </div>
-                    </div>
-
-                </div>
-
-                <AlertDialogFooter className="sticky bottom-0 bg-background pt-4 pb-2 border-t mt-4 z-10">
-                    <AlertDialogCancel onClick={handleClose} disabled={isSubmitting || isFetching}>
-                        Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction disabled={isSubmitting || isFetching} onClick={handleSubmit}>
-                        {isSubmitting ? "Submitting..." : "Submit"}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                    <DialogFooter className="shrink-0 gap-2 border-t bg-background px-6 py-4 sm:space-x-0">
+                        <Button type="button" variant="outline" onClick={() => { if (!submittingRef.current) handleClose(); }} disabled={isSubmitting}>Cancel</Button>
+                        <Button type="submit" disabled={!canEdit || isSubmitting}>
+                            {isSubmitting && <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />}
+                            {isSubmitting ? 'Saving...' : 'Save changes'}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }

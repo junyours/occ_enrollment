@@ -29,7 +29,7 @@ class FormNineController extends Controller
         $info = User::where('id', $id)
             ->with([
                 'Information' => function ($query) {
-                    $query->select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'gender', 'birthday', 'civil_status', 'contact_number', 'present_address as address', 'place_of_birth');
+                    $query->select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'suffix', 'nationality', 'gender', 'birthday', 'civil_status', 'contact_number', 'present_address as address', 'place_of_birth');
                 },
                 'Parent',
                 'preliminaryEducation'
@@ -120,6 +120,7 @@ class FormNineController extends Controller
                     'subject_code'      => $subject->subject_code,
                     'descriptive_title' => $subject->descriptive_title,
                     'grade'             => $subject->grade,
+                    're_exam'           => $subject->re_exam,
                     'credit_units'      => $subject->units, // Note: your schema called it 'units', but we output 'credit_units' to match the other arrays
                 ];
             })->values()->toArray();

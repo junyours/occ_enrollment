@@ -1,0 +1,16 @@
+.form9-document { width: 210mm; color: #000; }
+.form9-page { position: relative; box-sizing: border-box; display: flex; flex-direction: column; width: 210mm; height: 297mm; margin: 0 auto 20px; padding: 32px 32px 20mm; background: #fff; box-shadow: 0 2px 10px #0002; }
+.form9-page > * { flex-shrink: 0; }
+.form9-page .form9-record-area { flex: 1 1 0%; min-height: 0; }
+.form9-semester, .form9-measure-semester { margin-bottom: 24px; }
+.form9-confirmation { display: flow-root; margin-top: 12px; flex-shrink: 0; }
+.form9-page-number { position: absolute; top: calc(297mm - 15mm); left: 0; width: 100%; text-align: center; font-size: 14px; line-height: 18px; font-weight: 600; }
+.form9-measure-host { position: fixed; left: -100000px; top: 0; visibility: hidden; pointer-events: none; }
+.form9-measure-final { width: calc(210mm - 64px); }
+.form9-layout-error { margin-bottom: 16px; padding: 16px; border: 1px solid #b91c1c; background: #fff; color: #991b1b; font-size: 14px; }
+@media print {
+    .form9-measure-host, .form9-page-controls { display: none !important; }
+    .form9-page { margin: 0 !important; box-shadow: none !important; break-after: page; page-break-after: always; break-inside: avoid; page-break-inside: avoid; }
+    .form9-page:last-child { break-after: auto; page-break-after: auto; }
+    .form9-page-number { font-size: 11px; }
+}

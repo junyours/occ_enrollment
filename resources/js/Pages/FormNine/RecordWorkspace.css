@@ -1,0 +1,68 @@
+.record-editor { display: flex; flex-direction: column; gap: 10px; height: calc(100dvh - 5.5rem); min-height: 0; min-width: 0; }
+.record-commandbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; flex: 0 0 auto; }
+.record-editor-title { margin: 0; font-size: 18px; font-weight: 650; color: hsl(var(--foreground)); }
+.record-editor-description { margin-top: 2px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.record-document-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-width: 0; }
+.record-format-selector { display: inline-flex; padding: 3px; gap: 3px; border: 1px solid hsl(var(--border)); border-radius: 9px; background: hsl(var(--muted)); max-width: 100%; }
+.record-format-selector button { border: 0; border-radius: 6px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 550; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+.record-format-selector button[aria-pressed="true"] { color: hsl(var(--foreground)); background: hsl(var(--card)); box-shadow: 0 1px 3px #0002; }
+.record-format-selector button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.record-student-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 14px; border: 1px solid hsl(var(--border)); border-radius: 10px; background: hsl(var(--card)); flex-shrink: 0; min-width: 0; }
+.record-student-identity { display: flex; flex: 1 1 420px; align-items: center; gap: 12px; min-width: 0; }
+.record-student-avatar { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; color: hsl(var(--primary)); background: hsl(var(--secondary)); flex-shrink: 0; }
+.record-identity-copy { min-width: 0; flex: 1; }
+.record-identity-copy h2, .record-student-search h2 { font-size: 18px; line-height: 1.25; font-weight: 700; color: hsl(var(--foreground)); overflow-wrap: anywhere; }
+.record-student-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px; margin-top: 2px; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.record-student-id { flex-shrink: 0; }
+.record-student-id strong { color: hsl(var(--foreground)); font-weight: 500; }
+.record-student-program { min-width: 0; overflow-wrap: anywhere; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.record-student-actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; gap: 6px; max-width: 100%; }
+.record-student-actions .record-academic-action { height: auto; min-height: 32px; padding: 6px 10px; font-size: 12px; white-space: normal; text-align: left; }
+.record-student-search { width: min(100%, 460px); }
+.record-student-search h2 { margin-bottom: 6px; }
+.record-fetch-status { margin: 0; color: hsl(var(--muted-foreground)); font-size: 12px; }
+.record-fetch-error { display: flex; align-items: center; gap: 12px; color: hsl(var(--destructive)); font-size: 13px; }
+.record-workspace { display: flex; gap: 0; flex: 1; min-height: 0; min-width: 0; position: relative; }
+.record-settings-panel { box-sizing: border-box; width: var(--record-settings-width, 350px); max-width: 480px; flex: 0 0 var(--record-settings-width, 350px); min-width: 0; display: flex; flex-direction: column; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 10px; background: hsl(var(--card)); }
+.record-settings-panel[data-collapsed] { width: 48px; flex-basis: 48px; margin-right: 12px; }
+.record-settings-body[hidden] { display: none; }
+.record-settings-body { padding: 12px; overflow: auto; overscroll-behavior: contain; min-height: 0; }
+.record-preview-panel { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 10px; background: hsl(var(--muted)); }
+.record-print-content { width: max-content; color: #000; }
+.record-preview-placeholder { width: 520px; max-width: 100%; min-height: 340px; padding: 100px 24px; color: #64748b; text-align: center; font-size: 15px; }
+.record-settings-backdrop { display: none; }
+@media (max-width: 1023px) {
+    .record-workspace { flex-direction: column; gap: 10px; }
+    .record-settings-resizer { display: none; }
+    .record-settings-panel { position: absolute; top: 0; left: 0; bottom: 0; z-index: 30; width: min(350px, 100%); max-width: 100%; box-shadow: 6px 0 24px #0003; }
+    .record-settings-panel[data-collapsed] { position: static; width: 100%; max-width: none; flex: 0 0 auto; margin-right: 0; box-shadow: none; }
+    .record-settings-backdrop { display: block; position: absolute; inset: 0; z-index: 20; background: #0003; border: 0; border-radius: 10px; }
+}
+@media (max-width: 639px) {
+    .record-editor { height: calc(100dvh - 5.5rem); min-height: 0; gap: 10px; }
+    .record-editor-description { display: none; }
+    .record-commandbar { gap: 8px; }
+    .record-document-actions { gap: 8px; width: 100%; }
+    .record-format-selector button { padding: 7px 9px; font-size: 12px; }
+    .record-student-card { padding: 10px; gap: 8px; }
+    .record-identity-copy h2 { font-size: 16px; }
+    .record-student-avatar { display: none; }
+    .record-student-identity { gap: 8px; align-items: start; }
+    .record-student-identity > button { font-size: 11px; padding: 5px 8px; height: 30px; }
+    .record-student-meta { display: block; font-size: 11px; }
+    .record-student-program { display: block; margin-top: 2px; }
+    .record-student-actions .record-academic-action { font-size: 11px; padding: 5px 7px; gap: 5px; }
+}
+@media print {
+    .record-editor .record-commandbar, .record-editor .record-student-card, .record-editor .record-settings-panel, .record-editor .record-settings-backdrop, .record-editor .record-fetch-status, .record-editor .record-fetch-error, .record-editor .record-settings-resizer { display: none !important; }
+    .record-editor { height: auto; min-height: 0; display: block; }
+    .record-workspace, .record-preview-panel { display: block; border: 0; overflow: visible; }
+}
+
+.record-settings-resizer { display: flex; align-items: center; justify-content: center; width: 12px; flex: 0 0 12px; cursor: col-resize; touch-action: none; outline: none; }
+.record-settings-resizer > span { width: 3px; height: 42px; border-radius: 3px; background: hsl(var(--border)); transition: background-color .15s; }
+.record-settings-resizer:hover > span, .record-settings-resizer:focus-visible > span, .record-workspace[data-resizing] .record-settings-resizer > span { background: hsl(var(--ring)); }
+.record-settings-resizer:focus-visible { box-shadow: inset 0 0 0 1px hsl(var(--ring)); border-radius: 4px; }
+.record-workspace[data-resizing] { user-select: none; cursor: col-resize; }
+@media (max-width: 1023px) { .record-settings-resizer { display: none; } }
+@media print { .record-settings-resizer { display: none !important; } }

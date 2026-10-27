@@ -1,0 +1,9 @@
+.tor-options input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 1;
+    filter: grayscale(1) brightness(0) invert(0.45);
+}
+
+.dark .tor-options input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: grayscale(1) brightness(0) invert(0.72);
+}
