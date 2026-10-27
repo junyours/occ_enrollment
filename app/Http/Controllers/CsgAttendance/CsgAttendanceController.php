@@ -34,7 +34,8 @@ class CsgAttendanceController extends Controller
         $accessToken->save();
 
         return response()->json([
-            'token' => $token
+            'token' => $token,
+            'password_change_required' => $user->requiresPasswordChange(),
         ]);
     }
 

@@ -32,6 +32,13 @@ class User extends Authenticatable
         'updated_at'
     ];
 
+    public function requiresPasswordChange(): bool
+    {
+        return in_array($this->getAttribute('password_change'), [false, 0, '0'], true)
+            && $this->created_at !== null
+            && $this->created_at->gte(\Illuminate\Support\Carbon::parse('2026-10-26 00:00:00', config('app.timezone')));
+    }
+
     public function username()
     {
         return 'user_id_no';

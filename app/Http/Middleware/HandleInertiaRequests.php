@@ -53,6 +53,16 @@ class HandleInertiaRequests extends Middleware
             return $baseSharedData;
         }
 
+        // The required-password screen has no enrollment or role navigation.
+        if ($user->requiresPasswordChange() || $request->routeIs('password.required', 'password.required.update')) {
+            return [
+                ...$baseSharedData,
+                'auth' => [
+                    'user' => $user->only('id', 'user_id_no', 'user_role', 'password_change'),
+                    'impersonating' => Session::has('impersonator_id'),
+                ],
+            ];
+        }
         // User data
         $user = User::with('information')->find($user->id);
         $userPayload = $this->mapUser($user);

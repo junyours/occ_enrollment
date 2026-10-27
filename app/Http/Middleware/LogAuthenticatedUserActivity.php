@@ -24,7 +24,7 @@ class LogAuthenticatedUserActivity
             $user = Auth::user();
 
             // Do not log if they are being impersonated OR if their role is super admin
-            if (!$request->session()->has('impersonator_id') && $user->user_role !== 'super_admin') {
+            if ((!$request->hasSession() || !$request->session()->has('impersonator_id')) && $user->user_role !== 'super_admin') {
                 UserLog::create([
                     'user_id'     => $user->id,
                     'method'      => $request->method(),

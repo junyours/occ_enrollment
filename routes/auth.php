@@ -47,6 +47,11 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('password/change-required', [\App\Http\Controllers\Auth\RequiredPasswordController::class, 'create'])
+        ->name('password.required');
+    Route::put('password/change-required', [\App\Http\Controllers\Auth\RequiredPasswordController::class, 'update'])
+        ->middleware('throttle:10,1,required-password:')->name('password.required.update');
+
     // Route::get('verify-email', EmailVerificationPromptController::class)
     //     ->name('verification.notice');
 

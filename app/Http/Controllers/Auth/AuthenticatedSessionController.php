@@ -32,14 +32,18 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $ongoingEnrollment = $this->getPreparingOrOngoingSchoolYear()['school_year'];
-
-        // dd($ongoingEnrollment);
         $request->authenticate();
 
         $request->session()->regenerate();
 
         $user = Auth::user();
+
+        // Require the password update before allowing normal account activity.
+        if ($user->requiresPasswordChange()) {
+            return redirect()->route('password.required');
+        }
+
+        $ongoingEnrollment = $this->getPreparingOrOngoingSchoolYear()['school_year'];
 
         if (is_null($user->first_login_at)) {
             User::find($user->id)

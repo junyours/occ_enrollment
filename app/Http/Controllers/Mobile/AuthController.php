@@ -52,46 +52,40 @@ class AuthController extends Controller
         $token = $user->createToken('mobile-token')->plainTextToken;
 
         return response()->json([
-            'token' => $token
+            'token' => $token,
+            'password_change_required' => $user->requiresPasswordChange(),
         ]);
     }
 
     public function changePassword(Request $request)
     {
-        $user_id = $request->user()->id;
+        $user = $request->user();
+        if ($user->requiresPasswordChange()) {
+            $validated = $request->validate(\App\Services\AccountPasswordChange::rules(), \App\Services\AccountPasswordChange::messages());
+            $token = $user->currentAccessToken();
+            $keepTokenId = $token instanceof \Laravel\Sanctum\PersonalAccessToken ? $token->getKey() : null;
+            $user = app(\App\Services\AccountPasswordChange::class)->updateRequired(
+                $user, $validated['password'], keepTokenId: $keepTokenId,
+            );
+            event(new \Illuminate\Auth\Events\PasswordReset($user));
 
-        $user = User::find($user_id);
-
-        if ($user->password_change === 0) {
-            $request->validate([
-                'password' => ['required', 'confirmed', Password::defaults()],
-            ]);
-
-            $user->update([
-                'password' => Hash::make($request->password),
-                'password_change' => 1
-            ]);
-        } else {
-            $request->validate([
-                'current_password' => ['required'],
-            ]);
-
-            if (!Hash::check($request->current_password, $user->password)) {
-                throw ValidationException::withMessages([
-                    'message' => 'The current password is incorrect.',
-                ]);
-            }
-
-            $request->validate([
-                'password' => ['required', 'confirmed', Password::defaults()],
-            ]);
-
-            $user->update([
-                'password' => Hash::make($request->password),
-            ]);
+            return response()->json(['message' => 'Your password has been updated.', 'password_change_required' => false]);
         }
-    }
 
+        $request->validate(['current_password' => ['required', 'string']]);
+        if (! Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages(['message' => 'The current password is incorrect.']);
+        }
+        $validated = $request->validate([
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+        $user->update([
+            'password' => Hash::make($validated['password']),
+            'password_change' => true,
+        ]);
+
+        return response()->json(['message' => 'Your password has been updated.', 'password_change_required' => false]);
+    }
     public function logout(Request $request)
     {
         $user = $request->user();

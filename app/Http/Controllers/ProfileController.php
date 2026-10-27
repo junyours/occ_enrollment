@@ -60,6 +60,7 @@ class ProfileController extends Controller
 
         $request->user()->update([
             'password' => Hash::make($validated['password']),
+            'password_change' => true,
         ]);
 
         return back()->with('success', 'Password updated successfully!');
