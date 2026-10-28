@@ -1,209 +1,189 @@
-import { Badge } from '@/Components/ui/badge'
-import { Button } from '@/Components/ui/button'
-import { Checkbox } from '@/Components/ui/checkbox'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
-import { Label } from '@/Components/ui/label'
-import { formatDateShort } from '@/Lib/Utils'
-import axios from 'axios'
-import React, { useEffect, useState } from 'react'
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Label } from '@/Components/ui/label';
+import { Switch } from '@/Components/ui/switch';
+import { formatDateShort } from '@/Lib/Utils';
+import axios from 'axios';
+import { Check, Loader2, Settings2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { getEnrollmentStatus, getEnrollmentStatusClass, isEnabled } from './schoolYearUtils';
 
-function SchoolYearSettings({ schoolYearId, open, setOpen }) {
-    const [loading, setLoading] = useState(true)
-    const [schoolYear, setSchoolYear] = useState({})
+const operations = [
+    { field: 'evaluating', label: 'Student Evaluation', description: 'Enable student evaluation.' },
+    { field: 'allow_upload_midterm', label: 'Midterm Grade Upload', description: 'Allow faculty to submit midterm grades.' },
+    { field: 'allow_upload_final', label: 'Final Grade Upload', description: 'Allow faculty to submit final grades.' },
+];
 
-    const getSchoolYearSettings = async () => {
-        await axios.post(route('get.school-year', { id: schoolYearId }))
-            .then(response => {
-                setSchoolYear(response.data)
-            })
-            .finally(() => {
-                setLoading(false);
-            })
-    }
+function SchoolYearSettings({ schoolYearId, open, setOpen, onUpdated }) {
+    const [loading, setLoading] = useState(true);
+    const [schoolYear, setSchoolYear] = useState(null);
+    const [loadError, setLoadError] = useState('');
+    const [saveError, setSaveError] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [retry, setRetry] = useState(0);
+    const savingRef = useRef(false);
 
     useEffect(() => {
-        getSchoolYearSettings()
-    }, [])
+        if (!open) return;
+        const controller = new AbortController();
+        setLoading(true);
+        setLoadError('');
+        setSaveError('');
+        setSaved(false);
+        setSchoolYear(null);
 
-    const handleToggle = async (field, value) => {
-        // Example: send PATCH request or store locally
-        setSchoolYear(prev => ({
-            ...prev,
-            [field]: value ? 1 : 0,
-        }));
-        const convertedValue = value ? 1 : 0
-        console.log(value);
-        console.log(convertedValue);
+        axios.post(route('get.school-year', { id: schoolYearId }), {}, { signal: controller.signal })
+            .then(({ data }) => {
+                if (!data?.id) throw new Error('School year not found.');
+                setSchoolYear(data);
+            })
+            .catch((error) => {
+                if (!controller.signal.aborted) {
+                    setLoadError(error.response?.data?.message || 'Unable to load semester settings. Please try again.');
+                }
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setLoading(false);
+            });
 
-        await axios.patch(`/school-year/${field}/${schoolYear.id}`, { value: convertedValue })
+        return () => controller.abort();
+    }, [schoolYearId, open, retry]);
+
+    const handleToggle = async (field, enabled) => {
+        if (savingRef.current || !schoolYear) return;
+        savingRef.current = true;
+        const previous = schoolYear;
+        const updated = { ...schoolYear, [field]: enabled ? 1 : 0, enrollment_status: undefined };
+        setSchoolYear(updated);
+        setSaving(true);
+        setSaved(false);
+        setSaveError('');
+
+        try {
+            const { data } = await axios.patch(`/school-year/${field}/${schoolYear.id}`, { value: enabled ? 1 : 0 });
+            const persisted = data?.schoolYear ? { ...updated, ...data.schoolYear } : updated;
+            setSchoolYear(persisted);
+            setSaved(true);
+            onUpdated?.(persisted);
+        } catch (error) {
+            setSchoolYear(previous);
+            const validationMessage = Object.values(error.response?.data?.errors || {}).flat()[0];
+            setSaveError(validationMessage || error.response?.data?.message || 'Unable to save this change. Your previous setting has been restored.');
+        } finally {
+            savingRef.current = false;
+            setSaving(false);
+        }
     };
 
-    const getEnrollmentStatus = (startDate, endDate) => {
-        const now = new Date();
-        now.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999); // Set to end of day
-
-        // Check if currently within enrollment period
-        if (now >= start && now <= end) {
-            return 'ongoing';
-        }
-
-        // Check if within 14 days before start date (preparing for upcoming enrollment)
-        const fourteenDaysBeforeStart = new Date(start);
-        fourteenDaysBeforeStart.setDate(fourteenDaysBeforeStart.getDate() - 14);
-
-        if (now >= fourteenDaysBeforeStart && now < start) {
-            return 'preparing';
-        }
-
-        return null;
-    };
-
-    if (loading) return <></>
+    const status = schoolYear ? getEnrollmentStatus(schoolYear) : 'Closed';
+    const isCurrent = isEnabled(schoolYear?.is_current);
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="sm:max-w-[500px]">
+        <Dialog open={open} onOpenChange={(nextOpen) => { if (!savingRef.current) setOpen(nextOpen); }}>
+            <DialogContent
+                className="max-h-[90vh] w-[calc(100%_-_2rem)] overflow-y-auto sm:max-w-[540px]"
+                onEscapeKeyDown={(event) => { if (savingRef.current) event.preventDefault(); }}
+                onPointerDownOutside={(event) => { if (savingRef.current) event.preventDefault(); }}
+            >
                 <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold flex items-center">
-                        <svg className="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Settings: {schoolYear?.start_year}-{schoolYear?.end_year}
+                    <DialogTitle className="flex items-center gap-2 text-xl">
+                        <Settings2 className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                        Semester Settings
                     </DialogTitle>
-                    <DialogDescription>Manage settings for {schoolYear?.semester_name} Semester</DialogDescription>
+                    <DialogDescription>
+                        {schoolYear
+                            ? `${schoolYear.start_year}–${schoolYear.end_year} · ${schoolYear.semester_name} Semester`
+                            : 'School year settings'}
+                    </DialogDescription>
                 </DialogHeader>
-                <div>
-                    <h3 className="text-sm font-semibold mb-3 flex items-center">
-                        <svg className="w-4 h-4 mr-2 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        Status Management
-                    </h3>
 
-                    <div className="space-y-3">
-                        {/* Enrollment Status */}
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                            <div>
-                                <Label className="font-medium">Enrollment Status</Label>
-                                <p className="text-xs text-muted-foreground">
-                                    {getEnrollmentStatus(schoolYear?.start_date, schoolYear?.end_date) === 'ongoing'
-                                        ? 'Currently accepting enrollments'
-                                        : getEnrollmentStatus(schoolYear?.start_date, schoolYear?.end_date) === 'preparing'
-                                            ? 'Preparing (within 2 weeks of start)'
-                                            : 'No active enrollment period'}
-                                </p>
-                            </div>
-                            <Badge
-                                className={
-                                    getEnrollmentStatus(schoolYear?.start_date, schoolYear?.end_date) === 'ongoing'
-                                        ? 'bg-blue-500 hover:bg-blue-500'
-                                        : getEnrollmentStatus(schoolYear?.start_date, schoolYear?.end_date) === 'preparing'
-                                            ? 'bg-yellow-500 hover:bg-yellow-500'
-                                            : 'bg-gray-500 hover:bg-gray-500'
-                                }
-                            >
-                                {getEnrollmentStatus(schoolYear?.start_date, schoolYear?.end_date) === 'ongoing'
-                                    ? 'Ongoing'
-                                    : getEnrollmentStatus(schoolYear?.start_date, schoolYear?.end_date) === 'preparing'
-                                        ? 'Preparing'
-                                        : 'None'}
-                            </Badge>
-                        </div>
-
-                        {/* Enrollment Period */}
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                            <div>
-                                <Label className="font-medium">Enrollment Period</Label>
-                                <p className="text-xs text-muted-foreground">
-                                    {schoolYear?.start_date && formatDateShort(schoolYear.start_date)} -{" "}
-                                    {schoolYear?.end_date && formatDateShort(schoolYear.end_date)}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Current Year Toggle */}
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                            <div>
-                                <Label className="font-medium">Set as Current Year</Label>
-                                <p className="text-xs text-muted-foreground">Mark this as the active school year</p>
-                            </div>
-                            <Checkbox
-                                checked={schoolYear?.is_current === 1}
-                                onCheckedChange={(checked) => handleToggle('is_current', checked)}
-                                className="h-5 w-5"
-                            />
-                        </div>
-
-                        {/* Enrollment Toggles */}
-                        <div className="space-y-3 mt-4">
-                            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                <div>
-                                    <Label className="font-medium">Allow Enrollment</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Toggle if enrollment is currently open.
-                                    </p>
-                                </div>
-                                <Checkbox
-                                    checked={schoolYear?.allow_enrollment === 1}
-                                    onCheckedChange={(checked) => handleToggle('allow_enrollment', checked)}
-                                    className="h-5 w-5"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                <div>
-                                    <Label className="font-medium">Evaluating</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Enable evaluation period for this school year.
-                                    </p>
-                                </div>
-                                <Checkbox
-                                    checked={schoolYear?.evaluating === 1}
-                                    onCheckedChange={(checked) => handleToggle('evaluating', checked)}
-                                    className="h-5 w-5"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                <div>
-                                    <Label className="font-medium">Allow Midterm Grade Upload</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Control if faculty can upload midterm grades.
-                                    </p>
-                                </div>
-                                <Checkbox
-                                    checked={schoolYear?.allow_upload_midterm === 1}
-                                    onCheckedChange={(checked) => handleToggle('allow_upload_midterm', checked)}
-                                    className="h-5 w-5"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                <div>
-                                    <Label className="font-medium">Allow Final Grade Upload</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Control if faculty can upload final grades.
-                                    </p>
-                                </div>
-                                <Checkbox
-                                    checked={schoolYear?.allow_upload_final === 1}
-                                    onCheckedChange={(checked) => handleToggle('allow_upload_final', checked)}
-                                    className="h-5 w-5"
-                                />
-                            </div>
-                        </div>
+                {loading ? (
+                    <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground" role="status">
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                        Loading settings…
                     </div>
-                </div>
+                ) : loadError ? (
+                    <div className="space-y-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                        <p className="text-sm text-destructive" role="alert">{loadError}</p>
+                        <Button type="button" variant="outline" size="sm" onClick={() => setRetry((value) => value + 1)}>Try Again</Button>
+                    </div>
+                ) : schoolYear && (
+                    <div className="divide-y">
+                        <section className="space-y-4 pb-5 pt-2" aria-labelledby="academic-status-heading">
+                            <h3 id="academic-status-heading" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Academic Status</h3>
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <p className="text-sm font-semibold">Current Semester</p>
+                                    <p className="mt-1 text-xs text-muted-foreground">The active academic term, independent of enrollment.</p>
+                                </div>
+                                <Badge variant="outline" className={isCurrent ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'text-muted-foreground'}>
+                                    {isCurrent ? 'Current' : 'Not current'}
+                                </Badge>
+                            </div>
+                            <Button type="button" variant="outline" className="w-full" disabled={saving || isCurrent} onClick={() => handleToggle('is_current', true)}>
+                                {isCurrent ? <><Check className="h-4 w-4" aria-hidden="true" />Current Semester</> : 'Set as Current Semester'}
+                            </Button>
+                            {!isCurrent && <p className="text-xs text-muted-foreground">Selecting this semester replaces the current semester.</p>}
+                        </section>
+
+                        <section className="space-y-4 py-5" aria-labelledby="enrollment-management-heading">
+                            <h3 id="enrollment-management-heading" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Enrollment Management</h3>
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <Label htmlFor="allow-enrollment" className="font-semibold">Allow Enrollment</Label>
+                                    <p id="allow-enrollment-description" className="mt-1 text-xs text-muted-foreground">Permit enrollments during the enrollment period.</p>
+                                </div>
+                                <Switch id="allow-enrollment" aria-describedby="allow-enrollment-description" checked={isEnabled(schoolYear.allow_enrollment)} onCheckedChange={(checked) => handleToggle('allow_enrollment', checked)} disabled={saving} />
+                            </div>
+                            <div className="space-y-2 rounded-lg bg-muted/60 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-xs text-muted-foreground">Enrollment Period</p>
+                                    <Badge variant="outline" className={getEnrollmentStatusClass(status)}>{status}</Badge>
+                                </div>
+                                <p className="text-sm font-medium">
+                                    {schoolYear.start_date ? formatDateShort(schoolYear.start_date) : 'No start date'}
+                                    {' – '}
+                                    {schoolYear.end_date ? formatDateShort(schoolYear.end_date) : 'No end date'}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {status === 'Open' && 'Enrollment is available within the scheduled dates.'}
+                                    {status === 'Paused' && 'Enrollment is disabled during the scheduled period.'}
+                                    {status === 'Scheduled' && 'Enrollment begins on the starting date when allowed.'}
+                                    {status === 'Closed' && 'Enrollment is outside its scheduled period.'}
+                                </p>
+                            </div>
+                        </section>
+
+                        <section className="space-y-4 py-5" aria-labelledby="academic-operations-heading">
+                            <h3 id="academic-operations-heading" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Academic Operations</h3>
+                            {operations.map(({ field, label, description }) => (
+                                <div key={field} className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <Label htmlFor={field} className="font-semibold">{label}</Label>
+                                        <p id={`${field}-description`} className="mt-1 text-xs text-muted-foreground">{description}</p>
+                                    </div>
+                                    <Switch id={field} aria-describedby={`${field}-description`} checked={isEnabled(schoolYear[field])} onCheckedChange={(checked) => handleToggle(field, checked)} disabled={saving} />
+                                </div>
+                            ))}
+                        </section>
+                    </div>
+                )}
+
+                <DialogFooter className="gap-3 border-t pt-4 sm:items-center sm:justify-between sm:space-x-0">
+                    <div className="min-w-0 flex-1 text-xs text-muted-foreground" role="status" aria-live="polite" aria-atomic="true">
+                        {saveError ? <span className="text-destructive">{saveError}</span>
+                            : saving ? <span className="flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />Saving…</span>
+                                : saved ? <span className="flex items-center gap-1.5 text-emerald-700"><Check className="h-3.5 w-3.5" aria-hidden="true" />Saved</span>
+                                    : 'Changes save immediately.'}
+                    </div>
+                    <Button type="button" variant="outline" disabled={saving} onClick={() => setOpen(false)}>Done</Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
-    )
+    );
 }
 
-export default SchoolYearSettings
+export default SchoolYearSettings;
+

@@ -2,425 +2,216 @@ import PreLoader from '@/Components/preloader/PreLoader';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatDateShort } from '@/Lib/Utils';
-import axios from 'axios';
-import React, { useEffect, useState } from 'react'
-import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from "@/Components/ui/sheet"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/Components/ui/dialog"
-import { Input } from "@/Components/ui/input"
-import { Label } from "@/Components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import Checkbox from '@/Components/Checkbox';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { PageTitle } from '@/Components/ui/PageTitle';
+import { ArrowRight, CalendarDays, Check, ChevronDown, ChevronUp, CircleAlert, Loader2, Pencil, Plus, Search, Settings2 } from 'lucide-react';
+import axios from 'axios';
+import React, { useCallback, useEffect, useState } from 'react';
 import SchoolYearSettings from './SchoolYearSettings';
+import { getEnrollmentStatus, getEnrollmentStatusClass, getNextSchoolYear, isEnabled, validateSchoolYear } from './schoolYearUtils';
 
-export default function SchoolYear() {
-    const { user } = usePage().props.auth;
-    const userRole = user.user_role;
+const semesterColors = {
+    1: 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300',
+    2: 'border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-300',
+    3: 'border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950 dark:text-orange-300',
+};
 
-    const [action, setAction] = useState('adding');
-    const [submitting, setSubmitting] = useState(false);
-    const [openSheet, setOpenSheet] = useState(false);
-    const [openSettings, setOpenSettings] = useState(false);
-    const [selectedSchoolYear, setSelectedSchoolYear] = useState(null);
-    const [showAll, setShowAll] = useState(false);
-    const [formErrors, setFormErrors] = useState({});
-    const [schoolYears, setSchoolYears] = useState([]);
+const ErrorMessage = ({ id, message }) => message ? <p id={id} className="text-xs text-destructive">{message}</p> : null;
 
-    const [form, setForm] = useState({
-        semester_id: '',
-        start_year: '',
-        end_year: '',
-        start_date: '',
-        end_date: '',
-    });
-    const [nextYear, setNextYear] = useState({
-        semester_id: '',
-        start_year: '',
-        end_year: '',
-        start_date: '',
-        end_date: '',
-    });
-
-    const [loading, setLoading] = useState(true);
-
-    const getSchoolYears = async () => {
-        axios.post(route('school-year.list'))
-            .then(response => {
-                setSchoolYears(response.data)
-                const lastSchoolYear = response.data[0];
-                if (lastSchoolYear) {
-                    if (lastSchoolYear.semester_id === 3) {
-                        setForm(prev => ({
-                            ...prev,
-                            semester_id: 1,
-                            start_year: lastSchoolYear.end_year,
-                            end_year: Number(lastSchoolYear.end_year) + 1,
-                        }));
-                        setNextYear(prev => ({
-                            ...prev,
-                            semester_id: 1,
-                            start_year: lastSchoolYear.end_year,
-                            end_year: Number(lastSchoolYear.end_year) + 1,
-                        }));
-                    } else {
-                        setForm(prev => ({
-                            ...prev,
-                            semester_id: Number(lastSchoolYear.semester_id) + 1,
-                            start_year: lastSchoolYear.start_year,
-                            end_year: lastSchoolYear.end_year,
-                        }));
-                        setNextYear(prev => ({
-                            ...prev,
-                            semester_id: 1,
-                            start_year: lastSchoolYear.end_year,
-                            end_year: Number(lastSchoolYear.end_year) + 1,
-                        }));
-                    }
-                }
-            })
-            .finally(() => {
-                setLoading(false);
-            })
-    }
-
-    const [searchTerm, setSearchTerm] = useState('');
-    const filteredSchoolYears = schoolYears.filter(sy => `${sy.start_year} - ${sy.end_year}`.includes(searchTerm));
-    const schoolYearsToShow = showAll ? filteredSchoolYears : filteredSchoolYears.slice(0, 8);
-
-    useEffect(() => {
-        getSchoolYears()
-    }, [])
-
-    if (loading) return <PreLoader title="School year" />
-
-    const handleFormChange = (e) => {
-        const { name, value } = e.target;
-        if (name === "start_year") {
-            if (value === '' || (Number(value) >= 1 && value.length <= 4)) {
-                setForm(prev => ({
-                    ...prev,
-                    [name]: value,
-                    end_year: value ? Number(value) + 1 : ''
-                }));
-            }
-            return;
-        }
-        setForm(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = async () => {
-        setSubmitting(true);
-        const errors = {};
-        if (!form.semester_id) errors.semester_id = true;
-        if (!form.start_year) errors.start_year = true;
-        if (!form.end_year) errors.end_year = true;
-        if (!form.start_date) errors.start_date = true;
-        if (!form.end_date) errors.end_date = true;
-        setFormErrors(errors);
-        if (Object.keys(errors).length > 0) return setSubmitting(false);
-        const url = action === 'adding' ? route('add.school-year') : route('edit.school-year', { id: form.id });
-        const method = action === 'adding' ? 'post' : 'patch';
-        try {
-            await axios[method](url, form).finally(() => {
-                getSchoolYears();
-                setSubmitting(false);
-            });
-            setOpenSheet(false);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const addDays = (date, days) => {
-        const result = new Date(date);
-        result.setDate(result.getDate() + days);
-        return result.toISOString().split('T')[0];
-    };
-
-    const getSemesterColor = (semesterId) => {
-        switch (semesterId) {
-            case 1: return 'bg-blue-100 text-blue-800 border-blue-200';
-            case 2: return 'bg-green-100 text-green-800 border-green-200';
-            case 3: return 'bg-orange-100 text-orange-800 border-orange-200';
-            default: return 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-    };
-
-    const getEnrollmentStatus = (startDate, endDate) => {
-        const now = new Date();
-        now.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999); // Set to end of day
-
-        // Check if currently within enrollment period
-        if (now >= start && now <= end) {
-            return 'ongoing';
-        }
-
-        // Check if within 14 days before start date (preparing for upcoming enrollment)
-        const fourteenDaysBeforeStart = new Date(start);
-        fourteenDaysBeforeStart.setDate(fourteenDaysBeforeStart.getDate() - 14);
-
-        if (now >= fourteenDaysBeforeStart && now < start) {
-            return 'preparing';
-        }
-
-        return null;
-    };
-
+function SemesterCard({ schoolYear, canManage, featured, onEdit, onSettings }) {
+    const status = getEnrollmentStatus(schoolYear);
     return (
-        <div className='space-y-6'>
-            <Head title={'School year'} />
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">School Years</h1>
-                    <p className="text-muted-foreground mt-1">Manage academic year periods and enrollment schedules</p>
+        <Card className={`flex h-full flex-col transition-shadow hover:shadow-md ${featured ? 'border-primary/40 bg-primary/5' : ''}`}>
+            <CardHeader className="space-y-3 pb-4">
+                <div className="flex min-h-6 items-center justify-between gap-2">
+                    <Badge variant="outline" className={semesterColors[schoolYear.semester_id]}>
+                        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current" />
+                        {schoolYear.semester_name} Semester
+                    </Badge>
+                    {isEnabled(schoolYear.is_current) && <Badge className="shrink-0 bg-primary text-primary-foreground hover:bg-primary">Current</Badge>}
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <div className="relative">
-                        <Input type="text" placeholder="Search school years..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 w-full sm:w-64" />
-                        <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <Button onClick={() => { setOpenSheet(true); setAction('adding'); setForm(nextYear); setFormErrors({}); }}>
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Add School Year
+                <CardTitle className="text-xl">{featured ? `${schoolYear.start_year}–${schoolYear.end_year}` : `${schoolYear.semester_name} Semester`}</CardTitle>
+            </CardHeader>
+            <CardContent className={`flex flex-1 flex-col gap-4 pt-0 ${featured ? 'md:grid md:grid-cols-3 md:items-center md:gap-6' : ''}`}>
+                <div className="space-y-4">
+                <div className="rounded-lg border bg-background/80 p-3">
+                    <div className="mb-1.5 flex items-center gap-2 text-xs font-medium text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />Enrollment Period</div>
+                    <p className="text-sm font-medium">{formatDateShort(schoolYear.start_date)} – {formatDateShort(schoolYear.end_date)}</p>
+                </div>
+                <div className="flex min-h-7 items-center justify-between gap-2">
+                    <span className="text-xs text-muted-foreground">Enrollment</span>
+                    <Badge variant="outline" className={getEnrollmentStatusClass(status)}>{status}</Badge>
+                </div>
+                </div>
+                <div className={`grid grid-cols-3 gap-1 border-t pt-3 text-center text-xs ${featured ? 'md:border-l md:border-t-0 md:py-4 md:pl-5' : ''}`}>
+                    {[
+                        ['Evaluation', schoolYear.evaluating],
+                        ['Midterm upload', schoolYear.allow_upload_midterm],
+                        ['Final upload', schoolYear.allow_upload_final],
+                    ].map(([label, value]) => <div key={label} className="space-y-1"><p className="text-muted-foreground">{label}</p><p className={`font-medium ${isEnabled(value) ? 'text-foreground' : 'text-muted-foreground'}`}>{isEnabled(value) ? 'Enabled' : 'Disabled'}</p></div>)}
+                </div>
+                <div className="mt-auto space-y-2 pt-2">
+                    {canManage && <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" size="sm" onClick={() => onEdit(schoolYear)}><Pencil aria-hidden="true" />Edit</Button>
+                        <Button variant="outline" size="sm" onClick={() => onSettings(schoolYear)}><Settings2 aria-hidden="true" />Settings</Button>
+                    </div>}
+                    <Button asChild size="sm" className="w-full">
+                        <Link href={route('school-year.view', { schoolyear: `${schoolYear.start_year}-${schoolYear.end_year}`, semester: schoolYear.semester_name })}>Manage<ArrowRight aria-hidden="true" /></Link>
                     </Button>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {schoolYearsToShow.map((sy, index) => (
-                    <Card key={index} className="group hover:shadow-lg transition-all duration-300">
-                        <CardHeader className="pb-3">
-                            <div className="flex justify-between items-start">
-                                <CardTitle className="text-2xl font-bold">{`${sy.start_year}-${sy.end_year}`}</CardTitle>
-                                <div className="flex flex-col items-end gap-1">
-                                    {sy.is_current === 1 && (<Badge className="bg-green-500 hover:bg-green-500">Current</Badge>)}
-                                </div>
-                            </div>
-                            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getSemesterColor(sy.semester_id)}`}>
-                                <span className="w-2 h-2 bg-current rounded-full mr-2"></span>
-                                {sy.semester_name} Semester
-                            </div>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                            <div className="space-y-4">
-                                <div className="bg-muted rounded-lg p-3">
-                                    <p className="text-xs text-muted-foreground font-medium mb-1">Enrollment Period</p>
-                                    <p className="text-sm font-semibold">{formatDateShort(sy.start_date)} - {formatDateShort(sy.end_date)}</p>
-                                </div>
-                                <div className="flex justify-center flex-wrap gap-2">
-                                    {getEnrollmentStatus(sy.start_date, sy.end_date) === 'ongoing' && (
-                                        <Badge className="bg-blue-500 hover:bg-blue-500">
-                                            <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
-                                            Ongoing
-                                        </Badge>
-                                    )}
-                                    {getEnrollmentStatus(sy.start_date, sy.end_date) === 'preparing' && (
-                                        <Badge className="bg-yellow-500 hover:bg-yellow-500">
-                                            <div className="w-2 h-2 bg-white rounded-full mr-1"></div>
-                                            Preparing
-                                        </Badge>
-                                    )}
-                                </div>
-                                <div className='flex gap-2 justify-center w-full'>
-                                    {userRole == 'registrar' && (
-                                        <>
-                                            <Button variant="outline" size="sm" onClick={() => { setAction('editing'); setOpenSheet(true); setForm({ id: sy.id, semester_id: sy.semester_id, start_year: sy.start_year, end_year: sy.end_year, start_date: sy.start_date, end_date: sy.end_date, is_current: sy.is_current }); setFormErrors({}); }} className="flex-1">
-                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                                Edit
-                                            </Button>
-                                            <Button variant="outline" size="sm" onClick={() => { setSelectedSchoolYear(sy); setOpenSettings(true); }} className="flex-1">
-                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                </svg>
-                                                Settings
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                                <Link className='flex-1' href={route('school-year.view', { schoolyear: `${sy.start_year}-${sy.end_year}`, semester: sy.semester_name })}>
-                                    <Button size="sm" className="w-full mt-2">
-                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                        </svg>
-                                        Open
-                                    </Button>
-                                </Link>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {filteredSchoolYears.length > 8 && (
-                <div className="text-center">
-                    <Button variant="outline" onClick={() => setShowAll(!showAll)}>
-                        {showAll ? (
-                            <>
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                </svg>
-                                Show Less
-                            </>
-                        ) : (
-                            <>
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                                Show All ({filteredSchoolYears.length - 8} more)
-                            </>
-                        )}
-                    </Button>
-                </div>
-            )}
-
-            <Dialog open={openSheet} onOpenChange={setOpenSheet}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold flex items-center">
-                            {action === 'adding' ? (
-                                <>
-                                    <svg className="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
-                                    Adding School Year
-                                </>
-                            ) : (
-                                <>
-                                    <svg className="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    Editing School Year
-                                </>
-                            )}
-                        </DialogTitle>
-                        <DialogDescription>Fill out the details below. Click save when you're done.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-6 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="start_year" className="text-sm font-medium flex items-center">
-                                <svg className="w-4 h-4 mr-1 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4V7" />
-                                </svg>
-                                School Year
-                            </Label>
-                            <div className='flex gap-3 items-center'>
-                                <Input name="start_year" disabled={action == 'editing'} id="start_year" type="number" value={form.start_year} onChange={handleFormChange} className={`flex-1 ${formErrors.start_year ? 'border-destructive' : ''}`} placeholder="2024" />
-                                <div className="flex items-center justify-center w-8 h-9 text-muted-foreground font-bold">
-                                    <span>—</span>
-                                </div>
-                                <Input disabled={true} id="end_year" type="number" value={form.end_year} className={`flex-1 ${formErrors.end_year ? 'border-destructive' : ''}`} />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="semester_id" className="text-sm font-medium flex items-center">
-                                <svg className="w-4 h-4 mr-1 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                                Semester
-                            </Label>
-                            <Select disabled={action === 'editing'} value={form.semester_id?.toString()} onValueChange={(val) => setForm({ ...form, semester_id: parseInt(val) })}>
-                                <SelectTrigger className={`${formErrors.semester_id ? 'border-destructive' : ''}`}>
-                                    <SelectValue placeholder="Select semester..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="1">First Semester</SelectItem>
-                                    <SelectItem value="2">Second Semester</SelectItem>
-                                    <SelectItem value="3">Summer Semester</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="start_date" className="text-sm font-medium flex items-center">
-                                <svg className="w-4 h-4 mr-1 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 4V7" />
-                                </svg>
-                                Enrollment Period
-                            </Label>
-                            <div className='flex gap-3 items-center'>
-                                <Input id="start_date" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className={`flex-1 ${formErrors.start_date ? 'border-destructive' : ''}`} />
-                                <div className="flex items-center justify-center w-8 h-9 text-muted-foreground font-bold">
-                                    <span>—</span>
-                                </div>
-                                <Input min={form.start_date ? addDays(form.start_date, 20) : ''} id="end_date" type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className={`flex-1 ${formErrors.end_date ? 'border-destructive' : ''}`} />
-                            </div>
-                        </div>
-                        {formErrors && Object.keys(formErrors).length > 0 && (
-                            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-start space-x-2">
-                                <svg className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                </svg>
-                                <div>
-                                    <p className="text-sm font-medium text-destructive">Please fill in all required fields</p>
-                                    <p className="text-xs text-muted-foreground mt-1">All fields are required to create or update a school year.</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter className="gap-2">
-                        <Button variant="outline" onClick={() => setOpenSheet(false)}>Cancel</Button>
-                        <Button onClick={handleSubmit} disabled={submitting}>
-                            {submitting ? (
-                                <>
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    Save Changes
-                                </>
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            {(selectedSchoolYear?.id && openSettings) ? (
-                <>
-                    <SchoolYearSettings schoolYearId={selectedSchoolYear.id} open={openSettings} setOpen={setOpenSettings} />
-                </>
-            ) : (
-                <></>
-            )}
-        </div>
-    )
+            </CardContent>
+        </Card>
+    );
 }
 
-SchoolYear.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+export default function SchoolYear() {
+    const canManage = usePage().props.auth.user.user_role === 'registrar';
+    const [schoolYears, setSchoolYears] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showAll, setShowAll] = useState(false);
+    const [openForm, setOpenForm] = useState(false);
+    const [editingSchoolYear, setEditingSchoolYear] = useState(null);
+    const [selectedSchoolYear, setSelectedSchoolYear] = useState(null);
+    const [openSettings, setOpenSettings] = useState(false);
+    const [form, setForm] = useState(() => getNextSchoolYear([]));
+    const [formErrors, setFormErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
+    const [acknowledged, setAcknowledged] = useState(false);
+    const [customEndYear, setCustomEndYear] = useState(false);
+
+    const getSchoolYears = useCallback(async () => {
+        try {
+            const response = await axios.post(route('school-year.list'));
+            setSchoolYears(response.data);
+            setLoadError('');
+        } catch {
+            setLoadError('School years could not be loaded. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { getSchoolYears(); }, [getSchoolYears]);
+
+    const query = searchTerm.trim().toLowerCase().replace(/[–—]/g, '-').replace(/\s*-\s*/g, '-');
+    const filtered = schoolYears.filter((year) => `${year.start_year}-${year.end_year} ${year.semester_name} Semester ${getEnrollmentStatus(year)} ${isEnabled(year.is_current) ? 'current' : ''}`.toLowerCase().includes(query));
+    const current = filtered.filter((year) => isEnabled(year.is_current));
+    const otherYears = filtered.filter((year) => !isEnabled(year.is_current)).sort((a, b) => Number(b.start_year) - Number(a.start_year) || Number(b.end_year) - Number(a.end_year) || Number(a.semester_id) - Number(b.semester_id));
+    const groups = Object.values(otherYears.reduce((result, year) => {
+        const key = `${year.start_year}–${year.end_year}`;
+        if (!result[key]) result[key] = { key, years: [] };
+        result[key].years.push(year);
+        return result;
+    }, {}));
+    const visibleGroups = showAll ? groups : groups.slice(0, 3);
+    const datesChanged = editingSchoolYear && (form.start_date !== editingSchoolYear.start_date || form.end_date !== editingSchoolYear.end_date);
+    const affectsActivePeriod = datesChanged && (isEnabled(editingSchoolYear.is_current) || ['Open', 'Paused'].includes(getEnrollmentStatus(editingSchoolYear)));
+
+    const openEditor = (year = null) => {
+        setEditingSchoolYear(year);
+        setCustomEndYear(false);
+        setForm(year ? {
+            id: year.id, semester_id: year.semester_id, start_year: String(year.start_year), end_year: String(year.end_year), start_date: year.start_date, end_date: year.end_date,
+        } : getNextSchoolYear(schoolYears));
+        setFormErrors({});
+        setAcknowledged(false);
+        setOpenForm(true);
+    };
+
+    const updateForm = (name, value) => {
+        if (name === 'end_year') setCustomEndYear(value !== '');
+        setForm((previous) => {
+            const next = { ...previous, [name]: value };
+            if (name === 'start_year' && /^[1-9]\d{3}$/.test(value) && !customEndYear) next.end_year = String(Number(value) + 1);
+            return next;
+        });
+        setFormErrors({});
+        setAcknowledged(false);
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        if (submitting) return;
+        const errors = validateSchoolYear(form, schoolYears);
+        if (affectsActivePeriod && !acknowledged) errors.confirmation = 'Confirm the date change before saving.';
+        setFormErrors(errors);
+        if (Object.keys(errors).length) return;
+        setSubmitting(true);
+        try {
+            if (editingSchoolYear) await axios.patch(route('edit.school-year', { id: form.id }), form);
+            else await axios.post(route('add.school-year'), form);
+            setOpenForm(false);
+            await getSchoolYears();
+        } catch (error) {
+            const errors = error.response?.data?.errors;
+            setFormErrors(errors ? Object.fromEntries(Object.entries(errors).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value])) : { general: 'Changes could not be saved. Please try again.' });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleSettingsUpdated = (updated) => {
+        setSchoolYears((previous) => previous.map((year) => String(year.id) === String(updated.id)
+            ? { ...year, ...updated }
+            : isEnabled(updated.is_current) ? { ...year, is_current: 0 } : year));
+    };
+
+    if (loading) return <PreLoader title="School years" />;
+    const cardProps = { canManage, onEdit: openEditor, onSettings: (year) => { setSelectedSchoolYear(year); setOpenSettings(true); } };
+
+    return (
+        <div className="space-y-8">
+            <Head title="School Years" />
+            <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
+                {/* <div><h1 className="text-3xl font-bold tracking-tight">School Years</h1><p className="mt-1 text-sm text-muted-foreground">Manage academic periods, enrollment, and semester permissions.</p></div> */}
+                <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
+                    <div className="relative flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input aria-label="Search school years" placeholder="Search years or semesters..." value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setShowAll(false); }} className="pl-9 xl:w-64" /></div>
+                    {canManage && <Button onClick={() => openEditor()}><Plus aria-hidden="true" />Add School Year</Button>}
+                </div>
+            </div>
+            {loadError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm"><span>{loadError}</span><Button variant="outline" size="sm" onClick={getSchoolYears}>Try Again</Button></div>}
+            {current.length > 0 && <section aria-labelledby="current-semester-heading" className="space-y-4">
+                <div><h2 id="current-semester-heading" className="text-lg font-semibold">Current Semester</h2><p className="text-xs text-muted-foreground">The active academic term, independent of enrollment availability.</p></div>
+                <div className="grid grid-cols-1 gap-5">{current.map((year) => <SemesterCard key={year.id} schoolYear={year} featured {...cardProps} />)}</div>
+            </section>}
+            {visibleGroups.map((group) => <section key={group.key} aria-labelledby={`year-${group.key}`} className="space-y-4">
+                <div className="flex items-center gap-3"><h2 id={`year-${group.key}`} className="text-lg font-semibold">{group.key}</h2><span className="text-xs text-muted-foreground">{group.years.length} {group.years.length === 1 ? 'semester' : 'semesters'}</span><div className="h-px flex-1 bg-border" /></div>
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">{group.years.map((year) => <SemesterCard key={year.id} schoolYear={year} {...cardProps} />)}</div>
+            </section>)}
+            {!filtered.length && !loadError && <div className="rounded-xl border border-dashed py-16 text-center"><CalendarDays className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden="true" /><h2 className="font-semibold">{schoolYears.length ? 'No matching semesters' : 'No school years yet'}</h2><p className="mt-1 text-sm text-muted-foreground">{schoolYears.length ? 'Try a different year, semester, or enrollment status.' : 'Add a school year to set up your first academic period.'}</p>{searchTerm && <Button variant="link" onClick={() => setSearchTerm('')}>Clear Search</Button>}</div>}
+            {groups.length > 3 && <div className="text-center"><Button variant="outline" onClick={() => setShowAll((previous) => !previous)}>{showAll ? <ChevronUp aria-hidden="true" /> : <ChevronDown aria-hidden="true" />}{showAll ? 'Show Less' : `Show All Academic Years (${groups.length})`}</Button></div>}
+            <Dialog open={openForm} onOpenChange={(open) => { if (!submitting) setOpenForm(open); }}>
+                <DialogContent aria-describedby={undefined} className="max-h-[90dvh] overflow-y-auto sm:max-w-[520px]" onEscapeKeyDown={(event) => { if (submitting) event.preventDefault(); }} onInteractOutside={(event) => { if (submitting) event.preventDefault(); }}>
+                    <DialogHeader><DialogTitle className="text-xl">{editingSchoolYear ? 'Edit School Year' : 'Add School Year'}</DialogTitle></DialogHeader>
+                    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                        <fieldset disabled={submitting} className="space-y-5">
+                            <div className="grid grid-cols-2 gap-3">
+                                {[['start_year', 'Starting Year'], ['end_year', 'Ending Year']].map(([name, label]) => <div key={name} className="space-y-2"><Label htmlFor={name}>{label}</Label><Input id={name} name={name} type="number" min="1000" max="9999" inputMode="numeric" value={form[name]} disabled={!!editingSchoolYear} onChange={(event) => updateForm(name, event.target.value)} aria-invalid={!!formErrors[name]} aria-describedby={formErrors[name] ? `${name}-error` : undefined} className={formErrors[name] ? 'border-destructive' : ''} /><ErrorMessage id={`${name}-error`} message={formErrors[name]} /></div>)}
+                            </div>
+                            <div className="space-y-2"><Label htmlFor="semester_id">Semester</Label><Select disabled={!!editingSchoolYear || submitting} value={String(form.semester_id || '')} onValueChange={(value) => updateForm('semester_id', Number(value))}><SelectTrigger id="semester_id" aria-invalid={!!formErrors.semester_id} aria-describedby={formErrors.semester_id ? 'semester_id-error' : undefined} className={formErrors.semester_id ? 'border-destructive' : ''}><SelectValue placeholder="Select semester" /></SelectTrigger><SelectContent><SelectItem value="1">First Semester</SelectItem><SelectItem value="2">Second Semester</SelectItem><SelectItem value="3">Summer Semester</SelectItem></SelectContent></Select><ErrorMessage id="semester_id-error" message={formErrors.semester_id} />{editingSchoolYear && <p className="text-xs text-muted-foreground">Academic year and semester are fixed for existing records.</p>}</div>
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                {[['start_date', 'Enrollment Starts'], ['end_date', 'Enrollment Ends']].map(([name, label]) => <div key={name} className="min-w-0 space-y-2"><Label htmlFor={name}>{label}</Label><Input id={name} name={name} type="date" min={name === 'end_date' ? form.start_date || undefined : undefined} max={name === 'start_date' ? form.end_date || undefined : undefined} value={form[name]} onChange={(event) => updateForm(name, event.target.value)} aria-invalid={!!formErrors[name]} aria-describedby={formErrors[name] ? `${name}-error` : undefined} className={`min-w-0 ${formErrors[name] ? 'border-destructive' : ''}`} /><ErrorMessage id={`${name}-error`} message={formErrors[name]} /></div>)}
+                            </div>
+                            {affectsActivePeriod && <div className="space-y-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200"><p className="flex items-start gap-2"><CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />Changing this active period may change enrollment availability immediately.</p><div className="flex items-start gap-2"><Checkbox id="confirm-period" checked={acknowledged} onCheckedChange={(checked) => setAcknowledged(checked === true)} /><Label htmlFor="confirm-period" className="text-xs leading-5">I have reviewed the new enrollment dates.</Label></div><ErrorMessage message={formErrors.confirmation} /></div>}
+                        </fieldset>
+                        {Object.keys(formErrors).length > 0 && <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{formErrors.general || 'Please review the highlighted fields before saving.'}</p>}
+                        <DialogFooter className="gap-2"><Button type="button" variant="outline" disabled={submitting} onClick={() => setOpenForm(false)}>Cancel</Button><Button type="submit" disabled={submitting || (affectsActivePeriod && !acknowledged)}>{submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Check aria-hidden="true" />}{submitting ? 'Saving...' : 'Save Changes'}</Button></DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+            {selectedSchoolYear && openSettings && <SchoolYearSettings key={selectedSchoolYear.id} schoolYearId={selectedSchoolYear.id} open={openSettings} setOpen={setOpenSettings} onUpdated={handleSettingsUpdated} />}
+        </div>
+    );
+}
+
+SchoolYear.layout = (page) => <AuthenticatedLayout title="School Years" children={page} />
+
+

@@ -22,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -38,94 +39,11 @@ class SchoolYearController extends Controller
 
     public function getSchoolYear($id)
     {
-        $schoolYear = SchoolYear::select(
-            'school_years.id',
-            "start_year",
-            "end_year",
-            "start_date",
-            "end_date",
-            "is_current",
-            "allow_enrollment",
-            "allowed_enrollment_roles",
-            "evaluating",
-            "allow_upload_midterm",
-            "allow_upload_final",
-            "semester_name"
-        )
-            ->where('school_years.id', '=', $id)
-            ->join('semesters', 'school_years.semester_id', '=', 'semesters.id')
-            ->first();
-
-        return response()->json($schoolYear);
+        return response()->json($this->schoolYearSettings($id));
     }
 
-    public function updateIsCurrent($schoolYearId, Request $request)
+    private function schoolYearSettings($id)
     {
-        if ($request->value) {
-            SchoolYear::whereNot('id', '=', $schoolYearId)
-                ->update(['is_current' => 0]);
-        }
-
-        $schoolYear = SchoolYear::findOrFail($schoolYearId);
-
-        $schoolYear->update(([
-            'is_current' => $request->value,
-        ]));
-
-        return response()->json(['message' => 'Updated successfully']);
-    }
-
-    public function updateAllowEnrollment($schoolYearId, Request $request)
-    {
-        $schoolYear = SchoolYear::findOrFail($schoolYearId);
-
-        $schoolYear->update(([
-            'allow_enrollment' => $request->value,
-        ]));
-
-        return response()->json(['message' => 'Updated successfully']);
-    }
-
-    public function updateEvaluating($schoolYearId, Request $request)
-    {
-        $schoolYear = SchoolYear::findOrFail($schoolYearId);
-
-        $schoolYear->update(([
-            'evaluating' => $request->value,
-        ]));
-
-        return response()->json(['message' => 'Updated successfully']);
-    }
-
-    public function updateAllowUploadMidterm($schoolYearId, Request $request)
-    {
-        $schoolYear = SchoolYear::findOrFail($schoolYearId);
-
-        $schoolYear->update(([
-            'allow_upload_midterm' => $request->value,
-        ]));
-
-        return response()->json(['message' => 'Updated successfully']);
-    }
-
-    public function updateAllowUploadFinal($schoolYearId, Request $request)
-    {
-        $schoolYear = SchoolYear::findOrFail($schoolYearId);
-
-        $schoolYear->update(([
-            'allow_upload_final' => $request->value,
-        ]));
-
-        return response()->json(['message' => 'Updated successfully']);
-    }
-
-    public function schoolYears()
-    {
-        $today = Carbon::now();
-
-        $today = Carbon::now()->toDateString();
-        $twoWeeksAfterToday = Carbon::now()->addWeeks(2)->toDateString();
-
         $schoolYear = SchoolYear::select(
             'school_years.id',
             'semester_id',
@@ -134,61 +52,174 @@ class SchoolYearController extends Controller
             'start_date',
             'end_date',
             'is_current',
-            'semester_name',
-            DB::raw("CASE
-            WHEN '$today' BETWEEN start_date AND end_date
-            THEN true
-            ELSE false
-         END as enrollment_ongoing"),
-            DB::raw("CASE
-            WHEN '$today' >= start_date AND '$today' <= '$twoWeeksAfterToday'
-            THEN true
-            ELSE false
-         END as preparation")
+            'allow_enrollment',
+            'allowed_enrollment_roles',
+            'evaluating',
+            'allow_upload_midterm',
+            'allow_upload_final',
+            'semester_name'
+        )
+            ->where('school_years.id', $id)
+            ->join('semesters', 'school_years.semester_id', '=', 'semesters.id')
+            ->firstOrFail();
+
+        return $this->withEnrollmentStatus($schoolYear);
+    }
+
+    private function withEnrollmentStatus(SchoolYear $schoolYear)
+    {
+        // Compare date-only values in the school's timezone, including the ending day.
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+        $start = substr((string) $schoolYear->start_date, 0, 10);
+        $end = substr((string) $schoolYear->end_date, 0, 10);
+
+        if (! $start || ! $end || $start > $end || $today > $end) {
+            $status = 'closed';
+        } elseif ($today < $start) {
+            $status = 'scheduled';
+        } else {
+            $status = (bool) $schoolYear->allow_enrollment ? 'open' : 'paused';
+        }
+
+        $schoolYear->setAttribute('enrollment_status', $status);
+        $schoolYear->setAttribute('status_date', $today);
+        // Retain these response fields for existing consumers.
+        $schoolYear->setAttribute('enrollment_ongoing', $status === 'open');
+        $schoolYear->setAttribute('preparation', $status === 'scheduled'
+            && $start <= Carbon::today(config('app.timezone'))->addWeeks(2)->toDateString());
+
+        return $schoolYear;
+    }
+
+    public function updateIsCurrent($schoolYearId, Request $request)
+    {
+        $request->validate(['value' => ['required', 'boolean', 'accepted']], [
+            'value.accepted' => 'Select a semester to make current. The current semester cannot be switched off.',
+        ]);
+
+        DB::transaction(function () use ($schoolYearId) {
+            // Lock in a stable order so concurrent selections cannot leave two current terms.
+            SchoolYear::orderBy('id')->lockForUpdate()->get(['id']);
+            $schoolYear = SchoolYear::findOrFail($schoolYearId);
+            SchoolYear::where('id', '!=', $schoolYearId)->update(['is_current' => 0]);
+            $schoolYear->update(['is_current' => 1]);
+        });
+
+        return response()->json([
+            'message' => 'Current semester updated successfully.',
+            'schoolYear' => $this->schoolYearSettings($schoolYearId),
+        ]);
+    }
+
+    public function updateAllowEnrollment($schoolYearId, Request $request)
+    {
+        return $this->updateSchoolYearPermission($schoolYearId, $request, 'allow_enrollment');
+    }
+
+    public function updateEvaluating($schoolYearId, Request $request)
+    {
+        return $this->updateSchoolYearPermission($schoolYearId, $request, 'evaluating');
+    }
+
+    public function updateAllowUploadMidterm($schoolYearId, Request $request)
+    {
+        return $this->updateSchoolYearPermission($schoolYearId, $request, 'allow_upload_midterm');
+    }
+
+    public function updateAllowUploadFinal($schoolYearId, Request $request)
+    {
+        return $this->updateSchoolYearPermission($schoolYearId, $request, 'allow_upload_final');
+    }
+
+    private function updateSchoolYearPermission($schoolYearId, Request $request, string $field)
+    {
+        $validated = $request->validate(['value' => ['required', 'boolean']]);
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
+        $schoolYear->update([$field => (int) (bool) $validated['value']]);
+
+        return response()->json([
+            'message' => 'Updated successfully.',
+            'schoolYear' => $this->schoolYearSettings($schoolYearId),
+        ]);
+    }
+
+    public function schoolYears()
+    {
+        $schoolYears = SchoolYear::select(
+            'school_years.id',
+            'semester_id',
+            'start_year',
+            'end_year',
+            'start_date',
+            'end_date',
+            'is_current',
+            'allow_enrollment',
+            'evaluating',
+            'allow_upload_midterm',
+            'allow_upload_final',
+            'semester_name'
         )
             ->join('semesters', 'school_years.semester_id', '=', 'semesters.id')
-            ->orderBy('school_years.created_at', 'desc')
-            ->get();
+            ->orderBy('start_year', 'desc')
+            ->orderBy('end_year', 'desc')
+            ->orderBy('semester_id', 'desc')
+            ->get()
+            ->map(fn (SchoolYear $schoolYear) => $this->withEnrollmentStatus($schoolYear));
 
-        return response()->json($schoolYear, 200);
+        return response()->json($schoolYears, 200);
+    }
+
+    private function validateSchoolYear(Request $request, ?SchoolYear $schoolYear = null)
+    {
+        $uniqueSemester = Rule::unique('school_years', 'semester_id')
+            ->where(fn ($query) => $query
+                ->where('start_year', $request->input('start_year'))
+                ->where('end_year', $request->input('end_year')));
+        if ($schoolYear) {
+            $uniqueSemester->ignore($schoolYear->id);
+        }
+
+        return $request->validate([
+            'semester_id' => array_filter([
+                'required', 'integer', 'exists:semesters,id', $uniqueSemester,
+                $schoolYear ? Rule::in([$schoolYear->semester_id]) : null,
+            ]),
+            'start_year' => array_filter([
+                'required', 'integer', 'digits:4', 'between:1000,9999',
+                $schoolYear ? Rule::in([$schoolYear->start_year]) : null,
+            ]),
+            'end_year' => array_filter([
+                'required', 'integer', 'digits:4', 'between:1000,9999', 'gt:start_year',
+                $schoolYear ? Rule::in([$schoolYear->end_year]) : null,
+            ]),
+            'start_date' => ['required', 'date_format:Y-m-d'],
+            'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+        ], [
+            'semester_id.unique' => 'This semester already exists for the selected academic year.',
+            'semester_id.in' => 'The semester cannot be changed after creation.',
+            'start_year.in' => 'The academic year cannot be changed after creation.',
+            'end_year.in' => 'The academic year cannot be changed after creation.',
+            'end_year.gt' => 'The ending year must be after the starting year.',
+            'end_date.after_or_equal' => 'Enrollment Ends must be on or after Enrollment Starts.',
+        ]);
     }
 
     public function addSchoolYear(Request $request)
     {
-        $schoolYear = SchoolYear::create([
-            'semester_id' => $request->semester_id,
-            'start_year' => $request->start_year,
-            'end_year' => $request->end_year,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-        ]);
-
-        if ($schoolYear->is_current) {
-            SchoolYear::whereNot('id', '=', $schoolYear->id)
-                ->update(['is_current' => 0]);
-        }
+        $validated = $this->validateSchoolYear($request);
+        SchoolYear::create($validated + ['is_current' => 0]);
 
         return response()->json(['message' => 'success'], 200);
     }
 
     public function editSchoolYear(Request $request, $id)
     {
-        if ($request->is_current) {
-            SchoolYear::whereNot('id', '=', $id)
-                ->update(['is_current' => 0]);
-        }
-
-        SchoolYear::where('id', $id)->update([
-            'semester_id' => $request->semester_id,
-            'start_year' => $request->start_year,
-            'end_year' => $request->end_year,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-        ]);
+        $schoolYear = SchoolYear::findOrFail($id);
+        $validated = $this->validateSchoolYear($request, $schoolYear);
+        $schoolYear->update($validated);
 
         return response()->json(['message' => 'success'], 200);
     }
-
     public function viewSchoolYear($schoolyear, $semester)
     {
         $schoolYear = $this->schoolYear($schoolyear, $semester);
