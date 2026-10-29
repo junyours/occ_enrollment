@@ -1,4 +1,5 @@
 import { createTorLastPageDefaults, getTorLastPageBlocks } from './torNoteTemplates';
+import { isDroppedGrade } from './recordGrades';
 
 const EMPTY_VALUE = /^(?:none|null|undefined|unknown|n\s*[/.]\s*a(?:\s*\.)?|[_\s]+)$/i;
 const SIGNATORIES = [
@@ -67,16 +68,17 @@ export function validateTorForPrint(data, options = {}) {
             }
             const grade = text(subject.grade);
             const numericGrade = Number(grade);
-            if (missing(subject.grade) || (Number.isFinite(numericGrade) && numericGrade === 0)) {
+            const dropped = isDroppedGrade(subject.grade);
+            if (missing(subject.grade)) {
                 add(errors, `${prefix}-grade`, `${location}: grade is missing.`, 'records', 'grade', context);
             } else if ((Number.isFinite(numericGrade) && numericGrade < 0) || /^[+-]?(?:infinity|nan)$/i.test(grade)) {
                 add(errors, `${prefix}-grade`, `${location}: grade is invalid.`, 'records', 'grade', context);
-            } else if (!Number.isFinite(numericGrade)) {
-                add(warnings, `${prefix}-grade-status`, `${location}: review the recorded grade/status “${grade}”.`, 'records', 'grade', context);
+            } else if (dropped || !Number.isFinite(numericGrade)) {
+                add(warnings, `${prefix}-grade-status`, `${location}: review the recorded grade/status “${dropped ? 'Dropped' : grade}”.`, 'records', 'grade', context);
             }
             const credits = text(subject.credit_units);
             if (missing(subject.credit_units)) {
-                add(errors, `${prefix}-credit_units`, `${location}: credits are missing.`, 'records', 'credit_units', context);
+                if (!dropped) add(errors, `${prefix}-credit_units`, `${location}: credits are missing.`, 'records', 'credit_units', context);
             } else if (!Number.isFinite(Number(credits)) || Number(credits) < 0) {
                 add(errors, `${prefix}-credit_units`, `${location}: credits must be zero or a positive number.`, 'records', 'credit_units', context);
             }

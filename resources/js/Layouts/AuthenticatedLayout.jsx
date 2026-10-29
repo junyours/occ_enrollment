@@ -8,7 +8,7 @@ import axios from "axios"
 import { useState } from "react"
 import AttendanceSyncProvider from "@/Pages/InstructorClasses/ClassComponents/AttendancePartials/AttendanceSyncProvider"
 
-export default function AuthenticatedLayout({ children, title, fullWidth = false }) {
+export default function AuthenticatedLayout({ children, title, headerContent, fullWidth = false }) {
     const { impersonating } = usePage().props.auth
     const [loading, setLoading] = useState(false)
     const { auth } = usePage().props
@@ -46,9 +46,11 @@ export default function AuthenticatedLayout({ children, title, fullWidth = false
                             className="h-4 shrink-0"
                         />
 
-                        <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-foreground md:text-base">
-                            {title}
-                        </h1>
+                        {headerContent ?? (
+                            <h1 className="min-w-0 flex-1 truncate text-sm font-medium text-foreground md:text-base">
+                                {title}
+                            </h1>
+                        )}
                     </div>
 
                     {/* Right */}

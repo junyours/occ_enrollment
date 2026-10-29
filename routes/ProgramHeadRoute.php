@@ -10,6 +10,7 @@ use App\Http\Controllers\Instructors\InstructorsController;
 use App\Http\Controllers\Room\RoomController;
 
 Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
+    Route::get('/curriculum-subjects/search', [CurriculumController::class, 'searchSubjects'])->name('curr.subjects.search');
     Route::get('/curriculum', [CurriculumController::class, 'view'])->name('curriculum');
     Route::post('/curriculum', [CurriculumController::class, 'getCoursesCurriculum'])->name('courses.curriculum.list');
     Route::get('/curriculum/{courseId}/{schoolYear}', [CurriculumController::class, 'CurriculumInfoView'])->name('curriculum.info.view');

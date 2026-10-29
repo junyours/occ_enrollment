@@ -151,9 +151,11 @@ export function TorFooter({ options, pageNumber, totalPages }) {
                 <Signatory label="Certified Correct:" name={options.certifiedBy} title={options.certifiedByTitle} />
             </div>
             <div className="tor-issuance">
-                <span>Date issued: {displayDate(options.dateIssued)}</span>
-                <span className="tor-page-number">Page {pageNumber} of {totalPages}</span>
-                <span className="tor-form-revision">{options.formRevision ? `Form revision: ${options.formRevision}` : 'Form revision: \u00a0'}</span>
+                <span>
+                    Date of issuance: {new Date(options.dateIssued).toLocaleDateString('en-US')}
+                </span>
+                <span className="tor-page-number">{pageNumber} of {totalPages}</span>
+                <span className="tor-form-revision">{options.formRevision ? `Revised on: ${options.formRevision}` : 'Revised on: \u00a0'}</span>
             </div>
         </footer>
     );

@@ -6,6 +6,7 @@ import SYGrades from './SYGrades';
 import Header from './components/Header';
 import { Form9FieldsProvider } from './form9Fields';
 import { paginateTorRecords } from './torPagination';
+import { isDroppedGrade } from './recordGrades';
 import { cn } from '@/Lib/Utils';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -66,7 +67,7 @@ function focusedField(root) {
 
 function totalUnits(records) {
     return records.reduce((sum, record) => sum + (record.subjects || []).reduce((subtotal, subject) => {
-        if (!subject || subject.grade > 3 || subject.grade == 0 || subject.grade == null) return subtotal;
+        if (!subject || subject.grade > 3 || isDroppedGrade(subject.grade) || subject.grade == null || String(subject.grade).trim() === '') return subtotal;
         return subtotal + parseFloat(subject.credit_units || 0);
     }, 0), 0);
 }

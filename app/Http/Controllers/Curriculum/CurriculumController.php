@@ -14,6 +14,9 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Validation\ValidationException;
 
 class CurriculumController extends Controller
 {
@@ -173,51 +176,158 @@ class CurriculumController extends Controller
 
     public function addSubject(Request $request)
     {
-        $subjectExist = Subject::where('subject_code', '=', $request->subject_code)->first();
+        $request->mergeIfMissing(['mode' => 'new']);
+        $validated = Validator::make($request->all(), [
+            'mode' => ['required', 'in:existing,new'],
+            'curriculum_term_id' => ['required', 'integer', 'exists:curriculum_term,id'],
+            'subject_id' => ['exclude_unless:mode,existing', 'required', 'integer', 'exists:subjects,id'],
+            ...$this->subjectRules('exclude_unless:mode,new'),
+        ])->validate();
 
-        if (!$subjectExist) {
-            // Create new subject if it doesn't exist
-            $subject = Subject::create([
-                'subject_code' => $request->subject_code,
-                'descriptive_title' => $request->descriptive_title,
-                'credit_units' => $request->credit_units,
-                'lecture_hours' => $request->lecture_hours,
-                'laboratory_hours' => $request->laboratory_hours,
-            ]);
+        $this->authorizeCurriculumTerm($request, $validated['curriculum_term_id']);
 
-            $subjectId = $subject->id;
-        } else {
-            // Use existing subject
-            $subjectId = $subjectExist->id;
-        }
+        DB::transaction(function () use ($validated) {
+            CurriculumTerm::whereKey($validated['curriculum_term_id'])->lockForUpdate()->firstOrFail();
 
-        // Check if this curriculum term subject combination already exists
-        $curriculumTermSubjectExists = CurriculumTermSubject::where('curriculum_term_id', $request->curriculum_term_id)
-            ->where('subject_id', $subjectId)
-            ->exists();
+            if ($validated['mode'] === 'existing') {
+                $subject = Subject::findOrFail($validated['subject_id']);
+            } else {
+                $fields = $this->subjectFields($validated);
+                if (Subject::where('subject_code', $fields['subject_code'])->exists()) {
+                    throw ValidationException::withMessages([
+                        'subject_code' => 'This code already exists. Choose Use existing subject to select its definition.',
+                    ]);
+                }
+                $subject = Subject::create($fields);
+            }
 
-        if (!$curriculumTermSubjectExists) {
+            $duplicate = CurriculumTermSubject::where('curriculum_term_id', $validated['curriculum_term_id'])
+                ->whereHas('Subject', fn ($query) => $query->where('subject_code', $subject->subject_code))
+                ->exists();
+            if ($duplicate) {
+                throw ValidationException::withMessages([
+                    $validated['mode'] === 'existing' ? 'subject_id' : 'subject_code' => 'A subject with this code is already in this semester.',
+                ]);
+            }
+
             CurriculumTermSubject::create([
-                'curriculum_term_id' => $request->curriculum_term_id,
-                'subject_id' => $subjectId,
+                'curriculum_term_id' => $validated['curriculum_term_id'],
+                'subject_id' => $subject->id,
             ]);
-        }
+        });
+
+        return Redirect::back();
     }
 
     public function editSubject(Request $request)
     {
-        $subjectExist = Subject::where('subject_code', '=', $request->subject_code)->first();
+        $validated = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:curriculum_term_subjects,id'],
+            'subject_id' => ['nullable', 'integer', 'exists:subjects,id'],
+            ...$this->subjectRules(),
+        ])->validate();
 
-        Subject::where('id', '=', $request->subject_id)
-            ->update([
-                'subject_code' => $request->subject_code,
-                'descriptive_title' => $request->descriptive_title,
-                'credit_units' => $request->credit_units,
-                'lecture_hours' => $request->lecture_hours,
-                'laboratory_hours' => $request->laboratory_hours,
-            ]);
+        $entry = CurriculumTermSubject::findOrFail($validated['id']);
+        $this->authorizeCurriculumTerm($request, $entry->curriculum_term_id);
+
+        DB::transaction(function () use ($validated, $entry) {
+            CurriculumTerm::whereKey($entry->curriculum_term_id)->lockForUpdate()->firstOrFail();
+            $entry = CurriculumTermSubject::whereKey($entry->id)->lockForUpdate()->firstOrFail();
+            if (isset($validated['subject_id']) && (int) $validated['subject_id'] !== (int) $entry->subject_id) {
+                throw ValidationException::withMessages([
+                    'subject_code' => 'This curriculum entry changed while you were editing. Refresh it and try again.',
+                ]);
+            }
+
+            $subject = Subject::findOrFail($entry->subject_id);
+            $fields = $this->subjectFields($validated);
+            $unchanged = collect($fields)->every(fn ($value, $field) => (string) $subject->{$field} === (string) $value);
+            if ($unchanged) {
+                return;
+            }
+
+            $duplicateInTerm = CurriculumTermSubject::where('curriculum_term_id', $entry->curriculum_term_id)
+                ->where('id', '!=', $entry->id)
+                ->whereHas('Subject', fn ($query) => $query->where('subject_code', $fields['subject_code']))
+                ->exists();
+            $changedCodeExists = $fields['subject_code'] !== $subject->subject_code
+                && Subject::where('subject_code', $fields['subject_code'])->exists();
+            if ($duplicateInTerm || $changedCodeExists) {
+                throw ValidationException::withMessages([
+                    'subject_code' => 'This code already exists. Choose a different code or add the existing subject instead.',
+                ]);
+            }
+
+            // A curriculum revision must never rewrite subject details used by past classes.
+            $revisedSubject = Subject::create(['type' => $subject->type, ...$fields]);
+            $entry->update(['subject_id' => $revisedSubject->id]);
+        });
+
+        return Redirect::back();
     }
 
+    public function searchSubjects(Request $request)
+    {
+        $validated = Validator::make($request->all(), [
+            'q' => ['nullable', 'string', 'max:100'],
+        ])->validate();
+        $search = trim($validated['q'] ?? '');
+        $subjects = Subject::select('id', 'subject_code', 'descriptive_title', 'credit_units', 'lecture_hours', 'laboratory_hours')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('subject_code', 'like', '%' . $search . '%')
+                        ->orWhere('descriptive_title', 'like', '%' . $search . '%');
+                });
+            })
+            ->orderBy('subject_code')
+            ->orderByDesc('id')
+            ->limit(31)
+            ->get();
+
+        return response()->json([
+            'subjects' => $subjects->take(30)->values(),
+            'truncated' => $subjects->count() > 30,
+        ]);
+    }
+
+    private function subjectRules(?string $condition = null): array
+    {
+        $prefix = $condition ? [$condition] : [];
+
+        return [
+            'subject_code' => [...$prefix, 'required', 'string', 'max:255', 'regex:/^\S+$/u'],
+            'descriptive_title' => [...$prefix, 'required', 'string', 'max:255'],
+            'credit_units' => [...$prefix, 'required', 'integer', 'min:0', 'max:99'],
+            'lecture_hours' => [...$prefix, 'required', 'integer', 'min:0', 'max:168'],
+            'laboratory_hours' => [...$prefix, 'required', 'integer', 'min:0', 'max:168'],
+        ];
+    }
+
+    private function subjectFields(array $validated): array
+    {
+        return [
+            'subject_code' => trim($validated['subject_code']),
+            'descriptive_title' => trim($validated['descriptive_title']),
+            'credit_units' => (int) $validated['credit_units'],
+            'lecture_hours' => (int) $validated['lecture_hours'],
+            'laboratory_hours' => (int) $validated['laboratory_hours'],
+        ];
+    }
+
+    private function authorizeCurriculumTerm(Request $request, int $termId): void
+    {
+        $user = $request->user();
+        $departmentId = $user ? Faculty::where('faculty_id', $user->id)->value('department_id') : null;
+        $allowed = $departmentId !== null && CurriculumTerm::where('curriculum_term.id', $termId)
+            ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
+            ->join('course', 'course.id', '=', 'curriculum.course_id')
+            ->where('course.department_id', $departmentId)
+            ->exists();
+
+        if (!$allowed) {
+            throw new AuthorizationException('You cannot change this curriculum.');
+        }
+    }
     public function deleteCurrSubject($id)
     {
         CurriculumTermSubject::where('id', '=', $id)

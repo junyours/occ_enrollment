@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Registrar;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicRecord;
 use App\Models\AcademicRecordSubject;
+use App\Models\Course;
 use App\Models\EnrolledStudent;
 use App\Models\PreliminaryEducation;
 use App\Models\StudentGrade;
@@ -12,6 +13,7 @@ use App\Models\User;
 use App\Models\UserInformation;
 use App\Models\UserParents;
 use App\Models\UserPresentAddress;
+use App\Support\RecordProgramAbbreviations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -54,14 +56,22 @@ class FormNineController extends Controller
             $schoolYear = $record->YearSection?->SchoolYear;
             $semesterName = $schoolYear?->Semester?->semester_name ?? 'N/A';
             $schoolYearString = $schoolYear ? "{$schoolYear->start_year}-{$schoolYear->end_year}" : 'N/A';
-            $programName = $record->YearSection?->Course?->course_name . ($record->YearSection?->Course->major ? " MAJOR IN {$record->YearSection?->Course->major}" : '') ?? 'N/A';
+            $course = $record->YearSection?->Course;
+            $programName = $course?->course_name ?? 'N/A';
+            if ($course?->major) {
+                $programName .= " MAJOR IN {$course->major}";
+            }
 
             $subjects = $record->Subjects->map(function ($enrolledSubject) {
                 $subjectDetails = $enrolledSubject->YearSectionSubjects?->Subject;
                 $midterm = $enrolledSubject->midterm_grade;
                 $final = $enrolledSubject->final_grade;
 
-                $finalComputedGrade = computeFinalGrade($midterm, $final);
+                // A dropped subject can have only one period marked zero, or no grades yet.
+                $isDropped = (bool) $enrolledSubject->dropped
+                    || (is_numeric($midterm) && (float) $midterm === 0.0)
+                    || (is_numeric($final) && (float) $final === 0.0);
+                $finalComputedGrade = $isDropped ? '0.0' : computeFinalGrade($midterm, $final);
 
                 return [
                     'subject_code'      => $subjectDetails?->subject_code,
@@ -75,6 +85,7 @@ class FormNineController extends Controller
                 'semester'   => $semesterName,
                 'schoolyear' => $schoolYearString,
                 'program'    => $programName,
+                'course_name_abbreviation' => $course?->course_name_abbreviation,
                 'school'     => 'Opol Community College',
                 'subjects'   => $subjects,
             ];
@@ -137,6 +148,16 @@ class FormNineController extends Controller
 
         // 4. Merge ALL data together: Old Data + Enrollment Data + Academic Records
         $combinedData = array_merge($transformedOldData, $transformedData, $transformedAcademicRecords);
+        $programAbbreviations = new RecordProgramAbbreviations(
+            Course::get(['course_name', 'major', 'course_name_abbreviation'])
+        );
+        // Imported and manually added records store a program title rather than a course ID.
+        $combinedData = array_map(function (array $record) use ($programAbbreviations) {
+            $record['course_name_abbreviation'] = trim((string) ($record['course_name_abbreviation'] ?? ''))
+                ?: $programAbbreviations->resolve($record['program']);
+
+            return $record;
+        }, $combinedData);
 
         // 5. Sort chronologically by School Year, then by Semester
         $sortedCombinedData = collect($combinedData)->sort(function ($a, $b) {

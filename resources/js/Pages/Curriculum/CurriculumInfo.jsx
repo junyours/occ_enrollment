@@ -1,259 +1,258 @@
-import React, { useState, useEffect } from "react";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Card, CardHeader, CardTitle, CardContent } from "@/Components/ui/card";
+import { useForm, usePage } from "@inertiajs/react";
+import { AlertCircle, BookOpen, ChevronDown, Layers3, Loader2, Plus, RefreshCw } from "lucide-react";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
-import { LogOut, Replace, SquarePlus, X } from "lucide-react"; // Close icon for modal
-import CurriculumTable from "./CurriculumTable";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/Components/ui/dialog";
-import { Head, useForm, usePage } from "@inertiajs/react";
-import { useToast } from "@/hooks/use-toast";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/Components/ui/dialog";
 import PreLoader from "@/Components/preloader/PreLoader";
-import { PageTitle } from "@/Components/ui/PageTitle";
+import { useToast } from "@/hooks/use-toast";
+import CurriculumTable from "./CurriculumTable";
+
+const YEAR_LEVELS = [
+    { key: "firstYear", id: 1, label: "First Year" },
+    { key: "secondYear", id: 2, label: "Second Year" },
+    { key: "thirdYear", id: 3, label: "Third Year" },
+    { key: "fourthYear", id: 4, label: "Fourth Year" },
+];
+
+const SEMESTERS = { 1: "First Semester", 2: "Second Semester", 3: "Summer" };
+const emptyCurriculum = () => Object.fromEntries(YEAR_LEVELS.map(({ key }) => [key, []]));
+
+const summarizeTerms = (terms) => terms.reduce((summary, term) => {
+    const subjects = Array.isArray(term.curriculum_term_subject) ? term.curriculum_term_subject : [];
+    summary.semesters += 1;
+    summary.subjects += subjects.length;
+    summary.units += subjects.reduce((units, entry) => {
+        const creditUnits = Number(entry.subject?.credit_units ?? 0);
+        return units + (Number.isFinite(creditUnits) ? creditUnits : 0);
+    }, 0);
+    return summary;
+}, { semesters: 0, subjects: 0, units: 0 });
 
 export default function CurriculumInfo() {
-    const { course_name, course_name_abbreviation, years } = usePage().props
-    const [adding, setAdding] = useState(false);
-
-    const { data, setData, post, processing, errors, reset, setError, clearErrors } = useForm({
-        curriculum_term_id: '',
-        year_level: '',
-        semester_id: '',
-        subject_code: '',
-        descriptive_title: '',
-        credit_units: 3,
-        lecture_hours: 3,
-        laboratory_hours: 0,
-    });
-
-    const yearLevels = {
-        firstYear: "First Year",
-        secondYear: "Second Year",
-        thirdYear: "Third Year",
-        fourthYear: "Fourth Year"
-    };
-
-    const semesters = {
-        1: "First Sem",
-        2: "Second Sem",
-        3: "Third Sem",
-    };
-
-    const [curriculumData, setCurriculumData] = useState({
-        firstYear: [],
-        secondYear: [],
-        thirdYear: [],
-        fourthYear: []
-    });
-
-    const { toast } = useToast()
+    const { course_name } = usePage().props;
+    const { toast } = useToast();
+    const [curriculumData, setCurriculumData] = useState(emptyCurriculum);
     const [fetching, setFetching] = useState(true);
-
+    const [refreshing, setRefreshing] = useState(false);
+    const [fetchError, setFetchError] = useState("");
+    const [openYears, setOpenYears] = useState({ firstYear: true });
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedYear, setSelectedYear] = useState(null);
-    const [nextSemester, setNextSemester] = useState(1);
+    const requestSequence = useRef(0);
+    const semesterOpener = useRef(null);
 
-    const { data: semesterData, setData: setSemesterData, post: semesterPost, processing: semesterProcessing, errors: semesterErrors, reset: semesterReset } = useForm({
-        semester_id: '',
-        year_level_id: '',
-        curr_id: '',
-    });
+    const {
+        data: semesterData,
+        setData: setSemesterData,
+        post: semesterPost,
+        processing: semesterProcessing,
+        errors: semesterErrors,
+        clearErrors: clearSemesterErrors,
+    } = useForm({ semester_id: "", year_level_id: "", curr_id: "" });
 
     useEffect(() => {
         getCurriculumInfo();
+        return () => { requestSequence.current += 1; };
     }, []);
 
-    const getCurriculumInfo = async () => {
-        await axios.post("")
-            .then(response => {
-                const data = response.data.curriculum;
-                setSemesterData('curr_id', response.data.curriculum_id)
+    async function getCurriculumInfo() {
+        const sequence = ++requestSequence.current;
+        setRefreshing(true);
+        setFetchError("");
 
-                if (Array.isArray(data) && data.length > 0) {
-                    const curriculumTerms = data[0].curriculum_term;
+        try {
+            const response = await axios.post("");
+            if (sequence !== requestSequence.current) return;
 
-                    // Group by year level and sort by semester
-                    const groupedByYear = curriculumTerms.reduce((acc, term) => {
-                        if (!acc[term.year_level_id]) {
-                            acc[term.year_level_id] = [];
-                        }
-                        acc[term.year_level_id].push(term);
-                        return acc;
-                    }, {});
-
-                    // Sort each year's terms by semester_id
-                    Object.keys(groupedByYear).forEach(year => {
-                        groupedByYear[year].sort((a, b) => a.semester_id - b.semester_id);
-                    });
-
-                    setCurriculumData({
-                        firstYear: groupedByYear[1] || [],
-                        secondYear: groupedByYear[2] || [],
-                        thirdYear: groupedByYear[3] || [],
-                        fourthYear: groupedByYear[4] || []
-                    });
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching curriculum info:", error);
-            })
-            .finally(() => {
+            const terms = response.data.curriculum?.[0]?.curriculum_term ?? [];
+            const grouped = emptyCurriculum();
+            YEAR_LEVELS.forEach(({ key, id }) => {
+                grouped[key] = terms
+                    .filter((term) => Number(term.year_level_id) === id)
+                    .sort((a, b) => Number(a.semester_id) - Number(b.semester_id));
+            });
+            setCurriculumData(grouped);
+            setSemesterData("curr_id", response.data.curriculum_id);
+        } catch (error) {
+            if (sequence !== requestSequence.current) return;
+            setFetchError("We couldn't load the curriculum. Your last loaded data is still shown below.");
+        } finally {
+            if (sequence === requestSequence.current) {
                 setFetching(false);
-            })
-    };
+                setRefreshing(false);
+            }
+        }
+    }
 
-    const handleOpenModal = (yearKey) => {
-        setSelectedYear(yearKey);
+    const nextSemesterFor = (yearKey) => [1, 2, 3].find((semesterId) =>
+        !curriculumData[yearKey].some((term) => Number(term.semester_id) === semesterId)
+    );
 
-        // Mapping yearKey to a numeric year_level_id
-        const yearLevelMapping = {
-            firstYear: 1,
-            secondYear: 2,
-            thirdYear: 3,
-            fourthYear: 4
-        };
-
-        const yearLevelId = yearLevelMapping[yearKey] || null;
-
-        // Get the next semester number
-        const currentSemesters = curriculumData[yearKey]?.length || 0;
-        const nextSemester = currentSemesters + 1;
-
-        // Set the values
-        setNextSemester(nextSemester);
-        setSemesterData('year_level_id', yearLevelId);
-        setSemesterData('semester_id', nextSemester);
-
+    const handleOpenSemester = (year, opener) => {
+        semesterOpener.current = opener;
+        const semesterId = nextSemesterFor(year.key);
+        if (!semesterId || !semesterData.curr_id) return;
+        clearSemesterErrors();
+        setSelectedYear(year);
+        setSemesterData({ curr_id: semesterData.curr_id, year_level_id: year.id, semester_id: semesterId });
         setDialogOpen(true);
     };
 
-    const handleCloseModal = () => {
-        setDialogOpen(false);
-        setSelectedYear(null);
-        setNextSemester(1);
-    };
-
-    const handleAddSemester = (e) => {
-        e.preventDefault();
-        semesterPost(route('add.semester', semesterData), {
+    const handleAddSemester = (event) => {
+        event.preventDefault();
+        if (semesterProcessing) return;
+        semesterPost(route("add.semester"), {
+            preserveScroll: true,
             onSuccess: () => {
-                semesterReset('semester_id', 'year_level_id');
                 setDialogOpen(false);
-                toast({
-                    description: "Semester added successfully.",
-                    variant: "success",
-                })
+                setOpenYears((current) => ({ ...current, [selectedYear.key]: true }));
+                toast({ description: "Semester added successfully.", variant: "success" });
                 getCurriculumInfo();
             },
-            preserveScroll: true,
+            onError: () => {
+                toast({ title: "Couldn't add semester", description: "Please review the error and try again.", variant: "destructive" });
+            },
         });
     };
 
-    const addSubject = (termId, yearLevel, semesterId) => {
-        setAdding(true);
-        setData('curriculum_term_id', termId)
-        setData('year_level', yearLevel)
-        setData('semester_id', semesterId)
-    }
-
-    const submit = async () => {
-        let error
-        if (!data.subject_code) {
-            setError('subject_code', { error: true })
-            error = true
-        }
-        if (!data.descriptive_title) {
-            setError('descriptive_title', { error: true })
-            error = true
-        }
-
-        if (error) return
-
-        await post(route('curr.addsubject'), {
-            onSuccess: () => {
-                getCurriculumInfo();
-                setAdding(false);
-            },
-        })
-    }
-
-    const onChange = (e) => {
-        const { name, value } = e.target;
-        if (name == 'subject_code' && value.includes(' ')) return;
-        setData(name, value);
-        clearErrors(name);
-        if (!value) setError(name, { error: true });
-    }
-
-    const onNumberFormChange = (name) => (value) => {
-        if (name === 'subject_code' && value.includes(' ')) return;
-        setData(name, value);
+    const jumpToYear = (yearKey) => {
+        setOpenYears((current) => ({ ...current, [yearKey]: true }));
+        requestAnimationFrame(() => {
+            document.getElementById(`curriculum-${yearKey}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
     };
 
-    if (fetching) return <PreLoader title="Curriculum" />
+    if (fetching) return <PreLoader title="Curriculum" />;
+
+    const summary = summarizeTerms(Object.values(curriculumData).flat());
+    const allExpanded = YEAR_LEVELS.every(({ key }) => openYears[key]);
 
     return (
-        <div className="p-6 space-y-6">
-            <Head title={course_name_abbreviation + ' Curriculum'} />
-            <PageTitle align='center' >CURRICULUM: {course_name_abbreviation}  {years.join('-')}</PageTitle>
+        <div className="min-w-0 space-y-6 py-2 sm:py-4">
+            <header className="space-y-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <p className="min-w-0 text-sm text-muted-foreground">{course_name}</p>
+                    {refreshing && <span role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />Refreshing…</span>}
+                </div>
 
-            {Object.entries(yearLevels).map(([yearKey, yearName]) => (
-                <Card key={yearKey}>
-                    <CardHeader>
-                        <CardTitle className="text-2xl">{yearName}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {curriculumData[yearKey].length > 0 ? (
-                            curriculumData[yearKey].map((term) => (
-                                <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={yearName} semesterId={term.semester_id} adding={adding} addSubject={addSubject} form={data} setAdding={setAdding} submit={submit} onChange={onChange} onNumberFormChange={onNumberFormChange} errors={errors} processing={processing} getCurriculumInfo={getCurriculumInfo} />
-                            ))
-                        ) : (
-                            <p className="text-gray-500">No data available</p>
-                        )}
-
-                        {(curriculumData[yearKey].length < 3 && !adding) && (
-                            <div className="w-full flex justify-center">
-                                <Button
-                                    size="lg"
-                                    variant="ghost"
-                                    className="self-center flex items-center gap-2"
-                                    onClick={() => handleOpenModal(yearKey)}
-                                >
-                                    Add Semester
-                                    <SquarePlus className="w-5 h-5" />
-                                </Button>
+                <div className="grid grid-cols-3 gap-3">
+                    {[
+                        { label: "Credit units", value: summary.units, icon: BookOpen },
+                        { label: "Subjects", value: summary.subjects, icon: BookOpen },
+                        { label: "Semesters", value: summary.semesters, icon: Layers3 },
+                    ].map(({ label, value, icon: Icon }) => (
+                        <div key={label} className="rounded-lg bg-muted/50 px-3 py-4 sm:px-5">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="text-xl font-semibold tabular-nums sm:text-2xl">{value}</span>
+                                <Icon className="hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
-            ))}
+                            <p className="mt-1 text-[13px] text-muted-foreground sm:text-sm">{label}</p>
+                        </div>
+                    ))}
+                </div>
 
-            {/* ADD SEMESTER */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent>
+                <nav aria-label="Curriculum year levels" className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
+                        {YEAR_LEVELS.map(({ key, label }) => (
+                            <Button key={key} type="button" variant="outline" size="sm" className="text-[13px]" onClick={() => jumpToYear(key)}>{label}</Button>
+                        ))}
+                    </div>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-[13px] text-muted-foreground"
+                        onClick={() => setOpenYears(Object.fromEntries(YEAR_LEVELS.map(({ key }) => [key, !allExpanded])))}
+                    >
+                        {allExpanded ? "Collapse all" : "Expand all"}
+                    </Button>
+                </nav>
+            </header>
+
+            {fetchError && (
+                <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+                    <p className="flex min-w-0 items-start gap-2 text-sm"><AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />{fetchError}</p>
+                    <Button type="button" variant="outline" size="sm" disabled={refreshing} onClick={getCurriculumInfo}><RefreshCw />Retry</Button>
+                </div>
+            )}
+
+            <div className="space-y-5">
+                {YEAR_LEVELS.map((year) => {
+                    const terms = curriculumData[year.key];
+                    const yearSummary = summarizeTerms(terms);
+                    const expanded = Boolean(openYears[year.key]);
+                    const availableSemester = nextSemesterFor(year.key);
+
+                    return (
+                        <section key={year.key} id={`curriculum-${year.key}`} className="min-w-0 scroll-mt-20 rounded-xl border bg-card">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 sm:px-5">
+                                <h2 className="min-w-0 flex-1">
+                                    <button
+                                        type="button"
+                                        className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+                                        aria-expanded={expanded}
+                                        aria-controls={`curriculum-${year.key}-content`}
+                                        onClick={() => setOpenYears((current) => ({ ...current, [year.key]: !current[year.key] }))}
+                                    >
+                                        <span className="flex items-center gap-2.5 text-xl font-semibold tracking-tight">
+                                            <ChevronDown className={`size-5 shrink-0 text-muted-foreground transition-transform ${expanded ? "" : "-rotate-90"}`} aria-hidden="true" />
+                                            {year.label}
+                                        </span>
+                                        <span className="flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-normal text-muted-foreground">
+                                            <span>{yearSummary.semesters} {yearSummary.semesters === 1 ? "semester" : "semesters"}</span>
+                                            <span>{yearSummary.subjects} {yearSummary.subjects === 1 ? "subject" : "subjects"}</span>
+                                            <span className="font-medium text-foreground">{yearSummary.units} units</span>
+                                        </span>
+                                    </button>
+                                </h2>
+                                {availableSemester && (
+                                    <Button type="button" variant="ghost" size="sm" className="text-[13px]" disabled={!semesterData.curr_id || refreshing} onClick={(event) => handleOpenSemester(year, event.currentTarget)} aria-label={`Add semester to ${year.label}`}><Plus />Add Semester</Button>
+                                )}
+                            </div>
+                            <div id={`curriculum-${year.key}-content`} hidden={!expanded} className="space-y-5 px-3 pb-4 sm:px-5 sm:pb-5">
+                                {terms.length > 0 ? terms.map((term) => (
+                                    <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={year.label} semesterId={term.semester_id} getCurriculumInfo={getCurriculumInfo} />
+                                )) : (
+                                    <div className="rounded-lg bg-muted/30 px-5 py-8 text-center">
+                                        <p className="text-sm font-medium">No semesters yet</p>
+                                        <p className="mt-1 text-sm text-muted-foreground">Add a semester to start building {year.label.toLowerCase()}.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    );
+                })}
+            </div>
+
+            <Dialog open={dialogOpen} onOpenChange={(open) => { if (!semesterProcessing) setDialogOpen(open); }}>
+                <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); requestAnimationFrame(() => (semesterOpener.current?.isConnected ? semesterOpener.current : document.querySelector(`#curriculum-${selectedYear?.key} h2 button`))?.focus()); }} className="max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto rounded-lg">
                     <DialogHeader>
                         <DialogTitle>Add Semester</DialogTitle>
+                        <DialogDescription>Add {SEMESTERS[semesterData.semester_id]} to {selectedYear?.label}.</DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleAddSemester} className="space-y-4">
-                        <div className="space-y-4">
-                            <p className="text-lg font-semibold">{yearLevels[selectedYear]} - {semesters[nextSemester]}</p>
+                    <form onSubmit={handleAddSemester} className="space-y-5">
+                        <div className="rounded-lg bg-muted/50 p-4">
+                            <p className="text-sm text-muted-foreground">{selectedYear?.label}</p>
+                            <p className="mt-1 font-semibold">{SEMESTERS[semesterData.semester_id]}</p>
                         </div>
-
-                        <DialogFooter>
-                            {/* Cancel button explicitly set to type="button" */}
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleCloseModal}>
-                                Cancel
-                            </Button>
-
-                            {/* Submit button first so Enter triggers it */}
-                            <Button
-                                type="submit"
-                                disabled={semesterProcessing}>
-                                Confirm
-                            </Button>
+                        {Object.keys(semesterErrors).length > 0 && (
+                            <div role="alert" className="space-y-1 text-sm text-destructive">
+                                {Object.entries(semesterErrors).map(([field, error]) => <p key={field}>{error}</p>)}
+                            </div>
+                        )}
+                        <DialogFooter className="gap-2 sm:gap-0">
+                            <Button type="button" variant="outline" disabled={semesterProcessing} onClick={() => setDialogOpen(false)}>Cancel</Button>
+                            <Button type="submit" disabled={semesterProcessing}>{semesterProcessing ? <Loader2 className="animate-spin" /> : <Plus />}{semesterProcessing ? "Adding…" : "Add Semester"}</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -262,4 +261,22 @@ export default function CurriculumInfo() {
     );
 }
 
-CurriculumInfo.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+CurriculumInfo.layout = (page) => {
+    const { course_name_abbreviation, years } = page.props;
+    const schoolYear = Array.isArray(years) ? years.join("–") : years;
+    const curriculumTitle = `${course_name_abbreviation} Curriculum`;
+
+    return (
+        <AuthenticatedLayout
+            title={`${curriculumTitle} ${schoolYear}`}
+            headerContent={
+                <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                    <h1 className="min-w-0 truncate text-sm font-semibold text-foreground md:text-base">{curriculumTitle}</h1>
+                    <Badge variant="secondary" className="shrink-0 text-xs font-medium">{schoolYear}</Badge>
+                </div>
+            }
+        >
+            {page}
+        </AuthenticatedLayout>
+    );
+};

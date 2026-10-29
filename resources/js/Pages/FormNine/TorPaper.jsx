@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { TorFooter, TorHeader, TorStudentDetails } from './TorChrome';
 import { TorLastPageNotes } from './TorLastPageNotes';
 import { paginateTorRecords } from './torPagination';
+import { isDroppedGrade } from './recordGrades';
 import './TorPaper.css';
 
 const HEADINGS = ['Subject Code', 'Descriptive Title', 'Grade', 'Re-exam', 'Credits'];
@@ -17,6 +18,7 @@ function earnedUnits(subject) {
 }
 
 function creditText(subject) {
+    if (isDroppedGrade(subject.grade)) return 0;
     if (subject.grade == null || String(subject.grade).trim() === '') return '';
     return Number.isFinite(Number(subject.grade)) ? earnedUnits(subject) : '';
 }
@@ -25,7 +27,7 @@ function SemesterHeading({ record, continued = false, measureKey }) {
     return (
         <tr className="tor-semester-heading" data-tor-measure={measureKey}>
             <th colSpan={5} scope="rowgroup">
-                <span>{[record.program, record.semester && `${record.semester} Semester`, record.schoolyear && `SY ${record.schoolyear}`].filter(Boolean).join(' - ')}</span>
+                <span>{[String(record.course_name_abbreviation ?? '').trim() || record.program, record.semester && `${record.semester} Semester`, record.schoolyear && `SY ${record.schoolyear}`].filter(Boolean).join(' - ')}</span>
                 {continued && <span> (continued)</span>}
                 {record.school && <small>{record.school}</small>}
             </th>

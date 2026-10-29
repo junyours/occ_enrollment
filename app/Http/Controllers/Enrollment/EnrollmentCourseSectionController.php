@@ -813,7 +813,13 @@ class EnrollmentCourseSectionController extends Controller
 
     public function addClassSubject($yearSectionId, $subject_code)
     {
-        $subject = Subject::where('subject_code', '=', $subject_code)->first();
+        $matches = Subject::where('subject_code', '=', $subject_code)->limit(2)->get();
+        if ($matches->count() > 1) {
+            return back()->withErrors([
+                'subject_code' => 'Multiple subject definitions use this code. Add subjects through the applicable curriculum.',
+            ]);
+        }
+        $subject = $matches->first();
 
         if (!$subject) {
             return back()->withErrors([

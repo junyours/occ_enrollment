@@ -1,6 +1,7 @@
 import React from 'react';
 import FormField from './components/FormField';
 import { Form9Input } from './form9Fields';
+import { isDroppedGrade } from './recordGrades';
 
 const formatProgram = text => String(text ?? '').toLowerCase().split(' ').map(word => {
     if (word === 'of' || word === 'in') return word;
@@ -43,8 +44,9 @@ export default function SYGrades({ data = {}, className, recordIndex = 0, subjec
                         const subject = entry || {};
                         const index = start + offset;
                         const fieldPrefix = `${prefix}:subject:${index}`;
-                        const dropOrfail = subject.grade > 3 || subject.grade == 0;
-                        const noGrade = subject.grade == null;
+                        const dropped = isDroppedGrade(subject.grade);
+                        const dropOrfail = subject.grade > 3 || dropped;
+                        const noGrade = subject.grade == null || String(subject.grade).trim() === '';
                         return (
                             <tr key={index} data-form9-subject={index} className="border-b border-gray-400">
                                 <td className="text-xs pl-8 py-0.5">
@@ -56,7 +58,7 @@ export default function SYGrades({ data = {}, className, recordIndex = 0, subjec
                                         aria-label={`Descriptive title, record ${recordIndex + 1}, subject ${index + 1}`} className="flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full" />
                                 </td>
                                 <td className={`text-xs text-center ${dropOrfail ? 'text-red-500 print:text-black' : ''}`}>
-                                    <Form9Input fieldKey={`${fieldPrefix}:grade`} defaultValue={subject.grade} type="text" measurement={measurement}
+                                    <Form9Input fieldKey={`${fieldPrefix}:grade`} defaultValue={dropped ? 'Dropped' : subject.grade} type="text" measurement={measurement}
                                         aria-label={`Grade, record ${recordIndex + 1}, subject ${index + 1}`} className="flex-grow border-b border-none text-xs p-0 outline-none bg-transparent w-full text-center" />
                                 </td>
                                 <td className="text-xs text-center">

@@ -37,7 +37,7 @@ function UsersTable({ users }) {
                             users.data.map((user) => (
                                 <TableRow key={user.id}>
                                     <TableCell className="font-medium">
-                                        <div classname='flex gap-1'>
+                                        <div className='flex gap-1'>
                                             <CopyButton text={user.user_id_no} size='xs' /> <span>{user.user_id_no}</span>
                                         </div>
                                     </TableCell>
