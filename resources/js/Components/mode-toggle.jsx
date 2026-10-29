@@ -12,8 +12,9 @@ import {
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
 import { useTheme } from "@/Components/theme-provider";
+import { cn } from "@/Lib/Utils";
 
-export function ModeToggle() {
+export function ModeToggle({ popupClassName } = {}) {
     const { theme, setTheme } = useTheme();
 
     const themes = [
@@ -32,7 +33,7 @@ export function ModeToggle() {
                     {themes.find((t) => t.value === theme)?.name || "Theme"}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-40">
+            <DropdownMenuContent className={cn("w-40", popupClassName)}>
                 <DropdownMenuLabel>Choose Theme</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {themes.map((t) => (

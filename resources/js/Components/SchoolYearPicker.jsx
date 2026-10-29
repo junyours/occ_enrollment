@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Calendar } from 'luc
 import { useSchoolYearStore } from './useSchoolYearStore';
 import { motion } from 'framer-motion';
 
-function SchoolYearPicker({ layout = 'horizontal' }) {
+function SchoolYearPicker({ layout = 'horizontal', popupClassName, onOpenChange }) {
     const {
         schoolYears,
         selectedSchoolYear,
@@ -138,21 +138,21 @@ function SchoolYearPicker({ layout = 'horizontal' }) {
     // --- HORIZONTAL SELECT ONLY ---
     if (layout === 'horizontal-select-only') {
         return (
-            <div className='w-max'>
+            <div className="w-full min-w-0">
                 <CardContent className='p-0'>
-                    <div className="flex gap-1 items-start">
-                        <div className="w-32">
-                            <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange}>
-                                <SelectTrigger><SelectValue placeholder="Select School Year" /></SelectTrigger>
-                                <SelectContent className='gap-0'>
+                    <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-1">
+                        <div className="min-w-0">
+                            <Select value={selectedSchoolYear} onValueChange={handleSchoolYearChange} onOpenChange={onOpenChange}>
+                                <SelectTrigger aria-label="School year"><SelectValue placeholder="Select School Year" /></SelectTrigger>
+                                <SelectContent className={popupClassName}>
                                     {uniqueSchoolYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="w-24">
-                            <Select value={selectedSemester} onValueChange={handleSemesterChange}>
-                                <SelectTrigger><SelectValue placeholder="Select Semester" /></SelectTrigger>
-                                <SelectContent>
+                        <div className="min-w-0">
+                            <Select value={selectedSemester} onValueChange={handleSemesterChange} onOpenChange={onOpenChange}>
+                                <SelectTrigger aria-label="Semester"><SelectValue placeholder="Select Semester" /></SelectTrigger>
+                                <SelectContent className={popupClassName}>
                                     {allSemesters.map(sem => (
                                         <SelectItem key={sem} value={sem} disabled={!availableSemesters.includes(sem)}>{sem}</SelectItem>
                                     ))}

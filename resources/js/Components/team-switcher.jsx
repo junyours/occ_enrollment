@@ -10,25 +10,26 @@ export function TeamSwitcher() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <Link href="/" className="w-full">
-                    <SidebarMenuButton
-                        size="lg"
-                        className="hover:translate-x-0 w-full transition-all duration-200 active:scale-[0.98] group gap-1 group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:hover:bg-transparent"
-                    >
-                        <div className="flex aspect-square size-8 items-center justify-center text-primary-foreground transition-shadow">
-                            <AppLogo />
+                <SidebarMenuButton
+                    size="lg"
+                    asChild
+                    className="w-full gap-2 transition-colors duration-200 group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:hover:bg-transparent"
+                >
+                    <Link href="/" aria-label="SIS - OCC home">
+                        <div className="flex aspect-square size-8 shrink-0 items-center justify-center text-primary-foreground">
+                            <AppLogo className="h-8 w-8" />
                         </div>
 
-                        <div className="grid flex-1 text-left leading-tight ml-1">
+                        <div className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                             <span className="truncate font-bold text-sm tracking-tight">
                                 SIS - OCC
                             </span>
-                            <span className="truncate text-[11px] font-medium text-muted-primary uppercase tracking-wider">
+                            <span className="truncate text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                                 Opol Community College
                             </span>
                         </div>
-                    </SidebarMenuButton>
-                </Link>
+                    </Link>
+                </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>
     );

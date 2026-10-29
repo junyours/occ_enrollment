@@ -74,7 +74,7 @@ export const MENU_CONFIG = {
             ],
         },
         {
-            label: "Evalaution Result",
+            label: "Evaluation Result",
             items: [
                 { name: "Faculty Result", route: "ph.result", icon: User },
             ],
@@ -354,7 +354,7 @@ export const MENU_CONFIG = {
             items: [
                 { name: "Serial Numbering", route: "nstp-director.serial-numbering", icon: Users2 },
                 { name: "Evaluators", route: "nstp-director.nstp-evaluators", icon: Users2 },
-                { name: "Faculties", route: "nstp-director.nstp-faculties", icon: Users2 },
+                { name: "Faculty", route: "nstp-director.nstp-faculties", icon: Users2 },
             ],
         },
     ],
@@ -372,7 +372,7 @@ export const MENU_CONFIG = {
             ],
         },
     ],
-    ltts_evaluator: [
+    rotc_evaluator: [
         {
             items: [
                 { name: "Dashboard", route: "nstp-director.dashboard", icon: Presentation },
@@ -382,7 +382,21 @@ export const MENU_CONFIG = {
         {
             label: "NSTP Components",
             items: [
-                { name: "LTS", route: "nstp-director.component.sections", params: "lts", icon: Users },
+                { name: "ROTC", route: "nstp-director.component.sections", params: "rotc", icon: Shield },
+            ],
+        },
+    ],
+    lts_evaluator: [
+        {
+            items: [
+                { name: "Dashboard", route: "nstp-director.dashboard", icon: Presentation },
+                { name: "Students", route: "nstp-director.students", icon: Users },
+            ],
+        },
+        {
+            label: "NSTP Components",
+            items: [
+                { name: "LTS", route: "nstp-director.component.sections", params: "lts", icon: GraduationCap },
             ],
         },
     ],

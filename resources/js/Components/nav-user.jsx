@@ -1,9 +1,9 @@
+import { useRef, useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import { formatFullNameFML } from "@/Lib/Utils";
 import { ModeToggle } from "@/Components/mode-toggle";
 
 import {
-    BadgeCheck,
     ChevronsUpDown,
     LogOut,
     Palette,
@@ -18,7 +18,6 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -35,7 +34,21 @@ import {
 export function NavUser() {
     const { auth } = usePage().props;
     const user = auth?.user;
-    const { isMobile, setOpenMobile } = useSidebar();
+    const { isMobile, setPopupOpen, closePreview } = useSidebar();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const navigating = useRef(false);
+
+    const handleMenuOpenChange = (nextOpen) => {
+        if (nextOpen) navigating.current = false;
+        setMenuOpen(nextOpen);
+        setPopupOpen(nextOpen);
+    };
+
+    const closeForNavigation = () => {
+        navigating.current = true;
+        setMenuOpen(false);
+        closePreview();
+    };
 
     if (!user) return null;
 
@@ -50,19 +63,20 @@ export function NavUser() {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <DropdownMenu open={menuOpen} onOpenChange={handleMenuOpenChange}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="hover:translate-x-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                            aria-label={`Account menu for ${displayName}`}
+                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarFallback className="rounded-lg bg-sidebar-primary">
+                                <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                     {displayInitial}
                                 </AvatarFallback>
                             </Avatar>
 
-                            <div className="grid flex-1 text-left text-sm leading-tight">
+                            <div className="grid min-w-0 flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                                 <span className="truncate font-semibold">
                                     {displayName}
                                 </span>
@@ -71,15 +85,21 @@ export function NavUser() {
                                 </span>
                             </div>
 
-                            <ChevronsUpDown className="ml-auto size-4" />
+                            <ChevronsUpDown aria-hidden="true" className="ml-auto size-4 shrink-0 group-data-[collapsible=icon]:hidden" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent
-                        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                        className="z-[70] w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
                         side={isMobile ? "bottom" : "right"}
                         align="end"
                         sideOffset={4}
+                        onCloseAutoFocus={(event) => {
+                            if (navigating.current) {
+                                event.preventDefault();
+                                navigating.current = false;
+                            }
+                        }}
                     >
                         {/* Profile Header */}
                         <DropdownMenuLabel className="p-0 font-normal">
@@ -106,7 +126,7 @@ export function NavUser() {
                         <DropdownMenuItem asChild>
                             <Link
                                 href={route("settings")}
-                                onClick={() => setOpenMobile(false)}
+                                onClick={closeForNavigation}
                                 className="hover:cursor-pointer"
                             >
                                 <Settings className="mr-2 h-4 w-4" />
@@ -122,7 +142,7 @@ export function NavUser() {
                                 <Palette className="h-4 w-4 mr-2" />
                                 Theme
                             </div>
-                            <ModeToggle />
+                            <ModeToggle popupClassName="z-[80]" />
                         </div>
 
                         <DropdownMenuSeparator />
@@ -132,6 +152,7 @@ export function NavUser() {
                             <Link
                                 href={route("logout")}
                                 method="post"
+                                onClick={closeForNavigation}
                                 as="button"
                                 className="w-full"
                             >

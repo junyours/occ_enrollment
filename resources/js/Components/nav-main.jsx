@@ -1,6 +1,7 @@
-import { usePage } from "@inertiajs/react";
+import { useEffect, useId, useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/Lib/Utils";
-import { Link } from "@inertiajs/react";
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -10,82 +11,123 @@ import {
     useSidebar,
 } from "@/Components/ui/sidebar";
 import SchoolYearPicker from "./SchoolYearPicker";
-import { MENU_CONFIG } from "@/Components/Config/menuConfig"; // Import the config
+import { MENU_CONFIG } from "@/Components/Config/menuConfig";
+
+const SCHOOL_YEAR_ROLES = new Set([
+    "gened_coordinator",
+    "nstp_director",
+    "cwts_evaluator",
+    "rotc_evaluator",
+    "lts_evaluator",
+    "academic_dean",
+]);
+
+function getPath(url) {
+    return new URL(url, "http://localhost").pathname.replace(/\/+$/, "") || "/";
+}
+
+function NavSection({ section, pathname, expanded, collapsible, onNavigate }) {
+    const contentId = useId();
+    const [sectionOpen, setSectionOpen] = useState(true);
+    const items = section.items.map((item) => {
+        const href = route(item.route, item.params);
+        const itemPath = getPath(href);
+
+        return {
+            ...item,
+            href,
+            isActive: pathname === itemPath || pathname.startsWith(`${itemPath}/`),
+        };
+    });
+    const hasActiveItem = items.some((item) => item.isActive);
+
+    useEffect(() => {
+        if (hasActiveItem) setSectionOpen(true);
+    }, [hasActiveItem, pathname]);
+
+    return (
+        <div className="space-y-1">
+            {expanded && section.label && (
+                collapsible ? (
+                    <button
+                        type="button"
+                        aria-expanded={sectionOpen}
+                        aria-controls={contentId}
+                        onClick={() => setSectionOpen((value) => !value)}
+                        className="flex h-7 w-full items-center justify-between rounded-md px-3 text-left text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60 transition-colors hover:bg-sidebar-foreground/5 hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                        <span className="truncate">{section.label}</span>
+                        <ChevronDown
+                            aria-hidden="true"
+                            className={cn("size-3.5 shrink-0 transition-transform", !sectionOpen && "-rotate-90")}
+                        />
+                    </button>
+                ) : (
+                    <SidebarGroupLabel className="h-7 px-3 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+                        {section.label}
+                    </SidebarGroupLabel>
+                )
+            )}
+
+            <div id={contentId} hidden={expanded && collapsible && !sectionOpen}>
+                <SidebarMenu className="gap-1">
+                    {items.map((item) => (
+                        <SidebarMenuItem key={`${item.route}:${item.name}`}>
+                            <SidebarMenuButton
+                                isActive={item.isActive}
+                                tooltip={item.name}
+                                className="h-9 gap-3 px-3"
+                                asChild
+                            >
+                                <Link
+                                    href={item.href}
+                                    aria-current={item.isActive ? "page" : undefined}
+                                    onClick={onNavigate}
+                                >
+                                    <item.icon aria-hidden="true" className="size-4 shrink-0" />
+                                    <span className="truncate">{item.name}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+            </div>
+        </div>
+    );
+}
 
 export function NavMain() {
-    const { user, courses } = usePage().props.auth;
-    const userRole = user.user_role;
-    const currentUrl = usePage().url;
-    const { setOpenMobile, open } = useSidebar();
-
-    // Get menu sections for the user's role
-    const menuConfigForRole = MENU_CONFIG[userRole];
+    const { props, url } = usePage();
+    const { user, courses = [] } = props.auth;
+    const { setOpenMobile, expanded, setPopupOpen } = useSidebar();
+    const menuConfigForRole = MENU_CONFIG[user.user_role];
     const menuSections = typeof menuConfigForRole === "function"
         ? menuConfigForRole(courses)
         : menuConfigForRole || [];
-
-    const showSchoolYearPicker = (userRole === "gened_coordinator" || userRole === "nstp_director" || userRole === "cwts_evaluator" || userRole === "rotc_evaluator" || userRole === "lts_evaluator" || userRole === "academic_dean") && open;
+    const collapsible = menuSections.filter((section) => section.label).length >= 3;
+    const pathname = getPath(url);
 
     return (
-        <SidebarGroup>
-            {showSchoolYearPicker && (
-                    <>
-                        <SidebarMenu className="space-y-0.5 mb-4">
-                            <SidebarGroupLabel className="flex flex-col p-0 text-xs uppercase text-muted-foreground h-min text-none pl-4">
-                                <SchoolYearPicker layout="horizontal-select-only" />
-                            </SidebarGroupLabel>
-                        </SidebarMenu>
-                    </>
-                )}
+        <SidebarGroup className="gap-4">
+            {SCHOOL_YEAR_ROLES.has(user.user_role) && expanded && (
+                <div className="px-3 pb-1">
+                    <SchoolYearPicker
+                        layout="horizontal-select-only"
+                        popupClassName="z-[70]"
+                        onOpenChange={setPopupOpen}
+                    />
+                </div>
+            )}
 
-            {/* Dynamic Navigation Sections */}
             {menuSections.map((section, index) => (
-                <SidebarMenu key={index} className="mb-4 space-y-2">
-                    {/* Conditionally render the label to prevent empty space */}
-                    {open && (
-                        <SidebarGroupLabel className="px-3 text-xs tracking-wider uppercase text-muted-foreground/80 h-min">
-                            {section.label}
-                        </SidebarGroupLabel>
-                    )}
-
-                    {section.items.map((item) => {
-                        const itemUrl = route(item.route, item.params);
-                        const itemPath = new URL(itemUrl).pathname;
-                        const pathname = currentUrl.split("?")[0];
-                        const isActive =
-                            pathname === itemPath ||
-                            pathname.startsWith(`${itemPath}/`);
-
-                        return (
-                            <SidebarMenuItem
-                                key={item.name}
-                                onClick={() => setOpenMobile(false)}
-                            >
-                                <SidebarMenuButton
-                                    isActive={isActive}
-                                    tooltip={item.name}
-                                    className={cn(
-                                        "",
-                                    )}
-                                    asChild
-                                >
-                                    <Link
-                                        href={itemUrl}
-                                        className="flex items-center w-full gap-3 px-3 py-2"
-                                    >
-                                        <item.icon
-                                            size={18}
-                                            className="shrink-0"
-                                        />
-                                        <span className="truncate">
-                                            {item.name}
-                                        </span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        );
-                    })}
-                </SidebarMenu>
+                <NavSection
+                    key={`${user.user_role}:${section.label || index}`}
+                    section={section}
+                    pathname={pathname}
+                    expanded={expanded}
+                    collapsible={collapsible && Boolean(section.label)}
+                    onNavigate={() => setOpenMobile(false)}
+                />
             ))}
         </SidebarGroup>
     );

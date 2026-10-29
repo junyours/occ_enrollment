@@ -1,7 +1,13 @@
-import { usePage } from "@inertiajs/react";
-import { LayoutDashboard, BookOpen, GraduationCap } from "lucide-react";
-import { cn, formatDateShort } from "@/Lib/Utils"; // Ensure you have a utility for class merging
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
+import {
+    BookOpen,
+    DoorClosed,
+    GraduationCap,
+    LayoutDashboard,
+    NotebookText,
+    User,
+} from "lucide-react";
+import { cn } from "@/Lib/Utils";
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -10,142 +16,132 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/Components/ui/sidebar";
-import { DoorClosed, User, NotebookText } from "lucide-react";
+
+function getPath(url) {
+    return new URL(url, "http://localhost").pathname.replace(/\/+$/, "") || "/";
+}
 
 export function NavEnrollment() {
-    const { user, courses, enrollment_status, schoolYear } = usePage().props.auth;
-    const currentUrl = usePage().url; // Get the current route
-    const { setOpenMobile, open } = useSidebar();
-    
-    return (
-        <>
-            {(user.user_role == "registrar" || user.user_role == "evaluator" || user.user_role == "program_head") && (
-                <>
-                    {(enrollment_status == 'ongoing' || enrollment_status == 'preparing') &&
-                        <SidebarGroup>
-                            {open && (
-                                <SidebarGroupLabel>
-                                    <div>
-                                        <div>
-                                            Enrollment {enrollment_status}
-                                        </div>
-                                        <div>
-                                            {schoolYear.start_year}-{schoolYear.end_year} {schoolYear.semester.semester_name} Semester
-                                        </div>
-                                    </div>
-                                </SidebarGroupLabel>
-                            )}
-                            <SidebarMenu className='space-y-2'>
-                                {courses.map((course) => {
-                                    const courseUrl = route("enrollment.view", course.hashed_course_id);
-                                    const isActive = currentUrl.startsWith(`/enrollment/${course.hashed_course_id}`);
+    const { props, url } = usePage();
+    const { user, courses = [], enrollment_status, schoolYear } = props.auth;
+    const { setOpenMobile, expanded } = useSidebar();
 
-                                    return (
-                                        <SidebarMenuItem key={course.hashed_course_id}>
-                                            <SidebarMenuButton
-                                                tooltip={course.course_name_abbreviation}
-                                                isActive={isActive}
-                                                className={cn(" ")}
-                                                asChild
-                                            >
-                                                <Link onClick={() => setOpenMobile(false)} href={courseUrl} className="flex items-center w-full gap-3 px-3 py-2">
-                                                    <BookOpen />
-                                                    <span>{course.course_name_abbreviation}</span>
-                                                </Link>
-                                            </SidebarMenuButton>
-                                        </SidebarMenuItem>
-                                    );
-                                })}
-                                {/* Dashboard */}
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton
-                                        tooltip="Dashboard"
-                                        className={cn(" ", currentUrl.startsWith("/dashboard") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                            : "")}
-                                        asChild
-                                    >
-                                        <Link
-                                            onClick={() => setOpenMobile(false)}
-                                            href={route("dashboard")}
-                                            className="flex items-center w-full gap-3 px-3 py-2">
-                                            <LayoutDashboard />
-                                            <span>Dashboard</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                {user.user_role == "program_head" && (
-                                    <>
-                                        <SidebarMenuItem>
-                                            <SidebarMenuButton
-                                                tooltip="Room Schedules"
-                                                className={cn(" ", currentUrl.startsWith("/rooms-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                                    : "")}
-                                                asChild
-                                            >
-                                                <Link
-                                                    onClick={() => setOpenMobile(false)}
-                                                    href={route("enrollment.room-schedules")}
-                                                    className="flex items-center w-full gap-3 px-3 py-2">
-                                                    <DoorClosed />
-                                                    <span>Rooms</span>
-                                                </Link>
-                                            </SidebarMenuButton>
-                                        </SidebarMenuItem>
-                                        <SidebarMenuItem>
-                                            <SidebarMenuButton
-                                                tooltip="Faculty Schedules"
-                                                isActive={currentUrl.startsWith("/faculties-schedules")}
-                                                className={cn(" ")}
-                                                asChild
-                                            >
-                                                <Link
-                                                    onClick={() => setOpenMobile(false)}
-                                                    href={route("enrollment.faculties-schedules")}
-                                                    className="flex items-center w-full gap-3 px-3 py-2">
-                                                    <User />
-                                                    <span>Faculties</span>
-                                                </Link>
-                                            </SidebarMenuButton>
-                                        </SidebarMenuItem>
-                                        <SidebarMenuItem>
-                                            <SidebarMenuButton
-                                                tooltip="Subject Schedules"
-                                                className={cn(" ", currentUrl.startsWith("/subjects-schedules") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                                    : "")}
-                                                asChild
-                                            >
-                                                <Link
-                                                    onClick={() => setOpenMobile(false)}
-                                                    href={route("enrollment.subjects-schedules")}
-                                                    className="flex items-center w-full gap-3 px-3 py-2">
-                                                    <NotebookText />
-                                                    <span>Subjects</span>
-                                                </Link>
-                                            </SidebarMenuButton>
-                                        </SidebarMenuItem>
-                                    </>
-                                )}
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton
-                                        tooltip="Student Grades"
-                                        className={cn(" ", currentUrl.startsWith("/student-grades") ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                            : "")}
-                                        asChild
-                                    >
-                                        <Link
-                                            onClick={() => setOpenMobile(false)}
-                                            href={route("enrollment.student-grades")}
-                                            className="flex items-center w-full gap-3 px-3 py-2">
-                                            <GraduationCap />
-                                            <span>Student Grades</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            </SidebarMenu>
-                        </SidebarGroup>
-                    }
-                </>
+    if (
+        !["registrar", "evaluator", "program_head"].includes(user.user_role) ||
+        !["ongoing", "preparing"].includes(enrollment_status)
+    ) {
+        return null;
+    }
+
+    const pathname = getPath(url);
+    const term = schoolYear
+        ? [
+            `${schoolYear.start_year}–${schoolYear.end_year}`,
+            schoolYear.semester?.semester_name && `${schoolYear.semester.semester_name} Semester`,
+        ].filter(Boolean).join(" · ")
+        : null;
+    const schedules = user.user_role === "program_head" ? [
+        { name: "Rooms", tooltip: "Room Schedules", route: "enrollment.room-schedules", icon: DoorClosed },
+        { name: "Faculty", tooltip: "Faculty Schedules", route: "enrollment.faculties-schedules", icon: User },
+        { name: "Subjects", tooltip: "Subject Schedules", route: "enrollment.subjects-schedules", icon: NotebookText },
+    ] : [];
+
+    function renderItem(item) {
+        const href = route(item.route, item.params);
+        const itemPath = getPath(href);
+        const isActive = pathname === itemPath || pathname.startsWith(`${itemPath}/`);
+
+        return (
+            <SidebarMenuItem key={`${item.route}:${item.params || item.name}`}>
+                <SidebarMenuButton
+                    tooltip={item.tooltip || item.name}
+                    isActive={isActive}
+                    className={cn(
+                        "h-9 gap-3 px-3",
+                        item.course && !expanded && "group-data-[collapsible=icon]:!p-0",
+                    )}
+                    asChild
+                >
+                    <Link
+                        href={href}
+                        aria-current={isActive ? "page" : undefined}
+                        aria-label={item.name}
+                        onClick={() => setOpenMobile(false)}
+                    >
+                        {item.course && !expanded ? (
+                            <span
+                                aria-hidden="true"
+                                className="flex size-8 shrink-0 items-center justify-center rounded-md border border-sidebar-border bg-sidebar-foreground/5 text-[9px] font-bold leading-none tracking-tighter"
+                            >
+                                {item.name}
+                            </span>
+                        ) : (
+                            <item.icon aria-hidden="true" className="size-4 shrink-0" />
+                        )}
+                        <span className="truncate">{item.name}</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        );
+    }
+
+    return (
+        <SidebarGroup className="gap-3 border-b border-sidebar-border pb-4">
+            {expanded && (
+                <div className="mx-1 rounded-lg bg-sidebar-foreground/5 px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold">Enrollment</span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-sidebar-foreground/5 px-2 py-0.5 text-[10px] font-semibold capitalize text-sidebar-foreground/80">
+                            <span
+                                aria-hidden="true"
+                                className={cn("size-1.5 rounded-full", enrollment_status === "ongoing" ? "bg-emerald-500" : "bg-amber-500")}
+                            />
+                            {enrollment_status}
+                        </span>
+                    </div>
+                    {term && <p className="mt-1 text-[11px] leading-relaxed text-sidebar-foreground/65">{term}</p>}
+                </div>
             )}
-        </>
+
+            <SidebarMenu className="gap-1">
+                {renderItem({ name: "Dashboard", route: "dashboard", icon: LayoutDashboard })}
+            </SidebarMenu>
+
+            {courses.length > 0 && (
+                <div className="space-y-1">
+                    {expanded && (
+                        <SidebarGroupLabel className="h-7 px-3 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+                            Courses
+                        </SidebarGroupLabel>
+                    )}
+                    <SidebarMenu className="gap-1">
+                        {courses.map((course) => renderItem({
+                            name: course.course_name_abbreviation,
+                            route: "enrollment.view",
+                            params: course.hashed_course_id,
+                            icon: BookOpen,
+                            course: true,
+                        }))}
+                    </SidebarMenu>
+                </div>
+            )}
+
+            {schedules.length > 0 && (
+                <div className="space-y-1">
+                    {expanded && (
+                        <SidebarGroupLabel className="h-7 px-3 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/60">
+                            Schedules
+                        </SidebarGroupLabel>
+                    )}
+                    <SidebarMenu className="gap-1">
+                        {schedules.map(renderItem)}
+                    </SidebarMenu>
+                </div>
+            )}
+
+            <SidebarMenu className="gap-1">
+                {renderItem({ name: "Student Grades", route: "enrollment.student-grades", icon: GraduationCap })}
+            </SidebarMenu>
+        </SidebarGroup>
     );
 }

@@ -6,24 +6,22 @@ import {
     SidebarContent,
     SidebarFooter,
     SidebarHeader,
-    SidebarRail,
 } from "@/Components/ui/sidebar"
 import { NavEnrollment } from "./NavEnrollment"
 
 export function AppSidebar({ ...props }) {
     return (
-        <Sidebar collapsible="icon" {...props}>
+        <Sidebar collapsible="icon" expandOnHover {...props}>
             <SidebarHeader>
                 <TeamSwitcher />
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent role="navigation" aria-label="Main navigation">
                 <NavEnrollment />
                 <NavMain />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser />
             </SidebarFooter>
-            {/* <SidebarRail /> */}
         </Sidebar>
     )
 }
