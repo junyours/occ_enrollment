@@ -115,4 +115,4 @@ export default function InstructorSubjectsList() {
     );
 }
 
-InstructorSubjectsList.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+InstructorSubjectsList.layout = (page) => <AuthenticatedLayout title="Subjects" children={page} />;

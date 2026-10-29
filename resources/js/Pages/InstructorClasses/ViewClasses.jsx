@@ -285,4 +285,4 @@ const ViewClasses = ({ schoolYears }) => {
 }
 
 export default ViewClasses
-ViewClasses.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+ViewClasses.layout = (page) => <AuthenticatedLayout title="Classes" children={page} />;

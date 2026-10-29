@@ -165,4 +165,4 @@ export default function InstructorRequests() {
     );
 }
 
-InstructorRequests.layout = (page) => <AuthenticatedLayout>{page}</AuthenticatedLayout>;
+InstructorRequests.layout = (page) => <AuthenticatedLayout title="Requests" children={page} />;
