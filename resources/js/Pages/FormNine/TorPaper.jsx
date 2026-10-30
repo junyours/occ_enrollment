@@ -27,7 +27,7 @@ function SemesterHeading({ record, continued = false, measureKey }) {
     return (
         <tr className="tor-semester-heading" data-tor-measure={measureKey}>
             <th colSpan={5} scope="rowgroup">
-                <span>{[String(record.course_name_abbreviation ?? '').trim() || record.program, record.semester && `${record.semester} Semester`, record.schoolyear && `SY ${record.schoolyear}`].filter(Boolean).join(' - ')}</span>
+                <span>{[String(record.course_name_abbreviation ?? '').trim() || record.program, record.semester && `${record.semester?.charAt(0).toUpperCase() + record.semester?.slice(1).toLowerCase()} Semester`, record.schoolyear && `SY ${record.schoolyear}`].filter(Boolean).join(' - ')}</span>
                 {continued && <span> (continued)</span>}
                 {record.school && <small>{record.school}</small>}
             </th>
