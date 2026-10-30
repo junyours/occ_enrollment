@@ -48,6 +48,30 @@ import {
 import { PiStudent } from "react-icons/pi";
 import { MdOutlineMeetingRoom } from "react-icons/md";
 
+function createTeacherMenu(facultyResultRoute) {
+    return [
+        {
+            label: "Academic",
+            items: [
+                { name: "Classes", route: "classes", icon: Presentation },
+            ],
+        },
+        {
+            label: "Grades",
+            items: [
+                { name: "Subjects", route: "subjects-list", icon: BookOpenText },
+                { name: "Requests", route: "requests", icon: Inbox },
+            ],
+        },
+        {
+            label: "Evaluation Result",
+            items: [
+                { name: "Faculty Result", route: facultyResultRoute, icon: User },
+            ],
+        },
+    ];
+}
+
 export const MENU_CONFIG = {
     program_head: [
         {
@@ -131,41 +155,8 @@ export const MENU_CONFIG = {
             ],
         },
     ],
-    faculty: [
-        {
-            label: "Academic",
-            items: [
-                { name: "Classes", route: "classes", icon: Presentation },
-            ],
-        },
-        {
-            label: "Grades",
-            items: [
-                { name: "Subjects", route: "subjects-list", icon: BookOpenText },
-                { name: "Requests", route: "requests", icon: Inbox },
-            ],
-        },
-        {
-            label: "Evaluation Result",
-            items: [
-                { name: "Faculty Result", route: "fac.faculty.report", icon: User },
-            ],
-        },
-    ],
-    evaluator: [
-        {
-            label: "Academic",
-            items: [
-                { name: "Classes", route: "classes", icon: Presentation },
-            ],
-        },
-        {
-            label: "Evaluation Result",
-            items: [
-                { name: "Faculty Result", route: "eval.faculty.report", icon: User },
-            ],
-        },
-    ],
+    faculty: createTeacherMenu("fac.faculty.report"),
+    evaluator: createTeacherMenu("eval.faculty.report"),
     super_admin: [
         {
             label: "Administration",
@@ -432,25 +423,5 @@ export const MENU_CONFIG = {
             ],
         },
     ],
-    nstp_faculty: [
-        {
-            label: "Academic",
-            items: [
-                { name: "Classes", route: "classes", icon: Presentation },
-            ],
-        },
-        {
-            label: "Grades",
-            items: [
-                { name: "Subjects", route: "subjects-list", icon: BookOpenText },
-                { name: "Requests", route: "requests", icon: Inbox },
-            ],
-        },
-        {
-            label: "Evaluation Result",
-            items: [
-                { name: "Faculty Result", route: "fac.faculty.report", icon: User },
-            ],
-        },
-    ],
+    nstp_faculty: createTeacherMenu("fac.faculty.report"),
 };

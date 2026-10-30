@@ -1011,50 +1011,102 @@ class ClassController extends Controller
 
     public function requestEditMidtermSubmission($yearSectionSubjectsId)
     {
-        GradeEditRequest::create([
-            'year_section_subjects_id' => $yearSectionSubjectsId,
-            'period' => 'midterm',
-            'status' => 'pending',
-            'request_date' => now(),
-        ]);
+        $this->createGradeCorrectionRequest($yearSectionSubjectsId, 'midterm');
     }
 
     public function cancelRequestEditMidtermSubmission($requestId)
     {
-        GradeEditRequest::where('id', $requestId)->delete();
+        $this->cancelGradeCorrectionRequest($requestId, 'midterm');
     }
 
     public function requestEditFinalSubmission($yearSectionSubjectsId)
     {
-        GradeEditRequest::create([
-            'year_section_subjects_id' => $yearSectionSubjectsId,
-            'period' => 'final',
-            'status' => 'pending',
-            'request_date' => now(),
-        ]);
+        $this->createGradeCorrectionRequest($yearSectionSubjectsId, 'final');
     }
 
     public function cancelRequestEditFinalSubmission($requestId)
     {
-        GradeEditRequest::where('id', $requestId)->delete();
+        $this->cancelGradeCorrectionRequest($requestId, 'final');
     }
 
     public function getGradeRequestStatus($yearSectionSubjectsId)
     {
+        $this->gradeCorrectionClass($yearSectionSubjectsId);
+
         $midtermRequestStatus = GradeEditRequest::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->where('period', 'midterm')
-            ->whereNot('status', '=', 'submitted')
+            ->orderByDesc('id')
             ->first();
 
         $finalRequestStatus = GradeEditRequest::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->where('period', 'final')
-            ->whereNot('status', '=', 'submitted')
+            ->orderByDesc('id')
             ->first();
 
         return response()->json([
             'midtermRequestStatus' => $midtermRequestStatus,
             'finalRequestStatus' => $finalRequestStatus,
         ], 200);
+    }
+
+    private function authorizeGradeCorrectionInstructor(): void
+    {
+        abort_unless(in_array(Auth::user()?->user_role, ['faculty', 'evaluator', 'program_head'], true), 403);
+    }
+
+    private function gradeCorrectionClass($classId, bool $lock = false): YearSectionSubjects
+    {
+        $this->authorizeGradeCorrectionInstructor();
+        $query = YearSectionSubjects::query();
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+        $class = $query->findOrFail($classId);
+        abort_unless((string) Auth::id() === (string) $class->faculty_id, 403, 'You are not assigned to this class.');
+
+        return $class;
+    }
+
+    private function createGradeCorrectionRequest($classId, string $period): void
+    {
+        $this->authorizeGradeCorrectionInstructor();
+        DB::transaction(function () use ($classId, $period) {
+            // Serializes creation even when no previous request row exists.
+            $class = $this->gradeCorrectionClass($classId, true);
+            $submission = GradeSubmission::where('year_section_subjects_id', $class->id)
+                ->lockForUpdate()
+                ->first();
+            abort_unless($submission && $submission->getAttribute($period.'_status') === 'deployed', 409,
+                'Only deployed '.$period.' grades can have a correction request.');
+
+            $latestRequest = GradeEditRequest::where('year_section_subjects_id', $class->id)
+                ->where('period', $period)
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
+            abort_if($latestRequest && in_array($latestRequest->status, ['pending', 'approved'], true), 409,
+                'A correction request for this period is already pending or approved.');
+
+            GradeEditRequest::create([
+                'year_section_subjects_id' => $class->id,
+                'period' => $period,
+                'status' => 'pending',
+                'request_date' => now(),
+            ]);
+        });
+    }
+
+    private function cancelGradeCorrectionRequest($requestId, string $period): void
+    {
+        $this->authorizeGradeCorrectionInstructor();
+        DB::transaction(function () use ($requestId, $period) {
+            // The registrar's decision uses the same row lock before changing status.
+            $request = GradeEditRequest::whereKey($requestId)->lockForUpdate()->firstOrFail();
+            $this->gradeCorrectionClass($request->year_section_subjects_id);
+            abort_unless($request->period === $period, 409, 'The request belongs to another grading period.');
+            abort_unless($request->status === 'pending', 409, 'Only pending correction requests can be cancelled.');
+            $request->delete();
+        });
     }
 
     public function downloadStudentsExcel($id)

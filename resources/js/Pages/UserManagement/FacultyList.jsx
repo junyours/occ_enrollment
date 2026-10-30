@@ -17,6 +17,7 @@ import PaginationPages from '@/Components/ui/PaginationPages';
 const FacultyList = ({ faculties, filters }) => {
     const { user } = usePage().props.auth;
     const userRole = user.user_role
+    const canManageFaculty = ['program_head', 'registrar'].includes(userRole);
 
     const [faculty, setFaculty] = useState([]);
     const [open, setOpen] = useState(false);
@@ -100,10 +101,10 @@ const FacultyList = ({ faculties, filters }) => {
                     <CardTitle className="text-xl sm:text-2xl font-bold">
                         <div className='w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
                             <span>Faculty List</span>
-                            <Button onClick={() => setOpen(true)} className="gap-2 w-full sm:w-auto">
+                            {canManageFaculty && <Button onClick={() => setOpen(true)} className="gap-2 w-full sm:w-auto">
                                 <Plus className="w-4 h-4" />
                                 Add Faculty
-                            </Button>
+                            </Button>}
                         </div>
                     </CardTitle>
                 </CardHeader>
@@ -284,7 +285,7 @@ const FacultyList = ({ faculties, filters }) => {
 
                                             <TableCell className='w-20'>
                                                 <div className='flex justify-center items-center'>
-                                                    <Tooltip>
+                                                    {canManageFaculty && <Tooltip>
                                                         <TooltipTrigger asChild>
                                                             <Button
                                                                 variant="ghost"
@@ -298,7 +299,7 @@ const FacultyList = ({ faculties, filters }) => {
                                                         <TooltipContent>
                                                             Edit
                                                         </TooltipContent>
-                                                    </Tooltip>
+                                                    </Tooltip>}
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -315,7 +316,7 @@ const FacultyList = ({ faculties, filters }) => {
                     </div>
                     <PaginationPages data={faculties} />
                 </CardContent>
-            </Card>{(editMode || open) && (
+            </Card>{canManageFaculty && (editMode || open) && (
                 <AddFaculty open={open} setOpen={setOpen} faculty={facultyEdit} editing={editMode} setEditing={setEditMode} setFaculty={setFacultyEdit} />
             )}
         </div>

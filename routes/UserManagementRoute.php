@@ -25,6 +25,9 @@ Route::middleware(['auth', 'maintenance', 'role:program_head,registrar,evaluator
     Route::post('/api/student-info/{id}', [UserController::class, 'studentInfo'])->name('student-info');
     Route::post('/api/faculty-info/{id}', [UserController::class, 'facultyInfo'])->name('faculty-info');
 
+});
+
+Route::middleware(['auth', 'maintenance', 'role:program_head,registrar'])->group(function () {
     Route::post('/faculty/add', [UserController::class, 'addFaculty'])->name('faculty.add');
     Route::post('/faculty/edit', [UserController::class, 'editFaculty'])->name('faculty.edit');
 });

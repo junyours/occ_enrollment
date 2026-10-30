@@ -597,7 +597,7 @@ function Grades({
     const [finalRequestStatus, setFinalRequestStatus] = useState([]);
 
     const getChangeRequests = async () => {
-        if (data.midterm_status != 'deployed' || data.final_status != 'deployed') return
+        if (data.midterm_status != 'deployed' && data.final_status != 'deployed') return
 
         await axios.post(route('grades.edit-request-status', yearSectionSubjectsId))
             .then(response => {

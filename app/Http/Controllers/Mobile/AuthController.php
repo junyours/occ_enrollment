@@ -45,8 +45,8 @@ class AuthController extends Controller
             return response()->json(['message' => 'The provided credentials are incorrect.'], 422);
         }
 
-        if (!in_array($user->user_role, ['student', 'faculty'])) {
-            return response()->json(['message' => 'Access to this portal is restricted to students and faculty only.'], 403);
+        if (!in_array($user->user_role, ['student', 'faculty', 'evaluator'], true)) {
+            return response()->json(['message' => 'Access to this portal is restricted to students and teachers only.'], 403);
         }
 
         $token = $user->createToken('mobile-token')->plainTextToken;

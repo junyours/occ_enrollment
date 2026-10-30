@@ -19,6 +19,7 @@ use App\Models\YearSectionSubjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class GradeController extends Controller
@@ -990,6 +991,8 @@ class GradeController extends Controller
 
     public function viewEditRequest($hashedGradeEditRequestsId)
     {
+        $this->authorizeGradeCorrectionTeacher();
+
         $gradeEditRequest = GradeEditRequest::whereRaw('MD5(id) = ?', [$hashedGradeEditRequestsId])->first();
 
         if (!$gradeEditRequest) {
@@ -1012,7 +1015,7 @@ class GradeController extends Controller
             ]);
         }
 
-        if (Auth::id() !== $yearSectionSubject->faculty_id) {
+        if ((string) Auth::id() !== (string) $yearSectionSubject->faculty_id) {
             return Inertia::render('Grades/EditGrade/Error', [
                 'error' => [
                     'type' => 'unauthorized',
@@ -1041,8 +1044,9 @@ class GradeController extends Controller
 
     public function getEditRequestGrades(Request $request)
     {
-        $gradeRequest = GradeEditRequest::where('id', '=', $request->editRequestId)
-            ->first();
+        $this->authorizeGradeCorrectionTeacher();
+        $validated = $request->validate(['editRequestId' => ['required', 'integer']]);
+        $gradeRequest = $this->ownedGradeEditRequest($validated['editRequestId']);
 
         if ($gradeRequest->period == 'midterm') {
             $grades = StudentSubject::where('year_section_subjects_id', '=', $gradeRequest->year_section_subjects_id)
@@ -1106,51 +1110,124 @@ class GradeController extends Controller
 
     public function submitEditRequestChanges(Request $request)
     {
-        $gradeEditRequest = GradeEditRequest::find($request->editRequestId);
-
-        foreach ($request->changes as $change) {
-            $newGrade = $change['newGrade']; // important
-
-            if ($gradeEditRequest->period === 'midterm') {
-                StudentSubject::where('id', $change['id'])
-                    ->update([
-                        'midterm_grade' => $newGrade,
-                    ]);
-            }
-
-            if ($gradeEditRequest->period === 'final') {
-                StudentSubject::where('id', $change['id'])
-                    ->update([
-                        'final_grade' => $newGrade,
-                    ]);
-            }
-        }
-
-        $gradeEditRequest->update([
-            'changes' => $request->changes,
-            'submission_date' => now(),
-            'status' => 'submitted',
+        $this->authorizeGradeCorrectionTeacher();
+        $validated = $request->validate([
+            'editRequestId' => ['required', 'integer'],
+            'changes' => ['required', 'array', 'min:1'],
+            'changes.*.id' => ['required', 'integer', 'distinct'],
+            'changes.*.newGrade' => [
+                'required', 'numeric', 'between:0,5',
+                function ($attribute, $value, $fail) {
+                    if (is_numeric($value) && (float) $value > 0 && (float) $value < 1) {
+                        $fail('A grade must be 0.0 for dropped or between 1.0 and 5.0.');
+                    }
+                },
+            ],
         ]);
+
+        DB::transaction(function () use ($validated) {
+            $gradeEditRequest = $this->ownedGradeEditRequest($validated['editRequestId'], true);
+            abort_unless($gradeEditRequest->status === 'approved', 409, 'This grade correction request is not approved.');
+
+            $ids = array_column($validated['changes'], 'id');
+            $students = StudentSubject::where('year_section_subjects_id', $gradeEditRequest->year_section_subjects_id)
+                ->whereIn('id', $ids)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            if ($students->count() !== count($ids)) {
+                throw ValidationException::withMessages([
+                    'changes' => 'Every changed student must belong to this grade correction request\'s class.',
+                ]);
+            }
+
+            $column = $gradeEditRequest->period === 'midterm' ? 'midterm_grade' : 'final_grade';
+            $changes = [];
+            foreach ($validated['changes'] as $change) {
+                $student = $students->get($change['id']);
+                $newGrade = (float) $change['newGrade'];
+                $changes[] = [
+                    'id' => $student->id,
+                    'originalGrade' => $student->getAttribute($column),
+                    'newGrade' => $newGrade,
+                ];
+                $student->update([$column => $newGrade]);
+            }
+
+            $gradeEditRequest->update([
+                'changes' => json_encode($changes, JSON_THROW_ON_ERROR),
+                'submission_date' => now(),
+                'status' => 'submitted',
+            ]);
+        });
     }
 
 
     public function approveRequest(Request $request)
     {
-        GradeEditRequest::where('id', '=', $request->requestId)
-            ->update([
+        abort_unless(Auth::user()?->user_role === 'registrar', 403);
+        $validated = $request->validate(['requestId' => ['required', 'integer']]);
+
+        DB::transaction(function () use ($validated) {
+            $gradeRequest = GradeEditRequest::whereKey($validated['requestId'])->lockForUpdate()->firstOrFail();
+            abort_unless($gradeRequest->status === 'pending', 409, 'Only pending grade correction requests can be approved.');
+            $gradeRequest->update([
                 'status' => 'approved',
                 'approval_date' => now(),
+                'rejection_date' => null,
+                'rejection_message' => null,
+                'submission_date' => null,
+                'changes' => null,
             ]);
+        });
     }
 
     public function rejectRequest(Request $request)
     {
-        GradeEditRequest::where('id', '=', $request->requestId)
-            ->update([
+        abort_unless(Auth::user()?->user_role === 'registrar', 403);
+        $validated = $request->validate([
+            'requestId' => ['required', 'integer'],
+            'rejectionMessage' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        DB::transaction(function () use ($validated) {
+            $gradeRequest = GradeEditRequest::whereKey($validated['requestId'])->lockForUpdate()->firstOrFail();
+            abort_unless($gradeRequest->status === 'pending', 409, 'Only pending grade correction requests can be rejected.');
+            $gradeRequest->update([
                 'status' => 'rejected',
                 'rejection_date' => now(),
-                'rejection_message' => $request->rejectionMessage,
+                'rejection_message' => $validated['rejectionMessage'] ?? null,
+                'approval_date' => null,
+                'submission_date' => null,
+                'changes' => null,
             ]);
+        });
+    }
+
+    private function authorizeGradeCorrectionTeacher(): void
+    {
+        abort_unless(in_array(Auth::user()?->user_role, ['faculty', 'evaluator', 'program_head'], true), 403);
+    }
+
+    private function ownedGradeEditRequest($id, bool $lock = false): GradeEditRequest
+    {
+        $query = GradeEditRequest::query();
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+        $gradeRequest = $query->findOrFail($id);
+        $class = YearSectionSubjects::findOrFail($gradeRequest->year_section_subjects_id);
+        $this->authorizeAssignedGradeClass($class);
+        abort_unless(in_array($gradeRequest->period, ['midterm', 'final'], true), 422, 'Invalid grade correction period.');
+
+        return $gradeRequest;
+    }
+
+    private function authorizeAssignedGradeClass(YearSectionSubjects $class): void
+    {
+        abort_unless(in_array(Auth::user()?->user_role, ['faculty', 'evaluator', 'program_head', 'nstp_faculty'], true)
+            && (string) Auth::id() === (string) $class->faculty_id, 403, 'You are not assigned to this class.');
     }
 
     public function instructorSubjects(Request $request)
@@ -1191,7 +1268,9 @@ class GradeController extends Controller
     public function instructorSubjectsViewSubject($id)
     {
         $yearSectionSubjects = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$id])
-            ->first();
+            ->firstOrFail();
+
+        $this->authorizeAssignedGradeClass($yearSectionSubjects);
 
         $subject = Subject::where('id', '=', $yearSectionSubjects->subject_id)->first();
 

@@ -50,6 +50,9 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
     });
 
     Route::middleware(['registrar'])->group(function () {
+        Route::post('/approve-request', [GradeController::class, 'approveRequest'])->name('approve-request');
+        Route::post('/reject-request', [GradeController::class, 'rejectRequest'])->name('reject-request');
+
         Route::get('/verified-grades', [GradeController::class, 'viewVerifiedGrades'])->name('verified-grades');
         Route::post('/faculty-list/verified-grades', [GradeController::class, 'getFacultyListVerifiedGrades'])->name(name: 'faculty-list.verified-grades');
 
@@ -84,8 +87,6 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
 
         Route::get('/requests', [GradeController::class, 'gradesInstructorRequests'])->name('requests');
         Route::post('/requests-list', [GradeController::class, 'requestsList'])->name('instructor-requests-list');
-        Route::post('/approve-request', [GradeController::class, 'approveRequest'])->name('approve-request');
-        Route::post('/reject-request', [GradeController::class, 'rejectRequest'])->name('reject-request');
         Route::get('/requests-list/{hashedGradeEditRequestsId}', [GradeController::class, 'viewEditRequest'])->name('reject-request.view');
         Route::post('/edit-request-grades', [GradeController::class, 'getEditRequestGrades'])->name('edit-request-grades');
 

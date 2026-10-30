@@ -39,13 +39,13 @@ function evaluationPeriod(item) {
     return "Dates not set";
 }
 
-function EvaluationCard({ item }) {
+function EvaluationCard({ item, subjectsRoute }) {
     const status = getStatus(item);
     const appearance = STATUS_STYLES[status];
 
     return (
         <Link
-            href={route("fac.facultySubjects", { schoolYearId: item.id, semester: item.semester_name })}
+            href={route(subjectsRoute, { schoolYearId: item.id, semester: item.semester_name })}
             aria-label={`View subjects for ${semesterLabel(item.semester_name)}, school year ${item.school_year}, ${evaluationPeriod(item)}`}
             className="group flex min-w-0 flex-col rounded-xl border bg-card text-card-foreground shadow-sm outline-none transition-[border-color,box-shadow] duration-200 hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
         >
@@ -83,7 +83,7 @@ function EvaluationCard({ item }) {
     );
 }
 
-export default function FacultyFesReport({ schoolYears = [] }) {
+export default function FacultyFesReport({ schoolYears = [], subjectsRoute = "fac.facultySubjects" }) {
     const [search, setSearch] = useState("");
     const [semester, setSemester] = useState("all");
     const [status, setStatus] = useState("all");
@@ -216,7 +216,7 @@ export default function FacultyFesReport({ schoolYears = [] }) {
                                 <span className="hidden h-px flex-1 bg-border sm:block" aria-hidden="true" />
                             </div>
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                {items.map((item) => <EvaluationCard key={JSON.stringify([item.id, item.semester_name, item.start_date, item.end_date, item.status])} item={item} />)}
+                                {items.map((item) => <EvaluationCard key={JSON.stringify([item.id, item.semester_name, item.start_date, item.end_date, item.status])} item={item} subjectsRoute={subjectsRoute} />)}
                             </div>
                         </section>
                     ))}
