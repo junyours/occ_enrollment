@@ -1,13 +1,6 @@
 import TimetableSkeleton from '@/Components/Skeletons/TimTableSckeleton';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/Components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -18,6 +11,8 @@ import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import TimeTable from '../ScheduleFormats/ModernTimtable/TimeTable';
 import TabularSchedule from '../ScheduleFormats/TabularSchedule';
+import DayFilter from './DayFilter';
+import { filterSchedulesByDays } from './scheduleDayFilter';
 import {
     Command,
     CommandDialog,
@@ -34,62 +29,9 @@ import {
 
 const SCHEDULES_PER_PAGE = 5;
 
-const DAYS_OF_WEEK = [
-    'monday', 'tuesday', 'wednesday', 'thursday',
-    'friday', 'saturday', 'sunday'
-];
-
-const DAY_OPTIONS = [
-    { value: 'all', label: 'All Days' },
-    ...DAYS_OF_WEEK.map(day => ({
-        value: day,
-        label: day.charAt(0).toUpperCase() + day.slice(1)
-    }))
-];
-
 // ============================================================
 // Utility Functions
 // ============================================================
-
-/**
- * Check if a day format string contains the target day
- * Handles: "Monday", "Monday-Wednesday", "Mon,Wed,Fri"
- */
-const hasDayInSchedule = (dayFormat, targetDay) => {
-    if (!dayFormat) return false;
-
-    const dayLowercase = dayFormat.toLowerCase();
-    const targetLowercase = targetDay.toLowerCase();
-    const targetShort = targetLowercase.slice(0, 3);
-
-    // Single day: "Monday"
-    if (!dayLowercase.includes('-') && !dayLowercase.includes(',')) {
-        return (
-            dayLowercase === targetLowercase ||
-            dayLowercase === targetShort
-        );
-    }
-
-    // Consecutive days: "Monday-Wednesday"
-    if (dayLowercase.includes('-') && !dayLowercase.includes(',')) {
-        return dayLowercase
-            .split('-')
-            .some(day => {
-                const trimmed = day.trim();
-                return trimmed === targetLowercase || trimmed === targetShort;
-            });
-    }
-
-    // Alternating/Multiple days: "Mon,Wed,Fri"
-    if (dayLowercase.includes(',')) {
-        return dayLowercase
-            .split(',')
-            .map(day => day.trim())
-            .some(day => day === targetLowercase || day === targetShort);
-    }
-
-    return false;
-};
 
 /**
  * Calculate total hours for a room's schedules
@@ -114,9 +56,9 @@ const calculateTotalHours = (schedules = []) => {
 };
 
 /**
- * Filter rooms based on search query and selected day
+ * Filter rooms based on search query and any selected day.
  */
-const filterRooms = (rooms, searchQuery, selectedDay) => {
+const filterRooms = (rooms, searchQuery, selectedDays) => {
     if (!rooms) return [];
 
     return rooms.filter(room => {
@@ -124,22 +66,12 @@ const filterRooms = (rooms, searchQuery, selectedDay) => {
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase());
 
-        if (!selectedDay) return matchesSearch;
+        if (!selectedDays.length) return matchesSearch;
 
-        const matchesDay = room.schedules?.some(schedule =>
-            hasDayInSchedule(schedule.day, selectedDay)
-        );
+        const matchesDay = filterSchedulesByDays(room.schedules, selectedDays).length > 0;
 
         return matchesSearch && matchesDay;
     });
-};
-
-/**
- * Get today's day name (lowercase)
- */
-const getTodayDayName = () => {
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    return days[new Date().getDay()];
 };
 
 // ============================================================
@@ -172,9 +104,7 @@ function SearchFilter({ data, searchOpen, onSearchOpenChange, onSelectRoom }) {
     );
 }
 
-function FilterBar({ searchQuery, selectedDay, scheduleType, onSearchOpen, onClearSearch, onDayChange, onScheduleTypeChange }) {
-    const todayDay = getTodayDayName();
-
+function FilterBar({ searchQuery, selectedDays, scheduleType, onSearchOpen, onClearSearch, onDayChange, onScheduleTypeChange }) {
     return (
         <Card>
             <CardContent className="p-2">
@@ -203,20 +133,7 @@ function FilterBar({ searchQuery, selectedDay, scheduleType, onSearchOpen, onCle
                     </div>
 
                     {/* Day Filter */}
-                    <Select value={selectedDay || 'all'} onValueChange={onDayChange}>
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Filter by day" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {DAY_OPTIONS.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                    <span className={option.value === todayDay ? 'text-blue-600 font-semibold' : ''}>
-                                        {option.label}
-                                    </span>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <DayFilter selectedDays={selectedDays} onChange={onDayChange} />
 
                     {/* Schedule View Toggle */}
                     <Tabs value={scheduleType} onValueChange={onScheduleTypeChange} className="w-max">
@@ -231,17 +148,11 @@ function FilterBar({ searchQuery, selectedDay, scheduleType, onSearchOpen, onCle
     );
 }
 
-function RoomCard({ room, scheduleType, selectedDay }) {
-    const filteredSchedules = useMemo(() => {
-        if (!selectedDay || !room.schedules) return room.schedules;
-
-        return room.schedules
-            .filter(schedule => hasDayInSchedule(schedule.day, selectedDay))
-            .map(schedule => ({
-                ...schedule,
-                day: selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)
-            }));
-    }, [room.schedules, selectedDay]);
+function RoomCard({ room, scheduleType, selectedDays }) {
+    const filteredSchedules = useMemo(
+        () => filterSchedulesByDays(room.schedules, selectedDays),
+        [room.schedules, selectedDays]
+    );
 
     const totalHours = useMemo(
         () => calculateTotalHours(filteredSchedules),
@@ -302,7 +213,7 @@ function PaginationControls({ currentPage, totalPages, totalSchedules, onPrevPag
     );
 }
 
-function ContentRenderer({ isLoading, isError, error, data, filteredData, paginatedData, scheduleType, selectedDay }) {
+function ContentRenderer({ isLoading, isError, error, data, filteredData, paginatedData, scheduleType, selectedDays }) {
     if (isLoading) {
         return Array.from({ length: getRandomNumber(4, 8) }).map((_, i) => (
             <TimetableSkeleton key={i} />
@@ -326,7 +237,7 @@ function ContentRenderer({ isLoading, isError, error, data, filteredData, pagina
     }
 
     return paginatedData.map(room => (
-        <RoomCard key={room.id} room={room} scheduleType={scheduleType} selectedDay={selectedDay} />
+        <RoomCard key={room.id} room={room} scheduleType={scheduleType} selectedDays={selectedDays} />
     ));
 }
 
@@ -340,7 +251,7 @@ export default function RoomSchedules() {
     const [scheduleType, setScheduleType] = useState('timetable');
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedDay, setSelectedDay] = useState('');
+    const [selectedDays, setSelectedDays] = useState([]);
     const [searchOpen, setSearchOpen] = useState(false);
 
     // Fetch room schedules
@@ -359,8 +270,8 @@ export default function RoomSchedules() {
 
     // Filter rooms
     const filteredData = useMemo(
-        () => filterRooms(data, searchQuery, selectedDay),
-        [data, searchQuery, selectedDay]
+        () => filterRooms(data, searchQuery, selectedDays),
+        [data, searchQuery, selectedDays]
     );
 
     // Pagination
@@ -388,8 +299,8 @@ export default function RoomSchedules() {
         setCurrentPage(1);
     };
 
-    const handleDayChange = (value) => {
-        setSelectedDay(value === 'all' ? '' : value);
+    const handleDayChange = (days) => {
+        setSelectedDays(days);
         setCurrentPage(1);
     };
 
@@ -405,7 +316,7 @@ export default function RoomSchedules() {
         <div className="space-y-4">
             <FilterBar
                 searchQuery={searchQuery}
-                selectedDay={selectedDay}
+                selectedDays={selectedDays}
                 scheduleType={scheduleType}
                 onSearchOpen={setSearchOpen}
                 onClearSearch={handleClearSearch}
@@ -428,7 +339,7 @@ export default function RoomSchedules() {
                 filteredData={filteredData}
                 paginatedData={paginatedData}
                 scheduleType={scheduleType}
-                selectedDay={selectedDay}
+                selectedDays={selectedDays}
             />
 
             <PaginationControls

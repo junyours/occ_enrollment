@@ -1,13 +1,6 @@
 import TimetableSkeleton from '@/Components/Skeletons/TimTableSckeleton';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/Components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/Components/ui/tabs';
 import { useSchoolYearStore } from '@/Components/useSchoolYearStore';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -18,6 +11,8 @@ import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import TimeTable from '../ScheduleFormats/ModernTimtable/TimeTable';
 import TabularSchedule from '../ScheduleFormats/TabularSchedule';
+import DayFilter from './DayFilter';
+import { filterSchedulesByDays } from './scheduleDayFilter';
 import {
     Command,
     CommandDialog,
@@ -34,59 +29,9 @@ import {
 
 const SCHEDULES_PER_PAGE = 5;
 
-const DAYS_OF_WEEK = [
-    'monday', 'tuesday', 'wednesday', 'thursday',
-    'friday', 'saturday', 'sunday'
-];
-
-const DAY_OPTIONS = [
-    { value: 'all', label: 'All Days' },
-    ...DAYS_OF_WEEK.map(day => ({
-        value: day,
-        label: day.charAt(0).toUpperCase() + day.slice(1)
-    }))
-];
-
 // ============================================================
 // Utility Functions
 // ============================================================
-
-/**
- * Check if a day format string contains the target day
- * Handles: "Monday", "Monday-Wednesday", "Mon,Wed,Fri"
- */
-const hasDayInSchedule = (dayFormat, targetDay) => {
-    if (!dayFormat) return false;
-
-    const dayLowercase = dayFormat.toLowerCase();
-    const targetLowercase = targetDay.toLowerCase();
-    const targetShort = targetLowercase.slice(0, 3);
-
-    // Single day: "Monday"
-    if (!dayLowercase.includes('-') && !dayLowercase.includes(',')) {
-        return dayLowercase === targetLowercase || dayLowercase === targetShort;
-    }
-
-    // Consecutive days: "Monday-Wednesday"
-    if (dayLowercase.includes('-') && !dayLowercase.includes(',')) {
-        return dayLowercase
-            .split('-')
-            .some(day => {
-                const trimmed = day.trim();
-                return trimmed === targetLowercase || trimmed === targetShort;
-            });
-    }
-
-    // Alternating days: "Mon,Wed,Fri"
-    if (dayLowercase.includes(',')) {
-        return dayLowercase
-            .split(',')
-            .map(day => day.trim())
-            .some(day => day === targetLowercase || day === targetShort);
-    }
-
-    return false;
-};
 
 /**
  * Calculate total hours from schedules (lecture + laboratory)
@@ -98,9 +43,9 @@ const calculateTotalHours = (schedules = []) => {
 };
 
 /**
- * Filter faculties based on search and selected day
+ * Filter faculties based on search and selected days.
  */
-const filterFaculties = (faculties, searchQuery, selectedDay) => {
+const filterFaculties = (faculties, searchQuery, selectedDays) => {
     if (!faculties) return [];
 
     return faculties.filter(faculty => {
@@ -108,22 +53,12 @@ const filterFaculties = (faculties, searchQuery, selectedDay) => {
             .toLowerCase()
             .includes(searchQuery.toLowerCase());
 
-        if (!selectedDay) return matchesSearch;
+        if (!selectedDays.length) return matchesSearch;
 
-        const matchesDay = faculty.schedules?.some(schedule =>
-            hasDayInSchedule(schedule.day, selectedDay)
-        );
+        const matchesDay = filterSchedulesByDays(faculty.schedules, selectedDays).length > 0;
 
         return matchesSearch && matchesDay;
     });
-};
-
-/**
- * Get today's day name (lowercase)
- */
-const getTodayDayName = () => {
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    return days[new Date().getDay()];
 };
 
 // ============================================================
@@ -156,9 +91,7 @@ function SearchFilter({ data, searchOpen, onSearchOpenChange, onSelectFaculty })
     );
 }
 
-function FilterBar({ searchQuery, selectedDay, scheduleType, onSearchOpen, onClearSearch, onDayChange, onScheduleTypeChange }) {
-    const todayDay = getTodayDayName();
-
+function FilterBar({ searchQuery, selectedDays, scheduleType, onSearchOpen, onClearSearch, onDayChange, onScheduleTypeChange }) {
     return (
         <Card>
             <CardContent className="p-2">
@@ -186,20 +119,7 @@ function FilterBar({ searchQuery, selectedDay, scheduleType, onSearchOpen, onCle
                     </div>
 
                     {/* Day Filter */}
-                    <Select value={selectedDay || 'all'} onValueChange={onDayChange}>
-                        <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Filter by day" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {DAY_OPTIONS.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                    <span className={option.value === todayDay ? 'text-blue-600 font-semibold' : ''}>
-                                        {option.label}
-                                    </span>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <DayFilter selectedDays={selectedDays} onChange={onDayChange} />
 
                     {/* Schedule View Toggle */}
                     <Tabs value={scheduleType} onValueChange={onScheduleTypeChange} className="w-max">
@@ -214,17 +134,11 @@ function FilterBar({ searchQuery, selectedDay, scheduleType, onSearchOpen, onCle
     );
 }
 
-function FacultyCard({ faculty, scheduleType, selectedDay }) {
-    const filteredSchedules = useMemo(() => {
-        if (!selectedDay || !faculty.schedules) return faculty.schedules;
-
-        return faculty.schedules
-            .filter(schedule => hasDayInSchedule(schedule.day, selectedDay))
-            .map(schedule => ({
-                ...schedule,
-                day: selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)
-            }));
-    }, [faculty.schedules, selectedDay]);
+function FacultyCard({ faculty, scheduleType, selectedDays }) {
+    const filteredSchedules = useMemo(
+        () => filterSchedulesByDays(faculty.schedules, selectedDays),
+        [faculty.schedules, selectedDays]
+    );
 
     const totalHours = useMemo(
         () => calculateTotalHours(filteredSchedules),
@@ -285,7 +199,7 @@ function PaginationControls({ currentPage, totalPages, totalSchedules, onPrevPag
     );
 }
 
-function ContentRenderer({ isLoading, isError, error, data, filteredData, paginatedData, scheduleType, selectedDay }) {
+function ContentRenderer({ isLoading, isError, error, data, filteredData, paginatedData, scheduleType, selectedDays }) {
     if (isLoading) {
         return Array.from({ length: getRandomNumber(4, 8) }).map((_, i) => (
             <TimetableSkeleton key={i} />
@@ -309,7 +223,7 @@ function ContentRenderer({ isLoading, isError, error, data, filteredData, pagina
     }
 
     return paginatedData.map(faculty => (
-        <FacultyCard key={faculty.id} faculty={faculty} scheduleType={scheduleType} selectedDay={selectedDay} />
+        <FacultyCard key={faculty.id} faculty={faculty} scheduleType={scheduleType} selectedDays={selectedDays} />
     ));
 }
 
@@ -323,7 +237,7 @@ export default function FacultySchedules() {
     const [scheduleType, setScheduleType] = useState('timetable');
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedDay, setSelectedDay] = useState('');
+    const [selectedDays, setSelectedDays] = useState([]);
     const [searchOpen, setSearchOpen] = useState(false);
 
     // Fetch faculty schedules
@@ -342,8 +256,8 @@ export default function FacultySchedules() {
 
     // Filter faculties
     const filteredData = useMemo(
-        () => filterFaculties(data, searchQuery, selectedDay),
-        [data, searchQuery, selectedDay]
+        () => filterFaculties(data, searchQuery, selectedDays),
+        [data, searchQuery, selectedDays]
     );
 
     // Pagination
@@ -366,8 +280,8 @@ export default function FacultySchedules() {
         setCurrentPage(1);
     };
 
-    const handleDayChange = (value) => {
-        setSelectedDay(value === 'all' ? '' : value);
+    const handleDaysChange = (days) => {
+        setSelectedDays(days);
         setCurrentPage(1);
     };
 
@@ -383,11 +297,11 @@ export default function FacultySchedules() {
         <div className="space-y-4">
             <FilterBar
                 searchQuery={searchQuery}
-                selectedDay={selectedDay}
+                selectedDays={selectedDays}
                 scheduleType={scheduleType}
                 onSearchOpen={setSearchOpen}
                 onClearSearch={handleClearSearch}
-                onDayChange={handleDayChange}
+                onDayChange={handleDaysChange}
                 onScheduleTypeChange={setScheduleType}
             />
 
@@ -406,7 +320,7 @@ export default function FacultySchedules() {
                 filteredData={filteredData}
                 paginatedData={paginatedData}
                 scheduleType={scheduleType}
-                selectedDay={selectedDay}
+                selectedDays={selectedDays}
             />
 
             <PaginationControls
