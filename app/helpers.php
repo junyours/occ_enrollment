@@ -47,6 +47,12 @@ if (!function_exists('format_name')) {
 if (!function_exists('log_activity')) {
     function log_activity(string $action, $subject, string $description, array $properties = [])
     {
+        $request = request();
+
+        if ($request->hasSession() && $request->session()->has('impersonator_id')) {
+            return null;
+        }
+
         return ActivityLog::create([
             'user_id'      => Auth::id(),
             'action'       => $action,
@@ -54,8 +60,8 @@ if (!function_exists('log_activity')) {
             'subject_id'   => $subject->id,
             'description'  => $description,
             'properties'   => $properties,
-            'ip_address'   => request()->ip(),
-            'user_agent'   => request()->userAgent(),
+            'ip_address'   => $request->ip(),
+            'user_agent'   => $request->userAgent(),
         ]);
     }
 }
