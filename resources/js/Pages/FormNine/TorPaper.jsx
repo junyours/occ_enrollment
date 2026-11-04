@@ -62,12 +62,18 @@ function SemesterHeading({ record, continued = false, measureKey }) {
     );
 }
 
+function gradeText(subject) {
+    const grade = subject.grade;
+    if (grade == null || String(grade).trim() === '') return '';
+    return isDroppedGrade(grade) || Number(grade) === 0 ? 'DROPPED' : grade;
+}
+
 function SubjectRow({ subject, measureKey }) {
     return (
         <tr className="tor-subject-row" data-tor-measure={measureKey}>
             <td>{subject.subject_code ?? ''}</td>
             <td>{subject.descriptive_title ?? ''}</td>
-            <td>{subject.grade ?? ''}</td>
+            <td>{gradeText(subject)}</td>
             <td>{subject.re_exam ?? ''}</td>
             <td>{creditText(subject)}</td>
         </tr>

@@ -267,7 +267,8 @@ function RecordEditor({ user }) {
         contentRef: documentRef,
         documentTitle: `${isTor ? 'Transcript of Records' : 'Form 9'} - ${data ? formatName(data.info.information, { format: 'LFM' }) : 'Student Record'}`,
     });
-    const canPrint = !!data && !isFetching && !photoLoading && (isTor ? torReady && !photoQuery.isPending && !photoQuery.isFetching && !photoQuery.isError && printChecks.errors.length === 0 : formNineReady);
+    const canPrint = !!data && !isFetching && !photoLoading;
+    // !!data && !isFetching && !photoLoading && (isTor ? torReady && !photoQuery.isPending && !photoQuery.isFetching && !photoQuery.isError && printChecks.errors.length === 0 : formNineReady);
     const printDisabledReason = !data ? 'Select a student to print.' : isFetching ? 'Wait for the student record to load.' : photoBusy ? 'Wait for the photo update to finish.' : isTor && photoQuery.isError ? 'Retry loading the student photo.' : isTor && printChecks.errors.length ? 'Resolve the missing required information in Print checks.' : 'Wait for the preview to finish preparing.';
     const studentName = formatName(data?.info?.information || selectedStudent, { format: 'FULL', defaultValue: 'Loading student...' });
     const studentId = data?.info?.user_id_no || selectedStudent?.user_id_no || selectedStudent?.id_no;

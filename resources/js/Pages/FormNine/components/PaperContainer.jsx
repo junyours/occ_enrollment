@@ -300,7 +300,7 @@ export default function PaperContainer({ children, documentRef, documentKey, for
             try {
                 await preview.requestFullscreen();
                 if (!mountedRef.current || request !== fullscreenRequestRef.current) {
-                    if (document.fullscreenElement === preview) await document.exitFullscreen().catch(() => {});
+                    if (document.fullscreenElement === preview) await document.exitFullscreen().catch(() => { });
                     return;
                 }
                 changeFullscreenMode('native');
@@ -324,7 +324,7 @@ export default function PaperContainer({ children, documentRef, documentKey, for
             mountedRef.current = false;
             fullscreenRequestRef.current += 1;
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
-            if (document.fullscreenElement === preview) document.exitFullscreen().catch(() => {});
+            if (document.fullscreenElement === preview) document.exitFullscreen().catch(() => { });
         };
     }, []);
 
@@ -435,7 +435,9 @@ export default function PaperContainer({ children, documentRef, documentKey, for
                 </div>
                 <button ref={fullscreenButtonRef} type="button" className="paper-preview-button" onClick={toggleFullscreen} disabled={!documentAvailable && !isFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen preview'} aria-pressed={isFullscreen}><PreviewIcon name={isFullscreen ? 'restore' : 'fullscreen'} /><span>{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</span></button>
                 {extraControls && <div className="paper-preview-toolbar-extra">{extraControls}</div>}
-                <button type="button" className="paper-preview-button paper-preview-print" onClick={handlePrint} disabled={printBlocked} aria-label={resolvedPrintLabel} aria-describedby={printBlocked && printDisabledReason ? printReasonId : undefined} title={printBlocked && printDisabledReason ? printDisabledReason : resolvedPrintLabel}><PreviewIcon name="print" /><span>{resolvedPrintLabel}</span></button>
+                <button type="button" className="paper-preview-button paper-preview-print" onClick={handlePrint}
+                    // disabled={printBlocked}
+                    aria-label={resolvedPrintLabel} aria-describedby={printBlocked && printDisabledReason ? printReasonId : undefined} title={printBlocked && printDisabledReason ? printDisabledReason : resolvedPrintLabel}><PreviewIcon name="print" /><span>{resolvedPrintLabel}</span></button>
                 {printBlocked && printDisabledReason && <span id={printReasonId} className="paper-preview-sr-only">{printDisabledReason}</span>}
             </div>
             <div className="paper-preview-scroll" data-preview-scroll ref={viewportRef} aria-label="Document preview" tabIndex={0}>
