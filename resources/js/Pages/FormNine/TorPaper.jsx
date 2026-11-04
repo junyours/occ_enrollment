@@ -31,7 +31,7 @@ function SemesterHeading({ record, continued = false, measureKey }) {
         : null;
 
     const program =
-        String(record.program ?? '').trim() || record.program;
+        String(record.program ?? '').trim() || record.course_name_abbreviation;
 
     return (
         <tr
