@@ -28,6 +28,28 @@ class ActivityLog extends Model
     protected $casts = [
         'properties' => 'array',
     ];
+
+    public static function normalizeAction(string $action): string
+    {
+        // Keep activity/resource namespaces, while accepting the older role-prefixed names.
+        foreach (['academic_dean.', 'super_admin.'] as $prefix) {
+            if (str_starts_with($action, $prefix)) {
+                return substr($action, strlen($prefix));
+            }
+        }
+
+        return $action;
+    }
+
+    public function getActionAttribute($value): string
+    {
+        return self::normalizeAction((string) $value);
+    }
+
+    public function setActionAttribute($value): void
+    {
+        $this->attributes['action'] = self::normalizeAction((string) $value);
+    }
     
     /**
      * Who performed the action

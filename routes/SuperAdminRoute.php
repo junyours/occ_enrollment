@@ -1,11 +1,20 @@
 <?php
 
 use App\Http\Controllers\Admin\UserLogController;
+use App\Http\Controllers\SuperAdmin\ActivityLogController;
 use App\Http\Controllers\SuperAdmin\DriveFileController;
 use App\Http\Controllers\SuperAdmin\SuperAdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'SuperAdmin'])->group(function () {
+    Route::get('/super-admin/activity-logs', [ActivityLogController::class, 'index'])->name('super-admin.activity-logs.index');
+    Route::get('/super-admin/activity-logs/recent', [ActivityLogController::class, 'recent'])->name('super-admin.activity-logs.recent');
+    Route::get('/super-admin/activity-logs/users', [ActivityLogController::class, 'users'])->name('super-admin.activity-logs.users');
+    Route::get('/super-admin/activity-logs/users/{user}/logs', [ActivityLogController::class, 'userLogs'])
+        ->whereNumber('user')->name('super-admin.activity-logs.user-logs');
+    Route::get('/super-admin/activity-logs/{activityLog}', [ActivityLogController::class, 'show'])
+        ->whereNumber('activityLog')->name('super-admin.activity-logs.show');
+
     Route::get('/users', [SuperAdminController::class, 'view'])->name('users');
     Route::post('/impersonate/{id}', [SuperAdminController::class, 'impersonate']);
 

@@ -144,6 +144,8 @@ class AcademicDeanGradeSubmissionsTest extends TestCase
             $table->string('action');
             $table->string('subject_type')->nullable();
             $table->unsignedBigInteger('subject_id')->nullable();
+            $table->string('target_type')->nullable();
+            $table->unsignedBigInteger('target_id')->nullable();
             $table->text('description')->nullable();
             $table->json('properties')->nullable();
             $table->string('ip_address')->nullable();
@@ -311,7 +313,7 @@ class AcademicDeanGradeSubmissionsTest extends TestCase
             ->assertOk()->assertInertia(fn (Assert $page) => $page->component('Schedules/GradeSubmissions'));
         $log = ActivityLog::sole();
         $this->assertSame($this->dean->id, $log->user_id);
-        $this->assertSame('academic_dean.grade_submissions.viewed', $log->action);
+        $this->assertSame('grade_submissions.viewed', $log->action);
     }
 
     public function test_inspection_is_logged_with_school_year_and_request_context(): void
@@ -319,7 +321,7 @@ class AcademicDeanGradeSubmissionsTest extends TestCase
         $this->actingAs($this->dean)->getJson($this->url(['search' => 'faculty', 'per_page' => 5]))->assertOk();
         $log = ActivityLog::sole();
         $this->assertSame($this->dean->id, $log->user_id);
-        $this->assertSame('academic_dean.grade_submissions.inspected', $log->action);
+        $this->assertSame('grade_submissions.inspected', $log->action);
         $this->assertSame(1, $log->properties['school_year_id']);
         $this->assertSame('faculty', $log->properties['search']);
         $this->assertSame(5, $log->properties['per_page']);
@@ -429,7 +431,7 @@ class AcademicDeanGradeSubmissionsTest extends TestCase
         $this->actingAs($this->dean)->getJson($this->subjectsUrl($teacher, ['search' => 'CWTS', 'per_page' => 5]))
             ->assertOk();
         $log = ActivityLog::sole();
-        $this->assertSame('academic_dean.grade_submissions.subjects_inspected', $log->action);
+        $this->assertSame('grade_submissions.subjects_inspected', $log->action);
         $this->assertSame($this->dean->id, $log->user_id);
         $this->assertSame(User::class, $log->subject_type);
         $this->assertSame($teacher->id, $log->subject_id);
@@ -451,5 +453,52 @@ class AcademicDeanGradeSubmissionsTest extends TestCase
         $this->actingAs($this->dean)->getJson($this->subjectsUrl($student))->assertNotFound();
         $this->getJson('/academic-dean/grade-submissions/users/99999/subjects?school_year_id=1')->assertNotFound();
         $this->assertSame(0, ActivityLog::count());
+    }
+
+    public function test_subject_inspection_keeps_readable_teacher_and_school_year_snapshots_after_profile_changes_or_deletion(): void
+    {
+        $teacher = $this->user('faculty', 'TEACHER-HISTORY', 'Ada', 'Faculty');
+        $this->regular($teacher);
+        $this->nstp($teacher, sectionId: 780, scheduleId: 380);
+        $this->actingAs($this->dean)->getJson($this->subjectsUrl($teacher, ['search' => 'CWTS']))
+            ->assertOk()->assertJsonPath('total', 1);
+        $log = ActivityLog::sole();
+        $teacherIdentity = $log->properties['teacher'];
+        $this->assertSame([
+            'id' => $teacher->id, 'name' => 'Ada Faculty',
+            'user_id_no' => 'TEACHER-HISTORY', 'user_role' => 'faculty',
+        ], $teacherIdentity);
+        $this->assertSame([
+            'id' => $this->dean->id, 'name' => 'Academic Dean',
+            'user_id_no' => 'DEAN-001', 'user_role' => 'academic_dean',
+        ], $log->properties['inspector']);
+        $schoolYear = $log->properties['school_year'];
+        $this->assertSame(1, $schoolYear['id']);
+        $this->assertSame(2026, (int) $schoolYear['start_year']);
+        $this->assertSame(2027, (int) $schoolYear['end_year']);
+        $this->assertSame('First Semester', $schoolYear['semester_name']);
+        foreach (['2026', '2027', 'First Semester'] as $detail) {
+            $this->assertStringContainsString($detail, $schoolYear['label']);
+            $this->assertStringContainsString($detail, $log->description);
+        }
+        foreach (['Academic Dean', 'DEAN-001', 'Ada Faculty', 'TEACHER-HISTORY'] as $detail) {
+            $this->assertStringContainsString($detail, $log->description);
+        }
+        $this->assertSame(1, $log->properties['result_count']);
+        $this->assertMatchesRegularExpression('/\b1\b/', $log->description);
+        $this->assertSame('grade_submissions.subjects_inspected', DB::table('activity_logs')->where('id', $log->id)->value('action'));
+
+        DB::table('user_information')->where('user_id', $teacher->id)->update(['first_name' => 'Renamed']);
+        $teacher->update(['user_id_no' => 'RENAMED-ID']);
+        $admin = $this->user('super_admin', 'ADMIN-HISTORY', 'Super', 'Admin');
+        $this->actingAs($admin)->getJson('/super-admin/activity-logs/'.$log->id)
+            ->assertOk()->assertJsonPath('subject_user', $teacherIdentity)
+            ->assertJsonPath('properties.teacher', $teacherIdentity);
+        DB::table('user_information')->where('user_id', $teacher->id)->delete();
+        $teacher->delete();
+        $this->getJson('/super-admin/activity-logs/'.$log->id)
+            ->assertOk()->assertJsonPath('subject_user', $teacherIdentity)
+            ->assertJsonPath('properties.teacher', $teacherIdentity);
+        $this->assertSame($teacherIdentity, $log->fresh()->properties['teacher']);
     }
 }

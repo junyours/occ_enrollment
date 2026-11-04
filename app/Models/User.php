@@ -32,6 +32,24 @@ class User extends Authenticatable
         'updated_at'
     ];
 
+    public function activityLogIdentity(): array
+    {
+        $information = $this->relationLoaded('information')
+            ? $this->getRelation('information')
+            : $this->information()->first(['user_id', 'first_name', 'middle_name', 'last_name']);
+        $parts = array_map(fn ($part) => trim((string) $part), [
+            $information?->first_name, $information?->middle_name, $information?->last_name,
+        ]);
+        $name = implode(' ', array_filter($parts, fn ($part) => $part !== ''));
+
+        return [
+            'id' => $this->id,
+            'name' => $name ?: ($this->user_id_no ?: 'User #'.$this->id),
+            'user_id_no' => $this->user_id_no,
+            'user_role' => $this->user_role,
+        ];
+    }
+
     public function requiresPasswordChange(): bool
     {
         return in_array($this->getAttribute('password_change'), [false, 0, '0'], true)

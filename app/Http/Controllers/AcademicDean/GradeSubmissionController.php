@@ -17,10 +17,12 @@ class GradeSubmissionController extends Controller
 {
     public function index(Request $request): Response
     {
+        $inspector = $request->user()->activityLogIdentity();
         log_activity(
-            'academic_dean.grade_submissions.viewed',
+            'grade_submissions.viewed',
             $request->user(),
-            'Viewed the faculty grade submission report.',
+            $this->identityLabel($inspector).' opened the faculty grade submission report.',
+            ['inspector' => $inspector],
         );
 
         return Inertia::render('Schedules/GradeSubmissions');
@@ -81,12 +83,17 @@ class GradeSubmissionController extends Controller
             return $row;
         });
 
+        $inspector = $request->user()->activityLogIdentity();
+        $schoolYearDetails = $this->schoolYearIdentity($schoolYear);
         log_activity(
-            'academic_dean.grade_submissions.inspected',
+            'grade_submissions.inspected',
             $schoolYear,
-            'Inspected faculty class counts and grade submission progress.',
+            $this->identityLabel($inspector).' inspected grade submission progress for '.$users->total()
+                .' faculty members for '.$schoolYearDetails['label'].'.',
             [
                 'school_year_id' => $schoolYear->id,
+                'school_year' => $schoolYearDetails,
+                'inspector' => $inspector,
                 'search' => $search,
                 'page' => $users->currentPage(),
                 'per_page' => $users->perPage(),
@@ -177,13 +184,21 @@ class GradeSubmissionController extends Controller
             ['path' => $request->url(), 'query' => $request->query()],
         );
 
+        $inspector = $request->user()->activityLogIdentity();
+        $teacher = $user->activityLogIdentity();
+        $schoolYearDetails = $this->schoolYearIdentity(SchoolYear::findOrFail($schoolYearId));
         log_activity(
-            'academic_dean.grade_submissions.subjects_inspected',
+            'grade_submissions.subjects_inspected',
             $user,
-            'Inspected a faculty member\'s subjects and grade submission statuses.',
+            $this->identityLabel($inspector).' inspected '.$this->identityLabel($teacher)
+                .'\'s subjects and midterm/final grade submission statuses for '.$schoolYearDetails['label']
+                .', showing '.$subjects->total().' matching classes.',
             [
                 'school_year_id' => $schoolYearId,
+                'school_year' => $schoolYearDetails,
                 'teacher_id' => $user->id,
+                'teacher' => $teacher,
+                'inspector' => $inspector,
                 'search' => $search,
                 'page' => $page,
                 'per_page' => $perPage,
@@ -192,6 +207,31 @@ class GradeSubmissionController extends Controller
         );
 
         return response()->json($subjects);
+    }
+
+    private function identityLabel(array $identity): string
+    {
+        return $identity['name'].($identity['user_id_no'] && $identity['name'] !== $identity['user_id_no']
+            ? ' ('.$identity['user_id_no'].')' : '');
+    }
+
+    private function schoolYearIdentity(SchoolYear $schoolYear): array
+    {
+        $schoolYear->loadMissing('Semester:id,semester_name');
+        $semester = trim((string) $schoolYear->Semester?->semester_name);
+        $label = $schoolYear->start_year && $schoolYear->end_year
+            ? $schoolYear->start_year.'–'.$schoolYear->end_year : 'School year #'.$schoolYear->id;
+        if ($semester !== '') {
+            $label .= ' · '.$semester.(stripos($semester, 'semester') === false ? ' Semester' : '');
+        }
+
+        return [
+            'id' => $schoolYear->id,
+            'start_year' => $schoolYear->start_year,
+            'end_year' => $schoolYear->end_year,
+            'semester_name' => $semester,
+            'label' => $label,
+        ];
     }
 
     private function withSubmissionStatuses(Builder $query): Builder

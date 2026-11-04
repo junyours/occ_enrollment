@@ -170,6 +170,8 @@ export const MENU_CONFIG = {
             label: "Monitoring",
             items: [
                 { name: "Drive", route: "drive", icon: HardDrive },
+                { name: "Activity Logs", route: "super-admin.activity-logs.index", icon: FileClock },
+                // { name: "Activity Logs", route: "admin.logs.index", icon: FileClock },
             ],
         },
     ],
