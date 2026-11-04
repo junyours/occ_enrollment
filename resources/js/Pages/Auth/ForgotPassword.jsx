@@ -41,7 +41,7 @@ export default function ForgotPassword({ status, errors: pageErrors = {}, server
         action.clearErrors();
         lookup.post(route('password.find-user'), { preserveScroll: true });
     };
-    const sendCode = (event) => {
+    const sendCode = (event) => {git
         event.preventDefault();
         lookup.clearErrors();
         action.post(route('password.email'), { preserveScroll: false });

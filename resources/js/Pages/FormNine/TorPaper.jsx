@@ -24,12 +24,39 @@ function creditText(subject) {
 }
 
 function SemesterHeading({ record, continued = false, measureKey }) {
+    const semester = record.semester
+        ? `${record.semester.charAt(0).toUpperCase()}${record.semester
+            .slice(1)
+            .toLowerCase()} Semester`
+        : null;
+
+    const program =
+        String(record.program ?? '').trim() || record.program;
+
     return (
-        <tr className="tor-semester-heading" data-tor-measure={measureKey}>
+        <tr
+            className="tor-semester-heading"
+            data-tor-measure={measureKey}
+        >
             <th colSpan={5} scope="rowgroup">
-                <span>{[String(record.course_name_abbreviation ?? '').trim() || record.program, record.semester && `${record.semester?.charAt(0).toUpperCase() + record.semester?.slice(1).toLowerCase()} Semester`, record.schoolyear && `SY ${record.schoolyear}`].filter(Boolean).join(' - ')}</span>
-                {continued && <span> (continued)</span>}
-                {record.school && <small>{record.school}</small>}
+                {/* First line */}
+                <span className="block">
+                    {program}
+                    {continued && ' (continued)'}
+                </span>
+
+                {/* Second line */}
+                {(semester || record.schoolyear) && (
+                    <span className="block">
+                        {[semester, record.schoolyear && `SY ${record.schoolyear}`]
+                            .filter(Boolean)
+                            .join(' - ')}
+                    </span>
+                )}
+
+                {record.school && (
+                    <small className="block">{record.school}</small>
+                )}
             </th>
         </tr>
     );
