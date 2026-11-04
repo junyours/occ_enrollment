@@ -422,6 +422,12 @@ export const MENU_CONFIG = {
                 { name: "Room", route: "schedules.view-room-schedules", icon: MdOutlineMeetingRoom },
             ],
         },
+        {
+            label: "Grades",
+            items: [
+                { name: "Grade Submissions", route: "academic-dean.grade-submissions.index", icon: BookCheck },
+            ],
+        },
     ],
     nstp_faculty: createTeacherMenu("fac.faculty.report"),
 };
