@@ -300,7 +300,7 @@ function RecordEditor({ user }) {
 
     const resolvePrintIssue = issue => {
         setChecksOpen(false);
-        if (issue.area === 'student' && !['citizenship', 'dateAdmission', 'admissionCredentials', 'dateGraduation', 'major', 'spouse'].includes(issue.field)) { setAddingInfo(true); return; }
+        if (issue.area === 'student' && !['citizenship', 'dateAdmission', 'admissionCredentials', 'dateGraduation', 'program', 'major', 'spouse'].includes(issue.field)) { setAddingInfo(true); return; }
         if (issue.id === 'records-empty') { setAddingRecord(true); return; }
         if (issue.area === 'records') { setViewRecords(true); return; }
         updateSettingsOpen(true);
@@ -383,7 +383,7 @@ function RecordEditor({ user }) {
                                 {photoQuery.isError && <div className="mb-3 space-y-2 text-xs text-destructive" role="alert">Could not load the saved student photo.<Button type="button" variant="outline" size="sm" onClick={() => photoQuery.refetch()}>Retry photo</Button></div>}
                                 {photoError && <p className="mb-3 text-xs text-destructive" role="alert">{photoError}</p>}
                                 {photoMessage && <p className="mb-3 text-xs text-muted-foreground" role="status">{photoMessage}</p>}
-                                <TorOptions key={selectedStudent?.id ?? 'no-student'} options={previewOptions}
+                                <TorOptions key={selectedStudent?.id ?? 'no-student'} data={data} options={previewOptions}
                                     onChange={next => updateTorOptions({ ...next, photoUrl: torOptionsRef.current.photoUrl })}
                                     onPhotoChange={handlePhotoChange} photoBusy={photoBusy} photoSaving={photoLoading} photoRemoving={photoRemoving} photoDisabled={!selectedStudent?.id || photoQuery.isPending || photoQuery.isFetching || photoQuery.isError}
                                     legacyPhotoAvailable={legacyPhotoAvailable} onUploadCurrentPhoto={() => handlePhotoChange(null, torOptionsRef.current.photoUrl)} />

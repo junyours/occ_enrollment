@@ -1,3 +1,5 @@
+import { getTorProgramDetails } from './torProgram';
+
 const NSRC_NOTE = 'NOTE: NATIONAL SERVICE TRAINING PROGRAM (NSTP) under {nstpComponent} component with National Service Reserve Corps (NSRC) Serial Number {nstpSerialNumber}.';
 const GENERIC_NSTP_NOTE = 'NOTE: NATIONAL SERVICE TRAINING PROGRAM (NSTP) under {nstpComponent} component. Serial Number {nstpSerialNumber}.';
 
@@ -11,7 +13,7 @@ export function createTorLastPageDefaults() {
         nstpComponent: 'CWTS',
         nstpSerialNumber: '',
         nstpNote: NSRC_NOTE,
-        completionNote: 'COMPLETED all the requirements leading to the degree {degree} on {graduationDate}, as confirmed by OCC Board of Trustees Resolution No. __________ dated __________.',
+        completionNote: 'COMPLETED all the academic requirements leading to the degree {degree} on {graduationDate}, as confirmed by OCC Board of Trustees Resolution No. __________ dated __________.',
         chedNote: 'CHED Special Order Number: on process',
         otherLastPageNotes: '',
     };
@@ -31,9 +33,8 @@ function graduationDate(value) {
 export function getTorLastPageBlocks(data, options = {}) {
     const values = { ...createTorLastPageDefaults(), ...options };
     if (values.lastPageNotesEnabled !== 'true') return [];
-    const records = Array.isArray(data?.enrollmentRecord) ? data.enrollmentRecord : [];
     const replacements = {
-        degree: nonblank(records[records.length - 1]?.program) || '__________',
+        degree: nonblank(getTorProgramDetails(data, values).degree) || '__________',
         graduationDate: graduationDate(values.dateGraduation),
         nstpComponent: nonblank(values.nstpComponent) || '__________',
         nstpSerialNumber: nonblank(values.nstpSerialNumber) || '__________',
@@ -48,3 +49,4 @@ export function getTorLastPageBlocks(data, options = {}) {
         text: template.replace(/\{(degree|graduationDate|nstpComponent|nstpSerialNumber)\}/g, (_, token) => replacements[token]),
     }));
 }
+

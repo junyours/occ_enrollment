@@ -6,10 +6,12 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { createTorLastPageDefaults, getNstpNoteTemplate } from './torNoteTemplates';
+import { getTorProgramDetails } from './torProgram';
 import './TorOptions.css';
 
 const LAST_PAGE_DEFAULTS = createTorLastPageDefaults();
 const NSTP_COMPONENTS = ['CWTS', 'ROTC', 'LTS'];
+const ADMISSION_CREDENTIALS = ['FORM 138/137', 'HD/TOR', 'ALS CoR/Diploma'];
 
 const PURPOSES = [
     'For employment purposes',
@@ -49,11 +51,12 @@ function NoteField({ name, label, options, update, maxLength, rows = 3 }) {
     );
 }
 
-export default function TorOptions({ options, onChange, onPhotoChange, photoBusy = false, photoSaving = false, photoRemoving = false, photoDisabled = false, legacyPhotoAvailable = false, onUploadCurrentPhoto }) {
+export default function TorOptions({ data, options, onChange, onPhotoChange, photoBusy = false, photoSaving = false, photoRemoving = false, photoDisabled = false, legacyPhotoAvailable = false, onUploadCurrentPhoto }) {
     const photoInputRef = useRef(null);
     const [purposeMode, setPurposeMode] = useState(() => PURPOSES.includes(options.purpose) ? options.purpose : 'custom');
     const [nstpMode, setNstpMode] = useState(() => NSTP_COMPONENTS.includes(options.nstpComponent ?? 'CWTS') ? (options.nstpComponent ?? 'CWTS') : 'custom');
-    const update = (name, value) => onChange({ ...options, [name]: value });
+    const update = (name, value) => onChange({ ...options, [name]: value, ...(name === 'major' ? { majorOverride: value } : {}) });
+    const programDetails = getTorProgramDetails(data, options);
     const photoFraming = getTorPhotoFraming(options);
     const updatePhotoFraming = framing => onChange({ ...options, ...photoFramingOptions(framing) });
     const framingDisabled = photoDisabled || photoRemoving;
@@ -101,8 +104,18 @@ export default function TorOptions({ options, onChange, onPhotoChange, photoBusy
                     <OptionField name="citizenship" label="Citizenship" options={options} update={update} />
                     <OptionField name="spouse" label="Name of spouse" options={options} update={update} />
                     <OptionField name="dateAdmission" label="Date of admission" options={options} update={update} placeholder="For example, August 2021" />
-                    <OptionField name="admissionCredentials" label="Admission credentials" options={options} update={update} />
-                    <OptionField name="major" label="Major" options={options} update={update} />
+                    <div className="min-w-0 space-y-1.5">
+                        <Label htmlFor="tor-admissionCredentials" className="text-xs">Admission credentials</Label>
+                        <select id="tor-admissionCredentials" value={options.admissionCredentials ?? ''}
+                            onChange={event => update('admissionCredentials', event.target.value)}
+                            className="h-9 w-full min-w-0 max-w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            <option value="">Select admission credentials</option>
+                            {options.admissionCredentials && !ADMISSION_CREDENTIALS.includes(options.admissionCredentials) && <option value={options.admissionCredentials}>{options.admissionCredentials} (saved)</option>}
+                            {ADMISSION_CREDENTIALS.map(value => <option key={value} value={value}>{value}</option>)}
+                        </select>
+                    </div>
+                    <OptionField name="program" label="Program" options={programDetails} update={update} maxLength={240} />
+                    <OptionField name="major" label="Major" options={programDetails} update={update} />
                     <OptionField name="dateGraduation" label="Date of graduation" type="date" options={options} update={update} />
                     {/* <div className="min-w-0 space-y-1.5">
                         <Label htmlFor="tor-additionalRemarks" className="text-xs">Additional remarks</Label>

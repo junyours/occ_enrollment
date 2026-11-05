@@ -1,5 +1,6 @@
 import { createTorLastPageDefaults, getTorLastPageBlocks } from './torNoteTemplates';
-import { isDroppedGrade } from './recordGrades';
+import { isDroppedGrade, isTorPassingGrade } from './recordGrades';
+import { getTorProgramDetails } from './torProgram';
 
 const EMPTY_VALUE = /^(?:none|null|undefined|unknown|n\s*[/.]\s*a(?:\s*\.)?|[_\s]+)$/i;
 const SIGNATORIES = [
@@ -36,7 +37,7 @@ export function validateTorForPrint(data, options = {}) {
     const information = info.information || {};
     const education = info.preliminary_education || {};
     const records = Array.isArray(data?.enrollmentRecord) ? data.enrollmentRecord : [];
-    const program = records[records.length - 1]?.program;
+    const { program } = getTorProgramDetails(data, values);
     const errors = [];
     const warnings = [];
     const add = (list, id, label, area, field, context = {}) => list.push({ id, label, area, ...(field ? { field } : {}), ...context });
@@ -48,7 +49,7 @@ export function validateTorForPrint(data, options = {}) {
     ]) {
         if (missing(value)) add(errors, `student-${field}`, `${label} is missing.`, 'student', field);
     }
-    if (missing(program)) add(errors, 'records-program', 'The latest academic record is missing its program.', 'records', 'program');
+    if (missing(program)) add(errors, 'records-program', 'The student program is missing.', 'student', 'program');
 
     let subjectCount = 0;
     records.forEach((record, recordIndex) => {
@@ -78,7 +79,7 @@ export function validateTorForPrint(data, options = {}) {
             }
             const credits = text(subject.credit_units);
             if (missing(subject.credit_units)) {
-                if (!dropped) add(errors, `${prefix}-credit_units`, `${location}: credits are missing.`, 'records', 'credit_units', context);
+                if (isTorPassingGrade(subject.grade)) add(errors, `${prefix}-credit_units`, `${location}: credits are missing.`, 'records', 'credit_units', context);
             } else if (!Number.isFinite(Number(credits)) || Number(credits) < 0) {
                 add(errors, `${prefix}-credit_units`, `${location}: credits must be zero or a positive number.`, 'records', 'credit_units', context);
             }

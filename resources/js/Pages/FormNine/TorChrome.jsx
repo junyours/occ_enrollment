@@ -1,6 +1,7 @@
 import React from 'react';
 import AppLogo from '@/Components/AppLogo';
 import { joinName, namePart } from './torNames';
+import { getTorProgramDetails } from './torProgram';
 import TorPhotoFrame from './TorPhotoFrame';
 import TorPhotoActions from './TorPhotoActions';
 import './TorChrome.css';
@@ -68,10 +69,7 @@ export function TorStudentDetails({ data, options, photoOptions = options, onPho
     const information = info.information || {};
     const parent = info.parent || {};
     const education = info.preliminary_education || {};
-    const records = data?.enrollmentRecord || [];
-    const latestProgram = records[records.length - 1]?.program || '';
-    const majorMatch = text(latestProgram).match(/\s+MAJOR IN\s+(.+)$/i);
-    const program = text(latestProgram).replace(/\s+MAJOR IN\s+.+$/i, '');
+    const { program, major } = getTorProgramDetails(data, options);
     const father = joinName(parent.father_first_name, parent.father_middle_name, parent.father_last_name, parent.father_suffix);
     const mother = joinName(parent.mother_first_name, parent.mother_middle_name, parent.mother_maiden_last_name, parent.mother_suffix);
     return (
@@ -100,7 +98,7 @@ export function TorStudentDetails({ data, options, photoOptions = options, onPho
             </div>
             <div className="tor-degree-details">
                 <Detail label="Candidate for the degree of:" value={program} full />
-                <Detail label="Major in:" value={options.major || majorMatch?.[1]} full />
+                <Detail label="Major in:" value={major} full />
                 <Detail label="Date of Graduation:" value={displayDate(options.dateGraduation)} full />
             </div>
             <section className="tor-preliminary-education" aria-label="Record of preliminary education">

@@ -6,3 +6,11 @@ export function isDroppedGrade(grade) {
     return /^(?:DRP|DROP|DROPPED)$/i.test(value)
         || (Number.isFinite(Number(value)) && Number(value) === 0);
 }
+/** Only numeric grades from 1 through 3 earn TOR credits. */
+export function isTorPassingGrade(grade) {
+    if (typeof grade !== 'string' && typeof grade !== 'number') return false;
+    if (String(grade).trim() === '') return false;
+    const value = Number(grade);
+    return Number.isFinite(value) && value >= 1 && value <= 3;
+}
+

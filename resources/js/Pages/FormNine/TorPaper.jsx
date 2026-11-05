@@ -3,24 +3,15 @@ import { createPortal } from 'react-dom';
 import { TorFooter, TorHeader, TorStudentDetails } from './TorChrome';
 import { TorLastPageNotes } from './TorLastPageNotes';
 import { paginateTorRecords } from './torPagination';
-import { isDroppedGrade } from './recordGrades';
+import { isDroppedGrade, isTorPassingGrade } from './recordGrades';
 import './TorPaper.css';
 
 const HEADINGS = ['Subject Code', 'Descriptive Title', 'Grade', 'Re-exam', 'Credits'];
 
 function earnedUnits(subject) {
-    const grade = subject.grade;
-    const number = Number(grade);
     const units = Number(subject.credit_units);
-    if (grade == null || String(grade).trim() === '' || !Number.isFinite(number)
-        || number <= 0 || number > 3 || !Number.isFinite(units) || units < 0) return 0;
+    if (!isTorPassingGrade(subject.grade) || !Number.isFinite(units) || units < 0) return 0;
     return units;
-}
-
-function creditText(subject) {
-    if (isDroppedGrade(subject.grade)) return 0;
-    if (subject.grade == null || String(subject.grade).trim() === '') return '';
-    return Number.isFinite(Number(subject.grade)) ? earnedUnits(subject) : '';
 }
 
 function SemesterHeading({ record, continued = false, measureKey }) {
@@ -75,7 +66,7 @@ function SubjectRow({ subject, measureKey }) {
             <td>{subject.descriptive_title ?? ''}</td>
             <td>{gradeText(subject)}</td>
             <td>{subject.re_exam ?? ''}</td>
-            <td>{creditText(subject)}</td>
+            <td>{earnedUnits(subject)}</td>
         </tr>
     );
 }
@@ -95,15 +86,6 @@ function GradeTable({ children }) {
             </thead>
             <tbody>{children}</tbody>
         </table>
-    );
-}
-
-function TotalRow({ total }) {
-    return (
-        <tr className="tor-total-row" data-tor-measure="total">
-            <th colSpan={4} scope="row">Total earned units</th>
-            <td>{Number(total.toFixed(2))}</td>
-        </tr>
     );
 }
 
@@ -135,8 +117,6 @@ export default function TorPaper({ data, options, onReadyChange, onPhotoFramingC
     const layoutError = currentLayout ? layout.error : null;
     // Photo framing has fixed dimensions, so it can update live while layout-affecting content keeps its measured snapshot.
     const visibleRecords = Array.isArray(layout.data?.enrollmentRecord) ? layout.data.enrollmentRecord : [];
-    const total = records.reduce((sum, record) => sum + (record.subjects || []).reduce((units, subject) => units + earnedUnits(subject), 0), 0);
-    const visibleTotal = visibleRecords.reduce((sum, record) => sum + (record.subjects || []).reduce((units, subject) => units + earnedUnits(subject), 0), 0);
 
     useLayoutEffect(() => {
         let cancelled = false;
@@ -170,7 +150,7 @@ export default function TorPaper({ data, options, onReadyChange, onPhotoFramingC
                 const pages = paginateTorRecords(groups, {
                     firstPageHeight: budget(first),
                     continuationPageHeight: budget(next),
-                    totalHeight: rowHeight('total'),
+                    totalHeight: 0,
                     finalBlockHeight: notesMeasurementRef.current ? height(notesMeasurementRef.current) : 0,
                     keepWholeGroups: false,
                 });
@@ -223,7 +203,6 @@ export default function TorPaper({ data, options, onReadyChange, onPhotoFramingC
                         ? <SubjectRow key={`subject-${groupIndex}-${subjectIndex}`} subject={subject} measureKey={`subject-${groupIndex}-${subjectIndex}`} />
                         : <tr key={`subject-${groupIndex}-0`} data-tor-measure={`subject-${groupIndex}-0`}><td colSpan={5}>No subjects recorded.</td></tr>),
                 ])}
-                <TotalRow total={total} />
             </PageFrame>
             <PageFrame data={data} options={options} pageNumber={2} totalPages={2} measurement="continuation" />
             <div ref={notesMeasurementRef} style={{ width: '186mm' }}><TorLastPageNotes data={data} options={options} /></div>
@@ -247,7 +226,6 @@ export default function TorPaper({ data, options, onReadyChange, onPhotoFramingC
                                 : <tr key={`empty-${segment.groupIndex}`}><td colSpan={5}>No subjects recorded.</td></tr>),
                         ];
                     })}
-                    {page.showTotal && <TotalRow total={visibleTotal} />}
                 </PageFrame>
             ))}
             {createPortal(measurement, document.body)}
