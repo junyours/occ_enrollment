@@ -40,14 +40,29 @@ class PasswordRecoverySession
         $user->loadMissing('information');
         $mask = static function (?string $value): string {
             $value = mb_convert_encoding(trim($value ?? ''), 'UTF-8', 'UTF-8');
+            $length = mb_strlen($value);
 
-            return $value === '' ? '' : mb_substr($value, 0, 1).str_repeat('*', max(1, mb_strlen($value) - 1));
+            if ($length <= 2) {
+                return $value;
+            }
+
+            return mb_substr($value, 0, 1)
+                . str_repeat('*', $length - 2)
+                . mb_substr($value, -1);
         };
+
+        $maskName = static function (?string $value): string {
+            $value = mb_convert_encoding(trim($value ?? ''), 'UTF-8', 'UTF-8');
+
+            return $value === '' ? '' : mb_substr($value, 0, 1) . str_repeat('*', max(1, mb_strlen($value) - 1));
+        };
+
         $name = trim(implode(' ', array_filter([
-            $mask($user->information?->first_name),
-            $mask($user->information?->middle_name),
-            $mask($user->information?->last_name),
+            $maskName($user->information?->first_name),
+            $maskName($user->information?->middle_name),
+            $maskName($user->information?->last_name),
         ])));
+        
         [$local, $domain] = array_pad(explode('@', (string) $user->email, 2), 2, '');
 
         return [
