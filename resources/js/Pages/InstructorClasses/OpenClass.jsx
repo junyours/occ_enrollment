@@ -6,6 +6,7 @@ import Attendance from './ClassComponents/Attendance'
 import Grades from './ClassComponents/Grades'
 import Grading from './ClassComponents/Grading'
 import Materials from './ClassComponents/Materials'
+import Classwork from './ClassComponents/Classwork.jsx'
 import Announcements from './ClassComponents/Announcements'
 
 import {
@@ -50,9 +51,14 @@ const navigationTabs = [
         label: 'Grading',
         icon: ClipboardList,
     },
+    // {
+    //     value: 'materials',
+    //     label: 'Materials',
+    //     icon: FolderOpen,
+    // },
     {
-        value: 'materials',
-        label: 'Materials',
+        value: 'classwork',
+        label: 'Classwork',
         icon: FolderOpen,
     },
     {
@@ -108,13 +114,23 @@ export default function OpenClass({
                 />
             </div>
 
+            {/* Mobile: the header truncates the class name, so show it in full. */}
+            <div className="space-y-0.5 md:hidden">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {subjectCode} · {courseSection}
+                </p>
+                <p className="text-base font-semibold leading-snug text-foreground">
+                    {descriptiveTitle}
+                </p>
+            </div>
+
             {/* Mobile navigation */}
             <div className="block w-full md:hidden">
                 <Select
                     value={tab}
                     onValueChange={setTab}
                 >
-                    <SelectTrigger>
+                    <SelectTrigger aria-label="Class section">
                         <SelectValue placeholder="Select Section" />
                     </SelectTrigger>
 
@@ -164,9 +180,13 @@ export default function OpenClass({
                     <Grading classId={id} />
                 )}
 
-                {tab === 'materials' && (
-                    <Materials />
+                {tab === 'classwork' && (
+                    <Classwork classId={id} />
                 )}
+
+                {/* {tab === 'materials' && (
+                    <Materials />
+                )} */}
 
                 {tab === 'announcements' && (
                     <Announcements />

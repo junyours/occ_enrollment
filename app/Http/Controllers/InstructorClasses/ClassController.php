@@ -1270,11 +1270,46 @@ class ClassController extends Controller
         );
     }
 
+    /**
+     * Grading data belongs to the class's assigned instructor: the same rule
+     * viewClass, saveScore, saveMaximum, update and destroy already apply.
+     */
+    private function abortUnlessTeaches($user, int $classId): void
+    {
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        $teaches = DB::table('year_section_subjects')
+            ->where('id', $classId)
+            ->where('faculty_id', $user->id)
+            ->exists();
+
+        abort_unless($teaches, 403, 'You are not assigned to this class.');
+    }
+
+    private function assessmentClassId(int $assessmentId): ?int
+    {
+        $classId = DB::table('assessments')
+            ->join(
+                'grading_categories',
+                'grading_categories.id',
+                '=',
+                'assessments.grading_category_id'
+            )
+            ->where('assessments.id', $assessmentId)
+            ->value('grading_categories.year_section_subject_id');
+
+        return $classId === null ? null : (int) $classId;
+    }
+
     public function classGradings(Request $request)
     {
         $request->validate([
             'class_id' => ['required', 'integer'],
         ]);
+
+        // Checked before seeding defaults, so no one can create grading
+        // categories in, or read the grading setup of, a class they do not teach.
+        $this->abortUnlessTeaches($request->user(), (int) $request->class_id);
 
         $this->createInitialGrading($request->class_id);
 
@@ -1385,6 +1420,19 @@ class ClassController extends Controller
 
     public function assessmentInfo(Request $request)
     {
+        $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $classId = $this->assessmentClassId((int) $request->id);
+
+        // A missing assessment keeps its old empty response.
+        if ($classId === null) {
+            return response()->json(null);
+        }
+
+        $this->abortUnlessTeaches($request->user(), $classId);
+
         $assessmentInfo = Assessment::where('id', '=', $request->id)
             ->with('gradingCategory')
             ->first();
@@ -1394,6 +1442,20 @@ class ClassController extends Controller
 
     public function assessmentScores(Request $request)
     {
+        $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $classId = $this->assessmentClassId((int) $request->id);
+
+        // A missing assessment keeps its old empty response.
+        if ($classId === null) {
+            return response()->json([]);
+        }
+
+        // Scores are student records; only the class's instructor may read them.
+        $this->abortUnlessTeaches($request->user(), $classId);
+
         $assessmentScores = AssessmentScore::where('assessment_id', '=', $request->id)
             ->select('users.id as student_id', 'assessment_scores.score', 'assessment_id', 'student_subject_id')
             ->join('student_subjects', 'assessment_scores.student_subject_id', '=', 'student_subjects.id')
@@ -1406,16 +1468,51 @@ class ClassController extends Controller
 
     public function addAssessment(Request $request)
     {
-        $categoryAssessments = Assessment::where('grading_category_id', '=', $request->category_id)->count();
+        $user = $request->user();
 
-        $newAssessmentName = $categoryAssessments + 1;
+        abort_unless($user, 401, 'Unauthenticated.');
 
-        Assessment::create([
-            'grading_category_id' => $request->category_id,
-            'name' => $newAssessmentName,
-            'max_score' => 10,
-            'sort_order' => $categoryAssessments + 1,
+        $data = $request->validate([
+            'category_id' => ['required', 'integer', 'min:1'],
         ]);
+
+        $assessment = DB::transaction(function () use ($data, $user) {
+            // Only the instructor assigned to the class may add assessments,
+            // matching saveScore, saveMaximum, update and destroy. Locking the
+            // category also stops two quick clicks from creating the same
+            // number twice.
+            $category = GradingCategory::query()
+                ->whereKey($data['category_id'])
+                ->whereIn(
+                    'year_section_subject_id',
+                    DB::table('year_section_subjects')
+                        ->select('id')
+                        ->where('faculty_id', $user->id)
+                )
+                ->lockForUpdate()
+                ->first();
+
+            abort_unless(
+                $category,
+                403,
+                'You are not assigned to this class.'
+            );
+
+            $count = Assessment::query()
+                ->where('grading_category_id', $category->id)
+                ->count();
+
+            // New columns start as the next number with a maximum of 10;
+            // the instructor renames and adjusts them in the grading table.
+            return Assessment::create([
+                'grading_category_id' => $category->id,
+                'name' => (string) ($count + 1),
+                'max_score' => 10,
+                'sort_order' => $count + 1,
+            ]);
+        });
+
+        return response()->json($assessment, 201);
     }
 
     public function destroy(Request $request, int $id)

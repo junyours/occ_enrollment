@@ -12,6 +12,7 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "erag/laravel-pwa": "^2.1",
+        "ezyang/htmlpurifier": "^4.19",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.2",

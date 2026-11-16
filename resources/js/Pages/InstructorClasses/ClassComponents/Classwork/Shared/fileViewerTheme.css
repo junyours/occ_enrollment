@@ -1,0 +1,207 @@
+/*
+ * Maps the file viewer onto the app's shadcn theme.
+ *
+ * Attached inside the viewer's shadow root (see FilePreview.jsx). Shadcn's
+ * HSL variables inherit through the shadow boundary, so every app theme
+ * (light, dark, blue, yellow, maroon) applies without extra rules.
+ *
+ * Every selector starts with `:host .file-viewer-web-shell[data-viewer-theme]`
+ * so it outranks the viewer's own light and dark rules, including the
+ * hard-coded colours in the PDF renderer that its tokens do not cover.
+ */
+
+/* Viewer tokens: shell, floating toolbar, search box */
+:host .file-viewer-web-shell[data-viewer-theme] {
+    --file-viewer-bg: hsl(var(--background));
+    --file-viewer-content-bg: hsl(var(--muted));
+    --file-viewer-render-surface-background: hsl(var(--muted));
+    --file-viewer-text: hsl(var(--foreground));
+    --file-viewer-muted: hsl(var(--muted-foreground));
+    --file-viewer-font: 14px/1.45 Figtree, ui-sans-serif, system-ui, sans-serif;
+    --file-viewer-border: hsl(var(--border));
+    --file-viewer-focus-ring: hsl(var(--ring));
+    --file-viewer-toolbar-bg: hsl(var(--popover));
+    --file-viewer-toolbar-border: hsl(var(--border));
+    --file-viewer-toolbar-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+    --file-viewer-group-bg: transparent;
+    --file-viewer-group-border: hsl(var(--border));
+    --file-viewer-button-color: hsl(var(--foreground));
+    --file-viewer-button-hover-bg: hsl(var(--accent));
+    --file-viewer-button-hover-color: hsl(var(--accent-foreground));
+    --file-viewer-button-disabled-color: hsl(var(--muted-foreground) / 0.5);
+    --file-viewer-input-bg: hsl(var(--background));
+    --file-viewer-input-color: hsl(var(--foreground));
+}
+
+/* PDF: surfaces */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-shell {
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-wrapper {
+    background: hsl(var(--muted));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-toolbar,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-pane,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-head,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-tabs {
+    border-color: hsl(var(--border));
+    background: hsl(var(--background));
+    box-shadow: none;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-toolbar-group {
+    border-color: hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px);
+    background: hsl(var(--background));
+}
+
+/* PDF: text */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-meter,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-rotation-meter,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-head {
+    color: hsl(var(--muted-foreground));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-meter strong,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-head strong {
+    color: hsl(var(--foreground));
+}
+
+/* PDF: buttons (ghost buttons, like shadcn's) */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-icon-button,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-scale-button,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-outline-button {
+    border-color: transparent;
+    border-radius: calc(var(--radius) - 4px);
+    color: hsl(var(--foreground));
+    background: transparent;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-icon-button:disabled {
+    color: hsl(var(--muted-foreground) / 0.5);
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-tabs button {
+    border-color: transparent;
+    border-radius: calc(var(--radius) - 4px);
+    color: hsl(var(--muted-foreground));
+    background: transparent;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-icon-button:hover:not(:disabled),
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-scale-button:hover,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-outline-button:hover,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-tabs button:hover {
+    border-color: transparent;
+    color: hsl(var(--accent-foreground));
+    background: hsl(var(--accent));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-icon-button--active,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-tabs button.active {
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
+    background: hsl(var(--secondary));
+}
+
+/* PDF: page list */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-button {
+    border-color: hsl(var(--border));
+    border-radius: calc(var(--radius) - 2px);
+    color: hsl(var(--card-foreground));
+    background: hsl(var(--card));
+    box-shadow: none;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-button:hover {
+    border-color: hsl(var(--border));
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-button--active,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-button--active:hover {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    box-shadow: inset 3px 0 0 hsl(var(--primary));
+}
+
+/* Numbered page chips; real thumbnails keep a white paper background. */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-thumb:not(.pdf-page-thumb--thumbnail) {
+    border-color: hsl(var(--border));
+    color: hsl(var(--primary));
+    background: hsl(var(--background));
+}
+
+/* PDF: status and empty states */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-outline-empty,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-state {
+    border-color: hsl(var(--border));
+    border-radius: var(--radius);
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--card));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-state--error {
+    color: hsl(var(--destructive));
+}
+
+/* Keyboard focus, matching shadcn's ring */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-icon-button:focus-visible,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-scale-button:focus-visible,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-nav-tabs button:focus-visible,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-page-button:focus-visible,
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-outline-button:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+}
+
+/* PDF on phones: the viewer's compact toolbar is ~400px wide and scrolls
+   sideways, hiding the rotate buttons. Tighter spacing makes it fit a
+   360-375px screen; it still scrolls on anything narrower. */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-shell--compact .pdf-toolbar {
+    gap: 4px;
+    padding: 6px 8px;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-shell--compact .pdf-toolbar-group {
+    gap: 2px;
+    padding: 0 2px;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-shell--compact .pdf-scale-button {
+    width: 46px;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-shell--compact .pdf-page-meter {
+    min-width: 44px;
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-shell--compact .pdf-icon-button {
+    width: 28px;
+}
+
+/* The "0°" readout; the rotate buttons stay. */
+:host .file-viewer-web-shell[data-viewer-theme] .pdf-shell--compact .pdf-rotation-meter {
+    display: none;
+}
+
+/* Spreadsheet: sheet tabs */
+:host .file-viewer-web-shell[data-viewer-theme] .sheet-tab {
+    color: hsl(var(--muted-foreground));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .sheet-tab:hover {
+    color: hsl(var(--accent-foreground));
+    background: hsl(var(--accent));
+}
+
+:host .file-viewer-web-shell[data-viewer-theme] .sheet-tab.active {
+    border-color: hsl(var(--border));
+    color: hsl(var(--foreground));
+    background: hsl(var(--background));
+}

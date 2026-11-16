@@ -38,6 +38,7 @@ Route::get('/api/questions/exists', function () {
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/ClassesRoute.php';
+require __DIR__ . '/ClassworkRoute.php';
 require __DIR__ . '/ClassSchedulingRoute.php';
 require __DIR__ . '/CorRoute.php';
 require __DIR__ . '/DepartmentRoute.php';

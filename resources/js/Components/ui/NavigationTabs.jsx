@@ -18,16 +18,21 @@ export default function NavigationTabs({
             onValueChange={onValueChange}
             className={cn("w-full", className)}
         >
+            {/* Below xl the content area (next to the sidebar) is too narrow
+                for one row, so tabs form a 3-column grid and stay visible. */}
             <div className="w-full overflow-x-auto border-b">
                 <TabsList
                     className="
+                        grid
                         h-auto
-                        min-w-max
                         w-full
-                        justify-start
+                        grid-cols-3
                         rounded-none
                         bg-transparent
                         p-0
+                        xl:flex
+                        xl:min-w-max
+                        xl:justify-start
                     "
                 >
                     {items.map((item) => {
@@ -41,8 +46,9 @@ export default function NavigationTabs({
                                 className={cn(
                                     "relative",
                                     "h-10",
-                                    "min-w-[140px]",
-                                    "flex-1",
+                                    "min-w-0",
+                                    "xl:min-w-[140px]",
+                                    "xl:flex-1",
                                     "gap-2",
                                     "rounded-none",
                                     "border-0",

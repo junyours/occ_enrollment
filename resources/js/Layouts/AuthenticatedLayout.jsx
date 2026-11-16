@@ -25,7 +25,8 @@ export default function AuthenticatedLayout({ children, title, headerContent, fu
         <SidebarProvider>
             <AppSidebar />
 
-            <SidebarInset>
+            {/* min-w-0: a long header title must truncate, not widen the page on phones */}
+            <SidebarInset className="min-w-0">
                 <header
                     className="
                         sticky top-0 z-50
