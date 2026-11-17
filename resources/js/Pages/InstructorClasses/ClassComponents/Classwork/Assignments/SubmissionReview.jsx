@@ -13,9 +13,12 @@ import {
     Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle,
 } from '@/Components/ui/drawer'
 
+import AnswerList, { answerItems } from '../Shared/AnswerList'
 import Files from '../Shared/Files'
+import LinkList from '../Shared/LinkList'
 import NumberInput from '../Shared/NumberInput'
 import StatusBadge from '../Shared/StatusBadge'
+import { isAnswered } from '../Shared/submissionRules'
 import useIsMobile from '../Shared/useIsMobile'
 import {
     ErrorNotice, formatDate, formatDateTime, isLate,
@@ -87,6 +90,23 @@ function GradeForm({ assignment, student, nextId, dirtyRef, focusScore, pending,
     const valid = score === '' || (Number.isInteger(Number(score)) && Number(score) >= 0 && Number(score) <= max)
     const late = isLate(student.submitted_at, assignment.due_at)
 
+    // The current questions in order, then any answers to questions the
+    // teacher removed after this work was turned in.
+    const saved = student.answers ?? []
+    const answers = answerItems(
+        assignment.questions ?? [],
+        Object.fromEntries(saved.filter((entry) => !entry.removed).map((entry) => [entry.question_id, entry.answer]))
+    )
+    const removedAnswers = saved
+        .filter((entry) => entry.removed && isAnswered(entry.answer))
+        .map((entry) => ({
+            key: `removed-${entry.question_id}`,
+            label: null,
+            prompt: entry.prompt,
+            type: entry.type,
+            value: entry.answer,
+        }))
+
     useEffect(() => {
         dirtyRef.current = dirty
     }, [dirty, dirtyRef])
@@ -135,16 +155,28 @@ function GradeForm({ assignment, student, nextId, dirtyRef, focusScore, pending,
                     {late && <StatusBadge tone="warning">Late</StatusBadge>}
                 </div>
 
-                <section aria-labelledby={answerId} className="space-y-1.5">
-                    <h3 id={answerId} className="text-sm font-medium">Answer</h3>
-                    {student.answer ? (
-                        <p className="whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/30 p-3 text-sm">
-                            {student.answer}
-                        </p>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">No written answer. See the attached files.</p>
-                    )}
-                </section>
+                {answers.length > 0 && (
+                    <section aria-labelledby={answerId} className="space-y-2">
+                        <h3 id={answerId} className="text-sm font-medium">
+                            {answers.length === 1 ? 'Answer' : 'Answers'}
+                        </h3>
+                        <AnswerList items={answers} />
+                    </section>
+                )}
+
+                {removedAnswers.length > 0 && (
+                    <section aria-labelledby={`${answerId}-removed`} className="space-y-2">
+                        <div>
+                            <h3 id={`${answerId}-removed`} className="text-sm font-medium">Answers to removed questions</h3>
+                            <p className="text-xs text-muted-foreground">
+                                These questions are no longer part of this assignment.
+                            </p>
+                        </div>
+                        <AnswerList items={removedAnswers} />
+                    </section>
+                )}
+
+                <LinkList links={student.links} />
 
                 <Files kind="submissions" id={student.submission_id} headingLevel={3} />
 

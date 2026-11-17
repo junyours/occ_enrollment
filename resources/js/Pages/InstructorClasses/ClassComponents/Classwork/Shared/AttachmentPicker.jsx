@@ -10,7 +10,8 @@ function fileSize(bytes) {
         : `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-export default function AttachmentPicker({ files, onChange, disabled }) {
+// `optional` adds a muted "(optional)" to the heading.
+export default function AttachmentPicker({ files, onChange, disabled, optional = false }) {
     const input = useRef(null)
     const sequence = useRef(0)
     const [dragging, setDragging] = useState(false)
@@ -43,7 +44,10 @@ export default function AttachmentPicker({ files, onChange, disabled }) {
         <section className="space-y-3 rounded-xl border bg-background p-4" aria-label="Attachments">
             <div className="flex items-center justify-between gap-2">
                 <div>
-                    <h3 className="text-sm font-semibold">Attachments</h3>
+                    <h3 className="text-sm font-semibold">
+                        Attachments
+                        {optional && <span className="font-normal text-muted-foreground"> (optional)</span>}
+                    </h3>
                     <p className="text-xs text-muted-foreground">PDF, DOCX, images and other files · Up to 100 MB each</p>
                 </div>
                 <span className="shrink-0 whitespace-nowrap text-xs text-muted-foreground">{files.length} selected</span>

@@ -18,8 +18,9 @@ import RichTextEditor from './RichTextEditor'
 import { toEditorHtml } from './richText'
 import { ErrorNotice, errorMessage, localDateInput, refreshGrading, useClasswork, useClassworkQuery } from './api'
 import { cn } from '@/Lib/Utils'
-import TopicSelect from './TopicSelect'
 import RelatedMaterialSelect from './RelatedMaterialSelect'
+import SubmissionSettings from './SubmissionSettings'
+import { fromDraft, questionsPayload, settingsProblem, toDraft } from './submissionRules'
 import useIsMobile from './useIsMobile'
 
 function periodLabel(period) {
@@ -198,20 +199,48 @@ function AssessmentSelect({ selected, onChange, disabled, onBusyChange }) {
     )
 }
 
+// The sticky `top` that keeps `panel` in view while the rest of `scroller`
+// scrolls: 0 when it fits, otherwise negative by the overflow, so a tall
+// panel scrolls just far enough to show its last fields, then stays.
+function useStickyTop(scroller, panel) {
+    const [top, setTop] = useState(0)
+
+    useEffect(() => {
+        if (!scroller || !panel || typeof ResizeObserver === 'undefined') return undefined
+
+        const measure = () => {
+            const style = window.getComputedStyle(scroller)
+            const room = scroller.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
+            setTop(Math.min(0, Math.floor(room - panel.offsetHeight)))
+        }
+
+        const observer = new ResizeObserver(measure)
+        observer.observe(scroller)
+        observer.observe(panel)
+        measure()
+
+        return () => observer.disconnect()
+    }, [scroller, panel])
+
+    return top
+}
+
 export default function Editor({ kind, item, onClose, onSaved }) {
     const assignment = kind === 'assignments'
     const Icon = assignment ? ClipboardList : FolderOpen
     const isMobile = useIsMobile()
     const [drawerOpen, setDrawerOpen] = useState(false)
-    const [topicId, setTopicId] = useState(
-        item?.topic_id ? String(item.topic_id) : ''
-    )
+
+    // On wide screens the assignment settings stay in view while the
+    // details, attachments and submission options scroll.
+    const [scroller, setScroller] = useState(null)
+    const [settingsPanel, setSettingsPanel] = useState(null)
+    const settingsTop = useStickyTop(scroller, settingsPanel)
 
     const [materialIds, setMaterialIds] = useState(
         () => (item?.material_ids ?? []).map(String)
     )
 
-    const [creatingTopic, setCreatingTopic] = useState(false)
     const [creatingAssessment, setCreatingAssessment] = useState(false)
 
     // Mount closed, then open so Base UI runs its entry transition.
@@ -254,6 +283,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
     }
 
     const [allowLate, setAllowLate] = useState(item?.allow_late ?? true)
+    const [submission, setSubmission] = useState(() => toDraft(item?.submission_settings, item?.questions))
     const [published, setPublished] = useState(Boolean(item?.published))
     const [attachments, setAttachments] = useState([])
     const [stage, setStage] = useState('')
@@ -268,6 +298,8 @@ export default function Editor({ kind, item, onClose, onSaved }) {
         mutationFn: async ({ fields, publish, files, assessmentId }) => {
             if (!navigator.onLine) throw new Error('You are offline. Your selected files are still here; reconnect and try again.')
 
+            let toSave = fields
+
             // Create once and retain its ID if an upload or publishing fails.
             if (!savedId.current) {
                 setStage('Creating draft…')
@@ -278,6 +310,15 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                 })
                 savedId.current = response.data.id
                 setRecordId(response.data.id)
+
+                // Send the new questions' ids from now on, so the next save
+                // (and any retry) updates them instead of adding copies.
+                const ids = response.data.question_ids
+                if (Array.isArray(ids) && Array.isArray(fields.questions)) {
+                    const withId = (question, index) => ids[index] ? { ...question, id: ids[index] } : question
+                    toSave = { ...fields, questions: fields.questions.map(withId) }
+                    setSubmission((current) => ({ ...current, questions: current.questions.map(withId) }))
+                }
             }
 
             const id = savedId.current
@@ -305,7 +346,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
 
             setStage(publish ? 'Publishing…' : 'Saving draft…')
             // An existing assignment's assessment_id must not be sent in PATCH.
-            await axios.patch(`${base}/${kind}/${id}`, { ...fields, published: publish })
+            await axios.patch(`${base}/${kind}/${id}`, { ...toSave, published: publish })
             return id
         },
         onSuccess: async (id, { publish }) => {
@@ -340,7 +381,6 @@ export default function Editor({ kind, item, onClose, onSaved }) {
 
         if (
             saving.current
-            || creatingTopic
             || creatingAssessment
             || attachments.some((entry) => entry.status === 'invalid')
         ) {
@@ -349,6 +389,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
 
         if (assignment && !recordId && !selectedAssessment) return
         if (assignment && invalidDueAt) return
+        if (assignment && settingsProblem(submission)) return
         if (!title.trim()) return
 
         const intent = event.nativeEvent.submitter?.value
@@ -361,12 +402,13 @@ export default function Editor({ kind, item, onClose, onSaved }) {
 
         const fields = {
             title: title.trim(),
-            topic_id: topicId ? Number(topicId) : null,
             body_format: 'html',
 
             ...(assignment
                 ? {
                     instructions: body,
+                    submission_settings: fromDraft(submission),
+                    questions: questionsPayload(submission),
                     due_at: dueAt ? new Date(dueAt).toISOString() : null,
                     allow_late: allowLate,
                     material_ids: materialIds.map(Number),
@@ -386,11 +428,13 @@ export default function Editor({ kind, item, onClose, onSaved }) {
         })
     }
 
-    const disabled = save.isPending || creatingTopic || creatingAssessment
+    const disabled = save.isPending || creatingAssessment
 
     // Say why the save buttons are disabled instead of leaving users to guess.
     const blockedReason = !title.trim()
         ? 'Add a title to continue.'
+        : assignment && settingsProblem(submission)
+            ? settingsProblem(submission)
         : assignment && !recordId && !selectedAssessment
             ? 'Choose or create a linked assessment.'
             : assignment && invalidDueAt
@@ -431,46 +475,56 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                 </DrawerHeader>
 
                 <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
-                    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-4">
+                    <div ref={setScroller} className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-4">
                         <div className={`grid min-w-0 grid-cols-1 gap-5 ${assignment ? 'lg:grid-cols-[minmax(0,1fr)_260px]' : ''}`}>
-                            {/* Below lg the settings move up, right after the details,
-                                so the required linked assessment is not buried under
-                                attachments. `contents` lets the grid reorder them. */}
+                            {/* The work reads top to bottom: details, attachments,
+                                what students submit, related materials. Below lg the
+                                settings aside comes right after the details, so the
+                                required linked assessment is not buried; `contents`
+                                lets the grid reorder these sections. */}
                             <div className={cn('min-w-0 space-y-4', assignment && 'max-lg:contents max-lg:space-y-0')}>
                                 <div className="space-y-4 rounded-xl border bg-background p-3 sm:p-4">
                                     <label className="block space-y-2 text-sm font-medium">Title
                                         <Input value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={255} disabled={disabled} placeholder={assignment ? 'e.g. Week 1 laboratory report' : 'e.g. Week 1 reading materials'} />
                                     </label>
-                                    <TopicSelect
-                                        value={topicId}
-                                        selectedName={item?.topic_name}
-                                        onChange={setTopicId}
-                                        disabled={disabled}
-                                        onBusyChange={setCreatingTopic}
-                                    />
                                     <RichTextEditor
                                         value={body}
                                         onChange={setBody}
                                         disabled={disabled}
                                         label={assignment ? 'Instructions' : 'Description'}
+                                        optional
                                     />
                                 </div>
 
                                 <div className="min-w-0 space-y-4 max-lg:order-2">
-                                    {item && <Files kind={kind} id={item.id} />}
-                                    <AttachmentPicker files={attachments} onChange={setAttachments} disabled={disabled} />
-                                    {assignment && (
-                                        <RelatedMaterialSelect
-                                            value={materialIds}
-                                            onChange={setMaterialIds}
-                                            disabled={disabled}
-                                        />
-                                    )}
+                                    {/* One "(optional)", on the first Attachments heading. */}
+                                    {item && <Files kind={kind} id={item.id} optional />}
+                                    <AttachmentPicker files={attachments} onChange={setAttachments} disabled={disabled} optional={!item} />
                                     {!assignment && item && <label className="flex items-start gap-2 text-sm"><Checkbox checked={published} disabled={disabled} onCheckedChange={(value) => setPublished(value === true)} />Published — visible to enrolled students</label>}
                                 </div>
+
+                                {assignment && (
+                                    <SubmissionSettings
+                                        value={submission}
+                                        onChange={setSubmission}
+                                        disabled={disabled}
+                                        savedType={item?.submission_settings?.type}
+                                        className="max-lg:order-3"
+                                    />
+                                )}
+
+                                {assignment && (
+                                    <RelatedMaterialSelect
+                                        value={materialIds}
+                                        onChange={setMaterialIds}
+                                        disabled={disabled}
+                                        className="max-lg:order-4"
+                                    />
+                                )}
                             </div>
 
-                            {assignment && <aside aria-label="Assignment settings" className="min-w-0 self-start space-y-5 rounded-xl border bg-muted/20 p-3 max-lg:order-1 sm:p-4">
+                            {assignment && <aside ref={setSettingsPanel} aria-label="Assignment settings" style={{ top: settingsTop }}
+                                className="min-w-0 self-start space-y-5 rounded-xl border bg-muted/20 p-3 max-lg:order-1 sm:p-4 lg:sticky">
                                 <h3 className="border-b border-border pb-3 text-sm font-semibold">Assignment settings</h3>
                                 {!recordId && <AssessmentSelect selected={selectedAssessment} onChange={setSelectedAssessment} disabled={disabled} onBusyChange={setCreatingAssessment} />}
                                 {recordId && <div><p className="text-sm font-medium">Linked assessment</p><p className="break-words text-sm text-muted-foreground">{assessmentTitle}</p></div>}

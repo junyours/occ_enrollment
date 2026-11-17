@@ -46,7 +46,10 @@ class ClassworkDrive
             ->timeout(120);
     }
 
-    private function folder(string $parent, string $name): string
+    // All class folders live inside this folder, not in the Drive root.
+    private const CLASSWORK_FOLDER = 'Classwork';
+
+    private function findFolder(string $parent, string $name): ?string
     {
         $escape = fn($value) => str_replace(
             ["\\", "'"],
@@ -74,8 +77,15 @@ class ClassworkDrive
             ->throw()
             ->json('files');
 
-        if ($files) {
-            return $files[0]['id'];
+        return $files ? $files[0]['id'] : null;
+    }
+
+    private function folder(string $parent, string $name): string
+    {
+        $existing = $this->findFolder($parent, $name);
+
+        if ($existing) {
+            return $existing;
         }
 
         return $this->client()
@@ -87,6 +97,54 @@ class ClassworkDrive
             ])
             ->throw()
             ->json('id');
+    }
+
+    /**
+     * The shared "Classwork" folder under the configured root. A separate
+     * lock keeps two classes uploading at once from creating it twice.
+     */
+    private function classworkFolder(string $root): string
+    {
+        return Cache::lock('classwork.folders.root', 60)
+            ->block(10, fn() => $this->folder($root, self::CLASSWORK_FOLDER));
+    }
+
+    /**
+     * The class's folder inside "Classwork". Folders made before this
+     * layout sit in the root; they are moved in on first use. Moving keeps
+     * every file's Drive ID, so saved attachments keep working.
+     */
+    private function classFolder(string $root, string $classwork, int $classId): string
+    {
+        $name = 'Class-' . $classId;
+
+        $existing = $this->findFolder($classwork, $name);
+
+        if ($existing) {
+            return $existing;
+        }
+
+        $legacy = $this->findFolder($root, $name);
+
+        if ($legacy) {
+            $this->client()
+                ->timeout(20)
+                ->patch(
+                    self::API . '/' . rawurlencode($legacy) . '?' . http_build_query([
+                        'addParents' => $classwork,
+                        'removeParents' => $root,
+                        'supportsAllDrives' => 'true',
+                        'fields' => 'id',
+                    ]),
+                    // Drive expects a JSON object; resending the name keeps it valid.
+                    ['name' => $name]
+                )
+                ->throw();
+
+            return $legacy;
+        }
+
+        return $this->folder($classwork, $name);
     }
 
     public function upload(
@@ -103,18 +161,22 @@ class ClassworkDrive
             );
         }
 
+        $classwork = $this->classworkFolder($root);
+
         $folder = Cache::lock(
             'classwork.folders.' . $classId,
             300
         )->block(10, function () use (
             $root,
+            $classwork,
             $classId,
             $kind,
             $ownerId
         ) {
-            $classFolder = $this->folder(
+            $classFolder = $this->classFolder(
                 $root,
-                'Class-' . $classId
+                $classwork,
+                $classId
             );
 
             $bucket = $this->folder(

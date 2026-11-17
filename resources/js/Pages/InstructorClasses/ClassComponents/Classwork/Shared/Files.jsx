@@ -173,6 +173,15 @@ export default function Files({
     // student's draft is created on demand). Resolves to the new id.
     ensureId,
     headingLevel = 3,
+    // Adds a muted "(optional)" to the heading, as in the editor.
+    optional = false,
+    // Student uploads follow the assignment's settings: `accept` filters the
+    // picker, `checkFile` rejects a file before upload with a reason, and
+    // `maxFiles` caps how many can be attached. The server checks them too.
+    accept,
+    checkFile,
+    maxFiles,
+    hint,
 }) {
     const { base } = useClasswork()
 
@@ -184,6 +193,7 @@ export default function Files({
     const [failed, setFailed] = useState([])
     const [busy, setBusy] = useState(false)
     const [prepareError, setPrepareError] = useState(null)
+    const [rejected, setRejected] = useState([])
     const [previewFile, setPreviewFile] = useState(null)
 
     const inputRef = useRef(null)
@@ -205,8 +215,27 @@ export default function Files({
         })
     })
 
-    async function send(files) {
-        if (!files.length || busy) return
+    async function send(picked) {
+        if (!picked.length || busy) return
+
+        // Reject files that break the rules before sending anything.
+        const problems = []
+        const room = maxFiles ? Math.max(0, maxFiles - (query.data?.length ?? 0)) : Infinity
+        const files = []
+
+        for (const file of picked) {
+            const problem = checkFile?.(file)
+            if (problem) problems.push(problem)
+            else if (files.length >= room) problems.push(`${file.name}: you can attach up to ${maxFiles} file${maxFiles === 1 ? '' : 's'}.`)
+            else files.push(file)
+        }
+
+        setRejected(problems)
+
+        if (!files.length) {
+            setProgress('')
+            return
+        }
 
         setBusy(true)
         onBusyChange?.(true)
@@ -266,7 +295,10 @@ export default function Files({
                     className="size-5"
                     aria-hidden="true"
                 />
-                Attachments
+                <span>
+                    Attachments
+                    {optional && <span className="text-sm font-normal text-muted-foreground"> (optional)</span>}
+                </span>
             </Heading>
 
             {id && query.isPending && (
@@ -357,7 +389,8 @@ export default function Files({
                     <input
                         ref={inputRef}
                         type="file"
-                        multiple
+                        multiple={maxFiles !== 1}
+                        accept={accept}
                         hidden
                         aria-label="Upload files"
                         disabled={busy}
@@ -395,11 +428,17 @@ export default function Files({
                         </Button>
 
                         <p className="text-xs leading-5 text-muted-foreground sm:text-sm">
-                            Any file type · Maximum 100 MB per file.
-                            Click a filename to preview supported
+                            {hint ?? 'Any file type · Maximum 100 MB per file.'}
+                            {' '}Click a filename to preview supported
                             documents and images.
                         </p>
                     </div>
+
+                    {rejected.length > 0 && (
+                        <ul role="alert" className="space-y-1 text-sm text-destructive">
+                            {rejected.map((message) => <li key={message} className="break-words">{message}</li>)}
+                        </ul>
+                    )}
 
                     {failed.length > 0 && (
                         <>

@@ -166,6 +166,9 @@ class ClassworkController extends Controller
             $this->enrollment($request, $classId);
 
             abort_unless($item->published, 404);
+
+            // Archived materials (and their files) are hidden from students.
+            abort_if(! empty($item->archived_at), 404);
         }
     }
 
@@ -193,6 +196,351 @@ class ClassworkController extends Controller
         }
     }
 
+    // File type presets a teacher can pick for student uploads.
+    private const FILE_PRESETS = [
+        'documents' => ['pdf', 'doc', 'docx', 'odt', 'rtf', 'txt', 'ppt', 'pptx', 'odp', 'xls', 'xlsx', 'ods', 'csv'],
+        'images' => ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'bmp'],
+        'media' => ['mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi', 'mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac'],
+    ];
+
+    // Per file, for teacher attachments and student work alike.
+    private const MAX_UPLOAD_MB = 100;
+
+    // Files a student can attach to one assignment.
+    private const SUBMISSION_MAX_FILES = 5;
+
+    private function decodeJson($value): ?array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        $decoded = json_decode($value, true);
+
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    // How students hand in an assignment; each takes exactly one.
+    private const SUBMISSION_TYPES = ['files', 'questions', 'links'];
+
+    /**
+     * What students hand in for an assignment: files (the default),
+     * answers to questions, or links. Only the chosen type is enabled, and
+     * it is what makes the work complete, so it is always required. The
+     * other sections keep their options for when the teacher switches.
+     * Answers are plain text, and the file limits are fixed
+     * (SUBMISSION_MAX_FILES, MAX_UPLOAD_MB).
+     */
+    private function normalizeSubmissionSettings(?array $raw): array
+    {
+        $raw ??= [];
+        $files = is_array($raw['files'] ?? null) ? $raw['files'] : [];
+        $links = is_array($raw['links'] ?? null) ? $raw['links'] : [];
+
+        $type = in_array($raw['type'] ?? null, self::SUBMISSION_TYPES, true)
+            ? $raw['type']
+            : 'files';
+
+        $types = $files['types'] ?? 'any';
+        $types = in_array($types, ['any', 'documents', 'images', 'media', 'custom'], true) ? $types : 'any';
+
+        $extensions = collect(is_array($files['extensions'] ?? null) ? $files['extensions'] : [])
+            ->map(fn($extension) => strtolower(ltrim(trim((string) $extension), '.')))
+            ->filter(fn($extension) => preg_match('/^[a-z0-9]{1,10}$/', $extension) === 1)
+            ->unique()
+            ->take(20)
+            ->values()
+            ->all();
+
+        if ($types === 'custom' && $extensions === []) {
+            $types = 'any';
+        }
+
+        // Accept "github.com", "https://www.github.com/" and similar.
+        $domain = strtolower(trim((string) ($links['domain'] ?? '')));
+        $domain = preg_replace('#^[a-z]+://#', '', $domain);
+        $domain = preg_replace('#^www\.#', '', $domain);
+        $domain = rtrim(explode('/', $domain)[0], '.');
+        $domain = preg_match('/^(?!-)[a-z0-9-]+(\.[a-z0-9-]+)+$/', $domain) === 1 ? $domain : null;
+
+        return [
+            'type' => $type,
+            'files' => [
+                'enabled' => $type === 'files',
+                'required' => $type === 'files',
+                'types' => $types,
+                'extensions' => $types === 'custom' ? $extensions : [],
+            ],
+            'links' => [
+                'enabled' => $type === 'links',
+                'required' => $type === 'links',
+                'domain' => $domain,
+                'max_links' => max(1, min(10, (int) ($links['max_links'] ?? 5))),
+            ],
+        ];
+    }
+
+    private function submissionSettings(object $assignment): array
+    {
+        return $this->normalizeSubmissionSettings(
+            $this->decodeJson($assignment->submission_settings ?? null)
+        );
+    }
+
+    /** Null means any file type. */
+    private function allowedExtensions(array $files): ?array
+    {
+        return match ($files['types']) {
+            'any' => null,
+            'custom' => $files['extensions'],
+            default => self::FILE_PRESETS[$files['types']],
+        };
+    }
+
+    // An answer without surrounding spaces, to tell whether anything was written.
+    private function answerText(?string $answer): string
+    {
+        return trim(str_replace("\u{00A0}", ' ', $answer ?? ''));
+    }
+
+    private function cleanLinks($links): array
+    {
+        return collect(is_array($links) ? $links : [])
+            ->map(fn($link) => trim((string) $link))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function linkProblem(string $url, array $settings): ?string
+    {
+        $parts = parse_url($url);
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $host = strtolower($parts['host'] ?? '');
+
+        if (
+            filter_var($url, FILTER_VALIDATE_URL) === false
+            || ! in_array($scheme, ['http', 'https'], true)
+            || $host === ''
+        ) {
+            return "“{$url}” is not a valid web address. Start it with https://.";
+        }
+
+        $domain = $settings['domain'];
+
+        if ($domain && $host !== $domain && ! str_ends_with($host, '.' . $domain)) {
+            return "Links must be on {$domain}.";
+        }
+
+        return null;
+    }
+
+    // Decodes stored JSON before a submission is sent to the browser.
+    private function presentSubmission(?object $row): ?object
+    {
+        if (! $row) {
+            return $row;
+        }
+
+        $row->links = $this->decodeJson($row->links ?? null) ?? [];
+
+        // Answers live in class_submission_answers now; the old column only
+        // keeps answers written before questions existed.
+        unset($row->answer);
+
+        return $row;
+    }
+
+    // Question types a teacher can add. Multiple choice comes later.
+    private const QUESTION_TYPES = ['essay', 'short_answer'];
+
+    private const SHORT_ANSWER_MAX = 500;
+
+    /** Active questions grouped by assignment id, in order. */
+    private function questionsFor($assignmentIds)
+    {
+        return DB::table('class_assignment_questions')
+            ->whereIn('assignment_id', $assignmentIds)
+            ->whereNull('deleted_at')
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get(['id', 'assignment_id', 'type', 'prompt', 'required'])
+            ->map(function ($question) {
+                $question->id = (int) $question->id;
+                $question->assignment_id = (int) $question->assignment_id;
+                $question->required = (bool) $question->required;
+
+                return $question;
+            })
+            ->groupBy('assignment_id');
+    }
+
+    private function questionList(int $assignmentId)
+    {
+        return $this->questionsFor([$assignmentId])
+            ->get($assignmentId, collect())
+            ->values();
+    }
+
+    /**
+     * Turned-in answers to questions removed afterwards (or dropped when the
+     * assignment switched to another type), so students still see them.
+     */
+    private function removedAnswers(int $submissionId): array
+    {
+        return DB::table('class_submission_answers as answer')
+            ->join(
+                'class_assignment_questions as question',
+                'question.id',
+                '=',
+                'answer.question_id'
+            )
+            ->where('answer.submission_id', $submissionId)
+            ->whereNotNull('question.deleted_at')
+            ->whereNotNull('answer.answer')
+            ->where('answer.answer', '<>', '')
+            ->orderBy('question.position')
+            ->orderBy('question.id')
+            ->get(['answer.question_id', 'answer.answer', 'question.type', 'question.prompt'])
+            ->map(fn($row) => [
+                'question_id' => (int) $row->question_id,
+                'answer' => $row->answer,
+                'type' => $row->type,
+                'prompt' => $row->prompt,
+            ])
+            ->all();
+    }
+
+    /** A submission's answers as question id => answer. */
+    private function answersFor(int $submissionId): array
+    {
+        return DB::table('class_submission_answers')
+            ->where('submission_id', $submissionId)
+            ->pluck('answer', 'question_id')
+            ->all();
+    }
+
+    /**
+     * Keeps answers to the assignment's active questions only, as plain
+     * text: short answers become one trimmed line, essays stay as typed.
+     * Empty answers become null so a cleared box is saved.
+     */
+    private function cleanAnswers(array $input, $questions): array
+    {
+        $byId = $questions->keyBy('id');
+        $answers = [];
+
+        foreach ($input as $questionId => $answer) {
+            $question = is_int($questionId) ? $byId->get($questionId) : null;
+
+            if (! $question) {
+                continue;
+            }
+
+            $answer = (string) ($answer ?? '');
+
+            if ($question->type === 'short_answer') {
+                $answer = trim(preg_replace('/\s+/u', ' ', $answer) ?? '');
+
+                if (mb_strlen($answer) > self::SHORT_ANSWER_MAX) {
+                    throw ValidationException::withMessages([
+                        "answers.{$question->id}" => 'Keep short answers under ' . self::SHORT_ANSWER_MAX . ' characters.',
+                    ]);
+                }
+            }
+
+            $answers[$question->id] = $answer === '' ? null : $answer;
+        }
+
+        return $answers;
+    }
+
+    private function saveAnswers(int $submissionId, array $answers): void
+    {
+        if ($answers === []) {
+            return;
+        }
+
+        $now = now();
+        $rows = [];
+
+        foreach ($answers as $questionId => $answer) {
+            $rows[] = [
+                'submission_id' => $submissionId,
+                'question_id' => $questionId,
+                'answer' => $answer,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        DB::table('class_submission_answers')->upsert(
+            $rows,
+            ['submission_id', 'question_id'],
+            ['answer', 'updated_at']
+        );
+    }
+
+    /**
+     * Saves the editor's question list in order and returns the ids in that
+     * order. Questions left out are soft-deleted, so answers already turned
+     * in for them are kept.
+     */
+    private function syncQuestions(int $assignmentId, array $questions): array
+    {
+        $existing = DB::table('class_assignment_questions')
+            ->where('assignment_id', $assignmentId)
+            ->whereNull('deleted_at')
+            ->lockForUpdate()
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        $now = now();
+        $kept = [];
+        $ids = [];
+
+        foreach (array_values($questions) as $index => $question) {
+            $values = [
+                'position' => $index + 1,
+                'type' => $question['type'],
+                'prompt' => $question['prompt'],
+                'required' => $question['required'],
+                'updated_at' => $now,
+            ];
+
+            // An unknown id (for example, a question another tab removed)
+            // is saved as a new question.
+            if ($question['id'] && in_array($question['id'], $existing, true)) {
+                DB::table('class_assignment_questions')
+                    ->where('id', $question['id'])
+                    ->update($values);
+
+                $kept[] = $ids[] = $question['id'];
+            } else {
+                $ids[] = (int) DB::table('class_assignment_questions')->insertGetId([
+                    ...$values,
+                    'assignment_id' => $assignmentId,
+                    'created_at' => $now,
+                ]);
+            }
+        }
+
+        $removed = array_values(array_diff($existing, $kept));
+
+        if ($removed !== []) {
+            DB::table('class_assignment_questions')
+                ->whereIn('id', $removed)
+                ->update(['deleted_at' => $now, 'updated_at' => $now]);
+        }
+
+        return $ids;
+    }
+
     public function index(Request $request, int $classId, string $kind)
     {
         $teacher = $this->isTeacher($request, $classId);
@@ -204,18 +552,14 @@ class ClassworkController extends Controller
         $table = $this->table($kind);
 
         $query = DB::table($table . ' as item')
-            ->leftJoin('classwork_topics as topic', function ($join) {
-                $join->on('topic.id', '=', 'item.topic_id')
-                    ->on(
-                        'topic.year_section_subject_id',
-                        '=',
-                        'item.year_section_subject_id'
-                    );
-            })
             ->where('item.year_section_subject_id', $classId);
 
         if (! $teacher) {
             $query->where('item.published', true);
+
+            if ($kind === 'materials') {
+                $query->whereNull('item.archived_at');
+            }
         }
 
         if ($kind === 'assignments') {
@@ -242,16 +586,15 @@ class ClassworkController extends Controller
         }
 
         $items = $query
-            ->addSelect(
-                'topic.name as topic_name',
-                'topic.sort_order as topic_sort_order'
-            )
             ->orderByDesc('item.id')
             ->get();
 
         $links = collect();
+        $questions = collect();
 
         if ($kind === 'assignments' && $items->isNotEmpty()) {
+            $questions = $this->questionsFor($items->pluck('id'));
+
             $links = DB::table('assignment_material as link')
                 ->join(
                     'class_materials as material',
@@ -263,18 +606,35 @@ class ClassworkController extends Controller
                 ->where('material.year_section_subject_id', $classId)
                 ->when(
                     ! $teacher,
-                    fn($query) => $query->where('material.published', true)
+                    fn($query) => $query
+                        ->where('material.published', true)
+                        ->whereNull('material.archived_at')
                 )
                 ->orderBy('link.material_id')
                 ->get(['link.assignment_id', 'link.material_id'])
                 ->groupBy('assignment_id');
         }
 
-        $items->each(function ($item) use ($kind, $links) {
+        $items->each(function ($item) use ($kind, $links, $questions) {
             $item->published = (bool) $item->published;
             $item->body_format = $item->body_format ?? 'text';
 
             if ($kind === 'assignments') {
+                $item->submission_settings = $this->submissionSettings($item);
+
+                $item->questions = $item->submission_settings['type'] !== 'questions'
+                    ? []
+                    : $questions
+                    ->get($item->id, collect())
+                    ->map(fn($question) => [
+                        'id' => $question->id,
+                        'type' => $question->type,
+                        'prompt' => $question->prompt,
+                        'required' => $question->required,
+                    ])
+                    ->values()
+                    ->all();
+
                 $item->material_ids = $links
                     ->get($item->id, collect())
                     ->pluck('material_id')
@@ -285,6 +645,13 @@ class ClassworkController extends Controller
 
             if (property_exists($item, 'assessment_name') && ! $item->title) {
                 $item->title = $item->assessment_name;
+            }
+
+            if (property_exists($item, 'archived_at')) {
+                $item->archived_at = $item->archived_at
+                    ? CarbonImmutable::parse($item->archived_at, 'UTC')
+                    ->toIso8601String()
+                    : null;
             }
 
             if (property_exists($item, 'due_at')) {
@@ -301,6 +668,10 @@ class ClassworkController extends Controller
             $teacher
                 ? $this->attachClassProgress($classId, $items)
                 : $this->attachStudentProgress($studentSubjectId, $items);
+        }
+
+        if ($kind === 'materials' && $teacher && $items->isNotEmpty()) {
+            $this->attachLinkedAssignments($classId, $items);
         }
 
         return response()->json([
@@ -394,6 +765,112 @@ class ClassworkController extends Controller
                 'graded' => (int) $graded->get($item->assessment_id, 0),
             ];
         });
+    }
+
+    /**
+     * Lists the assignments each material is linked to, so the teacher
+     * sees what a permanent delete would affect.
+     */
+    private function attachLinkedAssignments(int $classId, $items): void
+    {
+        $links = DB::table('assignment_material as link')
+            ->join('class_assignments as a', 'a.id', '=', 'link.assignment_id')
+            ->leftJoin('assessments as s', 's.id', '=', 'a.assessment_id')
+            ->whereIn('link.material_id', $items->pluck('id'))
+            ->where('a.year_section_subject_id', $classId)
+            ->orderBy('a.id')
+            ->get(['link.material_id', 'a.id', 'a.title', 's.name as assessment_name'])
+            ->groupBy('material_id');
+
+        $items->each(function ($item) use ($links) {
+            $item->linked_assignments = $links
+                ->get($item->id, collect())
+                ->map(fn($row) => [
+                    'id' => (int) $row->id,
+                    'title' => $row->title ?: $row->assessment_name,
+                ])
+                ->values()
+                ->all();
+        });
+    }
+
+    public function archive(
+        Request $request,
+        int $classId,
+        int $id
+    ) {
+        $this->teacher($request, $classId);
+
+        $data = $request->validate([
+            'archived' => ['required', 'boolean'],
+        ]);
+
+        $this->item($classId, 'materials', $id);
+
+        DB::table('class_materials')
+            ->where('id', $id)
+            ->where('year_section_subject_id', $classId)
+            ->update([
+                'archived_at' => $data['archived'] ? now()->utc() : null,
+                'updated_at' => now(),
+            ]);
+
+        return response()->json([
+            'id' => $id,
+            'archived' => (bool) $data['archived'],
+        ]);
+    }
+
+    /**
+     * Permanently deletes an archived material, its file records and its
+     * assignment links, then moves its files to the Drive trash.
+     */
+    public function destroyMaterial(
+        Request $request,
+        ClassworkDrive $drive,
+        int $classId,
+        int $id
+    ) {
+        $this->teacher($request, $classId);
+
+        $driveIds = DB::transaction(function () use ($classId, $id) {
+            $material = $this->item($classId, 'materials', $id, true);
+
+            if (! $material->archived_at) {
+                throw ValidationException::withMessages([
+                    'material' => 'Archive this material before deleting it.',
+                ]);
+            }
+
+            $driveIds = DB::table('classwork_files')
+                ->where('material_id', $id)
+                ->pluck('drive_file_id')
+                ->all();
+
+            DB::table('classwork_files')->where('material_id', $id)->delete();
+            DB::table('assignment_material')->where('material_id', $id)->delete();
+            DB::table('class_materials')->where('id', $id)->delete();
+
+            return $driveIds;
+        });
+
+        // Drive cleanup runs after the database commit; a failure leaves a
+        // file in Drive but never a broken record in the app.
+        $notTrashed = 0;
+
+        foreach ($driveIds as $fileId) {
+            try {
+                $drive->trash($fileId);
+            } catch (Throwable $error) {
+                report($error);
+                $notTrashed++;
+            }
+        }
+
+        return response()->json([
+            'deleted' => true,
+            'files_not_trashed' => $notTrashed,
+        ]);
     }
 
     public function gradingCategories(
@@ -528,14 +1005,34 @@ class ClassworkController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'body_format' => ['sometimes', Rule::in(['text', 'html'])],
             'published' => ['required', 'boolean'],
-            'topic_id' => ['sometimes', 'nullable', 'integer', 'min:1'],
         ];
 
         $data = $request->validate(
             $rules + ($kind === 'materials' ? [
                 'description' => ['nullable', 'string', 'max:20000'],
                 'material_ids' => ['prohibited'],
+                'submission_settings' => ['prohibited'],
+                'questions' => ['prohibited'],
             ] : [
+                'questions' => ['sometimes', 'array', 'max:50'],
+                'questions.*' => ['array'],
+                'questions.*.id' => ['nullable', 'integer', 'min:1', 'distinct'],
+                'questions.*.type' => ['required', Rule::in(self::QUESTION_TYPES)],
+                'questions.*.prompt' => ['required', 'string', 'max:2000'],
+                'questions.*.required' => ['sometimes', 'boolean'],
+
+                // The type decides everything; the enabled and required
+                // flags are derived from it.
+                'submission_settings' => ['sometimes', 'array'],
+                'submission_settings.type' => ['required_with:submission_settings', Rule::in(self::SUBMISSION_TYPES)],
+                'submission_settings.files' => ['sometimes', 'array'],
+                'submission_settings.files.types' => ['sometimes', Rule::in(['any', 'documents', 'images', 'media', 'custom'])],
+                'submission_settings.files.extensions' => ['sometimes', 'array', 'max:20'],
+                'submission_settings.files.extensions.*' => ['string', 'regex:/^\.?[A-Za-z0-9]{1,10}$/'],
+                'submission_settings.links' => ['sometimes', 'array'],
+                'submission_settings.links.domain' => ['nullable', 'string', 'max:255'],
+                'submission_settings.links.max_links' => ['sometimes', 'integer', 'min:1', 'max:10'],
+
                 'assessment_id' => $id
                     ? ['prohibited']
                     : [
@@ -554,8 +1051,74 @@ class ClassworkController extends Controller
                     'min:1',
                     'distinct',
                 ],
-            ])
+            ]),
+            [
+                'submission_settings.type.required_with' => 'Choose how students hand in their work.',
+                'submission_settings.type.in' => 'Choose file upload, questions or links.',
+                'questions.max' => 'An assignment can have up to 50 questions.',
+                'questions.*.prompt.required' => 'Every question needs a prompt.',
+                'questions.*.prompt.max' => 'Keep each question under 2,000 characters.',
+            ]
         );
+
+        // Omitting questions keeps the saved ones.
+        $syncQuestions = $kind === 'assignments'
+            && array_key_exists('questions', $data);
+
+        $questions = array_map(fn($question) => [
+            'id' => isset($question['id']) ? (int) $question['id'] : null,
+            'type' => $question['type'],
+            'prompt' => trim($question['prompt']),
+            'required' => (bool) ($question['required'] ?? false),
+        ], array_values($data['questions'] ?? []));
+
+        unset($data['questions']);
+
+        $settings = null;
+
+        if (array_key_exists('submission_settings', $data)) {
+            $raw = $data['submission_settings'];
+            $settings = $this->normalizeSubmissionSettings($raw);
+
+            // Only the chosen type's options are checked.
+            if (
+                $settings['type'] === 'files'
+                && ($raw['files']['types'] ?? null) === 'custom'
+                && $settings['files']['extensions'] === []
+            ) {
+                throw ValidationException::withMessages([
+                    'submission_settings.files.extensions' => 'List at least one file type, such as pdf.',
+                ]);
+            }
+
+            if (
+                $settings['type'] === 'links'
+                && filled($raw['links']['domain'] ?? null)
+                && ! $settings['links']['domain']
+            ) {
+                throw ValidationException::withMessages([
+                    'submission_settings.links.domain' => 'Enter a domain such as github.com.',
+                ]);
+            }
+
+            if ($syncQuestions && $settings['type'] !== 'questions') {
+                // Switching away from questions removes them; answers that
+                // were turned in stay visible.
+                $questions = [];
+            } elseif ($syncQuestions && $questions === []) {
+                throw ValidationException::withMessages([
+                    'questions' => 'Add at least one question.',
+                ]);
+            }
+
+            $data['submission_settings'] = json_encode($settings);
+        }
+
+        // Questions saved without a question list still get one answer box,
+        // so students always have something to answer.
+        $ensureQuestion = $kind === 'assignments'
+            && ! $syncQuestions
+            && ($settings['type'] ?? null) === 'questions';
 
         // Omitting these fields preserves existing relationships.
         $syncMaterials = $kind === 'assignments'
@@ -596,26 +1159,15 @@ class ClassworkController extends Controller
             $id,
             $data,
             $syncMaterials,
-            $materialIds
+            $materialIds,
+            $syncQuestions,
+            $questions,
+            $ensureQuestion
         ) {
             DB::table('year_section_subjects')
                 ->where('id', $classId)
                 ->lockForUpdate()
                 ->first();
-
-            if (isset($data['topic_id'])) {
-                $topic = DB::table('classwork_topics')
-                    ->where('id', $data['topic_id'])
-                    ->where('year_section_subject_id', $classId)
-                    ->lockForUpdate()
-                    ->first();
-
-                if (! $topic) {
-                    throw ValidationException::withMessages([
-                        'topic_id' => 'Choose a topic from this class.',
-                    ]);
-                }
-            }
 
             if ($materialIds !== []) {
                 $materials = DB::table('class_materials')
@@ -683,6 +1235,24 @@ class ClassworkController extends Controller
                 }
             }
 
+            // The editor sends these ids with its next save, so the same
+            // questions are updated rather than added again.
+            if ($syncQuestions) {
+                return [
+                    'id' => $id,
+                    'question_ids' => $this->syncQuestions($id, $questions),
+                ];
+            }
+
+            if ($ensureQuestion && $this->questionList($id)->isEmpty()) {
+                $this->syncQuestions($id, [[
+                    'id' => null,
+                    'type' => 'essay',
+                    'prompt' => 'Your answer',
+                    'required' => true,
+                ]]);
+            }
+
             return ['id' => $id];
         });
 
@@ -743,7 +1313,7 @@ class ClassworkController extends Controller
                 'ui.first_name',
                 'ui.last_name',
                 's.id as submission_id',
-                's.answer',
+                's.links',
                 's.submitted_at',
                 's.feedback',
                 's.reviewed_at',
@@ -754,8 +1324,47 @@ class ClassworkController extends Controller
         $rows->each(function ($row) {
             if (! $row->submitted_at) {
                 $row->submission_id = null;
-                $row->answer = null;
+                $row->links = null;
             }
+
+            $this->presentSubmission($row);
+        });
+
+        // Answers include those to questions removed after turn-in, flagged
+        // so the grading panel can show them apart.
+        $answers = DB::table('class_submission_answers as answer')
+            ->join(
+                'class_assignment_questions as question',
+                'question.id',
+                '=',
+                'answer.question_id'
+            )
+            ->whereIn('answer.submission_id', $rows->pluck('submission_id')->filter()->values())
+            ->where('question.assignment_id', $id)
+            ->orderBy('question.position')
+            ->orderBy('question.id')
+            ->get([
+                'answer.submission_id',
+                'answer.question_id',
+                'answer.answer',
+                'question.type',
+                'question.prompt',
+                'question.deleted_at',
+            ])
+            ->groupBy('submission_id');
+
+        $rows->each(function ($row) use ($answers) {
+            $row->answers = $answers
+                ->get($row->submission_id, collect())
+                ->map(fn($answer) => [
+                    'question_id' => (int) $answer->question_id,
+                    'answer' => $answer->answer,
+                    'type' => $answer->type,
+                    'prompt' => $answer->prompt,
+                    'removed' => $answer->deleted_at !== null,
+                ])
+                ->values()
+                ->all();
         });
 
         return response()->json($rows);
@@ -790,6 +1399,14 @@ class ClassworkController extends Controller
             ->whereNull('deleted_at')
             ->value('score');
 
+        if ($submission) {
+            $this->presentSubmission($submission);
+            $submission->answers = (object) $this->answersFor($submission->id);
+            $submission->removed_answers = $submission->submitted_at
+                ? $this->removedAnswers($submission->id)
+                : [];
+        }
+
         return response()->json([
             'submission' => $submission,
             'score' => $score,
@@ -801,9 +1418,14 @@ class ClassworkController extends Controller
         int $classId,
         int $id
     ) {
-        // Autosave sends the answer; the first call also creates the draft.
+        // Autosave sends answers (question id => text) and links; the first
+        // call also creates the draft. Requirements are checked only when the
+        // work is turned in, so unfinished work can still be saved.
         $data = $request->validate([
-            'answer' => ['sometimes', 'nullable', 'string', 'max:20000'],
+            'answers' => ['sometimes', 'array', 'max:50'],
+            'answers.*' => ['nullable', 'string', 'max:20000'],
+            'links' => ['sometimes', 'array', 'max:10'],
+            'links.*' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $studentSubjectId = $this->enrollment(
@@ -834,29 +1456,53 @@ class ClassworkController extends Controller
                     $studentSubjectId
                 );
 
+            $settings = $this->submissionSettings($assignment);
+            $values = [];
+            $answers = null;
+
+            if (array_key_exists('answers', $data) && $settings['type'] === 'questions') {
+                $answers = $this->cleanAnswers($data['answers'], $this->questionList($id));
+            }
+
+            if (array_key_exists('links', $data) && $settings['links']['enabled']) {
+                $values['links'] = json_encode(array_slice(
+                    $this->cleanLinks($data['links']),
+                    0,
+                    $settings['links']['max_links']
+                ));
+            }
+
             $existing = $query->first();
 
             if (! $existing) {
                 DB::table('class_submissions')->insert([
                     'assignment_id' => $id,
                     'student_subject_id' => $studentSubjectId,
-                    'answer' => $data['answer'] ?? null,
+                    ...$values,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-            } elseif (
-                array_key_exists('answer', $data)
-                && ! $existing->submitted_at
-            ) {
-                // A submitted answer is final; late autosaves are ignored.
+            } elseif ($existing->submitted_at) {
+                // Turned-in work is final; late autosaves are ignored.
+                return $existing;
+            } elseif ($values || $answers !== null) {
                 $query->update([
-                    'answer' => $data['answer'],
+                    ...$values,
                     'updated_at' => now(),
                 ]);
             }
 
-            return $query->first();
+            $submission = $query->first();
+
+            if ($answers) {
+                $this->saveAnswers($submission->id, $answers);
+            }
+
+            return $submission;
         });
+
+        $submission = $this->presentSubmission($submission);
+        $submission->answers = (object) $this->answersFor($submission->id);
 
         return response()->json($submission);
     }
@@ -867,7 +1513,10 @@ class ClassworkController extends Controller
         int $id
     ) {
         $data = $request->validate([
-            'answer' => ['nullable', 'string', 'max:20000'],
+            'answers' => ['sometimes', 'array', 'max:50'],
+            'answers.*' => ['nullable', 'string', 'max:20000'],
+            'links' => ['sometimes', 'array', 'max:10'],
+            'links.*' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $studentSubjectId = $this->enrollment(
@@ -918,22 +1567,85 @@ class ClassworkController extends Controller
                 $submission = $query->first();
             }
 
-            $hasFiles = DB::table('classwork_files')
-                ->where('submission_id', $submission->id)
-                ->exists();
+            // Check the work against the assignment's submission settings.
+            $settings = $this->submissionSettings($assignment);
+            $questions = $settings['type'] === 'questions' ? $this->questionList($id) : collect();
 
-            if (
-                ! trim($data['answer'] ?? '') &&
-                ! $hasFiles
-            ) {
-                throw ValidationException::withMessages([
-                    'answer' =>
-                    'Add an answer or upload at least one file.',
-                ]);
+            // Answers sent now win over autosaved ones.
+            $incoming = array_key_exists('answers', $data)
+                ? $this->cleanAnswers($data['answers'], $questions)
+                : [];
+            $answers = array_replace($this->answersFor($submission->id), $incoming);
+
+            $hasAnswer = false;
+            $unanswered = [];
+
+            foreach ($questions->values() as $index => $question) {
+                $text = $this->answerText($answers[$question->id] ?? null);
+
+                if ($text !== '') {
+                    $hasAnswer = true;
+                } elseif ($question->required) {
+                    $unanswered[] = $index + 1;
+                }
             }
 
+            $links = $settings['links']['enabled'] ? $this->cleanLinks($data['links'] ?? []) : [];
+
+            $fileCount = DB::table('classwork_files')
+                ->where('submission_id', $submission->id)
+                ->count();
+
+            $errors = [];
+
+            foreach ($links as $link) {
+                if ($problem = $this->linkProblem($link, $settings['links'])) {
+                    $errors['links'] = $problem;
+                    break;
+                }
+            }
+
+            if (count($links) > $settings['links']['max_links']) {
+                $errors['links'] = "Add up to {$settings['links']['max_links']} links.";
+            }
+
+            if ($unanswered) {
+                $errors['answers'] = match (true) {
+                    $questions->count() === 1 => 'Answer the question.',
+                    count($unanswered) === 1 => "Answer question {$unanswered[0]}.",
+                    default => 'Answer questions ' . implode(', ', $unanswered) . '.',
+                };
+            }
+
+            if ($settings['files']['required'] && $fileCount === 0) {
+                $errors['file'] = 'Attach at least one file to turn this in.';
+            }
+
+            if ($settings['links']['required'] && $links === []) {
+                $errors['links'] ??= 'Add a link to turn this in.';
+            }
+
+            // With questions, at least one answer makes the work complete.
+            if ($settings['type'] === 'questions' && ! $hasAnswer && ! $unanswered) {
+                $errors['answers'] = $questions->count() === 1
+                    ? 'Answer the question.'
+                    : 'Answer at least one question.';
+            }
+
+            if ($errors) {
+                throw ValidationException::withMessages($errors);
+            }
+
+            // Draft answers to questions removed before turn-in are dropped.
+            DB::table('class_submission_answers')
+                ->where('submission_id', $submission->id)
+                ->whereNotIn('question_id', $questions->pluck('id')->all())
+                ->delete();
+
+            $this->saveAnswers($submission->id, $incoming);
+
             $query->update([
-                'answer' => $data['answer'] ?? null,
+                'links' => $links ? json_encode($links) : null,
                 'submitted_at' => now()->utc(),
                 'updated_at' => now(),
             ]);
@@ -1191,7 +1903,7 @@ class ClassworkController extends Controller
         string $kind,
         int $id
     ) {
-        $this->owner(
+        [, $owned] = $this->owner(
             $request,
             $classId,
             $kind,
@@ -1199,10 +1911,43 @@ class ClassworkController extends Controller
             true
         );
 
-        // Any file type, up to 100 MB.
-        $request->validate([
-            'file' => ['required', 'file', 'max:102400'],
-        ]);
+        // Any file up to 100 MB. Students attach up to 5, of the types the
+        // assignment allows.
+        $rules = ['required', 'file', 'max:' . (self::MAX_UPLOAD_MB * 1024)];
+        $messages = [];
+        $maxFiles = null;
+
+        if ($kind === 'submissions') {
+            $files = $this->submissionSettings(
+                $this->item($classId, 'assignments', $owned->assignment_id)
+            )['files'];
+
+            if (! $files['enabled']) {
+                throw ValidationException::withMessages([
+                    'file' => 'This assignment does not accept files.',
+                ]);
+            }
+
+            $messages['file.max'] = 'Each file can be up to ' . self::MAX_UPLOAD_MB . ' MB.';
+
+            if ($allowed = $this->allowedExtensions($files)) {
+                $rules[] = 'extensions:' . implode(',', $allowed);
+                $messages['file.extensions'] = 'Allowed file types: ' . implode(', ', $allowed) . '.';
+            }
+
+            $maxFiles = self::SUBMISSION_MAX_FILES;
+        }
+
+        $request->validate(['file' => $rules], $messages);
+
+        if (
+            $maxFiles !== null
+            && DB::table('classwork_files')->where('submission_id', $id)->count() >= $maxFiles
+        ) {
+            throw ValidationException::withMessages([
+                'file' => "You can attach up to {$maxFiles} file" . ($maxFiles === 1 ? '' : 's') . '.',
+            ]);
+        }
 
         $file = $request->file('file');
 
@@ -1223,7 +1968,8 @@ class ClassworkController extends Controller
                 $kind,
                 $id,
                 $file,
-                $remote
+                $remote,
+                $maxFiles
             ) {
                 // Recheck permissions and submission state after upload.
                 [$column] = $this->owner(
@@ -1234,6 +1980,17 @@ class ClassworkController extends Controller
                     true,
                     true
                 );
+
+                // Recount under the lock, so parallel uploads cannot pass
+                // the file limit; the Drive copy is trashed if this fails.
+                if (
+                    $maxFiles !== null
+                    && DB::table('classwork_files')->where('submission_id', $id)->count() >= $maxFiles
+                ) {
+                    throw ValidationException::withMessages([
+                        'file' => "You can attach up to {$maxFiles} file" . ($maxFiles === 1 ? '' : 's') . '.',
+                    ]);
+                }
 
                 $name = preg_replace(
                     '/[\x00-\x1F\x7F\/\\\\]/u',
@@ -1328,65 +2085,4 @@ class ClassworkController extends Controller
         );
     }
 
-    public function topics(Request $request, int $classId)
-    {
-        $this->teacher($request, $classId);
-
-        $topics = DB::table('classwork_topics')
-            ->where('year_section_subject_id', $classId)
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get(['id', 'name', 'sort_order']);
-
-        return response()->json($topics);
-    }
-
-    public function storeTopic(Request $request, int $classId)
-    {
-        $this->teacher($request, $classId);
-
-        if (is_string($request->input('name'))) {
-            $request->merge([
-                'name' => trim($request->input('name')),
-            ]);
-        }
-
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:120'],
-        ]);
-
-        $topic = DB::transaction(function () use ($classId, $data) {
-            DB::table('year_section_subjects')
-                ->where('id', $classId)
-                ->lockForUpdate()
-                ->first();
-
-            $topics = DB::table('classwork_topics')
-                ->where('year_section_subject_id', $classId);
-
-            if ((clone $topics)->where('name', $data['name'])->exists()) {
-                throw ValidationException::withMessages([
-                    'name' => 'This class already has that topic.',
-                ]);
-            }
-
-            $sortOrder = (int) ($topics->max('sort_order') ?? -1) + 1;
-
-            $id = DB::table('classwork_topics')->insertGetId([
-                'year_section_subject_id' => $classId,
-                'name' => $data['name'],
-                'sort_order' => $sortOrder,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            return [
-                'id' => $id,
-                'name' => $data['name'],
-                'sort_order' => $sortOrder,
-            ];
-        });
-
-        return response()->json($topic, 201);
-    }
 }

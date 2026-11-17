@@ -77,9 +77,9 @@ export default function RelatedMaterials({ materialIds }) {
                                     {item.title}
                                 </span>
 
-                                {query.data?.can_manage && !item.published && (
+                                {query.data?.can_manage && (item.archived_at || !item.published) && (
                                     <Badge variant="secondary">
-                                        Draft
+                                        {item.archived_at ? 'Archived' : 'Draft'}
                                     </Badge>
                                 )}
 

@@ -71,6 +71,11 @@ Route::middleware('auth')
             ->whereIn('kind', ['materials', 'assignments'])
             ->whereNumber('id');
 
-        Route::get('topics', 'topics')->name('topics.index');
-        Route::post('topics', 'storeTopic')->name('topics.store');
+        Route::post('materials/{id}/archive', 'archive')
+            ->whereNumber('id')
+            ->name('materials.archive');
+
+        Route::delete('materials/{id}', 'destroyMaterial')
+            ->whereNumber('id')
+            ->name('materials.destroy');
     });

@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useId, useRef, useState } from 'react'
 import axios from 'axios'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Check, CloudOff, Loader2, TriangleAlert } from 'lucide-react'
+import { Check, CloudOff, Loader2, Plus, TriangleAlert, X } from 'lucide-react'
 
 import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
 import { Textarea } from '@/Components/ui/textarea'
 
 import {
@@ -16,7 +17,9 @@ import {
     AlertDialogTitle,
 } from '@/Components/ui/alert-dialog'
 
+import AnswerList, { answerItems } from '../Shared/AnswerList'
 import Files from '../Shared/Files'
+import LinkList from '../Shared/LinkList'
 import StatusBadge from '../Shared/StatusBadge'
 
 import {
@@ -31,22 +34,62 @@ import {
     useClassworkQuery,
 } from '../Shared/api'
 
+import {
+    DEFAULT_PROMPT,
+    MAX_FILES,
+    SHORT_ANSWER_MAX,
+    acceptAttribute,
+    describeFiles,
+    fileProblem,
+    isAnswered,
+    linkProblem,
+    missingParts,
+    normalizeSettings,
+    requirementList,
+} from '../Shared/submissionRules'
+
 const AUTOSAVE_DELAY = 1000
 
-// A copy of unsaved typing stays on this device until the server has it,
+const cleanLinks = (links) => links.map((link) => link.trim()).filter(Boolean)
+
+// Comparable text for a piece of work: answers by question id, then links.
+const serialize = (work) => JSON.stringify({
+    answers: Object.keys(work.answers)
+        .sort((a, b) => Number(a) - Number(b))
+        .map((id) => [id, work.answers[id] ?? '']),
+    links: cleanLinks(work.links),
+})
+
+// A copy of unsaved work stays on this device until the server has it,
 // so a refresh, a closed tab or a lost connection never loses work.
-function readBackup(storageKey) {
+function readBackup(storageKey, questions) {
     try {
         const value = JSON.parse(window.localStorage.getItem(storageKey) ?? 'null')
-        return typeof value?.answer === 'string' ? value.answer : null
+        if (!value || typeof value !== 'object') return null
+
+        const answers = {}
+
+        if (value.answers && typeof value.answers === 'object') {
+            for (const question of questions) {
+                const answer = value.answers[question.id]
+                if (typeof answer === 'string') answers[question.id] = answer
+            }
+        } else if (typeof value.answer === 'string') {
+            // Kept on this device before assignments had questions.
+            if (value.answer && questions.length > 0) answers[questions[0].id] = value.answer
+        } else {
+            return null
+        }
+
+        return { answers, links: Array.isArray(value.links) ? value.links.map(String) : [] }
     } catch {
         return null
     }
 }
 
-function writeBackup(storageKey, answer) {
+function writeBackup(storageKey, work) {
     try {
-        window.localStorage.setItem(storageKey, JSON.stringify({ answer, at: Date.now() }))
+        window.localStorage.setItem(storageKey, JSON.stringify({ ...work, at: Date.now() }))
     } catch {
         // Storage can be full or blocked; autosave still runs.
     }
@@ -89,15 +132,31 @@ function Result({ score, max, feedback }) {
     )
 }
 
-function Answer({ value }) {
-    if (!value) return null
+// The current questions with the student's answers, then any answers to
+// questions removed after the work was turned in.
+function SubmittedAnswers({ questions, submission }) {
+    const items = [
+        ...answerItems(questions, submission?.answers),
+        ...(submission?.removed_answers ?? []).map((entry) => ({
+            key: `removed-${entry.question_id}`,
+            label: null,
+            prompt: entry.prompt,
+            type: entry.type,
+            value: entry.answer,
+        })),
+    ]
+
+    if (!items.some((item) => isAnswered(item.value))) return null
+
+    // The heading already says "Your answer".
+    const shown = items.length === 1 && items[0].prompt === DEFAULT_PROMPT
+        ? [{ ...items[0], prompt: null }]
+        : items
 
     return (
-        <div className="space-y-1.5">
-            <p className="text-sm font-medium">Your answer</p>
-            <p className="whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/30 p-3 text-sm">
-                {value}
-            </p>
+        <div className="space-y-2">
+            <p className="text-sm font-medium">{items.length === 1 ? 'Your answer' : 'Your answers'}</p>
+            <AnswerList items={shown} />
         </div>
     )
 }
@@ -110,7 +169,8 @@ function TurnedIn({ assignment, submission, score }) {
             <StatusBadge tone={late ? 'warning' : 'info'}>
                 {late ? 'Turned in late' : 'Turned in'} · {formatDateTime(submission.submitted_at)}
             </StatusBadge>
-            <Answer value={submission.answer} />
+            <SubmittedAnswers questions={assignment.questions ?? []} submission={submission} />
+            <LinkList links={submission.links} label="Your links" />
             <Files kind="submissions" id={submission.id} headingLevel={6} />
             <Result score={score} max={assignment.max_score} feedback={submission.feedback} />
         </div>
@@ -127,7 +187,8 @@ function Closed({ assignment, submission, score }) {
                     accepts work. Ask your instructor if you still need to turn it in.
                 </p>
             </div>
-            <Answer value={submission?.answer} />
+            <SubmittedAnswers questions={assignment.questions ?? []} submission={submission} />
+            <LinkList links={submission?.links} label="Your links" />
             {submission && <Files kind="submissions" id={submission.id} headingLevel={6} />}
             <Result score={score} max={assignment.max_score} feedback={submission?.feedback} />
         </div>
@@ -157,7 +218,7 @@ function SaveStatus({ state, onRetry }) {
             return (
                 <span className={`${base} text-amber-700 dark:text-amber-300`}>
                     <CloudOff className="size-3.5" aria-hidden="true" />
-                    You're offline. Your answer is kept on this device and saves when you reconnect.
+                    You're offline. Your work is kept on this device and saves when you reconnect.
                 </span>
             )
         case 'error':
@@ -173,26 +234,129 @@ function SaveStatus({ state, onRetry }) {
         default:
             return (
                 <span className={`${base} text-muted-foreground`}>
-                    Your answer saves automatically as you type.
+                    Your work saves automatically as you go.
                 </span>
             )
     }
 }
 
-function Draft({ assignment, submission }) {
+function Requirements({ settings, questions }) {
+    const list = requirementList(settings, questions)
+
+    if (list.length === 0) return null
+
+    return (
+        <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
+            <p className="font-medium text-foreground">To turn in this assignment</p>
+            {list.map((entry) => (
+                <p key={entry.key} className="mt-0.5 text-muted-foreground">
+                    {entry.label}
+                    {entry.hint && <span className="block text-xs">{entry.hint}</span>}
+                </p>
+            ))}
+        </div>
+    )
+}
+
+function QuestionField({ question, number, total, value, disabled, describedBy, onChange, onBlur }) {
+    const id = useId()
+    const labelId = `${id}-label`
+    const countId = `${id}-count`
+    const short = question.type === 'short_answer'
+    const nearLimit = short && value.length > SHORT_ANSWER_MAX - 100
+
+    return (
+        <div className="space-y-2">
+            <div id={labelId}>
+                {total > 1 && (
+                    <span className="block text-xs font-medium text-muted-foreground">
+                        Question {number} of {total}
+                    </span>
+                )}
+                {/* A lone question must be answered, whatever its flag. */}
+                <span className="block whitespace-pre-wrap break-words text-sm font-medium text-foreground">
+                    {question.prompt}
+                    {!question.required && total > 1 && <span className="font-normal text-muted-foreground"> (optional)</span>}
+                </span>
+            </div>
+
+            {short ? (
+                <>
+                    <Input
+                        id={id}
+                        value={value}
+                        maxLength={SHORT_ANSWER_MAX}
+                        autoComplete="off"
+                        disabled={disabled}
+                        aria-labelledby={labelId}
+                        aria-describedby={[nearLimit && countId, describedBy].filter(Boolean).join(' ') || undefined}
+                        placeholder="Type a short answer…"
+                        onChange={(event) => onChange(event.target.value)}
+                        onBlur={onBlur}
+                        className="h-10 max-md:text-base"
+                    />
+                    {nearLimit && (
+                        <p id={countId} className="text-right text-xs tabular-nums text-muted-foreground">
+                            {value.length}/{SHORT_ANSWER_MAX}
+                        </p>
+                    )}
+                </>
+            ) : (
+                <Textarea
+                    id={id}
+                    value={value}
+                    maxLength={20000}
+                    disabled={disabled}
+                    aria-labelledby={labelId}
+                    aria-describedby={describedBy}
+                    placeholder="Type your answer here…"
+                    onChange={(event) => onChange(event.target.value)}
+                    onBlur={onBlur}
+                    className="block min-h-32 w-full max-md:text-base"
+                />
+            )}
+        </div>
+    )
+}
+
+function Draft({ assignment, submission, onTurnedIn }) {
     const { base, key } = useClasswork()
     const client = useQueryClient()
 
+    const settings = normalizeSettings(assignment.submission_settings)
+    const questions = settings.type === 'questions' ? (assignment.questions ?? []) : []
+
     const mineKey = [...key, `assignments/${assignment.id}/mine`]
     const storageKey = `classwork-draft:${key.slice(1).join(':')}:${assignment.id}`
-    const serverAnswer = submission?.answer ?? ''
 
-    const [restored] = useState(() => {
-        const backup = readBackup(storageKey)
-        return backup !== null && backup !== serverAnswer ? backup : null
+    // What the server has: an answer for each current question, and links.
+    const [server] = useState(() => {
+        const saved = submission?.answers ?? {}
+
+        return {
+            answers: Object.fromEntries(questions.map((question) => [question.id, saved[question.id] ?? ''])),
+            links: settings.links.enabled ? (submission?.links ?? []) : [],
+        }
     })
 
-    const [answer, setAnswer] = useState(restored ?? serverAnswer)
+    const [restored] = useState(() => {
+        const backup = readBackup(storageKey, questions)
+        if (!backup) return null
+
+        const merged = {
+            answers: { ...server.answers, ...backup.answers },
+            links: settings.links.enabled ? backup.links : [],
+        }
+
+        return serialize(merged) !== serialize(server) ? merged : null
+    })
+
+    const initial = restored ?? server
+    const [answers, setAnswers] = useState(initial.answers)
+    const [links, setLinks] = useState(() =>
+        settings.links.enabled && initial.links.length === 0 ? [''] : initial.links
+    )
+    const [touched, setTouched] = useState(() => new Set())
     const [showRestored, setShowRestored] = useState(restored !== null)
     const [state, setState] = useState(() =>
         restored !== null ? { status: 'dirty' } : { status: submission ? 'saved' : 'idle' }
@@ -200,31 +364,46 @@ function Draft({ assignment, submission }) {
     const [uploading, setUploading] = useState(false)
     const [confirm, setConfirm] = useState(false)
 
-    const answerId = useId()
     const statusId = useId()
+    const linksId = useId()
 
-    const latest = useRef(answer)
-    const saved = useRef(serverAnswer)
+    const latest = useRef({ answers: initial.answers, links: initial.links })
+    const saved = useRef(serialize(server))
     const submissionRef = useRef(submission)
     const chain = useRef(Promise.resolve())
     const timer = useRef(null)
     const submittedRef = useRef(false)
+    const questionsRef = useRef(questions)
 
     submissionRef.current = submission ?? submissionRef.current
+    questionsRef.current = questions
 
     const files = useClassworkQuery(`submissions/${submission?.id ?? 'pending'}/files`, {
         enabled: Boolean(submission?.id),
     })
     const fileCount = files.data?.length ?? 0
 
+    // Only the parts this assignment accepts are sent: an answer for every
+    // question (by id) and the links.
+    const payload = useCallback((work) => {
+        const asked = questionsRef.current
+
+        return {
+            ...(asked.length > 0
+                ? { answers: Object.fromEntries(asked.map((question) => [question.id, work.answers[question.id] ?? ''])) }
+                : {}),
+            ...(settings.links.enabled ? { links: cleanLinks(work.links) } : {}),
+        }
+    }, [settings.links.enabled])
+
     // Requests are queued so autosaves and draft creation never race.
-    const post = useCallback((value) => {
+    const post = useCallback((work) => {
         const run = chain.current.then(() =>
-            axios.post(`${base}/assignments/${assignment.id}/draft`, { answer: value })
+            axios.post(`${base}/assignments/${assignment.id}/draft`, payload(work))
         )
         chain.current = run.catch(() => {})
         return run
-    }, [base, assignment.id])
+    }, [base, assignment.id, payload])
 
     const remember = useCallback((row) => {
         const first = !submissionRef.current
@@ -238,12 +417,13 @@ function Draft({ assignment, submission }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [client, key.join(':'), assignment.id])
 
-    const saveNow = useCallback(async (value) => {
-        const { data } = await post(value)
-        saved.current = value
+    const saveNow = useCallback(async (work) => {
+        const snapshot = serialize(work)
+        const { data } = await post(work)
+        saved.current = snapshot
         remember(data)
 
-        if (latest.current === value) {
+        if (serialize(latest.current) === snapshot) {
             clearBackup(storageKey)
             setState({ status: 'saved', at: new Date() })
         }
@@ -256,9 +436,9 @@ function Draft({ assignment, submission }) {
 
         if (submittedRef.current) return
 
-        const value = latest.current
+        const work = latest.current
 
-        if (value === saved.current) {
+        if (serialize(work) === saved.current) {
             setState((current) => {
                 if (!submissionRef.current) return { status: 'idle' }
                 return current.status === 'saved' ? current : { status: 'saved', at: current.at }
@@ -274,7 +454,7 @@ function Draft({ assignment, submission }) {
         setState((current) => ({ status: 'saving', at: current.at }))
 
         try {
-            await saveNow(value)
+            await saveNow(work)
         } catch (error) {
             setState(navigator.onLine ? { status: 'error', error } : { status: 'offline' })
         }
@@ -287,18 +467,27 @@ function Draft({ assignment, submission }) {
         return data.id
     }, [saveNow])
 
-    function change(value) {
-        setAnswer(value)
-        latest.current = value
-        writeBackup(storageKey, value)
+    function change(patch) {
+        const next = { ...latest.current, ...patch }
+        latest.current = next
+        if ('answers' in patch) setAnswers(patch.answers)
+        if ('links' in patch) setLinks(patch.links)
+        writeBackup(storageKey, next)
         setState((current) => ({ status: 'dirty', at: current.at }))
         window.clearTimeout(timer.current)
         timer.current = window.setTimeout(flush, AUTOSAVE_DELAY)
     }
 
+    function changeAnswer(questionId, value) {
+        change({ answers: { ...latest.current.answers, [questionId]: value } })
+    }
+
     function revertToSaved() {
         setShowRestored(false)
-        change(serverAnswer)
+        change({
+            answers: server.answers,
+            links: settings.links.enabled && server.links.length === 0 ? [''] : server.links,
+        })
         clearBackup(storageKey)
     }
 
@@ -318,7 +507,7 @@ function Draft({ assignment, submission }) {
             window.removeEventListener('online', flush)
             document.removeEventListener('visibilitychange', onHidden)
             window.clearTimeout(timer.current)
-            if (latest.current !== saved.current) void flush()
+            if (serialize(latest.current) !== saved.current) void flush()
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
@@ -334,23 +523,43 @@ function Draft({ assignment, submission }) {
 
     const submit = useClassworkMutation(
         (data, url) => axios.post(`${url}/assignments/${assignment.id}/submit`, data),
-        () => {
+        (response) => {
             submittedRef.current = true
             clearBackup(storageKey)
             setConfirm(false)
             toast.success('Assignment turned in', { description: assignment.title })
+            // The response is the turned-in work; show it right away rather
+            // than waiting for the refetched query to reach this component.
+            onTurnedIn?.(response.data)
         }
     )
 
-    const empty = !answer.trim() && fileCount === 0
+    const filledLinks = cleanLinks(links)
+    const answered = questions.filter((question) => isAnswered(answers[question.id])).length
+    const missing = missingParts(settings, { questions, answers, fileCount, links })
     const pastDue = isPastDue(assignment.due_at)
     const turningIn = [
-        answer.trim() && 'your answer',
+        answered > 0 && (questions.length === 1
+            ? 'your answer'
+            : `your answers to ${answered} of ${questions.length} questions`),
+        filledLinks.length > 0 && `${filledLinks.length} link${filledLinks.length === 1 ? '' : 's'}`,
         fileCount > 0 && `${fileCount} attached file${fileCount === 1 ? '' : 's'}`,
-    ].filter(Boolean).join(' and ')
+    ].filter(Boolean).join(', ')
+
+    function updateLink(index, value) {
+        change({ links: links.map((link, position) => position === index ? value : link) })
+    }
+
+    function removeLink(index) {
+        const next = links.filter((_, position) => position !== index)
+        setTouched(new Set())
+        change({ links: next.length ? next : [''] })
+    }
 
     return (
         <div className="space-y-4">
+            <Requirements settings={settings} questions={questions} />
+
             {pastDue && (
                 <div role="note" className="flex gap-2 rounded-lg border border-amber-600/25 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
                     <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -372,50 +581,113 @@ function Draft({ assignment, submission }) {
                 </div>
             )}
 
-            <div className="space-y-2">
-                <label htmlFor={answerId} className="text-sm font-medium">
-                    Your answer
-                </label>
+            {questions.length > 0 && (
+                <ol className="space-y-5">
+                    {questions.map((question, index) => (
+                        <li key={question.id}>
+                            <QuestionField
+                                question={question}
+                                number={index + 1}
+                                total={questions.length}
+                                value={answers[question.id] ?? ''}
+                                disabled={submit.isPending}
+                                describedBy={statusId}
+                                onChange={(value) => changeAnswer(question.id, value)}
+                                onBlur={() => void flush()}
+                            />
+                        </li>
+                    ))}
+                </ol>
+            )}
 
-                <Textarea
-                    id={answerId}
-                    value={answer}
-                    onChange={(event) => change(event.target.value)}
-                    onBlur={() => void flush()}
-                    maxLength={20000}
-                    disabled={submit.isPending}
-                    aria-describedby={statusId}
-                    placeholder="Type your answer here…"
-                    className="block min-h-32 w-full max-md:text-base"
-                />
+            {settings.links.enabled && (
+                <fieldset className="space-y-2" aria-describedby={`${linksId}-help`}>
+                    <legend className="text-sm font-medium">
+                        Links{!settings.links.required && <span className="font-normal text-muted-foreground"> (optional)</span>}
+                    </legend>
+                    <p id={`${linksId}-help`} className="text-xs text-muted-foreground">
+                        Paste full web addresses{settings.links.domain ? ` on ${settings.links.domain}` : ''}.
+                        {' '}Up to {settings.links.max_links}.
+                    </p>
 
-                <div id={statusId}>
-                    <SaveStatus state={state} onRetry={() => void flush()} />
-                </div>
+                    {links.map((link, index) => {
+                        const value = link.trim()
+                        const problem = value && touched.has(index) ? linkProblem(value, settings.links) : null
 
-                {/* Announce only problems; routine saves stay quiet. */}
-                <p className="sr-only" role="status">
-                    {state.status === 'error'
-                        ? 'Your answer could not be saved.'
-                        : state.status === 'offline'
-                            ? 'You are offline. Your answer will save when you reconnect.'
-                            : ''}
-                </p>
+                        return (
+                            <div key={index} className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="url"
+                                        inputMode="url"
+                                        autoComplete="off"
+                                        value={link}
+                                        disabled={submit.isPending}
+                                        aria-label={`Link ${index + 1}`}
+                                        aria-invalid={Boolean(problem)}
+                                        placeholder={settings.links.domain ? `https://${settings.links.domain}/…` : 'https://…'}
+                                        onChange={(event) => updateLink(index, event.target.value)}
+                                        onBlur={() => {
+                                            setTouched((current) => new Set(current).add(index))
+                                            void flush()
+                                        }}
+                                        className="h-10 min-w-0 flex-1 max-md:text-base"
+                                    />
+                                    {(links.length > 1 || value) && (
+                                        <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0"
+                                            aria-label={`Remove link ${index + 1}`} disabled={submit.isPending}
+                                            onClick={() => removeLink(index)}>
+                                            <X className="size-4" aria-hidden="true" />
+                                        </Button>
+                                    )}
+                                </div>
+                                {problem && <p className="text-xs text-destructive">{problem}</p>}
+                            </div>
+                        )
+                    })}
+
+                    {links.length < settings.links.max_links && (
+                        <Button type="button" variant="outline" size="sm" disabled={submit.isPending}
+                            onClick={() => change({ links: [...links, ''] })}>
+                            <Plus className="size-4" aria-hidden="true" />
+                            Add link
+                        </Button>
+                    )}
+                </fieldset>
+            )}
+
+            <div id={statusId}>
+                <SaveStatus state={state} onRetry={() => void flush()} />
             </div>
 
-            <Files
-                kind="submissions"
-                id={submission?.id ?? null}
-                editable={!submit.isPending}
-                onBusyChange={setUploading}
-                ensureId={ensureId}
-                headingLevel={6}
-            />
+            {/* Announce only problems; routine saves stay quiet. */}
+            <p className="sr-only" role="status">
+                {state.status === 'error'
+                    ? 'Your work could not be saved.'
+                    : state.status === 'offline'
+                        ? 'You are offline. Your work will save when you reconnect.'
+                        : ''}
+            </p>
+
+            {(settings.files.enabled || fileCount > 0) && (
+                <Files
+                    kind="submissions"
+                    id={submission?.id ?? null}
+                    editable={settings.files.enabled && !submit.isPending}
+                    onBusyChange={setUploading}
+                    ensureId={ensureId}
+                    headingLevel={6}
+                    accept={acceptAttribute(settings.files)}
+                    checkFile={(file) => fileProblem(file, settings.files)}
+                    maxFiles={MAX_FILES}
+                    hint={describeFiles(settings.files) + '.'}
+                />
+            )}
 
             <div className="space-y-2">
                 <Button
                     type="button"
-                    disabled={uploading || submit.isPending || empty}
+                    disabled={uploading || submit.isPending || missing.length > 0}
                     onClick={() => {
                         window.clearTimeout(timer.current)
                         submit.reset()
@@ -426,11 +698,15 @@ function Draft({ assignment, submission }) {
                     Turn in
                 </Button>
 
-                <p className="text-xs text-muted-foreground">
-                    {empty
-                        ? 'Write an answer or attach a file to turn this in.'
-                        : 'Once turned in, your work can no longer be changed.'}
-                </p>
+                {missing.length > 0 ? (
+                    <ul className="space-y-0.5 text-xs text-muted-foreground">
+                        {missing.map((message) => <li key={message}>{message}</li>)}
+                    </ul>
+                ) : (
+                    <p className="text-xs text-muted-foreground">
+                        Once turned in, your work can no longer be changed.
+                    </p>
+                )}
             </div>
 
             <AlertDialog
@@ -463,7 +739,7 @@ function Draft({ assignment, submission }) {
 
                         <Button
                             disabled={submit.isPending}
-                            onClick={() => submit.mutate({ answer: latest.current })}
+                            onClick={() => submit.mutate(payload(latest.current))}
                         >
                             {submit.isPending ? 'Turning in…' : 'Turn in'}
                         </Button>
@@ -477,9 +753,13 @@ function Draft({ assignment, submission }) {
 export default function StudentWork({ assignment }) {
     const query = useClassworkQuery(`assignments/${assignment.id}/mine`)
     const headingId = useId()
+    const [turnedIn, setTurnedIn] = useState(null)
 
-    const submission = query.data?.submission ?? null
-    const score = query.data?.score ?? null
+    // Prefer the server's copy once it shows the work turned in; until the
+    // refetch lands, use the turn-in response itself.
+    const fromQuery = query.data?.submission ?? null
+    const submission = fromQuery?.submitted_at ? fromQuery : (turnedIn?.submission ?? fromQuery)
+    const score = query.data?.score ?? turnedIn?.score ?? null
     const closed = !assignment.allow_late && isPastDue(assignment.due_at)
 
     return (
@@ -508,7 +788,7 @@ export default function StudentWork({ assignment }) {
                 ) : closed ? (
                     <Closed assignment={assignment} submission={submission} score={score} />
                 ) : (
-                    <Draft key={assignment.id} assignment={assignment} submission={submission} />
+                    <Draft key={assignment.id} assignment={assignment} submission={submission} onTurnedIn={setTurnedIn} />
                 )
             )}
         </section>

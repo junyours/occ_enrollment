@@ -91,11 +91,13 @@ const tools = [
     },
 ]
 
+// `optional` adds a muted "(optional)" to the label.
 export default function RichTextEditor({
     value,
     onChange,
     label = 'Instructions',
     disabled = false,
+    optional = false,
 }) {
     const [linkOpen, setLinkOpen] = useState(false)
     const [linkText, setLinkText] = useState('')
@@ -280,6 +282,7 @@ export default function RichTextEditor({
         <div className="space-y-2">
             <p className="text-sm font-medium">
                 {label}
+                {optional && <span className="font-normal text-muted-foreground"> (optional)</span>}
             </p>
 
             <div

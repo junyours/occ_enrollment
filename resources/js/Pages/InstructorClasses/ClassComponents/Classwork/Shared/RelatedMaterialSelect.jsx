@@ -6,6 +6,8 @@ import { Button } from '@/Components/ui/button'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Input } from '@/Components/ui/input'
 
+import { cn } from '@/Lib/Utils'
+
 import { ErrorNotice, useClassworkQuery } from './api'
 
 const LIMIT = 50
@@ -14,16 +16,22 @@ export default function RelatedMaterialSelect({
     value,
     onChange,
     disabled,
+    className,
 }) {
     const query = useClassworkQuery('materials')
     const [search, setSearch] = useState('')
     const fieldId = useId()
 
     const selected = value.map(String)
-    const items = query.data?.items ?? []
+
+    // Archived materials can't be newly linked, but stay listed while
+    // linked so the teacher can unlink them.
+    const items = (query.data?.items ?? []).filter((item) =>
+        !item.archived_at || selected.includes(String(item.id))
+    )
 
     const matches = items.filter((item) =>
-        `${item.title} ${item.topic_name ?? ''}`
+        item.title
             .toLocaleLowerCase()
             .includes(search.trim().toLocaleLowerCase())
     )
@@ -47,7 +55,7 @@ export default function RelatedMaterialSelect({
 
     return (
         <section
-            className="space-y-3 rounded-xl border bg-background p-4"
+            className={cn('min-w-0 space-y-3 rounded-xl border bg-background p-4', className)}
             aria-labelledby={`${fieldId}-label`}
         >
             <div>
@@ -184,17 +192,14 @@ export default function RelatedMaterialSelect({
                                         {item.title}
                                     </span>
 
-                                    <span className="text-xs text-muted-foreground">
-                                        {item.topic_name || 'General'}
-                                    </span>
                                 </span>
 
-                                {!item.published && (
+                                {(item.archived_at || !item.published) && (
                                     <Badge
                                         variant="secondary"
                                         className="shrink-0 text-xs"
                                     >
-                                        Draft
+                                        {item.archived_at ? 'Archived' : 'Draft'}
                                     </Badge>
                                 )}
                             </label>
