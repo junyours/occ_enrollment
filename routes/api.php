@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mobile/user', [AuthController::class, 'user']);
-    Route::get('/csg-attendance/user', [CsgAttendanceController::class, 'csgAttendanceUser']);
 
     Route::get('/mobile/current-school-year', [ClassController::class, 'getCurrentSchoolYear']);
 
@@ -25,13 +24,14 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // CSG-ATTENDANCE
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'csg-attendance'])->group(function () {
     Route::get('/csg-attendance/user', [CsgAttendanceController::class, 'csgAttendanceUser']);
     Route::get('/school-structure', [CsgAttendanceController::class, 'getSchoolStructure']);
     Route::get('/student-enrollment', [CsgAttendanceController::class, 'getStudentEnrollment']);
 });
 
+// Limit password guessing (limiters defined in AppServiceProvider).
 Route::middleware('guest')->group(function () {
-    Route::post('/mobile/login', [AuthController::class, 'login']);
-    Route::post('/csg-attendance/login', [CsgAttendanceController::class, 'csgAttendanceLogin']);
+    Route::post('/mobile/login', [AuthController::class, 'login'])->middleware('throttle:mobile-login');
+    Route::post('/csg-attendance/login', [CsgAttendanceController::class, 'csgAttendanceLogin'])->middleware('throttle:csg-login');
 });

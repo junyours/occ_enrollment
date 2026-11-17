@@ -28,8 +28,6 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
     Route::post('/api/enrollment/get-classes', [EnrollmentClassSchedulingController::class, 'enrollmentGetClasses'])->name('enrollment.get.classes');
 });
 
-Route::post('/api/delete/curr-subject/{id}', [CurriculumController::class, 'deleteCurrSubject'])->name('delete.curr.subject');
-
 Route::get('/api/questions/exists', function () {
     return response()->json([
         'hasQuestions' => \App\Models\Question::exists()
