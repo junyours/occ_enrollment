@@ -15,6 +15,7 @@ use App\Models\UserInformation;
 use App\Models\YearLevel;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use App\Services\StudentCityCounts;
 use Carbon\Carbon;
 use DateTime;
 use Exception;
@@ -497,9 +498,10 @@ class SchoolYearController extends Controller
         return response()->json($schoolYear);
     }
 
-    public function enrollmentData(Request $request)
+    public function enrollmentData(Request $request, StudentCityCounts $studentCityCounts)
     {
-        $schoolYearId = $request->schoolYearId;
+        // Cast: this endpoint is public and the id is used in a raw SQL expression below.
+        $schoolYearId = (int) $request->schoolYearId;
 
         $departmentCounts = Department::select('department.*')
             ->selectSub(function ($query) use ($schoolYearId) {
@@ -600,6 +602,7 @@ class SchoolYearController extends Controller
             'enrollmentsPerDate' => $enrollmentsPerDate,
             'peakDays' => $peakDays,
             'courses' => $courses,
+            'cityCounts' => $studentCityCounts->forSchoolYear($schoolYearId),
         ], 200);
     }
 

@@ -11,6 +11,7 @@ import GenderCounts from './Partials/GenderCounts';
 import StudentTypes from './Partials/StudentTypes';
 import EnrollmentsPerDate from './Partials/EnrollmentsPerDate';
 import ProgramCounts from './Partials/ProgramCounts';
+import CityCounts from './Partials/CityCounts';
 import EnrollmentDashboardSkeleton from './EnrollmentDashboardSkeleton';
 
 export default function EnrollmentDashboard({ schoolYear }) {
@@ -42,6 +43,7 @@ export default function EnrollmentDashboard({ schoolYear }) {
         studentTypeCounts = [],
         enrollmentsPerDate = [],
         courses = [],
+        cityCounts = null,
     } = data || {};
 
     return (
@@ -59,6 +61,7 @@ export default function EnrollmentDashboard({ schoolYear }) {
                 <YearLevelCounts data={yearLevelCounts} />
                 <StudentTypes data={studentTypeCounts} />
                 <GenderCounts data={genderCounts} />
+                <CityCounts data={cityCounts} />
                 <EnrollmentsPerDate data={enrollmentsPerDate} />
             </div>
         </div>

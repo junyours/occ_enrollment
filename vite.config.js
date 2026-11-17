@@ -23,6 +23,14 @@ export default defineConfig({
             chunkStrategy: 'none',
         }),
     ],
+    server: {
+        watch: {
+            // The file-viewer plugin copies its assets into public/file-viewer
+            // on startup. Watching them while they're written crashes Vite on
+            // Windows (EBUSY), and they never need hot reload.
+            ignored: ['**/public/file-viewer/**'],
+        },
+    },
     // server: {
     //     host: '10.116.205.226', // Use your local network IP
     //     port: 5173,
