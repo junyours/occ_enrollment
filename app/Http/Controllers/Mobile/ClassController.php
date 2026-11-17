@@ -233,8 +233,19 @@ class ClassController extends Controller
 
     public function getStudents(Request $request)
     {
-        $id = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$request->hashed_year_section_subject_id])
-            ->first()->id;
+        $class = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$request->hashed_year_section_subject_id])
+            ->first();
+
+        if (!$class) {
+            return response()->json(['message' => 'Class not found'], 404);
+        }
+
+        // Only the faculty assigned to this class may see its roster and grades.
+        if ((string) $class->faculty_id !== (string) Auth::id()) {
+            return response()->json(['message' => 'You are not assigned to this class.'], 403);
+        }
+
+        $id = $class->id;
 
         $students = StudentSubject::select(
             'users.id',

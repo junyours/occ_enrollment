@@ -57,6 +57,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'StudentManagementPermission' => \App\Http\Middleware\StudentManagementPermission::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'billing' => \App\Http\Middleware\Billing::class,
+            'csg-attendance' => \App\Http\Middleware\CsgAttendanceToken::class,
         ]);
         //
     })

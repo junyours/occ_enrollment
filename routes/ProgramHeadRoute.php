@@ -26,4 +26,5 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::post('/curriculum/schoolyear', [CurriculumController::class, 'addSchoolYear'])->name('curr.schoolyear');
     Route::post('/curriculum/subject', [CurriculumController::class, 'addSubject'])->name('curr.addsubject');
     Route::post('/curriculum/subject/edit/subject', [CurriculumController::class, 'editSubject'])->name('curr.editsubject');
+    Route::post('/api/delete/curr-subject/{id}', [CurriculumController::class, 'deleteCurrSubject'])->name('delete.curr.subject');
 });
