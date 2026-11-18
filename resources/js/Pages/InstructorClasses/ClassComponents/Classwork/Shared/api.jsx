@@ -11,11 +11,15 @@ const Context = createContext(null)
 export function ClassworkProvider({
     classId,
     userId,
+    // Optional: assignment id => page URL. Students then open each
+    // assignment on its own page instead of expanding it in the list.
+    assignmentHref = null,
     children,
 }) {
     const value = {
         base: `/classes/${encodeURIComponent(classId)}/classwork`,
         key: ['classwork', String(userId), String(classId)],
+        assignmentHref,
     }
 
     return (

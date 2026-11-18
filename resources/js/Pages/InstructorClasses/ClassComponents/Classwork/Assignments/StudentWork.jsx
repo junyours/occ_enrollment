@@ -29,6 +29,7 @@ import {
     formatTime,
     isLate,
     isPastDue,
+    studentStatus,
     useClasswork,
     useClassworkMutation,
     useClassworkQuery,
@@ -103,13 +104,46 @@ function clearBackup(storageKey) {
     }
 }
 
+// The "Your work" card: what the student hands in, with its status.
+function WorkCard({ status, children }) {
+    const headingId = useId()
+
+    return (
+        <section aria-labelledby={headingId} className="min-w-0 space-y-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 id={headingId} className="text-base font-semibold text-foreground">
+                    Your work
+                </h2>
+                {status && <StatusBadge tone={status.tone}>{status.label}</StatusBadge>}
+            </div>
+
+            {children}
+        </section>
+    )
+}
+
+// Answers to the assignment's questions, in the page's main column.
+function AnswersCard({ count, children }) {
+    const headingId = useId()
+
+    return (
+        <section aria-labelledby={headingId} className="min-w-0 space-y-5 rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+            <h2 id={headingId} className="text-base font-semibold text-foreground">
+                {count === 1 ? 'Your answer' : 'Your answers'}
+            </h2>
+
+            {children}
+        </section>
+    )
+}
+
 function Result({ score, max, feedback }) {
     const graded = score !== null && score !== undefined
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-3 border-t border-border pt-4">
             {graded ? (
-                <div className="flex items-baseline justify-between gap-3 rounded-xl border border-border bg-card p-4">
+                <div className="flex items-baseline justify-between gap-3">
                     <p className="text-sm font-medium text-muted-foreground">Score</p>
                     <p className="text-2xl font-semibold tabular-nums text-foreground">
                         {score}
@@ -117,19 +151,32 @@ function Result({ score, max, feedback }) {
                     </p>
                 </div>
             ) : (
-                <p className="rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                     Not graded yet. Your score will appear here.
                 </p>
             )}
 
             {feedback && (
-                <div className="space-y-1 rounded-xl border border-border bg-card p-4">
-                    <p className="text-sm font-medium text-foreground">Feedback from your instructor</p>
+                <div className="space-y-1 rounded-lg bg-muted/50 p-3">
+                    <p className="text-xs font-medium text-muted-foreground">Feedback from your instructor</p>
                     <p className="whitespace-pre-wrap break-words text-sm">{feedback}</p>
                 </div>
             )}
         </div>
     )
+}
+
+// The status of work that can no longer change.
+function finalStatus({ score, max, submittedAt, dueAt }) {
+    if (score !== null && score !== undefined) {
+        return { tone: 'success', label: `Graded · ${score}/${max}` }
+    }
+
+    if (!submittedAt) return { tone: 'danger', label: 'Missing · closed' }
+
+    return isLate(submittedAt, dueAt)
+        ? { tone: 'warning', label: 'Turned in late' }
+        : { tone: 'info', label: 'Turned in' }
 }
 
 // The current questions with the student's answers, then any answers to
@@ -154,45 +201,46 @@ function SubmittedAnswers({ questions, submission }) {
         : items
 
     return (
-        <div className="space-y-2">
-            <p className="text-sm font-medium">{items.length === 1 ? 'Your answer' : 'Your answers'}</p>
+        <AnswersCard count={items.length}>
             <AnswerList items={shown} />
-        </div>
+        </AnswersCard>
     )
 }
 
-function TurnedIn({ assignment, submission, score }) {
-    const late = isLate(submission.submitted_at, assignment.due_at)
-
-    return (
-        <div className="space-y-4">
-            <StatusBadge tone={late ? 'warning' : 'info'}>
-                {late ? 'Turned in late' : 'Turned in'} · {formatDateTime(submission.submitted_at)}
-            </StatusBadge>
-            <SubmittedAnswers questions={assignment.questions ?? []} submission={submission} />
-            <LinkList links={submission.links} label="Your links" />
-            <Files kind="submissions" id={submission.id} headingLevel={6} />
-            <Result score={score} max={assignment.max_score} feedback={submission.feedback} />
-        </div>
-    )
-}
-
-function Closed({ assignment, submission, score }) {
-    return (
-        <div className="space-y-4">
-            <div role="note" className="flex gap-2 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm">
-                <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
-                <p>
-                    This assignment closed {formatDateTime(assignment.due_at)} and no longer
-                    accepts work. Ask your instructor if you still need to turn it in.
+function TurnedIn({ assignment, submission, score, layout }) {
+    return layout({
+        answers: <SubmittedAnswers questions={assignment.questions ?? []} submission={submission} />,
+        panel: (
+            <WorkCard status={finalStatus({ score, max: assignment.max_score, submittedAt: submission.submitted_at, dueAt: assignment.due_at })}>
+                <p className="text-sm text-muted-foreground">
+                    Turned in {formatDateTime(submission.submitted_at)}
                 </p>
-            </div>
-            <SubmittedAnswers questions={assignment.questions ?? []} submission={submission} />
-            <LinkList links={submission?.links} label="Your links" />
-            {submission && <Files kind="submissions" id={submission.id} headingLevel={6} />}
-            <Result score={score} max={assignment.max_score} feedback={submission?.feedback} />
-        </div>
-    )
+                <LinkList links={submission.links} label="Your links" />
+                <Files kind="submissions" id={submission.id} title={null} compact hideEmpty />
+                <Result score={score} max={assignment.max_score} feedback={submission.feedback} />
+            </WorkCard>
+        ),
+    })
+}
+
+function Closed({ assignment, submission, score, layout }) {
+    return layout({
+        answers: <SubmittedAnswers questions={assignment.questions ?? []} submission={submission} />,
+        panel: (
+            <WorkCard status={finalStatus({ score, max: assignment.max_score, submittedAt: null, dueAt: assignment.due_at })}>
+                <div role="note" className="flex gap-2 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm">
+                    <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+                    <p>
+                        This assignment closed {formatDateTime(assignment.due_at)} and no longer
+                        accepts work. Ask your instructor if you still need to turn it in.
+                    </p>
+                </div>
+                <LinkList links={submission?.links} label="Your links" />
+                {submission && <Files kind="submissions" id={submission.id} title={null} compact hideEmpty />}
+                <Result score={score} max={assignment.max_score} feedback={submission?.feedback} />
+            </WorkCard>
+        ),
+    })
 }
 
 function SaveStatus({ state, onRetry }) {
@@ -240,20 +288,30 @@ function SaveStatus({ state, onRetry }) {
     }
 }
 
-function Requirements({ settings, questions }) {
-    const list = requirementList(settings, questions)
-
-    if (list.length === 0) return null
+// What answering the questions takes, with progress so far.
+function QuestionProgress({ settings, questions, answered }) {
+    const [requirement] = requirementList(settings, questions)
+    const percent = questions.length ? Math.round(answered / questions.length * 100) : 0
 
     return (
-        <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
-            <p className="font-medium text-foreground">To turn in this assignment</p>
-            {list.map((entry) => (
-                <p key={entry.key} className="mt-0.5 text-muted-foreground">
-                    {entry.label}
-                    {entry.hint && <span className="block text-xs">{entry.hint}</span>}
-                </p>
-            ))}
+        <div className="space-y-2">
+            {requirement && <p className="text-sm text-foreground">{requirement.label}</p>}
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Answered</span>
+                    <span className="tabular-nums">{answered} of {questions.length}</span>
+                </div>
+                <div
+                    role="progressbar"
+                    aria-label="Questions answered"
+                    aria-valuemin={0}
+                    aria-valuemax={questions.length}
+                    aria-valuenow={answered}
+                    className="h-1.5 overflow-hidden rounded-full bg-muted"
+                >
+                    <div className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${percent}%` }} />
+                </div>
+            </div>
         </div>
     )
 }
@@ -319,7 +377,7 @@ function QuestionField({ question, number, total, value, disabled, describedBy, 
     )
 }
 
-function Draft({ assignment, submission, onTurnedIn }) {
+function Draft({ assignment, submission, onTurnedIn, layout }) {
     const { base, key } = useClasswork()
     const client = useQueryClient()
 
@@ -556,106 +614,23 @@ function Draft({ assignment, submission, onTurnedIn }) {
         change({ links: next.length ? next : [''] })
     }
 
-    return (
-        <div className="space-y-4">
-            <Requirements settings={settings} questions={questions} />
+    const restoredNote = showRestored && (
+        <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 p-3 text-sm">
+            <p>Restored unsaved changes from this device.</p>
+            <div className="flex gap-1">
+                <Button type="button" variant="ghost" size="sm" onClick={revertToSaved}>
+                    Use the earlier version
+                </Button>
+                <Button type="button" variant="secondary" size="sm" onClick={() => setShowRestored(false)}>
+                    Keep
+                </Button>
+            </div>
+        </div>
+    )
 
-            {pastDue && (
-                <div role="note" className="flex gap-2 rounded-lg border border-amber-600/25 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
-                    <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                    <p>This was due {formatDateTime(assignment.due_at)}. You can still turn it in, but it will be marked late.</p>
-                </div>
-            )}
-
-            {showRestored && (
-                <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 p-3 text-sm">
-                    <p>Restored unsaved changes from this device.</p>
-                    <div className="flex gap-1">
-                        <Button type="button" variant="ghost" size="sm" onClick={revertToSaved}>
-                            Use the earlier version
-                        </Button>
-                        <Button type="button" variant="secondary" size="sm" onClick={() => setShowRestored(false)}>
-                            Keep
-                        </Button>
-                    </div>
-                </div>
-            )}
-
-            {questions.length > 0 && (
-                <ol className="space-y-5">
-                    {questions.map((question, index) => (
-                        <li key={question.id}>
-                            <QuestionField
-                                question={question}
-                                number={index + 1}
-                                total={questions.length}
-                                value={answers[question.id] ?? ''}
-                                disabled={submit.isPending}
-                                describedBy={statusId}
-                                onChange={(value) => changeAnswer(question.id, value)}
-                                onBlur={() => void flush()}
-                            />
-                        </li>
-                    ))}
-                </ol>
-            )}
-
-            {settings.links.enabled && (
-                <fieldset className="space-y-2" aria-describedby={`${linksId}-help`}>
-                    <legend className="text-sm font-medium">
-                        Links{!settings.links.required && <span className="font-normal text-muted-foreground"> (optional)</span>}
-                    </legend>
-                    <p id={`${linksId}-help`} className="text-xs text-muted-foreground">
-                        Paste full web addresses{settings.links.domain ? ` on ${settings.links.domain}` : ''}.
-                        {' '}Up to {settings.links.max_links}.
-                    </p>
-
-                    {links.map((link, index) => {
-                        const value = link.trim()
-                        const problem = value && touched.has(index) ? linkProblem(value, settings.links) : null
-
-                        return (
-                            <div key={index} className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="url"
-                                        inputMode="url"
-                                        autoComplete="off"
-                                        value={link}
-                                        disabled={submit.isPending}
-                                        aria-label={`Link ${index + 1}`}
-                                        aria-invalid={Boolean(problem)}
-                                        placeholder={settings.links.domain ? `https://${settings.links.domain}/…` : 'https://…'}
-                                        onChange={(event) => updateLink(index, event.target.value)}
-                                        onBlur={() => {
-                                            setTouched((current) => new Set(current).add(index))
-                                            void flush()
-                                        }}
-                                        className="h-10 min-w-0 flex-1 max-md:text-base"
-                                    />
-                                    {(links.length > 1 || value) && (
-                                        <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0"
-                                            aria-label={`Remove link ${index + 1}`} disabled={submit.isPending}
-                                            onClick={() => removeLink(index)}>
-                                            <X className="size-4" aria-hidden="true" />
-                                        </Button>
-                                    )}
-                                </div>
-                                {problem && <p className="text-xs text-destructive">{problem}</p>}
-                            </div>
-                        )
-                    })}
-
-                    {links.length < settings.links.max_links && (
-                        <Button type="button" variant="outline" size="sm" disabled={submit.isPending}
-                            onClick={() => change({ links: [...links, ''] })}>
-                            <Plus className="size-4" aria-hidden="true" />
-                            Add link
-                        </Button>
-                    )}
-                </fieldset>
-            )}
-
+    // Autosave status, shown next to whatever the student types into.
+    const saveStatus = (
+        <>
             <div id={statusId}>
                 <SaveStatus state={state} onRetry={() => void flush()} />
             </div>
@@ -668,15 +643,119 @@ function Draft({ assignment, submission, onTurnedIn }) {
                         ? 'You are offline. Your work will save when you reconnect.'
                         : ''}
             </p>
+        </>
+    )
 
+    const answersCard = questions.length > 0 && (
+        <AnswersCard count={questions.length}>
+            {restoredNote}
+
+            <ol className="space-y-6">
+                {questions.map((question, index) => (
+                    <li key={question.id}>
+                        <QuestionField
+                            question={question}
+                            number={index + 1}
+                            total={questions.length}
+                            value={answers[question.id] ?? ''}
+                            disabled={submit.isPending}
+                            describedBy={statusId}
+                            onChange={(value) => changeAnswer(question.id, value)}
+                            onBlur={() => void flush()}
+                        />
+                    </li>
+                ))}
+            </ol>
+
+            {saveStatus}
+        </AnswersCard>
+    )
+
+    const panel = (
+        <WorkCard status={studentStatus(assignment)}>
+            {pastDue && (
+                <div role="note" className="flex gap-2 rounded-lg border border-amber-600/25 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200">
+                    <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                    <p>This was due {formatDateTime(assignment.due_at)}. You can still turn it in, but it will be marked late.</p>
+                </div>
+            )}
+
+            {questions.length > 0 && (
+                <QuestionProgress settings={settings} questions={questions} answered={answered} />
+            )}
+
+            {settings.links.enabled && (
+                <>
+                    {restoredNote}
+
+                    <fieldset className="min-w-0 space-y-2" aria-describedby={`${linksId}-help`}>
+                        <legend className="text-sm font-medium">Links</legend>
+                        <p id={`${linksId}-help`} className="text-xs text-muted-foreground">
+                            Paste full web addresses{settings.links.domain ? ` on ${settings.links.domain}` : ''}.
+                            {' '}Up to {settings.links.max_links}.
+                        </p>
+
+                        {links.map((link, index) => {
+                            const value = link.trim()
+                            const problem = value && touched.has(index) ? linkProblem(value, settings.links) : null
+
+                            return (
+                                <div key={index} className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            type="url"
+                                            inputMode="url"
+                                            autoComplete="off"
+                                            value={link}
+                                            disabled={submit.isPending}
+                                            aria-label={`Link ${index + 1}`}
+                                            aria-invalid={Boolean(problem)}
+                                            placeholder={settings.links.domain ? `https://${settings.links.domain}/…` : 'https://…'}
+                                            onChange={(event) => updateLink(index, event.target.value)}
+                                            onBlur={() => {
+                                                setTouched((current) => new Set(current).add(index))
+                                                void flush()
+                                            }}
+                                            className="h-10 min-w-0 flex-1 max-md:text-base"
+                                        />
+                                        {(links.length > 1 || value) && (
+                                            <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0"
+                                                aria-label={`Remove link ${index + 1}`} disabled={submit.isPending}
+                                                onClick={() => removeLink(index)}>
+                                                <X className="size-4" aria-hidden="true" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {problem && <p className="text-xs text-destructive">{problem}</p>}
+                                </div>
+                            )
+                        })}
+
+                        {links.length < settings.links.max_links && (
+                            <Button type="button" variant="outline" size="sm" disabled={submit.isPending}
+                                onClick={() => change({ links: [...links, ''] })}>
+                                <Plus className="size-4" aria-hidden="true" />
+                                Add link
+                            </Button>
+                        )}
+                    </fieldset>
+
+                    {saveStatus}
+                </>
+            )}
+
+            {/* Files can linger from before the assignment changed type;
+                they can still be removed, but no new ones added. */}
             {(settings.files.enabled || fileCount > 0) && (
                 <Files
                     kind="submissions"
                     id={submission?.id ?? null}
+                    title={null}
+                    compact
+                    removable={!submit.isPending}
                     editable={settings.files.enabled && !submit.isPending}
                     onBusyChange={setUploading}
                     ensureId={ensureId}
-                    headingLevel={6}
                     accept={acceptAttribute(settings.files)}
                     checkFile={(file) => fileProblem(file, settings.files)}
                     maxFiles={MAX_FILES}
@@ -684,7 +763,7 @@ function Draft({ assignment, submission, onTurnedIn }) {
                 />
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-2 border-t border-border pt-4">
                 <Button
                     type="button"
                     disabled={uploading || submit.isPending || missing.length > 0}
@@ -693,17 +772,17 @@ function Draft({ assignment, submission, onTurnedIn }) {
                         submit.reset()
                         setConfirm(true)
                     }}
-                    className="w-full sm:w-auto"
+                    className="h-11 w-full"
                 >
                     Turn in
                 </Button>
 
                 {missing.length > 0 ? (
-                    <ul className="space-y-0.5 text-xs text-muted-foreground">
+                    <ul className="space-y-0.5 text-center text-xs text-muted-foreground">
                         {missing.map((message) => <li key={message}>{message}</li>)}
                     </ul>
                 ) : (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-center text-xs text-muted-foreground">
                         Once turned in, your work can no longer be changed.
                     </p>
                 )}
@@ -746,51 +825,75 @@ function Draft({ assignment, submission, onTurnedIn }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </WorkCard>
     )
+
+    return layout({ answers: answersCard || null, panel })
 }
 
-export default function StudentWork({ assignment }) {
+// Without a layout, the answers and the panel simply stack.
+const stack = ({ answers, panel }) => (
+    <div className="space-y-4">
+        {answers}
+        {panel}
+    </div>
+)
+
+/**
+ * A student's own work on an assignment. Renders `children({ answers,
+ * panel })`: `panel` is the "Your work" card (status, files, links, Turn
+ * in); `answers` holds the answers to questions (null otherwise), which
+ * need the width of the main column.
+ */
+export default function StudentWork({ assignment, children = stack }) {
     const query = useClassworkQuery(`assignments/${assignment.id}/mine`)
-    const headingId = useId()
+
+    // Set from the turn-in response, so the page switches immediately.
     const [turnedIn, setTurnedIn] = useState(null)
 
-    // Prefer the server's copy once it shows the work turned in; until the
-    // refetch lands, use the turn-in response itself.
     const fromQuery = query.data?.submission ?? null
     const submission = fromQuery?.submitted_at ? fromQuery : (turnedIn?.submission ?? fromQuery)
     const score = query.data?.score ?? turnedIn?.score ?? null
     const closed = !assignment.allow_late && isPastDue(assignment.due_at)
 
+    if (query.isPending || query.isError) {
+        return children({
+            answers: null,
+            panel: (
+                <WorkCard status={studentStatus(assignment)}>
+                    {query.isPending ? (
+                        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                            Loading your work…
+                        </p>
+                    ) : (
+                        <>
+                            <ErrorNotice error={query.error} />
+                            <Button type="button" variant="outline" size="sm" onClick={() => query.refetch()}>
+                                Try again
+                            </Button>
+                        </>
+                    )}
+                </WorkCard>
+            ),
+        })
+    }
+
+    if (submission?.submitted_at) {
+        return <TurnedIn assignment={assignment} submission={submission} score={score} layout={children} />
+    }
+
+    if (closed) {
+        return <Closed assignment={assignment} submission={submission} score={score} layout={children} />
+    }
+
     return (
-        <section aria-labelledby={headingId} className="space-y-3 border-t border-border pt-4">
-            <h5 id={headingId} className="text-lg font-semibold text-foreground">
-                Your work
-            </h5>
-
-            {query.isPending && (
-                <p role="status" className="text-sm text-muted-foreground">
-                    Loading your work…
-                </p>
-            )}
-
-            <ErrorNotice error={query.error} />
-
-            {query.isError && (
-                <Button type="button" variant="outline" size="sm" onClick={() => query.refetch()}>
-                    Try again
-                </Button>
-            )}
-
-            {query.isSuccess && (
-                submission?.submitted_at ? (
-                    <TurnedIn assignment={assignment} submission={submission} score={score} />
-                ) : closed ? (
-                    <Closed assignment={assignment} submission={submission} score={score} />
-                ) : (
-                    <Draft key={assignment.id} assignment={assignment} submission={submission} onTurnedIn={setTurnedIn} />
-                )
-            )}
-        </section>
+        <Draft
+            key={assignment.id}
+            assignment={assignment}
+            submission={submission}
+            onTurnedIn={setTurnedIn}
+            layout={children}
+        />
     )
 }

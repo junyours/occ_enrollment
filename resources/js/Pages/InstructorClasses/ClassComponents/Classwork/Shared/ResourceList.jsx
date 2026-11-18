@@ -1,9 +1,10 @@
 import React, { useId, useState } from 'react'
 import axios from 'axios'
+import { Link } from '@inertiajs/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-    Archive, ArchiveRestore, CalendarDays, ChevronDown, ClipboardList,
+    Archive, ArchiveRestore, CalendarDays, ChevronDown, ChevronRight, ClipboardList,
     FolderOpen, Layers, Link2, Pencil, Plus, Trash2, Trophy,
 } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
@@ -16,6 +17,8 @@ import {
 } from '@/Components/ui/alert-dialog'
 import Editor from './Editor'
 import Files from './Files'
+import { GuideButton, useGuide } from './GuideTour'
+import { assignmentsGuide, materialsGuide } from './guides'
 import RichTextContent from './RichTextContent'
 import RelatedMaterials from './RelatedMaterials'
 import StatusBadge from './StatusBadge'
@@ -43,7 +46,7 @@ function HeaderAction({ icon: Icon, label, onClick, disabled, variant = 'ghost',
 }
 
 function ResourceHeader({
-    item, assignment, manage, status, progress, open, busy,
+    item, assignment, manage, status, progress, open, busy, href,
     onEdit, onArchive, onRestore, onDelete, onToggle, panelId, titleId,
 }) {
     const archived = Boolean(item.archived_at)
@@ -56,10 +59,17 @@ function ResourceHeader({
 
     return (
         <div className="relative isolate rounded-xl">
-            <Button type="button" variant="ghost" disabled={busy} onClick={onToggle}
-                aria-label={`${open ? 'Collapse' : 'Expand'} ${item.title}`}
-                aria-expanded={open} aria-controls={open ? panelId : undefined} title={deadlinePolicy}
-                className="absolute inset-0 z-0 h-full w-full cursor-pointer rounded-xl border-0 p-0 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset" />
+            {/* The whole header is the target: a link to the assignment's
+                page for students, a toggle otherwise. */}
+            {href ? (
+                <Link href={href} aria-labelledby={titleId} title={deadlinePolicy}
+                    className="absolute inset-0 z-0 rounded-xl hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring" />
+            ) : (
+                <Button type="button" variant="ghost" disabled={busy} onClick={onToggle}
+                    aria-label={`${open ? 'Collapse' : 'Expand'} ${item.title}`}
+                    aria-expanded={open} aria-controls={open ? panelId : undefined} title={deadlinePolicy}
+                    className="absolute inset-0 z-0 h-full w-full cursor-pointer rounded-xl border-0 p-0 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset" />
+            )}
 
             <div className="pointer-events-none relative flex min-w-0 items-start justify-between gap-3 p-4">
                 <div className="min-w-0 flex-1 space-y-2">
@@ -126,7 +136,9 @@ function ResourceHeader({
                         </>
                     )}
                     <span className="flex h-10 items-center text-muted-foreground sm:h-8" aria-hidden="true">
-                        <ChevronDown className={`size-4 transition-transform duration-200 motion-reduce:transition-none ${open ? 'rotate-180' : ''}`} />
+                        {href
+                            ? <ChevronRight className="size-4" />
+                            : <ChevronDown className={`size-4 transition-transform duration-200 motion-reduce:transition-none ${open ? 'rotate-180' : ''}`} />}
                     </span>
                 </div>
             </div>
@@ -197,7 +209,7 @@ const FILTERS = [
 ]
 
 export default function ResourceList({ kind, renderWork }) {
-    const { base, key } = useClasswork()
+    const { base, key, assignmentHref } = useClasswork()
     const client = useQueryClient()
     const query = useClassworkQuery(kind)
     const [editor, setEditor] = useState(null)
@@ -296,20 +308,35 @@ export default function ResourceList({ kind, renderWork }) {
 
     const busy = uploading || archive.isPending || remove.isPending
 
+    // Instructors get a guided tour the first time they open each tab.
+    const guide = useGuide({
+        guide: kind,
+        userId: key[1],
+        steps: assignment ? assignmentsGuide : materialsGuide,
+        ready: manage && query.isSuccess && !editor,
+    })
+
     const addButton = manage && (
-        <Button onClick={() => setEditor({})} disabled={busy} className="w-full sm:w-auto">
+        <Button onClick={() => setEditor({})} disabled={busy} className="w-full sm:w-auto" data-tour={`add-${noun}`}>
             <Plus size={16} aria-hidden="true" />
             Add {noun}
         </Button>
     )
 
+    const guideButton = manage && (
+        <GuideButton onClick={guide.start} data-tour={`guide-${kind}`} />
+    )
+
     function renderCard(item) {
-        const open = expanded.has(item.id)
+        // Assignments open on their own page when one is set up: the
+        // student's work, or the teacher's view of everyone's work.
+        const href = assignment && assignmentHref ? assignmentHref(item.id) : null
+        const open = !href && expanded.has(item.id)
         const panelId = `${listId}-${kind}-${item.id}`
         const titleId = `${panelId}-title`
 
         return (
-            <Card key={item.id} className={`gap-0 py-0 ${item.archived_at ? 'bg-muted/30' : ''}`}>
+            <Card key={item.id} className={`gap-0 py-0 ${item.archived_at ? 'bg-muted/30' : ''}`} data-tour-item={kind}>
                 <CardContent className="p-0">
                     <ResourceHeader
                         item={item}
@@ -319,6 +346,7 @@ export default function ResourceList({ kind, renderWork }) {
                         progress={manage && assignment ? classProgress(item.progress) : null}
                         open={open}
                         busy={busy}
+                        href={href}
                         panelId={panelId}
                         titleId={titleId}
                         onEdit={() => setEditor(item)}
@@ -347,6 +375,8 @@ export default function ResourceList({ kind, renderWork }) {
                                 kind={kind}
                                 id={item.id}
                                 editable={manage && !item.archived_at}
+                                removable={manage && !item.archived_at}
+                                hideEmpty={!manage}
                                 onBusyChange={setUploading}
                                 headingLevel={5}
                             />
@@ -380,7 +410,12 @@ export default function ResourceList({ kind, renderWork }) {
                         : 'Documents, notes and resources for this class.'}
                 </p>
 
-                {items.length > 0 && addButton}
+                {manage && (
+                    <div className="flex w-full items-center gap-2 sm:w-auto">
+                        {guideButton}
+                        {items.length > 0 && addButton}
+                    </div>
+                )}
             </div>
 
             {studentView && items.length > 0 && (
@@ -531,6 +566,8 @@ export default function ResourceList({ kind, renderWork }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {guide.tour}
 
             {editor && (
                 <Editor

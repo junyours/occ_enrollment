@@ -9,6 +9,7 @@ import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Textarea } from '@/Components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
+import { cn } from '@/Lib/Utils'
 import {
     Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle,
 } from '@/Components/ui/drawer'
@@ -371,7 +372,10 @@ function GradingPanel({ assignment, students, sequence, startId, onClose }) {
     )
 }
 
-export default function SubmissionReview({ assignment }) {
+// `page`: shown on the assignment's own page, where the list scrolls with
+// the page instead of inside a box, and the tab names the section.
+// `actions` sit at the end of the header row (the page's Guide button).
+export default function SubmissionReview({ assignment, page = false, actions = null }) {
     const query = useClassworkQuery(`assignments/${assignment.id}/submissions`)
     const [panel, setPanel] = useState(null)
     const [search, setSearch] = useState('')
@@ -407,9 +411,9 @@ export default function SubmissionReview({ assignment }) {
     }
 
     return (
-        <section aria-labelledby={headingId} className="min-w-0 space-y-3 border-t border-border pt-4">
+        <section aria-labelledby={headingId} className={cn('min-w-0', page ? 'space-y-4' : 'space-y-3 border-t border-border pt-4')}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <h5 id={headingId} className="text-lg font-semibold text-foreground">Student work</h5>
+                <h5 id={headingId} className={page ? 'sr-only' : 'text-lg font-semibold text-foreground'}>Student work</h5>
                 {query.data && (
                     <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="secondary" className="h-auto gap-1 rounded-lg px-3 py-1.5 text-xs font-medium tabular-nums sm:text-sm">
@@ -422,16 +426,17 @@ export default function SubmissionReview({ assignment }) {
                         )}
                     </div>
                 )}
+                {actions && <div className="ml-auto">{actions}</div>}
             </div>
 
             {queue.length > 0 && (
-                <Button type="button" onClick={gradeQueue} className="w-full sm:w-auto">
+                <Button type="button" onClick={gradeQueue} className="w-full sm:w-auto" data-tour="review-grade-queue">
                     <PenLine className="size-4" aria-hidden="true" />
                     Grade {queue.length} submission{queue.length === 1 ? '' : 's'}
                 </Button>
             )}
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-col gap-3 sm:flex-row" data-tour="review-filters">
                 <div className="relative w-full min-w-0 sm:w-80 lg:w-96">
                     <Search className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                     <Input type="search" value={search} onChange={(event) => setSearch(event.target.value)}
@@ -451,8 +456,13 @@ export default function SubmissionReview({ assignment }) {
             <ErrorNotice error={query.error} />
             {query.isError && <Button type="button" variant="outline" size="sm" onClick={() => query.refetch()}>Try again</Button>}
 
-            {/* Phones scroll the page, not a box inside it. */}
-            {query.data && <div className="rounded-lg border border-border bg-card md:max-h-[28rem] md:overflow-auto">
+            {/* Phones scroll the page, not a box inside it; so does the
+                assignment page, where the header row stays pinned while
+                the list scrolls (overflow-clip keeps it sticky). */}
+            {query.data && <div data-tour="review-list" className={cn(
+                'rounded-lg border border-border bg-card',
+                page ? 'overflow-clip' : 'md:max-h-[28rem] md:overflow-auto'
+            )}>
                 <table className="w-full table-fixed text-left text-sm" aria-label="Student submissions">
                     <colgroup><col className="sm:w-1/2" /><col className="hidden sm:table-column" /><col className="w-24 sm:w-32 lg:w-[15%]" /></colgroup>
                     <thead className="bg-muted text-sm text-muted-foreground md:sticky md:top-0 md:z-10">

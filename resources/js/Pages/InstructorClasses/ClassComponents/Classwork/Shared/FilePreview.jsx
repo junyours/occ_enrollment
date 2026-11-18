@@ -210,15 +210,18 @@ export default function FilePreview({ file, onClose }) {
     })
 
     const viewerOptions = useMemo(() => ({
-        rendererMode: 'replace',
+        // 'extend' keeps the core's lite renderer (images) and adds the
+        // bundled ones; 'replace' dropped it, so images could not preview.
+        rendererMode: 'extend',
         builtinRenderers: 'lite',
         autoRenderers: false,
         renderers: configuredFileViewerRenderers,
         theme: theme === 'dark' ? 'dark' : 'light',
         locale: 'en-US',
         ai: false,
-        // On phones the floating toolbar cannot fit search and print, and
-        // PDFs already have their own page/zoom toolbar.
+        // On phones the floating toolbar cannot fit search, and PDFs already
+        // have their own page/zoom toolbar. Printing is off everywhere: no
+        // button, and the viewer refuses a print started any other way.
         toolbar: isMobile && extension === 'pdf'
             ? false
             : {
@@ -227,7 +230,8 @@ export default function FilePreview({ file, onClose }) {
                 exportHtml: false,
                 theme: false,
                 search: !isMobile,
-                print: !isMobile,
+                print: false,
+                beforePrint: () => false,
             },
     }), [theme, isMobile, extension])
 

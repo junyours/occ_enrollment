@@ -80,6 +80,10 @@ class ClassController extends Controller
             ])->toResponse($request)->setStatusCode(404);
         }
 
+        if ($user->user_role === 'student') {
+            return $this->viewStudentClass($yearSectionSubjects, $request);
+        }
+
         $courseSection = YearSection::join('course', 'course.id', '=', 'year_section.course_id')
             ->where('year_section.id', $yearSectionSubjects->year_section_id)
             ->first();
@@ -113,12 +117,169 @@ class ClassController extends Controller
 
         return Inertia::render('InstructorClasses/OpenClass', [
             'id' => $yearSectionSubjects->id,
+            // The class's URL key, as in /classes/classroom/{classKey}.
+            'classKey' => hash('sha256', (string) $yearSectionSubjects->id),
             'subjectCode' => $subject->subject_code,
             'descriptiveTitle' => $subject->descriptive_title,
             'courseSection' => $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section,
             'gradeStatus' => $gradeStatus,
             'schoolYear' => $schoolYear,
         ]);
+    }
+
+    /**
+     * A student's page for one of their classes, showing its classwork.
+     * Only students enrolled in the class (and not dropped) can open it.
+     * NSTP classes have no classwork.
+     */
+    private function viewStudentClass(YearSectionSubjects $class, Request $request)
+    {
+        $props = $this->studentClass($class, $request);
+
+        return is_array($props)
+            ? Inertia::render('StudentClasses/OpenClass', $props)
+            : $props;
+    }
+
+    /**
+     * One assignment on its own page: for a student, their work on it; for
+     * the class's teacher, the students' work. Other staff can't open it.
+     */
+    public function viewAssignment($id, $assignmentId, Request $request)
+    {
+        $class = YearSectionSubjects::whereRaw("SHA2(year_section_subjects.id, 256) = ?", [$id])->first();
+
+        if (!$class) {
+            return $this->errorPage($request, 404);
+        }
+
+        $user = Auth::user();
+
+        if ($user->user_role === 'student') {
+            $props = $this->studentClass($class, $request);
+
+            if (!is_array($props)) {
+                return $props;
+            }
+
+            $assignment = $this->classAssignment($class->id, (int) $assignmentId, true);
+
+            if (!$assignment) {
+                return $this->errorPage($request, 404);
+            }
+
+            return Inertia::render('StudentClasses/Assignment', [
+                ...$props,
+                'assignmentId' => (int) $assignment->id,
+                'assignmentTitle' => $assignment->title ?: $assignment->assessment_name,
+            ]);
+        }
+
+        if ((string) $user->id !== (string) $class->faculty_id) {
+            return $this->errorPage($request, 403);
+        }
+
+        // Teachers open drafts too.
+        $assignment = $this->classAssignment($class->id, (int) $assignmentId, false);
+
+        if (!$assignment) {
+            return $this->errorPage($request, 404);
+        }
+
+        $subject = Subject::find($class->subject_id);
+
+        $courseSection = YearSection::join('course', 'course.id', '=', 'year_section.course_id')
+            ->where('year_section.id', $class->year_section_id)
+            ->first();
+
+        return Inertia::render('InstructorClasses/Assignment', [
+            'id' => $class->id,
+            'classKey' => hash('sha256', (string) $class->id),
+            'subjectCode' => $subject?->subject_code,
+            'descriptiveTitle' => $subject?->descriptive_title,
+            'courseSection' => $courseSection
+                ? $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section
+                : null,
+            'assignmentId' => (int) $assignment->id,
+            'assignmentTitle' => $assignment->title ?: $assignment->assessment_name,
+        ]);
+    }
+
+    /**
+     * An assignment of this class whose grading assessment still exists,
+     * as the classwork list shows them; students only see published ones.
+     */
+    private function classAssignment(int $classId, int $assignmentId, bool $publishedOnly)
+    {
+        return DB::table('class_assignments as item')
+            ->join('assessments as a', 'a.id', '=', 'item.assessment_id')
+            ->join('grading_categories as gc', 'gc.id', '=', 'a.grading_category_id')
+            ->where('item.id', $assignmentId)
+            ->where('item.year_section_subject_id', $classId)
+            ->when($publishedOnly, fn($query) => $query->where('item.published', true))
+            ->where('gc.year_section_subject_id', $classId)
+            ->whereNull('a.deleted_at')
+            ->whereNull('gc.deleted_at')
+            ->first(['item.id', 'item.title', 'a.name as assessment_name']);
+    }
+
+    private function errorPage(Request $request, int $status)
+    {
+        return Inertia::render('Errors/ErrorPage', [
+            'status' => $status,
+        ])->toResponse($request)->setStatusCode($status);
+    }
+
+    /**
+     * The class details a student's class pages show, or an error page
+     * when the student can't open the class.
+     */
+    private function studentClass(YearSectionSubjects $class, Request $request)
+    {
+        $subject = Subject::find($class->subject_id);
+
+        if (!$subject || $subject->type === 'nstp') {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 404,
+            ])->toResponse($request)->setStatusCode(404);
+        }
+
+        $enrolled = DB::table('student_subjects')
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->where('student_subjects.year_section_subjects_id', $class->id)
+            ->where('enrolled_students.student_id', Auth::id())
+            ->where(fn($query) => $query
+                ->whereNull('student_subjects.dropped')
+                ->orWhere('student_subjects.dropped', 0))
+            ->exists();
+
+        if (!$enrolled) {
+            return Inertia::render('Errors/ErrorPage', [
+                'status' => 403,
+            ])->toResponse($request)->setStatusCode(403);
+        }
+
+        $courseSection = YearSection::join('course', 'course.id', '=', 'year_section.course_id')
+            ->where('year_section.id', $class->year_section_id)
+            ->first();
+
+        $instructor = $class->faculty_id
+            ? DB::table('user_information')
+            ->where('user_id', $class->faculty_id)
+            ->first(['first_name', 'middle_name', 'last_name'])
+            : null;
+
+        return [
+            'id' => $class->id,
+            // The class's URL key, as in /classes/classroom/{classKey}.
+            'classKey' => hash('sha256', (string) $class->id),
+            'subjectCode' => $subject->subject_code,
+            'descriptiveTitle' => $subject->descriptive_title,
+            'courseSection' => $courseSection
+                ? $courseSection->course_name_abbreviation . '-' . $courseSection->year_level_id . $courseSection->section
+                : null,
+            'instructor' => $instructor,
+        ];
     }
 
     public function viewNstpClass($id, Request $request)
@@ -699,7 +860,9 @@ class ClassController extends Controller
                         nstp_schedule.id as nstp_student_schedule_id,
                         enrolled_students_id,
                         student_subjects.id as student_subject_id,
+                        student_subjects.dropped,
                         year_section_subjects.id,
+                        SHA2(year_section_subjects.id, 256) as hashed_year_section_subject_id,
                         descriptive_title,
                         subjects.type,
                         component_name,

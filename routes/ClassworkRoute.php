@@ -22,6 +22,10 @@ Route::middleware('auth')
             ->whereNumber('fileId')
             ->name('download');
 
+        Route::delete('files/{fileId}', 'deleteFile')
+            ->whereNumber('fileId')
+            ->name('files.destroy');
+
         Route::get(
             'assignments/{id}/submissions',
             'submissions'

@@ -102,6 +102,7 @@ export default function RelatedMaterials({ materialIds }) {
                                     <Files
                                         kind="materials"
                                         id={item.id}
+                                        hideEmpty
                                     />
                                 </div>
                             )}

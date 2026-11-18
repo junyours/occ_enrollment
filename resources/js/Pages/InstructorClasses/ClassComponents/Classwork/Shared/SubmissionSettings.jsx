@@ -50,7 +50,7 @@ function NumberField({ id, label, value, onChange, min, max, suffix, disabled })
  * editable draft from toDraft(); the editor sends fromDraft(value) and
  * questionsPayload(value) when saving. `savedType` is set when editing.
  */
-export default function SubmissionSettings({ value, onChange, disabled, savedType, className }) {
+export default function SubmissionSettings({ value, onChange, disabled, savedType, className, ...props }) {
     const id = useId()
     const { type, files, links } = value
 
@@ -59,7 +59,7 @@ export default function SubmissionSettings({ value, onChange, disabled, savedTyp
     const preview = normalizeSettings(fromDraft(value))
 
     return (
-        <section aria-labelledby={`${id}-title`} className={cn('min-w-0 space-y-3 rounded-xl border bg-background p-3 sm:p-4', className)}>
+        <section aria-labelledby={`${id}-title`} className={cn('min-w-0 space-y-3 rounded-xl border bg-background p-3 sm:p-4', className)} {...props}>
             <div>
                 <h3 id={`${id}-title`} className="text-sm font-semibold">What students submit</h3>
                 <p id={`${id}-help`} className="text-xs text-muted-foreground">

@@ -68,15 +68,32 @@ const navigationTabs = [
     },
 ]
 
+// The tab named in the URL (?tab=classwork), so links and the Back button
+// return to the same tab.
+function initialTab() {
+    const requested = new URLSearchParams(window.location.search).get('tab')
+    return navigationTabs.some((item) => item.value === requested) ? requested : 'students'
+}
+
 export default function OpenClass({
     subjectCode,
     descriptiveTitle,
     id,
+    classKey,
     courseSection,
     gradeStatus,
     schoolYear,
 }) {
-    const [tab, setTab] = useState('students')
+    const [tab, setTabState] = useState(initialTab)
+
+    // Keep the tab in the URL without a new history entry. Inertia's page
+    // state stays as it is, so going Back here restores this tab.
+    function setTab(value) {
+        setTabState(value)
+        const url = new URL(window.location.href)
+        url.searchParams.set('tab', value)
+        window.history.replaceState(window.history.state, '', url)
+    }
     const [currentPage, setCurrentPage] = useState(1)
 
     const getClassStudents = async () => {
@@ -181,7 +198,10 @@ export default function OpenClass({
                 )}
 
                 {tab === 'classwork' && (
-                    <Classwork classId={id} />
+                    <Classwork
+                        classId={id}
+                        assignmentHref={(assignmentId) => `/classes/classroom/${classKey}/assignments/${assignmentId}`}
+                    />
                 )}
 
                 {/* {tab === 'materials' && (

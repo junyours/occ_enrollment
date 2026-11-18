@@ -3,7 +3,7 @@ import axios from 'axios'
 import { format, startOfDay } from 'date-fns'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { CalendarDays, ClipboardList, FolderOpen, Loader2, Plus, X } from 'lucide-react'
+import { CalendarDays, CircleHelp, ClipboardList, FolderOpen, Loader2, Plus, X } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Calendar } from '@/Components/ui/calendar'
@@ -20,6 +20,8 @@ import { ErrorNotice, errorMessage, localDateInput, refreshGrading, useClasswork
 import { cn } from '@/Lib/Utils'
 import RelatedMaterialSelect from './RelatedMaterialSelect'
 import SubmissionSettings from './SubmissionSettings'
+import { useGuide } from './GuideTour'
+import { editorGuide } from './guides'
 import { fromDraft, questionsPayload, settingsProblem, toDraft } from './submissionRules'
 import useIsMobile from './useIsMobile'
 
@@ -249,6 +251,20 @@ export default function Editor({ kind, item, onClose, onSaved }) {
     }, [])
 
     const { base, key } = useClasswork()
+
+    // The first time an instructor opens this editor, a guide walks through
+    // it once the drawer has slid in. It draws inside the drawer, whose
+    // focus trap would block anything drawn over the page.
+    const [opened, setOpened] = useState(false)
+    const [guideHost, setGuideHost] = useState(null)
+    const guide = useGuide({
+        guide: `${kind}-editor`,
+        userId: key[1],
+        steps: () => editorGuide({ assignment, editing: Boolean(item) }),
+        ready: opened && Boolean(guideHost),
+        container: guideHost,
+    })
+
     const client = useQueryClient()
     const savedId = useRef(item?.id ?? null)
     const completedUploads = useRef(new Set())
@@ -459,14 +475,23 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                 }
                 setDrawerOpen(nextOpen)
             }}
-            onOpenChangeComplete={(open) => { if (!open) onClose() }}>
-            <DrawerContent data-base-ui-swipe-ignore className="overflow-hidden data-[swipe-axis=y]:h-[92dvh] data-[swipe-axis=y]:max-h-[92dvh] data-[swipe-axis=x]:w-[calc(100vw-1rem)] data-[swipe-axis=x]:sm:w-[calc(100vw-1rem)] data-[swipe-axis=x]:lg:w-[60rem]">
+            onOpenChangeComplete={(open) => {
+                if (open) setOpened(true)
+                else onClose()
+            }}>
+            {/* overflow-clip, not hidden: a hidden box can still be scrolled
+                by script (scrollIntoView, focus), which would shift the drawer. */}
+            <DrawerContent data-base-ui-swipe-ignore className="overflow-clip data-[swipe-axis=y]:h-[92dvh] data-[swipe-axis=y]:max-h-[92dvh] data-[swipe-axis=x]:w-[calc(100vw-1rem)] data-[swipe-axis=x]:sm:w-[calc(100vw-1rem)] data-[swipe-axis=x]:lg:w-[60rem]">
                 <DrawerHeader className="gap-2 border-b border-border p-4 text-left group-data-[swipe-axis=y]/drawer-popup:text-left">
                     <div className="flex items-center justify-between gap-3">
                         <DrawerTitle className="flex items-center gap-2">
                             <span className="rounded-lg bg-primary/10 p-2 text-primary"><Icon className="size-5" /></span>
                             {item ? 'Edit' : 'Create'} {assignment ? 'assignment' : 'material'}
                         </DrawerTitle>
+                        <Button type="button" variant="ghost" size="icon" aria-label="Show guide" title="Show guide" disabled={disabled}
+                            onClick={guide.start} className="ml-auto shrink-0 text-muted-foreground hover:text-foreground">
+                            <CircleHelp className="size-4" aria-hidden="true" />
+                        </Button>
                         <Button type="button" variant="ghost" size="icon" aria-label="Close editor" disabled={disabled} onClick={close} className="shrink-0">
                             <X className="size-4" aria-hidden="true" />
                         </Button>
@@ -483,7 +508,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                                 required linked assessment is not buried; `contents`
                                 lets the grid reorder these sections. */}
                             <div className={cn('min-w-0 space-y-4', assignment && 'max-lg:contents max-lg:space-y-0')}>
-                                <div className="space-y-4 rounded-xl border bg-background p-3 sm:p-4">
+                                <div className="space-y-4 rounded-xl border bg-background p-3 sm:p-4" data-tour="editor-details">
                                     <label className="block space-y-2 text-sm font-medium">Title
                                         <Input value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={255} disabled={disabled} placeholder={assignment ? 'e.g. Week 1 laboratory report' : 'e.g. Week 1 reading materials'} />
                                     </label>
@@ -496,15 +521,16 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                                     />
                                 </div>
 
-                                <div className="min-w-0 space-y-4 max-lg:order-2">
+                                <div className="min-w-0 space-y-4 max-lg:order-2" data-tour="editor-attachments">
                                     {/* One "(optional)", on the first Attachments heading. */}
-                                    {item && <Files kind={kind} id={item.id} optional />}
+                                    {item && <Files kind={kind} id={item.id} optional removable />}
                                     <AttachmentPicker files={attachments} onChange={setAttachments} disabled={disabled} optional={!item} />
                                     {!assignment && item && <label className="flex items-start gap-2 text-sm"><Checkbox checked={published} disabled={disabled} onCheckedChange={(value) => setPublished(value === true)} />Published — visible to enrolled students</label>}
                                 </div>
 
                                 {assignment && (
                                     <SubmissionSettings
+                                        data-tour="editor-submit"
                                         value={submission}
                                         onChange={setSubmission}
                                         disabled={disabled}
@@ -523,7 +549,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                                 )}
                             </div>
 
-                            {assignment && <aside ref={setSettingsPanel} aria-label="Assignment settings" style={{ top: settingsTop }}
+                            {assignment && <aside ref={setSettingsPanel} aria-label="Assignment settings" style={{ top: settingsTop }} data-tour="editor-settings"
                                 className="min-w-0 self-start space-y-5 rounded-xl border bg-muted/20 p-3 max-lg:order-1 sm:p-4 lg:sticky">
                                 <h3 className="border-b border-border pb-3 text-sm font-semibold">Assignment settings</h3>
                                 {!recordId && <AssessmentSelect selected={selectedAssessment} onChange={setSelectedAssessment} disabled={disabled} onBusyChange={setCreatingAssessment} />}
@@ -594,7 +620,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                         </div>
 
                     </div>
-                    <DrawerFooter className="flex-row flex-wrap items-center justify-end gap-2 border-t border-border bg-background p-4">
+                    <DrawerFooter className="flex-row flex-wrap items-center justify-end gap-2 border-t border-border bg-background p-4" data-tour="editor-actions">
                         {blockedReason && !save.isPending && (
                             <p className="w-full text-xs text-muted-foreground sm:mr-auto sm:w-auto">
                                 {blockedReason}
@@ -607,6 +633,9 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                         </Button>
                     </DrawerFooter>
                 </form>
+                {/* Where the editor's guide draws: over the whole drawer. */}
+                <div ref={setGuideHost} className="pointer-events-none absolute inset-0 z-[60] rounded-xl" />
+                {guide.tour}
             </DrawerContent>
         </Drawer>
     )

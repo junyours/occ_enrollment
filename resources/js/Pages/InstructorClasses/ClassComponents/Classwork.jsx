@@ -10,7 +10,8 @@ import { ClassworkProvider } from './Classwork/Shared/api'
 
 const TRIGGER = 'h-8 flex-1 gap-2 px-4 sm:flex-none'
 
-export default function Classwork({ classId }) {
+// `assignmentHref` (id => URL) makes student assignments open as pages.
+export default function Classwork({ classId, assignmentHref }) {
     const { auth } = usePage().props
     const [tab, setTab] = useState('assignments')
 
@@ -19,9 +20,10 @@ export default function Classwork({ classId }) {
             key={`${auth.user.id}:${classId}`}
             userId={auth.user.id}
             classId={classId}
+            assignmentHref={assignmentHref}
         >
             <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-4">
-                <TabsList className="h-10 w-full sm:w-auto" aria-label="Classwork sections">
+                <TabsList className="h-10 w-full sm:w-auto" aria-label="Classwork sections" data-tour="classwork-tabs">
                     <TabsTrigger value="assignments" className={TRIGGER}>
                         <ClipboardList className="size-4" aria-hidden="true" />
                         Assignments

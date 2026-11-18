@@ -7,6 +7,7 @@ import React, {
 } from 'react'
 
 import axios from 'axios'
+import { toast } from 'sonner'
 
 import {
     Download,
@@ -21,12 +22,24 @@ import {
     Loader2,
     Paperclip,
     Plus,
+    X,
 } from 'lucide-react'
 
 import {
     Button,
     buttonVariants,
 } from '@/Components/ui/button'
+
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/Components/ui/alert-dialog'
+
+import { cn } from '@/Lib/Utils'
 
 import {
     ErrorNotice,
@@ -121,12 +134,12 @@ function formatFileSize(value) {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function AttachmentIcon({ Icon, type }) {
+function AttachmentIcon({ Icon, type, small = false }) {
     if (type === 'PDF') {
         return (
             <svg
                 viewBox="0 0 32 40"
-                className="h-10 w-8 text-red-600 dark:text-red-500"
+                className={cn('text-red-600 dark:text-red-500', small ? 'h-8 w-6' : 'h-10 w-8')}
                 fill="none"
                 aria-hidden="true"
             >
@@ -158,7 +171,7 @@ function AttachmentIcon({ Icon, type }) {
 
     return (
         <Icon
-            className="size-8 text-muted-foreground"
+            className={cn('text-muted-foreground', small ? 'size-6' : 'size-8')}
             aria-hidden="true"
         />
     )
@@ -173,8 +186,17 @@ export default function Files({
     // student's draft is created on demand). Resolves to the new id.
     ensureId,
     headingLevel = 3,
+    // The section heading; null hides it (the list is then labelled
+    // "Attached files" for screen readers).
+    title = 'Attachments',
     // Adds a muted "(optional)" to the heading, as in the editor.
     optional = false,
+    // Read-only lists can disappear when empty instead of saying so.
+    hideEmpty = false,
+    // Smaller rows, for the "Your work" panel.
+    compact = false,
+    // Shows a Remove button on each file (the server checks the rules).
+    removable = false,
     // Student uploads follow the assignment's settings: `accept` filters the
     // picker, `checkFile` rejects a file before upload with a reason, and
     // `maxFiles` caps how many can be attached. The server checks them too.
@@ -195,10 +217,45 @@ export default function Files({
     const [prepareError, setPrepareError] = useState(null)
     const [rejected, setRejected] = useState([])
     const [previewFile, setPreviewFile] = useState(null)
+    // The file in the remove dialog stays set while it animates closed.
+    const [removing, setRemoving] = useState(null)
+    const [confirmOpen, setConfirmOpen] = useState(false)
 
     const inputRef = useRef(null)
     const headingId = useId()
     const Heading = `h${Math.min(6, Math.max(2, headingLevel))}`
+
+    // Students remove files from their own work; teachers from what they post.
+    const ownWork = kind === 'submissions'
+
+    const remove = useClassworkMutation(
+        (file, url) => axios.delete(`${url}/files/${file.id}`),
+        (response, file) => {
+            setConfirmOpen(false)
+            setProgress('')
+            toast.success('File removed', { description: file.name })
+
+            if (!ownWork && response.data?.trashed === false) {
+                toast.warning('The file could not be moved to the Google Drive trash.', {
+                    description: 'Remove it from Google Drive manually if needed.',
+                })
+            }
+        }
+    )
+
+    async function confirmRemove() {
+        if (!confirmOpen || !removing || remove.isPending) return
+
+        onBusyChange?.(true)
+
+        try {
+            await remove.mutateAsync(removing)
+        } catch {
+            // Shown in the dialog.
+        } finally {
+            onBusyChange?.(false)
+        }
+    }
 
     const upload = useClassworkMutation(async ({ file, target }, url) => {
         const body = new FormData()
@@ -282,24 +339,37 @@ export default function Files({
         }
     }
 
+    const files = query.data ?? []
+    const empty = Boolean(id) && query.isSuccess && files.length === 0
+
+    // Read-only lists with nothing to show disappear entirely.
+    if (hideEmpty && !editable && (!id || query.isPending || empty)) {
+        return null
+    }
+
+    const iconButton = 'size-11 shrink-0'
+
     return (
         <section
-            aria-labelledby={headingId}
-            className="min-w-0 space-y-3"
+            aria-labelledby={title ? headingId : undefined}
+            aria-label={title ? undefined : 'Files'}
+            className={cn('min-w-0', compact ? 'space-y-2' : 'space-y-3')}
         >
-            <Heading
-                id={headingId}
-                className="flex items-center gap-3 text-lg font-semibold text-foreground"
-            >
-                <Paperclip
-                    className="size-5"
-                    aria-hidden="true"
-                />
-                <span>
-                    Attachments
-                    {optional && <span className="text-sm font-normal text-muted-foreground"> (optional)</span>}
-                </span>
-            </Heading>
+            {title && (
+                <Heading
+                    id={headingId}
+                    className="flex items-center gap-3 text-lg font-semibold text-foreground"
+                >
+                    <Paperclip
+                        className="size-5"
+                        aria-hidden="true"
+                    />
+                    <span>
+                        {title}
+                        {optional && <span className="text-sm font-normal text-muted-foreground"> (optional)</span>}
+                    </span>
+                </Heading>
+            )}
 
             {id && query.isPending && (
                 <p role="status" className="text-sm text-muted-foreground">
@@ -320,69 +390,115 @@ export default function Files({
                 </Button>
             )}
 
-            {(!id || query.data?.length === 0) && (
+            {/* The compact panel says what to attach instead. */}
+            {!compact && (!id || empty) && (
                 <p className="rounded-lg border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
                     No files attached.
                 </p>
             )}
 
-            <ul
-                className="space-y-2"
-                aria-label="Attached files"
-            >
-                {query.data?.map((file) => {
-                    const { Icon, type } = fileDetails(file)
+            {files.length > 0 && (
+                <ul
+                    className="space-y-2"
+                    aria-label="Attached files"
+                >
+                    {files.map((file) => {
+                        const { Icon, type } = fileDetails(file)
+                        const busyRemoving = remove.isPending && removing?.id === file.id
 
-                    return (
-                        <li
-                            key={file.id}
-                            className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 transition-colors hover:bg-muted/20 sm:gap-5 sm:px-5"
-                        >
-                            <span className="flex size-12 shrink-0 items-center justify-center">
-                                <AttachmentIcon
-                                    Icon={Icon}
-                                    type={type}
-                                />
-                            </span>
-
-                            <div className="min-w-0 flex-1">
-                                <Button
-                                    type="button"
-                                    variant="link"
-                                    onClick={() => setPreviewFile(file)}
-                                    className="block h-auto max-w-full truncate rounded-sm p-0 text-left text-sm font-semibold text-foreground underline-offset-4 hover:text-primary hover:underline sm:text-base"
-                                    aria-label={`Preview ${file.name}`}
-                                    title={file.name}
-                                >
-                                    {file.name}
-                                </Button>
-
-                                <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                                    {type}
-                                    {' · '}
-                                    {formatFileSize(file.size)}
-                                </p>
-                            </div>
-
-                            <a
-                                href={`${base}/files/${file.id}`}
-                                aria-label={`Download ${file.name}`}
-                                title={`Download ${file.name}`}
-                                className={buttonVariants({
-                                    variant: 'secondary',
-                                    size: 'icon',
-                                    className: 'h-11 w-11 shrink-0 border border-border text-foreground',
-                                })}
+                        return (
+                            // The whole row opens the preview: the name's button
+                            // stretches over it, and the action buttons sit above.
+                            <li
+                                key={file.id}
+                                className={cn(
+                                    'relative flex min-w-0 items-center border border-border transition-colors',
+                                    compact
+                                        ? 'gap-3 rounded-lg bg-background py-2 pl-3 pr-1.5 hover:bg-muted/40'
+                                        : 'gap-3 rounded-xl bg-card px-3 py-3 hover:bg-muted/20 sm:gap-5 sm:px-5'
+                                )}
                             >
-                                <Download
-                                    className="size-5"
-                                    aria-hidden="true"
-                                />
-                            </a>
-                        </li>
-                    )
-                })}
-            </ul>
+                                <span className={cn('flex shrink-0 items-center justify-center', compact ? 'size-8' : 'size-12')}>
+                                    <AttachmentIcon
+                                        Icon={Icon}
+                                        type={type}
+                                        small={compact}
+                                    />
+                                </span>
+
+                                <div className="min-w-0 flex-1">
+                                    <Button
+                                        type="button"
+                                        variant="link"
+                                        onClick={() => setPreviewFile(file)}
+                                        className={cn(
+                                            'block h-auto max-w-full truncate rounded-sm p-0 text-left text-foreground underline-offset-4 hover:text-primary hover:underline',
+                                            'after:absolute after:inset-0 focus-visible:ring-0 focus-visible:after:ring-2 focus-visible:after:ring-ring',
+                                            compact ? 'text-sm font-medium after:rounded-lg' : 'text-sm font-semibold after:rounded-xl sm:text-base'
+                                        )}
+                                        aria-label={`Preview ${file.name}`}
+                                        title={file.name}
+                                    >
+                                        {file.name}
+                                    </Button>
+
+                                    <p className={cn('mt-0.5 text-xs text-muted-foreground', !compact && 'sm:text-sm')}>
+                                        {type}
+                                        {' · '}
+                                        {formatFileSize(file.size)}
+                                    </p>
+                                </div>
+
+                                <a
+                                    href={`${base}/files/${file.id}`}
+                                    aria-label={`Download ${file.name}`}
+                                    title={`Download ${file.name}`}
+                                    className={buttonVariants({
+                                        variant: compact ? 'ghost' : 'secondary',
+                                        size: 'icon',
+                                        className: compact
+                                            ? `${iconButton} relative z-10 text-muted-foreground hover:text-foreground`
+                                            : 'relative z-10 h-11 w-11 shrink-0 border border-border text-foreground',
+                                    })}
+                                >
+                                    <Download
+                                        className={compact ? 'size-4' : 'size-5'}
+                                        aria-hidden="true"
+                                    />
+                                </a>
+
+                                {removable && (
+                                    <Button
+                                        type="button"
+                                        variant={compact ? 'ghost' : 'secondary'}
+                                        size="icon"
+                                        disabled={busy || remove.isPending}
+                                        onClick={() => {
+                                            remove.reset()
+                                            setRemoving(file)
+                                            setConfirmOpen(true)
+                                        }}
+                                        aria-label={`Remove ${file.name}`}
+                                        title={`Remove ${file.name}`}
+                                        // While disabled it still takes the click, so the
+                                        // row's preview underneath doesn't open instead.
+                                        className={cn(
+                                            'relative z-10 disabled:pointer-events-auto disabled:cursor-not-allowed',
+                                            compact
+                                                ? `${iconButton} text-muted-foreground hover:bg-destructive/10 hover:text-destructive`
+                                                : 'h-11 w-11 shrink-0 border border-border text-foreground hover:bg-destructive/10 hover:text-destructive'
+                                        )}
+                                    >
+                                        {busyRemoving
+                                            ? <Loader2 className={compact ? 'size-4 animate-spin' : 'size-5 animate-spin'} aria-hidden="true" />
+                                            : <X className={compact ? 'size-4' : 'size-5'} aria-hidden="true" />}
+                                    </Button>
+                                )}
+                            </li>
+                        )
+                    })}
+                </ul>
+            )}
 
             {editable && (
                 <div className="space-y-2">
@@ -395,22 +511,25 @@ export default function Files({
                         aria-label="Upload files"
                         disabled={busy}
                         onChange={(event) => {
-                            const files = Array.from(
+                            const picked = Array.from(
                                 event.target.files || []
                             )
 
                             event.target.value = ''
-                            void send(files)
+                            void send(picked)
                         }}
                     />
 
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                    <div className={cn('flex flex-wrap items-center gap-x-5 gap-y-2', compact && 'flex-col items-stretch')}>
                         <Button
                             type="button"
                             variant="outline"
-                            disabled={busy}
+                            disabled={busy || remove.isPending}
                             onClick={() => inputRef.current?.click()}
-                            className="h-11 gap-2 rounded-lg border-primary bg-transparent px-4 text-primary shadow-none hover:bg-primary/10 hover:text-primary dark:border-primary dark:bg-transparent dark:hover:bg-primary/10"
+                            className={cn(
+                                'h-11 gap-2 rounded-lg border-primary bg-transparent px-4 text-primary shadow-none hover:bg-primary/10 hover:text-primary dark:border-primary dark:bg-transparent dark:hover:bg-primary/10',
+                                compact && 'w-full'
+                            )}
                         >
                             {busy ? (
                                 <Loader2
@@ -424,13 +543,12 @@ export default function Files({
                                 />
                             )}
 
-                            {busy ? 'Uploading…' : 'Add files'}
+                            {busy ? 'Uploading…' : files.length > 0 ? 'Add more files' : 'Add files'}
                         </Button>
 
                         <p className="text-xs leading-5 text-muted-foreground sm:text-sm">
                             {hint ?? 'Any file type · Maximum 100 MB per file.'}
-                            {' '}Click a filename to preview supported
-                            documents and images.
+                            {!compact && ' Click a filename to preview supported documents and images.'}
                         </p>
                     </div>
 
@@ -469,12 +587,55 @@ export default function Files({
                 </div>
             )}
 
-            <p
-                role="status"
-                className="break-words text-xs text-muted-foreground"
+            {progress && (
+                <p
+                    role="status"
+                    className="break-words text-xs text-muted-foreground"
+                >
+                    {progress}
+                </p>
+            )}
+
+            <AlertDialog
+                open={confirmOpen}
+                onOpenChange={(open) => {
+                    if (!open && !remove.isPending) setConfirmOpen(false)
+                }}
             >
-                {progress}
-            </p>
+                <AlertDialogContent className="w-[calc(100%-2rem)] rounded-xl sm:w-full">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="break-words">
+                            Remove “{removing?.name}”?
+                        </AlertDialogTitle>
+
+                        <AlertDialogDescription>
+                            {ownWork
+                                ? 'It’s taken out of your work. You can add it again before you turn it in.'
+                                : 'Students won’t see it anymore. It goes to the Google Drive trash, where it can be recovered for 30 days.'}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+
+                    <ErrorNotice error={remove.error} />
+
+                    <AlertDialogFooter>
+                        <Button
+                            variant="outline"
+                            disabled={remove.isPending}
+                            onClick={() => setConfirmOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Button
+                            variant="destructive"
+                            disabled={remove.isPending}
+                            onClick={() => void confirmRemove()}
+                        >
+                            {remove.isPending ? 'Removing…' : 'Remove'}
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {previewFile && (
                 <Suspense fallback={null}>

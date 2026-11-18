@@ -2024,6 +2024,63 @@ class ClassworkController extends Controller
         );
     }
 
+    /** The item a stored file belongs to, as [kind, id]. */
+    private function fileOwner(object $file): array
+    {
+        return match (true) {
+            (bool) $file->material_id => ['materials', (int) $file->material_id],
+            (bool) $file->assignment_id => ['assignments', (int) $file->assignment_id],
+            default => ['submissions', (int) $file->submission_id],
+        };
+    }
+
+    /**
+     * Removes one attachment, with the same rules as uploading: teachers
+     * remove files from their materials and assignments, students from
+     * their own work until they turn it in. The Drive copy goes to the
+     * trash after the database commit.
+     */
+    public function deleteFile(
+        Request $request,
+        ClassworkDrive $drive,
+        int $classId,
+        int $fileId
+    ) {
+        $driveId = DB::transaction(function () use ($request, $classId, $fileId) {
+            $file = DB::table('classwork_files')->find($fileId);
+
+            abort_unless($file, 404);
+
+            [$kind, $ownerId] = $this->fileOwner($file);
+
+            // Locks the submission (or item) row, so a removal and a
+            // turn-in never interleave.
+            $this->owner($request, $classId, $kind, $ownerId, true, true);
+
+            abort_unless(
+                DB::table('classwork_files')->where('id', $fileId)->delete(),
+                404
+            );
+
+            return $file->drive_file_id;
+        });
+
+        $trashed = true;
+
+        try {
+            $drive->trash($driveId);
+        } catch (Throwable $error) {
+            // The file is already gone from the app; only Drive keeps a copy.
+            report($error);
+            $trashed = false;
+        }
+
+        return response()->json([
+            'deleted' => true,
+            'trashed' => $trashed,
+        ]);
+    }
+
     public function download(
         Request $request,
         ClassworkDrive $drive,
@@ -2035,15 +2092,7 @@ class ClassworkController extends Controller
 
         abort_unless($file, 404);
 
-        $kind = $file->material_id
-            ? 'materials'
-            : ($file->assignment_id
-                ? 'assignments'
-                : 'submissions');
-
-        $ownerId = $file->material_id
-            ?? $file->assignment_id
-            ?? $file->submission_id;
+        [$kind, $ownerId] = $this->fileOwner($file);
 
         $this->owner(
             $request,

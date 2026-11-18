@@ -9,6 +9,9 @@ Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,s
     Route::post('/api/get-faculty-classes/{schoolYearId}', [ClassController::class, 'getFacultyClasses'])->name('get.faculty.classes');
 
     Route::get('/classes/classroom/{id}', [ClassController::class, 'viewClass'])->name('classes.classroom.yearsection');
+    Route::get('/classes/classroom/{id}/assignments/{assignmentId}', [ClassController::class, 'viewAssignment'])
+        ->whereNumber('assignmentId')
+        ->name('classes.classroom.assignment');
     Route::post('/classes/classroom/{id}/students', [ClassController::class, 'getStudents'])->name('class.students');
 
     Route::post('/grade-submissions/settings/{id}', [ClassController::class, 'gradeSubmissionSettings']);

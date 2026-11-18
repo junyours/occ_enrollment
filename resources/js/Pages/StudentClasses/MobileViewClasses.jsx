@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from '@inertiajs/react'
 import { Badge } from '@/Components/ui/badge'
 import {
     Card,
@@ -8,9 +9,18 @@ import {
     CardTitle,
 } from '@/Components/ui/card'
 import { convertToAMPM, formatFullName } from '@/Lib/Utils'
-import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, Calendar } from 'lucide-react'
+import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, Calendar, ChevronRight } from 'lucide-react'
+import { classLink, isDropped } from './ClassesComponents/classLink'
 
 const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+
+// The title link stretches over its card, so the whole card opens the class.
+const CARD_LINK = 'relative has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ring active:bg-muted/40'
+const STRETCHED = 'after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none'
+
+function ClassTitle({ href, children }) {
+    return href ? <Link href={href} className={STRETCHED}>{children}</Link> : children
+}
 
 function MobileViewClasses({ classes, isLoading, isError, error }) {
 
@@ -43,14 +53,15 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
 
                         // Aesthetic highlight: Glowing left border and subtle tinted background
                         const activeCardClass = "border-l-4 border-l-primary bg-primary/[0.03] dark:bg-primary/[0.07] shadow-md ring-1 ring-primary/10";
+                        const href = classLink(classInfo);
 
                         return (
                             <React.Fragment key={classInfo.id}>
                                 {/* Primary Schedule */}
-                                <Card className={`mb-4 transition-all duration-300 ${isPrimaryToday ? activeCardClass : ""}`}>
+                                <Card className={`mb-4 transition-all duration-300 ${href ? CARD_LINK : ''} ${isPrimaryToday ? activeCardClass : ""}`}>
                                     <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center space-x-3">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex min-w-0 items-center space-x-3">
                                                 {/* Visual Indicator Dot */}
                                                 <div className="relative flex h-3 w-3">
                                                     {isPrimaryToday && (
@@ -59,9 +70,9 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                     <span className={`relative inline-flex rounded-full h-3 w-3 ${isPrimaryToday ? 'bg-primary' : 'bg-muted-foreground/30'}`}></span>
                                                 </div>
 
-                                                <div>
+                                                <div className="min-w-0">
                                                     <CardTitle className={`text-base leading-tight ${isPrimaryToday ? 'text-primary font-bold' : ''}`}>
-                                                        {classInfo.descriptive_title}
+                                                        <ClassTitle href={href}>{classInfo.descriptive_title}</ClassTitle>
                                                     </CardTitle>
                                                     <CardDescription className="flex items-center gap-1 mt-1">
                                                         <Calendar className="w-3 h-3" />
@@ -69,6 +80,10 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                     </CardDescription>
                                                 </div>
                                             </div>
+                                            {isDropped(classInfo) && (
+                                                <Badge variant="outline" className="shrink-0 font-normal text-muted-foreground">Dropped</Badge>
+                                            )}
+                                            {href && <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
                                         </div>
                                     </CardHeader>
 
@@ -110,7 +125,7 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
 
                                 {/* Secondary Schedule */}
                                 {classInfo.secondary_schedule && (
-                                    <Card className={`mb-4 transition-all duration-300 ${isSecondaryToday ? activeCardClass : ""}`}>
+                                    <Card className={`mb-4 transition-all duration-300 ${href ? CARD_LINK : ''} ${isSecondaryToday ? activeCardClass : ""}`}>
                                         <CardHeader className="pb-3">
                                             <div className="flex items-start space-x-3">
                                                 <div className="relative flex h-3 w-3 mt-1">
@@ -119,10 +134,10 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                     )}
                                                     <span className={`relative inline-flex rounded-full h-3 w-3 ${isSecondaryToday ? 'bg-primary' : 'bg-muted-foreground/30'}`}></span>
                                                 </div>
-                                                <div className="flex-1">
+                                                <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2">
                                                         <CardTitle className={`text-base ${isSecondaryToday ? 'text-primary font-bold' : ''}`}>
-                                                            {classInfo.descriptive_title}
+                                                            <ClassTitle href={href}>{classInfo.descriptive_title}</ClassTitle>
                                                         </CardTitle>
                                                         <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-tighter h-4 px-1">2nd</Badge>
                                                     </div>
@@ -131,6 +146,7 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                                         {classInfo.secondary_schedule.day}
                                                     </CardDescription>
                                                 </div>
+                                                {href && <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
                                             </div>
                                         </CardHeader>
                                         <CardContent className="pt-0">
