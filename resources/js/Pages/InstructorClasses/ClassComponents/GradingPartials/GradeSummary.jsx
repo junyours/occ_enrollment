@@ -50,6 +50,21 @@ export const gradeSummaryKey = classId => [
     String(classId),
 ]
 
+// Everything the summary and the gradebook grid need, in one request.
+export async function fetchGradeSummary(classId, signal) {
+    const response = await axios.get(
+        route('grade-summary.show', { classId }),
+        {
+            signal,
+            headers: {
+                Accept: 'application/json',
+            },
+        }
+    )
+
+    return response.data
+}
+
 function TermSummaryCard({
     label,
     totals,
@@ -382,19 +397,7 @@ export default function GradeSummary({ classId }) {
     } = useQuery({
         queryKey: gradeSummaryKey(classId),
         enabled: hasClass,
-        queryFn: async ({ signal }) => {
-            const response = await axios.get(
-                route('grade-summary.show', { classId }),
-                {
-                    signal,
-                    headers: {
-                        Accept: 'application/json',
-                    },
-                }
-            )
-
-            return response.data
-        },
+        queryFn: ({ signal }) => fetchGradeSummary(classId, signal),
         staleTime: 0,
         refetchOnMount: 'always',
         refetchOnWindowFocus: true,

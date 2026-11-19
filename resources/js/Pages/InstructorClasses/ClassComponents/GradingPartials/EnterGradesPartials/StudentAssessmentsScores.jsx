@@ -45,6 +45,7 @@ import {
     scoreKey,
     useScoreAutosave,
 } from "./useScoreAutosave"
+import { scoreProblem, scoreValue, TYPABLE_SCORE } from "../scoreInput"
 import { FeedbackModal } from "@/Components/FeedbackModalProvider"
 
 const EMPTY_LIST = []
@@ -453,21 +454,30 @@ function StudentScoresTable({
                                                 event.target.value
                                             )
                                         }
-                                        aria-label={`Score for ${student.displayName}`}
-                                        className="h-6 w-16 rounded-none border-x-0 border-t-0 border-b border-gray-400 py-0 text-center shadow-none transition-colors duration-200 focus:border-b-2 focus:outline-none focus-visible:ring-0"
+                                        aria-label={`Score for ${student.displayName}, out of ${maximumScore}`}
+                                        aria-invalid={Boolean(student.problem)}
+                                        className={`h-6 w-16 rounded-none border-x-0 border-t-0 border-b py-0 text-center shadow-none transition-colors duration-200 focus:border-b-2 focus:outline-none focus-visible:ring-0 ${student.problem
+                                            ? "border-destructive bg-destructive/10 text-destructive"
+                                            : "border-gray-400"}`}
                                     />
 
                                     <span className="text-sm text-muted-foreground">
                                         /{maximumScore}
                                     </span>
 
-                                    <SaveStatus
-                                        status={student.saveStatus}
-                                        error={student.saveError}
-                                        onRetry={() =>
-                                            onRetryScore(student.id)
-                                        }
-                                    />
+                                    {student.problem ? (
+                                        <span className="inline-flex shrink-0 items-center text-xs font-medium text-destructive" role="alert">
+                                            {student.problem}, not saved
+                                        </span>
+                                    ) : (
+                                        <SaveStatus
+                                            status={student.saveStatus}
+                                            error={student.saveError}
+                                            onRetry={() =>
+                                                onRetryScore(student.id)
+                                            }
+                                        />
+                                    )}
                                 </div>
 
                                 {student.saveError && (
@@ -539,6 +549,9 @@ function StudentScoresContent({
     const [search, setSearch] = useState("")
     const [showOnlyUngraded, setShowOnlyUngraded] = useState(false)
     const [scoreTexts, setScoreTexts] = useState(() => new Map())
+    // Typed scores that can't be saved yet, by student, with the reason
+    // ("Over 20", "Whole numbers only"). They stay on screen until fixed.
+    const [scoreProblems, setScoreProblems] = useState(() => new Map())
     const [focusedStudentId, setFocusedStudentId] = useState(null)
 
     const deletingRef = useRef(false)
@@ -812,6 +825,7 @@ function StudentScoresContent({
                 return {
                     ...student,
                     score,
+                    problem: scoreProblems.get(student.id),
                     isGraded: hasScore(score),
                     isDirty: save?.dirty ?? false,
                     saveStatus:
@@ -820,7 +834,7 @@ function StudentScoresContent({
                     saveError: save?.error,
                 }
             }),
-        [searchableStudents, scoresByStudentId, autosave.entries]
+        [searchableStudents, scoresByStudentId, autosave.entries, scoreProblems]
     )
 
     const gradedCount = useMemo(
@@ -845,7 +859,8 @@ function StudentScoresContent({
                 !showOnlyUngraded ||
                 !student.isGraded ||
                 student.id === focusedStudentId ||
-                student.isDirty
+                student.isDirty ||
+                Boolean(student.problem)
 
             return matchesSearch && matchesGradingFilter
         })
@@ -854,35 +869,51 @@ function StudentScoresContent({
     function handleScoreChange(studentId, text) {
         if (deletingRef.current || deleted) return
 
-        // Allow intermediate decimal text while typing.
-        if (!/^(?:\d+(?:\.\d*)?|\.\d+)?$/.test(text)) return
-
-        const value = text === "" ? null : Number(text)
-
-        if (value !== null && !Number.isFinite(value)) return
-
-        const nextScore =
-            value === null ? null : Math.min(value, maximumScore)
-
-        const displayText =
-            value !== nextScore ? String(nextScore) : text
-
-        setScoreTexts((current) =>
-            new Map(current).set(studentId, displayText)
-        )
+        // Digits and a dot can be typed; a decimal is then pointed out.
+        if (!TYPABLE_SCORE.test(text)) return
 
         const savedScore = savedScoresByStudentId.get(
             getStudentKey(studentId)
         )
 
-        autosave.editScore(studentId, nextScore, savedScore)
+        const problem = scoreProblem(text, maximumScore)
+
+        setScoreTexts((current) =>
+            new Map(current).set(studentId, text)
+        )
+
+        setScoreProblems((current) => {
+            const next = new Map(current)
+            if (problem) next.set(studentId, problem)
+            else next.delete(studentId)
+            return next
+        })
+
+        // A score that can't be saved isn't sent, and cancels a save still
+        // waiting for what was typed before it.
+        autosave.editScore(
+            studentId,
+            problem ? scoreValue(savedScore ?? "") : scoreValue(text),
+            savedScore
+        )
     }
+
+    // A new maximum can make a flagged score valid.
+    useEffect(() => {
+        scoreTexts.forEach((text, studentId) => {
+            if (scoreProblems.has(studentId)) handleScoreChange(studentId, text)
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [maximumScore])
 
     function handleScoreBlur(studentId) {
         if (deletingRef.current || deleted) return
 
         autosave.flushScore(studentId)
         setFocusedStudentId(null)
+
+        // A score that can't be saved stays on screen until it is fixed.
+        if (scoreProblems.has(studentId)) return
 
         setScoreTexts((current) => {
             const next = new Map(current)
@@ -932,8 +963,20 @@ function StudentScoresContent({
     ) {
         return (
             <Card>
-                <CardContent className="p-6 text-center text-sm text-destructive">
-                    Unable to load the assessment information.
+                <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+                    <p role="alert" className="text-sm text-destructive">
+                        Unable to load the assessment information.
+                    </p>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        disabled={queries.some((query) => query.isFetching)}
+                        onClick={() => queries.forEach((query) => {
+                            if (query.isError) void query.refetch()
+                        })}
+                    >
+                        Try again
+                    </Button>
                 </CardContent>
             </Card>
         )
@@ -1009,6 +1052,12 @@ function StudentScoresContent({
                         >
                             Retry {autosave.errorCount} failed save(s)
                         </button>
+                    )}
+
+                    {scoreProblems.size > 0 && (
+                        <span className="text-destructive">
+                            {scoreProblems.size} score{scoreProblems.size === 1 ? "" : "s"} to fix
+                        </span>
                     )}
                 </div>
 

@@ -32,8 +32,19 @@ Route::middleware('auth')
         Route::post('announcements', 'storeAnnouncement')
             ->name('announcements.store');
 
-        Route::get('announcements/targets', 'announcementTargets')
-            ->name('announcements.targets');
+        // The teacher's other classes this school year (post copies there).
+        Route::get('targets', 'classTargets')
+            ->name('targets');
+
+        Route::get('materials/sources', 'materialSources')
+            ->name('materials.sources');
+
+        Route::get('materials/sources/{sourceClassId}', 'sourceMaterials')
+            ->whereNumber('sourceClassId')
+            ->name('materials.sources.show');
+
+        Route::post('materials/copy', 'copyMaterials')
+            ->name('materials.copy');
 
         Route::get('announcements/unread', 'unreadAnnouncements')
             ->name('announcements.unread');

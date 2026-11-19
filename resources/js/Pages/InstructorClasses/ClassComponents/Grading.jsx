@@ -85,18 +85,22 @@ export default function Grading({ classId }) {
     return (
         <Card>
             <CardContent className="space-y-4 pt-6">
-                {/* Top controls */}
+                {/* Top controls. The term switch only applies to entering
+                    grades; the summary shows both terms. */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <SegmentedControl
-                        value={selectedPeriod}
-                        onValueChange={setSelectedPeriod}
-                        items={PERIODS}
-                    />
+                    {selectedTab === "enter_grades" && (
+                        <SegmentedControl
+                            value={selectedPeriod}
+                            onValueChange={setSelectedPeriod}
+                            items={PERIODS}
+                        />
+                    )}
 
                     <SegmentedTabs
                         value={selectedTab}
                         onValueChange={setSelectedTab}
                         items={GRADING_TABS}
+                        className={selectedTab === "enter_grades" ? undefined : "ml-auto"}
                     />
                 </div>
 

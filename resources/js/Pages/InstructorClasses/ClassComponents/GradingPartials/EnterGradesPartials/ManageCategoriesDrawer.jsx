@@ -439,14 +439,14 @@ export default function ManageCategoriesDrawer({
                 <div className="flex-1 space-y-6 overflow-y-auto p-4">
                     <div>
                         <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center justify-between gap-2 rounded-lg bg-blue-100 p-3 text-black">
+                            <div className="flex items-center justify-between gap-2 rounded-lg bg-blue-100 p-3 text-blue-950 dark:bg-blue-950/50 dark:text-blue-50">
                                 <span className="text-sm font-medium">
                                     Class Standing
                                 </span>
                                 <strong>{CLASS_STANDING_WEIGHT}%</strong>
                             </div>
 
-                            <div className="flex items-center justify-between gap-2 rounded-lg bg-green-100 p-3 text-black">
+                            <div className="flex items-center justify-between gap-2 rounded-lg bg-green-100 p-3 text-green-950 dark:bg-green-950/50 dark:text-green-50">
                                 <span className="text-sm font-medium">
                                     {periodLabel} Exam
                                 </span>

@@ -11,7 +11,6 @@ import {
 
 import { Card, CardContent } from '@/Components/ui/card'
 import { Input } from '@/Components/ui/input'
-import NumberInput from '@/Components/ui/NumberInput'
 import { Button } from '@/Components/ui/button'
 import { Progress } from '@/Components/ui/progress'
 import { Skeleton } from '@/Components/ui/skeleton'
@@ -26,6 +25,7 @@ import {
 
 import { formatName } from '@/Lib/InfoUtils'
 import { useExamScoreAutosave } from './useExamScoreAutosave'
+import { scoreProblem, scoreValue, TYPABLE_SCORE } from '../scoreInput'
 
 const EMPTY = []
 
@@ -76,6 +76,11 @@ export default function StudentExamScores({ exam, classId }) {
     const [search, setSearch] = useState('')
     const [onlyUngraded, setOnlyUngraded] = useState(false)
     const [focusedId, setFocusedId] = useState(null)
+    // What was typed, by student, while it differs from the saved score,
+    // and why a typed score can't be saved ("Over 50"). Problems stay on
+    // screen until fixed.
+    const [texts, setTexts] = useState(() => new Map())
+    const [problems, setProblems] = useState(() => new Map())
 
     const inputRefs = useRef(new Map())
     const autosave = useExamScoreAutosave(classId, exam.id)
@@ -169,7 +174,8 @@ export default function StudentExamScores({ exam, classId }) {
             !onlyUngraded ||
             !hasScore(row.value) ||
             row.key === focusedId ||
-            row.entry?.dirty
+            row.entry?.dirty ||
+            problems.has(row.key)
 
         return matchesSearch && matchesStatus
     })
@@ -178,12 +184,37 @@ export default function StudentExamScores({ exam, classId }) {
         hasScore(savedByStudent.get(row.key))
     ).length
 
-    function changeScore(row, nextValue) {
-        autosave.edit(
-            row.id,
-            nextValue === '' ? null : nextValue,
-            savedByStudent.get(row.key) ?? null
-        )
+    function changeScore(row, text) {
+        // Digits and a dot can be typed; a decimal is then pointed out.
+        if (!TYPABLE_SCORE.test(text)) return
+
+        const saved = savedByStudent.get(row.key) ?? null
+        const problem = scoreProblem(text, maxScore)
+
+        setTexts((current) => new Map(current).set(row.key, text))
+        setProblems((current) => {
+            const next = new Map(current)
+            if (problem) next.set(row.key, problem)
+            else next.delete(row.key)
+            return next
+        })
+
+        // A score that can't be saved isn't sent, and cancels a save still
+        // waiting for what was typed before it.
+        autosave.edit(row.id, problem ? saved : scoreValue(text), saved)
+    }
+
+    function leaveScore(row) {
+        autosave.flush(row.id)
+        setFocusedId(null)
+
+        if (problems.has(row.key)) return
+
+        setTexts((current) => {
+            const next = new Map(current)
+            next.delete(row.key)
+            return next
+        })
     }
 
     function handleKey(event, index) {
@@ -325,6 +356,11 @@ export default function StudentExamScores({ exam, classId }) {
                     {autosave.pendingCount
                         ? `${autosave.pendingCount} change(s) not yet saved`
                         : 'All changes saved'}
+                    {problems.size > 0 && (
+                        <span className="text-destructive">
+                            {' '}· {problems.size} score{problems.size === 1 ? '' : 's'} to fix
+                        </span>
+                    )}
                 </span>
 
                 {autosave.errorCount > 0 && (
@@ -373,7 +409,7 @@ export default function StudentExamScores({ exam, classId }) {
 
                                 <TableCell>
                                     <div className="flex items-center gap-2">
-                                        <NumberInput
+                                        <Input
                                             ref={(element) => {
                                                 if (element) {
                                                     inputRefs.current.set(
@@ -386,31 +422,26 @@ export default function StudentExamScores({ exam, classId }) {
                                                     )
                                                 }
                                             }}
-                                            value={row.value ?? ''}
-                                            min={0}
-                                            max={
-                                                hasValidMaximum
-                                                    ? maxScore
-                                                    : undefined
-                                            }
-                                            step={1}
+                                            value={texts.get(row.key) ?? (row.value ?? '')}
+                                            inputMode="numeric"
+                                            autoComplete="off"
                                             disabled={!hasValidMaximum}
-                                            className="w-24 shrink-0"
-                                            aria-label={`Exam score for ${row.name}`}
+                                            className={`h-9 w-20 shrink-0 text-center tabular-nums ${problems.has(row.key)
+                                                ? 'border-destructive bg-destructive/10 text-destructive'
+                                                : ''}`}
+                                            aria-label={`Exam score for ${row.name}, out of ${hasValidMaximum ? maxScore : 'no maximum yet'}`}
                                             aria-invalid={
-                                                row.entry?.status ===
-                                                'error'
+                                                problems.has(row.key) ||
+                                                row.entry?.status === 'error'
                                             }
-                                            onValueChange={(value) =>
-                                                changeScore(row, value)
+                                            onChange={(event) =>
+                                                changeScore(row, event.target.value)
                                             }
-                                            onFocus={() =>
+                                            onFocus={(event) => {
                                                 setFocusedId(row.key)
-                                            }
-                                            onBlur={() => {
-                                                autosave.flush(row.id)
-                                                setFocusedId(null)
+                                                event.target.select()
                                             }}
+                                            onBlur={() => leaveScore(row)}
                                             onKeyDown={(event) =>
                                                 handleKey(event, index)
                                             }
@@ -423,18 +454,24 @@ export default function StudentExamScores({ exam, classId }) {
                                                 : '—'}
                                         </span>
 
-                                        <ScoreStatus
-                                            status={
-                                                row.entry?.status ??
-                                                (hasScore(row.value)
-                                                    ? 'saved'
-                                                    : 'idle')
-                                            }
-                                            error={row.entry?.error}
-                                            onRetry={() =>
-                                                autosave.retry(row.id)
-                                            }
-                                        />
+                                        {problems.has(row.key) ? (
+                                            <span role="alert" className="text-xs font-medium text-destructive">
+                                                {problems.get(row.key)}, not saved
+                                            </span>
+                                        ) : (
+                                            <ScoreStatus
+                                                status={
+                                                    row.entry?.status ??
+                                                    (hasScore(row.value)
+                                                        ? 'saved'
+                                                        : 'idle')
+                                                }
+                                                error={row.entry?.error}
+                                                onRetry={() =>
+                                                    autosave.retry(row.id)
+                                                }
+                                            />
+                                        )}
                                     </div>
 
                                     {row.entry?.error && (

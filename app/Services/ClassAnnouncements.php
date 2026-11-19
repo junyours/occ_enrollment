@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Notifications\AnnouncementCommented;
 use App\Notifications\AnnouncementPosted;
+use App\Support\ClassworkHtml;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -61,10 +62,7 @@ class ClassAnnouncements
     /** Plain text from rich text, for notification previews. */
     public function excerpt(string $html, int $limit = 140): string
     {
-        $spaced = preg_replace('/<\/(p|li)>|<br\s*\/?>/i', ' ', $html);
-        $text = html_entity_decode(strip_tags($spaced), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-        return Str::limit(trim(preg_replace('/\s+/u', ' ', str_replace("\u{00A0}", ' ', $text))), $limit);
+        return ClassworkHtml::excerpt($html, $limit);
     }
 
     private function classLabel(int $classId): string

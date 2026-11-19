@@ -1653,8 +1653,16 @@ class ClassController extends Controller
 
         abort_unless($user, 401, 'Unauthenticated.');
 
+        // The name and maximum come from the Add assessment form; older
+        // callers that send neither get the numbered default.
         $data = $request->validate([
             'category_id' => ['required', 'integer', 'min:1'],
+            'name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'max_score' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:1000'],
+        ], [
+            'max_score.integer' => 'The maximum must be a whole number.',
+            'max_score.min' => 'The maximum must be at least 1.',
+            'max_score.max' => 'Keep the maximum at 1,000 or less.',
         ]);
 
         $assessment = DB::transaction(function () use ($data, $user) {
@@ -1683,12 +1691,14 @@ class ClassController extends Controller
                 ->where('grading_category_id', $category->id)
                 ->count();
 
-            // New columns start as the next number with a maximum of 10;
-            // the instructor renames and adjusts them in the grading table.
+            $name = trim((string) ($data['name'] ?? ''));
+
+            // Without a name or maximum, a new assessment is the next number
+            // out of 10; the instructor can rename and adjust it later.
             return Assessment::create([
                 'grading_category_id' => $category->id,
-                'name' => (string) ($count + 1),
-                'max_score' => 10,
+                'name' => $name !== '' ? $name : (string) ($count + 1),
+                'max_score' => $data['max_score'] ?? 10,
                 'sort_order' => $count + 1,
             ]);
         });

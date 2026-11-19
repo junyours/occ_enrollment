@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
     Archive, ArchiveRestore, CalendarDays, ChevronDown, ChevronRight, ClipboardList,
-    FolderOpen, Layers, Link2, Pencil, Plus, Trash2, Trophy,
+    Copy, FolderOpen, Layers, Link2, Pencil, Plus, Trash2, Trophy,
 } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
 import { Badge } from '@/Components/ui/badge'
@@ -15,6 +15,7 @@ import {
     AlertDialog, AlertDialogContent, AlertDialogDescription,
     AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog'
+import CopyMaterialsDialog from '../Materials/CopyMaterialsDialog'
 import Editor from './Editor'
 import Files from './Files'
 import { GuideButton, useGuide } from './GuideTour'
@@ -213,6 +214,7 @@ export default function ResourceList({ kind, renderWork }) {
     const client = useQueryClient()
     const query = useClassworkQuery(kind)
     const [editor, setEditor] = useState(null)
+    const [copying, setCopying] = useState(false)
     const [expanded, setExpanded] = useState(() => new Set())
     const [uploading, setUploading] = useState(false)
     const [filter, setFilter] = useState('all')
@@ -326,6 +328,15 @@ export default function ResourceList({ kind, renderWork }) {
         <GuideButton onClick={guide.start} data-tour={`guide-${kind}`} />
     )
 
+    // Materials can also be copied in from the teacher's other classes.
+    const copyButton = manage && !assignment && (
+        <Button type="button" variant="outline" onClick={() => setCopying(true)} disabled={busy}
+            className="col-span-2 w-full sm:col-span-1 sm:w-auto" data-tour="copy-materials">
+            <Copy size={16} aria-hidden="true" />
+            Copy from another class
+        </Button>
+    )
+
     function renderCard(item) {
         // Assignments open on their own page when one is set up: the
         // student's work, or the teacher's view of everyone's work.
@@ -410,8 +421,10 @@ export default function ResourceList({ kind, renderWork }) {
                 </p>
 
                 {manage && (
-                    <div className="flex w-full items-center gap-2 sm:w-auto">
+                    // Phones: Guide and Add on one row, Copy under them.
+                    <div className="grid w-full grid-flow-row-dense grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:flex sm:w-auto">
                         {guideButton}
+                        {items.length > 0 && copyButton}
                         {items.length > 0 && addButton}
                     </div>
                 )}
@@ -450,7 +463,12 @@ export default function ResourceList({ kind, renderWork }) {
                 <EmptyState
                     icon={assignment ? ClipboardList : FolderOpen}
                     title={manage ? `No ${kind} yet` : assignment ? 'Nothing assigned yet' : 'No materials yet'}
-                    action={addButton}
+                    action={manage && (
+                        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                            {addButton}
+                            {copyButton}
+                        </div>
+                    )}
                 >
                     {manage
                         ? assignment
@@ -567,6 +585,10 @@ export default function ResourceList({ kind, renderWork }) {
             </AlertDialog>
 
             {guide.tour}
+
+            {!assignment && manage && (
+                <CopyMaterialsDialog open={copying} onOpenChange={setCopying} />
+            )}
 
             {editor && (
                 <Editor

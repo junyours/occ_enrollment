@@ -73,6 +73,16 @@ export function materialsGuide() {
             ),
         },
         {
+            target: '[data-tour="copy-materials"]',
+            title: 'Reuse materials',
+            body: (
+                <p>
+                    Copy materials from your other classes, this semester or earlier ones, files
+                    included, instead of uploading them again.
+                </p>
+            ),
+        },
+        {
             target: '[data-tour-item="materials"]',
             title: 'Keep materials tidy',
             body: (
@@ -210,6 +220,11 @@ export function editorGuide({ assignment, editing }) {
                 target: '[data-tour="editor-attachments"]',
                 title: 'Attach files',
                 body: <p>Add slides, PDFs or any other files. Students can preview and download them.</p>,
+            },
+            {
+                target: '[data-tour="editor-other-classes"]',
+                title: 'Post to your other classes too',
+                body: <p>Tick other sections to give each one its own copy, files included, when you post.</p>,
             },
             {
                 target: '[data-tour="editor-actions"]',

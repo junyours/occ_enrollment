@@ -223,6 +223,8 @@ export function useScoreAutosave(assessmentId, classId) {
                 // Refresh assessment labels shown in the surrounding grading tabs.
                 void queryClient.invalidateQueries({ queryKey: ["class-gradings", classId] })
             }
+            // The gradebook grid and summary read their own copy of the scores.
+            void queryClient.invalidateQueries({ queryKey: ["grade-summary"] })
             return savedValue
         },
     })

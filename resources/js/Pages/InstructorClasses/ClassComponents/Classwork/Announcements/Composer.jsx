@@ -107,7 +107,7 @@ export default function Composer({ post = null, onDone, onCancel }) {
     const completedUploads = useRef(new Set())
     const saving = useRef(false)
 
-    const targets = useClassworkQuery('announcements/targets', {
+    const targets = useClassworkQuery('targets', {
         enabled: !posted,
         staleTime: 5 * 60_000,
     }).data ?? []

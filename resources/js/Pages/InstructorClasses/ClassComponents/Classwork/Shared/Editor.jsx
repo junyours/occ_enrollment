@@ -227,6 +227,49 @@ function useStickyTop(scroller, panel) {
     return top
 }
 
+// Materials: the teacher's other classes this school year. Each one ticked
+// gets its own copy, files included, when the material is posted.
+function AlsoPostTo({ targets, value, onChange, disabled }) {
+    const headingId = useId()
+
+    function toggle(id, checked) {
+        onChange((current) => (checked ? [...current, id] : current.filter((entry) => entry !== id)))
+    }
+
+    return (
+        <section aria-labelledby={headingId} className="space-y-3 rounded-xl border bg-background p-3 sm:p-4" data-tour="editor-other-classes">
+            <div>
+                <h3 id={headingId} className="text-sm font-semibold">
+                    Also post to <span className="font-normal text-muted-foreground">(optional)</span>
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                    Each class you tick gets its own copy, files included, when you post. Drafts stay in this class.
+                </p>
+            </div>
+
+            <ul className="grid gap-2 sm:grid-cols-2">
+                {targets.map((target) => (
+                    <li key={target.id}>
+                        <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border px-3 py-2.5 transition-colors hover:bg-muted/40 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+                            <Checkbox
+                                className="mt-0.5"
+                                checked={value.includes(target.id)}
+                                disabled={disabled}
+                                onCheckedChange={(checked) => toggle(target.id, checked === true)}
+                            />
+                            <span className="min-w-0 text-sm">
+                                <span className="font-medium">{target.subject}</span>
+                                <span className="text-muted-foreground"> · {target.section}</span>
+                                <span className="block truncate text-xs text-muted-foreground">{target.title}</span>
+                            </span>
+                        </label>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    )
+}
+
 export default function Editor({ kind, item, onClose, onSaved }) {
     const assignment = kind === 'assignments'
     const Icon = assignment ? ClipboardList : FolderOpen
@@ -303,6 +346,14 @@ export default function Editor({ kind, item, onClose, onSaved }) {
     const [attachments, setAttachments] = useState([])
     const [stage, setStage] = useState('')
 
+    // A new material can also go to the teacher's other classes.
+    const offersCopies = !assignment && !item
+    const [alsoIds, setAlsoIds] = useState([])
+    const targets = useClassworkQuery('targets', {
+        enabled: offersCopies,
+        staleTime: 5 * 60_000,
+    }).data ?? []
+
     function updateAttachment(id, changes) {
         setAttachments((current) => current.map((entry) => entry.id === id ? { ...entry, ...changes } : entry))
     }
@@ -310,7 +361,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
     const save = useMutation({
         retry: false,
         networkMode: 'always',
-        mutationFn: async ({ fields, publish, files, assessmentId }) => {
+        mutationFn: async ({ fields, publish, files, assessmentId, also = [] }) => {
             if (!navigator.onLine) throw new Error('You are offline. Your selected files are still here; reconnect and try again.')
 
             let toSave = fields
@@ -362,18 +413,63 @@ export default function Editor({ kind, item, onClose, onSaved }) {
             setStage(publish ? 'Publishing…' : 'Saving draft…')
             // An existing assignment's assessment_id must not be sent in PATCH.
             await axios.patch(`${base}/${kind}/${id}`, { ...toSave, published: publish })
-            return id
+
+            // Once it's posted here, each class picked gets its own copy. A
+            // copy that fails is reported; the post here stays.
+            const copied = []
+            const failed = []
+
+            for (const target of also) {
+                setStage(`Copying to ${target.subject} · ${target.section}…`)
+
+                try {
+                    await axios.post(`/classes/${encodeURIComponent(target.id)}/classwork/materials/copy`, {
+                        source_class_id: Number(key[2]),
+                        material_ids: [id],
+                        published: true,
+                    })
+                    copied.push(target)
+                } catch (error) {
+                    // Say why only when trying again won't help (e.g. no
+                    // longer their class); otherwise just how to retry.
+                    const status = error.response?.status ?? 0
+                    failed.push({ target, reason: status >= 400 && status < 500 ? errorMessage(error) : '' })
+                }
+            }
+
+            return { id, copied, failed }
         },
-        onSuccess: async (id, { publish }) => {
+        onSuccess: async ({ id, copied, failed }, { publish }) => {
             await client.invalidateQueries({ queryKey: key })
+
+            // The classes copied to show the copy next time they're opened.
+            copied.forEach((target) => {
+                void client.invalidateQueries({ queryKey: [key[0], key[1], String(target.id)] })
+            })
+
+            const label = (target) => `${target.subject} · ${target.section}`
+
             toast.success(
                 item
                     ? 'Changes saved'
                     : !publish
                         ? 'Draft saved'
                         : assignment ? 'Assignment posted' : 'Material posted',
-                { description: title.trim() }
+                { description: copied.length ? `Also posted to ${copied.map(label).join(', ')}.` : title.trim() }
             )
+
+            if (failed.length) {
+                const reason = failed.find((entry) => entry.reason)?.reason
+
+                toast.warning(`Not posted to ${failed.map(({ target }) => label(target)).join(', ')}`, {
+                    description: [
+                        reason,
+                        `It’s posted here. To add it there, open ${failed.length === 1 ? 'that class' : 'those classes'} and choose Copy from another class.`,
+                    ].filter(Boolean).join(' '),
+                    duration: 10_000,
+                })
+            }
+
             onSaved(id)
         },
         onError: () => {
@@ -440,6 +536,7 @@ export default function Editor({ kind, item, onClose, onSaved }) {
             publish,
             files: [...attachments],
             assessmentId: selectedAssessment?.id,
+            also: offersCopies && publish ? targets.filter((target) => alsoIds.includes(target.id)) : [],
         })
     }
 
@@ -526,6 +623,10 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                                     <AttachmentPicker files={attachments} onChange={setAttachments} disabled={disabled} optional={!item} />
                                     {!assignment && item && <label className="flex items-start gap-2 text-sm"><Checkbox checked={published} disabled={disabled} onCheckedChange={(value) => setPublished(value === true)} />Published — visible to enrolled students</label>}
                                 </div>
+
+                                {offersCopies && targets.length > 0 && (
+                                    <AlsoPostTo targets={targets} value={alsoIds} onChange={setAlsoIds} disabled={disabled} />
+                                )}
 
                                 {assignment && (
                                     <SubmissionSettings
@@ -628,7 +729,11 @@ export default function Editor({ kind, item, onClose, onSaved }) {
                         <Button type="button" variant="ghost" disabled={disabled} onClick={close}>{recordId && !item ? 'Close · keep draft' : 'Cancel'}</Button>
                         {!item && <Button type="submit" name="intent" value="draft" variant="outline" disabled={disabled || invalid} className="border-border bg-background text-foreground hover:bg-muted disabled:text-muted-foreground dark:bg-background dark:hover:bg-muted">Save draft</Button>}
                         <Button type="submit" name="intent" value="publish" disabled={disabled || invalid}>
-                            {disabled ? 'Saving…' : item ? 'Save changes' : assignment ? 'Assign' : 'Post material'}
+                            {disabled
+                                ? 'Saving…'
+                                : item ? 'Save changes'
+                                    : assignment ? 'Assign'
+                                        : alsoIds.length ? `Post to ${alsoIds.length + 1} classes` : 'Post material'}
                         </Button>
                     </DrawerFooter>
                 </form>

@@ -882,6 +882,222 @@ class ClassworkController extends Controller
         return $notTrashed;
     }
 
+    // ---- Copying materials between classes ----
+
+    // Materials copied in one go.
+    private const COPY_MATERIALS_MAX = 20;
+
+    /**
+     * The teacher's other classes that have materials, from any school year
+     * (newest first, same subject first within a year), to copy from.
+     */
+    public function materialSources(Request $request, int $classId)
+    {
+        $this->teacher($request, $classId);
+
+        $subjectId = DB::table('year_section_subjects')->where('id', $classId)->value('subject_id');
+
+        $classes = DB::table('year_section_subjects as ys')
+            ->join('year_section as sec', 'sec.id', '=', 'ys.year_section_id')
+            ->join('course', 'course.id', '=', 'sec.course_id')
+            ->join('subjects as s', 's.id', '=', 'ys.subject_id')
+            ->leftJoin('school_years as sy', 'sy.id', '=', 'sec.school_year_id')
+            ->leftJoin('semesters as sem', 'sem.id', '=', 'sy.semester_id')
+            ->where('ys.faculty_id', $request->user()->id)
+            ->where('ys.id', '!=', $classId)
+            ->whereExists(fn($query) => $query
+                ->selectRaw('1')
+                ->from('class_materials as m')
+                ->whereColumn('m.year_section_subject_id', 'ys.id'))
+            ->orderByDesc('sy.start_year')
+            ->orderByDesc('sy.semester_id')
+            ->orderByRaw('ys.subject_id = ? desc', [$subjectId])
+            ->orderBy('s.subject_code')
+            ->orderBy('course.course_name_abbreviation')
+            ->orderBy('sec.year_level_id')
+            ->orderBy('sec.section')
+            ->get([
+                'ys.id',
+                'ys.subject_id',
+                's.subject_code',
+                's.descriptive_title',
+                'course.course_name_abbreviation',
+                'sec.year_level_id',
+                'sec.section',
+                'sy.start_year',
+                'sy.end_year',
+                'sem.semester_name',
+            ]);
+
+        $counts = DB::table('class_materials')
+            ->whereIn('year_section_subject_id', $classes->pluck('id'))
+            ->groupBy('year_section_subject_id')
+            ->selectRaw('year_section_subject_id, count(*) as total')
+            ->pluck('total', 'year_section_subject_id');
+
+        return response()->json($classes->map(fn($row) => [
+            'id' => (int) $row->id,
+            'subject' => $row->subject_code ?: $row->descriptive_title,
+            'title' => $row->descriptive_title,
+            'section' => $row->course_name_abbreviation . '-' . $row->year_level_id . $row->section,
+            'school_year' => $row->start_year
+                ? trim("{$row->start_year}–{$row->end_year} · " . ($row->semester_name ?? ''), ' ·')
+                : null,
+            'same_subject' => (string) $row->subject_id === (string) $subjectId,
+            'materials' => (int) ($counts[$row->id] ?? 0),
+        ])->values());
+    }
+
+    /** One of the teacher's classes' materials, for picking what to copy. */
+    public function sourceMaterials(Request $request, int $classId, int $sourceClassId)
+    {
+        $this->teacher($request, $classId);
+        $this->teacher($request, $sourceClassId);
+
+        $materials = DB::table('class_materials')
+            ->where('year_section_subject_id', $sourceClassId)
+            ->orderByDesc('id')
+            ->get(['id', 'title', 'description', 'published', 'archived_at']);
+
+        $files = $materials->isEmpty()
+            ? collect()
+            : DB::table('classwork_files')
+            ->whereIn('material_id', $materials->pluck('id'))
+            ->groupBy('material_id')
+            ->selectRaw('material_id, count(*) as total')
+            ->pluck('total', 'material_id');
+
+        return response()->json($materials->map(fn($material) => [
+            'id' => (int) $material->id,
+            'title' => $material->title,
+            'summary' => ClassworkHtml::excerpt($material->description, 120),
+            'files' => (int) ($files[$material->id] ?? 0),
+            'published' => (bool) $material->published,
+            'archived' => $material->archived_at !== null,
+        ])->values());
+    }
+
+    /**
+     * Copies materials from another class the teacher teaches into this
+     * one, files included (copied inside Drive). They arrive posted or as
+     * drafts. Links to assignments and topics stay with the originals.
+     */
+    public function copyMaterials(Request $request, ClassworkDrive $drive, int $classId)
+    {
+        $this->teacher($request, $classId);
+
+        $data = $request->validate([
+            'source_class_id' => ['required', 'integer', 'min:1'],
+            'material_ids' => ['required', 'array', 'min:1', 'max:' . self::COPY_MATERIALS_MAX],
+            'material_ids.*' => ['integer', 'distinct'],
+            'published' => ['required', 'boolean'],
+        ], [
+            'material_ids.required' => 'Choose at least one material.',
+            'material_ids.min' => 'Choose at least one material.',
+            'material_ids.max' => 'Copy up to 20 materials at a time.',
+        ]);
+
+        $sourceClassId = (int) $data['source_class_id'];
+        $this->teacher($request, $sourceClassId);
+
+        $ids = array_values(array_unique(array_map('intval', $data['material_ids'])));
+
+        $materials = DB::table('class_materials')
+            ->where('year_section_subject_id', $sourceClassId)
+            ->whereIn('id', $ids)
+            ->orderBy('id')
+            ->get();
+
+        if ($materials->count() !== count($ids)) {
+            throw ValidationException::withMessages([
+                'material_ids' => 'Choose materials from that class.',
+            ]);
+        }
+
+        return response()->json([
+            'ids' => $this->duplicateMaterials($drive, $materials, $classId, (bool) $data['published']),
+        ], 201);
+    }
+
+    /**
+     * New copies of materials in a class. They start hidden while their
+     * files are copied; if a file fails, the copies made so far are removed
+     * and nothing is added. Returns the new ids, in the same order.
+     */
+    private function duplicateMaterials(ClassworkDrive $drive, $materials, int $classId, bool $publish): array
+    {
+        $materials = $materials->values();
+
+        $files = DB::table('classwork_files')
+            ->whereIn('material_id', $materials->pluck('id'))
+            ->orderBy('id')
+            ->get()
+            ->groupBy('material_id');
+
+        $newIds = DB::transaction(fn() => $materials->map(fn($material) => DB::table('class_materials')->insertGetId([
+            'year_section_subject_id' => $classId,
+            'title' => $material->title,
+            'description' => $material->description,
+            'body_format' => $material->body_format ?? 'text',
+            'published' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]))->all());
+
+        $copied = [];
+
+        try {
+            $rows = [];
+
+            foreach ($materials as $index => $material) {
+                foreach ($files->get($material->id, collect()) as $file) {
+                    $remote = $drive->copy(
+                        $file->drive_file_id,
+                        $classId,
+                        'materials',
+                        $newIds[$index],
+                        $file->name
+                    );
+
+                    $copied[] = $remote['drive_file_id'];
+
+                    $rows[] = [
+                        'material_id' => $newIds[$index],
+                        'drive_file_id' => $remote['drive_file_id'],
+                        'name' => $file->name,
+                        'mime_type' => $file->mime_type,
+                        'size' => $file->size,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if ($rows !== []) {
+                DB::table('classwork_files')->insert($rows);
+            }
+        } catch (Throwable $error) {
+            report($error);
+
+            DB::transaction(function () use ($newIds) {
+                DB::table('classwork_files')->whereIn('material_id', $newIds)->delete();
+                DB::table('class_materials')->whereIn('id', $newIds)->delete();
+            });
+
+            $this->trashFiles($drive, $copied);
+
+            abort(503, 'Google Drive couldn’t copy the files, so nothing was copied. Please try again.');
+        }
+
+        if ($publish) {
+            DB::table('class_materials')
+                ->whereIn('id', $newIds)
+                ->update(['published' => true, 'updated_at' => now()]);
+        }
+
+        return $newIds;
+    }
+
     // ---- Announcements ----
 
     // Characters an announcement's rich text can have, tags included.
@@ -1008,7 +1224,8 @@ class ClassworkController extends Controller
         return $ids;
     }
 
-    public function announcementTargets(Request $request, int $classId)
+    /** Other classes the teacher teaches this school year, to post copies to. */
+    public function classTargets(Request $request, int $classId)
     {
         $this->teacher($request, $classId);
 
