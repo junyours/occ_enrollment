@@ -11,6 +11,7 @@ import {
 import { convertToAMPM, formatFullName } from '@/Lib/Utils'
 import { Clock, MapPin, User, BookOpen, Loader2, AlertCircle, Calendar, ChevronRight } from 'lucide-react'
 import { classLink, isDropped } from './ClassesComponents/classLink'
+import NewAnnouncementsBadge from './ClassesComponents/NewAnnouncementsBadge'
 
 const today = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 
@@ -83,6 +84,7 @@ function MobileViewClasses({ classes, isLoading, isError, error }) {
                                             {isDropped(classInfo) && (
                                                 <Badge variant="outline" className="shrink-0 font-normal text-muted-foreground">Dropped</Badge>
                                             )}
+                                            <NewAnnouncementsBadge classInfo={classInfo} href={href} />
                                             {href && <ChevronRight className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
                                         </div>
                                     </CardHeader>

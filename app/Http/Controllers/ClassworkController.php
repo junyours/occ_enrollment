@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ClassAnnouncements;
 use App\Services\ClassworkDrive;
 use App\Support\ClassworkHtml;
 use Carbon\CarbonImmutable;
@@ -88,7 +89,7 @@ class ClassworkController extends Controller
         abort_unless(
             in_array(
                 $kind,
-                ['materials', 'assignments', 'submissions'],
+                ['materials', 'assignments', 'submissions', 'announcements'],
                 true
             ),
             404
@@ -854,8 +855,19 @@ class ClassworkController extends Controller
             return $driveIds;
         });
 
-        // Drive cleanup runs after the database commit; a failure leaves a
-        // file in Drive but never a broken record in the app.
+        return response()->json([
+            'deleted' => true,
+            'files_not_trashed' => $this->trashFiles($drive, $driveIds),
+        ]);
+    }
+
+    /**
+     * Moves deleted items' files to the Drive trash, after the database
+     * commit: a failure leaves a file in Drive but never a broken record in
+     * the app. Returns how many could not be trashed.
+     */
+    private function trashFiles(ClassworkDrive $drive, array $driveIds): int
+    {
         $notTrashed = 0;
 
         foreach ($driveIds as $fileId) {
@@ -867,10 +879,771 @@ class ClassworkController extends Controller
             }
         }
 
+        return $notTrashed;
+    }
+
+    // ---- Announcements ----
+
+    // Characters an announcement's rich text can have, tags included.
+    private const ANNOUNCEMENT_MAX_LENGTH = 20000;
+
+    // Regular posts per page; pinned and unposted ones come with the first.
+    private const ANNOUNCEMENT_PAGE = 20;
+
+    private const COMMENT_MAX_LENGTH = 1000;
+
+    private const ANNOUNCEMENT_MESSAGES = [
+        'body.required' => 'Write something to announce.',
+        'body.max' => 'Keep the announcement under 20,000 characters.',
+        'published.accepted' => 'A posted announcement can’t go back to draft.',
+        'scheduled_at.date' => 'Pick a valid date and time.',
+        'scheduled_at.after' => 'Pick a time in the future.',
+        'scheduled_at.before' => 'Schedule it within a year.',
+        'also_class_ids.max' => 'Pick up to 30 classes.',
+        'also_class_ids.*.distinct' => 'Each class can be picked once.',
+    ];
+
+    /** Cleaned rich text, with something to read and small enough to store. */
+    private function announcementBody(string $html): string
+    {
+        $clean = ClassworkHtml::clean($html);
+        $text = html_entity_decode(strip_tags($clean), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        if ($this->answerText($text) === '') {
+            throw ValidationException::withMessages([
+                'body' => self::ANNOUNCEMENT_MESSAGES['body.required'],
+            ]);
+        }
+
+        // The TEXT column holds 64 KB.
+        if (strlen($clean) > 65535) {
+            throw ValidationException::withMessages([
+                'body' => 'This announcement is too long. Shorten it and try again.',
+            ]);
+        }
+
+        return $clean;
+    }
+
+    /** A stored time as ISO 8601; `$zone` is the zone it was saved in. */
+    private function isoTime(?string $value, string $zone = 'UTC'): ?string
+    {
+        return $value
+            ? CarbonImmutable::parse($value, $zone)->toIso8601String()
+            : null;
+    }
+
+    /** A time the browser sent, as stored: UTC "Y-m-d H:i:s". */
+    private function utcTime(string $value): string
+    {
+        return CarbonImmutable::parse($value)->utc()->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * The other classes this teacher teaches in the same school year, where
+     * an announcement can also be posted. Other sections of the same subject
+     * come first.
+     */
+    private function sectionTargets(int $teacherId, int $classId)
+    {
+        $class = DB::table('year_section_subjects as ys')
+            ->join('year_section as sec', 'sec.id', '=', 'ys.year_section_id')
+            ->where('ys.id', $classId)
+            ->first(['ys.subject_id', 'sec.school_year_id']);
+
+        if (! $class) {
+            return collect();
+        }
+
+        return DB::table('year_section_subjects as ys')
+            ->join('year_section as sec', 'sec.id', '=', 'ys.year_section_id')
+            ->join('course', 'course.id', '=', 'sec.course_id')
+            ->join('subjects as s', 's.id', '=', 'ys.subject_id')
+            ->where('ys.faculty_id', $teacherId)
+            ->where('sec.school_year_id', $class->school_year_id)
+            ->where('ys.id', '!=', $classId)
+            ->orderByRaw('ys.subject_id = ? desc', [$class->subject_id])
+            ->orderBy('s.subject_code')
+            ->orderBy('course.course_name_abbreviation')
+            ->orderBy('sec.year_level_id')
+            ->orderBy('sec.section')
+            ->get([
+                'ys.id',
+                'ys.subject_id',
+                's.subject_code',
+                's.descriptive_title',
+                'course.course_name_abbreviation',
+                'sec.year_level_id',
+                'sec.section',
+            ])
+            ->map(fn($row) => [
+                'id' => (int) $row->id,
+                'subject' => $row->subject_code ?: $row->descriptive_title,
+                'title' => $row->descriptive_title,
+                'section' => $row->course_name_abbreviation . '-' . $row->year_level_id . $row->section,
+                'same_subject' => (string) $row->subject_id === (string) $class->subject_id,
+            ])
+            ->values();
+    }
+
+    /** The classes picked in `also_class_ids`, checked against the teacher's. */
+    private function checkTargets(Request $request, int $classId, array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $allowed = $this->sectionTargets((int) $request->user()->id, $classId)
+            ->pluck('id')
+            ->all();
+
+        if (array_diff($ids, $allowed) !== []) {
+            throw ValidationException::withMessages([
+                'also_class_ids' => 'Choose other classes you teach this school year.',
+            ]);
+        }
+
+        return $ids;
+    }
+
+    public function announcementTargets(Request $request, int $classId)
+    {
+        $this->teacher($request, $classId);
+
+        return response()->json(
+            $this->sectionTargets((int) $request->user()->id, $classId)
+        );
+    }
+
+    /**
+     * Copies an announcement into other classes as drafts, files included
+     * (copied inside Drive). If a copy fails, the copies made so far are
+     * removed and nothing else changes. Returns the copies' ids.
+     */
+    private function copyAnnouncement(ClassworkDrive $drive, int $sourceId, array $classIds): array
+    {
+        $source = DB::table('class_announcements')->find($sourceId);
+
+        $files = DB::table('classwork_files')
+            ->where('announcement_id', $sourceId)
+            ->orderBy('id')
+            ->get();
+
+        $copyIds = DB::transaction(fn() => array_map(
+            fn($classId) => DB::table('class_announcements')->insertGetId([
+                'year_section_subject_id' => $classId,
+                'author_id' => $source->author_id,
+                'body' => $source->body,
+                'published' => false,
+                'comments_enabled' => $source->comments_enabled,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]),
+            $classIds
+        ));
+
+        $copied = [];
+
+        try {
+            $rows = [];
+
+            foreach ($copyIds as $index => $copyId) {
+                foreach ($files as $file) {
+                    $remote = $drive->copy(
+                        $file->drive_file_id,
+                        $classIds[$index],
+                        'announcements',
+                        $copyId,
+                        $file->name
+                    );
+
+                    $copied[] = $remote['drive_file_id'];
+
+                    $rows[] = [
+                        'announcement_id' => $copyId,
+                        'drive_file_id' => $remote['drive_file_id'],
+                        'name' => $file->name,
+                        'mime_type' => $file->mime_type,
+                        'size' => $file->size,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+
+            if ($rows !== []) {
+                DB::table('classwork_files')->insert($rows);
+            }
+        } catch (Throwable $error) {
+            report($error);
+
+            DB::transaction(function () use ($copyIds) {
+                DB::table('classwork_files')->whereIn('announcement_id', $copyIds)->delete();
+                DB::table('class_announcements')->whereIn('id', $copyIds)->delete();
+            });
+
+            $this->trashFiles($drive, $copied);
+
+            abort(503, 'Google Drive couldn’t copy the files to the other classes. Nothing was posted; please try again.');
+        }
+
+        return $copyIds;
+    }
+
+    /**
+     * Posts an unposted announcement now, or schedules it for $scheduledAt,
+     * together with copies for the other classes picked. The copies are
+     * made first, so a failure posts nothing. Returns the copies' ids.
+     */
+    private function publishAnnouncement(
+        ClassworkDrive $drive,
+        ClassAnnouncements $service,
+        int $id,
+        ?string $scheduledAt,
+        array $targets
+    ): array {
+        $copies = $targets ? $this->copyAnnouncement($drive, $id, $targets) : [];
+        $ids = [$id, ...$copies];
+
+        $done = DB::transaction(function () use ($id, $ids, $scheduledAt) {
+            $post = DB::table('class_announcements')->where('id', $id)->lockForUpdate()->first();
+
+            // Posted meanwhile, e.g. by a second click.
+            if (! $post || $post->published) {
+                return false;
+            }
+
+            DB::table('class_announcements')->whereIn('id', $ids)->update($scheduledAt
+                ? ['scheduled_at' => $scheduledAt, 'updated_at' => now()]
+                : ['published' => true, 'posted_at' => now()->utc(), 'scheduled_at' => null, 'updated_at' => now()]);
+
+            return true;
+        });
+
+        if (! $done) {
+            $this->deleteAnnouncements($drive, $service, $copies);
+
+            return [];
+        }
+
+        if (! $scheduledAt) {
+            foreach ($ids as $postId) {
+                $service->notifyPosted($postId);
+            }
+        }
+
+        return $copies;
+    }
+
+    /** Deletes announcements with their files, comments and notifications. */
+    private function deleteAnnouncements(ClassworkDrive $drive, ClassAnnouncements $service, array $ids): int
+    {
+        if ($ids === []) {
+            return 0;
+        }
+
+        $driveIds = DB::transaction(function () use ($ids, $service) {
+            DB::table('class_announcements')->whereIn('id', $ids)->lockForUpdate()->get(['id']);
+
+            $driveIds = DB::table('classwork_files')
+                ->whereIn('announcement_id', $ids)
+                ->pluck('drive_file_id')
+                ->all();
+
+            DB::table('classwork_files')->whereIn('announcement_id', $ids)->delete();
+            DB::table('class_announcement_comments')->whereIn('announcement_id', $ids)->delete();
+            DB::table('class_announcements')->whereIn('id', $ids)->delete();
+            $service->forget($ids);
+
+            return $driveIds;
+        });
+
+        return $this->trashFiles($drive, $driveIds);
+    }
+
+    /**
+     * A class's announcements, newest first, each with its author, files and
+     * comment count so the feed loads in one request. Pinned posts come
+     * first, and teachers also get unposted ones (scheduled, then drafts) on
+     * top and how many students have seen each post. Older posts come in
+     * pages: send `next_cursor` back as `before`.
+     */
+    public function announcements(Request $request, ClassAnnouncements $service, int $classId)
+    {
+        $teacher = $this->isTeacher($request, $classId);
+
+        if (! $teacher) {
+            $this->enrollment($request, $classId);
+        }
+
+        $data = $request->validate([
+            'before' => ['nullable', 'string', 'regex:/^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\|\d+$/'],
+        ]);
+
+        $service->releaseDue($classId);
+
+        $before = isset($data['before']) ? explode('|', $data['before']) : null;
+        $posts = fn() => DB::table('class_announcements')->where('year_section_subject_id', $classId);
+
+        $regular = $posts()
+            ->where('published', true)
+            ->whereNull('pinned_at')
+            ->when($before, fn($query) => $query->where(fn($older) => $older
+                ->where('posted_at', '<', $before[0])
+                ->orWhere(fn($same) => $same
+                    ->where('posted_at', $before[0])
+                    ->where('id', '<', (int) $before[1]))))
+            ->orderByDesc('posted_at')
+            ->orderByDesc('id')
+            ->limit(self::ANNOUNCEMENT_PAGE + 1)
+            ->get();
+
+        $more = $regular->count() > self::ANNOUNCEMENT_PAGE;
+        $regular = $regular->take(self::ANNOUNCEMENT_PAGE);
+        $page = $regular;
+
+        if (! $before) {
+            $unposted = $teacher
+                ? $posts()
+                ->where('published', false)
+                ->orderByRaw('scheduled_at is null')
+                ->orderBy('scheduled_at')
+                ->orderByDesc('id')
+                ->get()
+                : collect();
+
+            $pinned = $posts()
+                ->where('published', true)
+                ->whereNotNull('pinned_at')
+                ->orderByDesc('pinned_at')
+                ->get();
+
+            $page = $unposted->concat($pinned)->concat($regular);
+        }
+
+        $ids = $page->pluck('id')->map(fn($id) => (int) $id)->all();
+
+        $authors = DB::table('user_information')
+            ->whereIn('user_id', $page->pluck('author_id')->filter()->unique()->values())
+            ->get(['user_id', 'first_name', 'middle_name', 'last_name'])
+            ->keyBy('user_id');
+
+        $files = $ids === []
+            ? collect()
+            : DB::table('classwork_files')
+            ->whereIn('announcement_id', $ids)
+            ->orderBy('id')
+            ->get(['id', 'announcement_id', 'name', 'mime_type', 'size'])
+            ->groupBy('announcement_id');
+
+        $comments = $ids === []
+            ? collect()
+            : DB::table('class_announcement_comments')
+            ->whereIn('announcement_id', $ids)
+            ->groupBy('announcement_id')
+            ->selectRaw('announcement_id, count(*) as total')
+            ->pluck('total', 'announcement_id');
+
+        $seen = $teacher ? $service->seenCounts($ids) : [];
+        $unread = $teacher ? [] : array_flip($service->unreadPostIds((int) $request->user()->id, $classId));
+
+        $items = $page->map(function ($post) use ($authors, $files, $comments, $seen, $unread, $teacher) {
+            $id = (int) $post->id;
+            $author = $post->author_id ? $authors->get($post->author_id) : null;
+
+            return [
+                'id' => $id,
+                'body' => $post->body,
+                'published' => (bool) $post->published,
+                'posted_at' => $this->isoTime($post->posted_at),
+                'scheduled_at' => $this->isoTime($post->scheduled_at),
+                'edited_at' => $this->isoTime($post->edited_at),
+                // Saved with now(), in the app's timezone.
+                'created_at' => $this->isoTime($post->created_at, config('app.timezone')),
+                'pinned' => $post->pinned_at !== null,
+                'comments_enabled' => (bool) $post->comments_enabled,
+                'comments_count' => (int) ($comments[$id] ?? 0),
+                'author' => $author ? [
+                    'first_name' => $author->first_name,
+                    'middle_name' => $author->middle_name,
+                    'last_name' => $author->last_name,
+                ] : null,
+                'files' => $files->get($id, collect())
+                    ->map(fn($file) => [
+                        'id' => (int) $file->id,
+                        'name' => $file->name,
+                        'mime_type' => $file->mime_type,
+                        'size' => (int) $file->size,
+                    ])
+                    ->values(),
+                // Teachers: how many of the students told about it saw it.
+                'seen' => $teacher && $post->published ? ($seen[$id] ?? ['seen' => 0, 'total' => 0]) : null,
+                // Students: not seen yet (marked as new on their screen).
+                'unread' => isset($unread[$id]),
+            ];
+        });
+
+        $last = $regular->last();
+
+        return response()->json([
+            'items' => $items->values(),
+            'next_cursor' => $more && $last ? $last->posted_at . '|' . $last->id : null,
+            'can_manage' => $teacher,
+        ]);
+    }
+
+    /**
+     * Posts an announcement now, schedules it, or saves it as a draft. A post
+     * with files is saved as a draft first and posted once they are
+     * attached. Posting or scheduling can also put copies in other classes
+     * the teacher teaches (`also_class_ids`).
+     */
+    public function storeAnnouncement(
+        Request $request,
+        ClassworkDrive $drive,
+        ClassAnnouncements $service,
+        int $classId
+    ) {
+        $this->teacher($request, $classId);
+
+        $data = $request->validate([
+            'body' => ['required', 'string', 'max:' . self::ANNOUNCEMENT_MAX_LENGTH],
+            'published' => ['required', 'boolean'],
+            'scheduled_at' => ['nullable', 'date', 'after:now', 'before:+1 year'],
+            'also_class_ids' => ['sometimes', 'array', 'max:30'],
+            'also_class_ids.*' => ['integer', 'distinct'],
+            'comments_enabled' => ['sometimes', 'boolean'],
+        ], self::ANNOUNCEMENT_MESSAGES);
+
+        $publish = (bool) $data['published'];
+        $scheduledAt = empty($data['scheduled_at']) ? null : $this->utcTime($data['scheduled_at']);
+
+        if ($publish && $scheduledAt) {
+            throw ValidationException::withMessages([
+                'scheduled_at' => 'Post it now or schedule it, not both.',
+            ]);
+        }
+
+        $body = $this->announcementBody($data['body']);
+        $targets = $publish || $scheduledAt
+            ? $this->checkTargets($request, $classId, $data['also_class_ids'] ?? [])
+            : [];
+
+        // Saved as a draft, then posted or scheduled with its copies.
+        $id = DB::table('class_announcements')->insertGetId([
+            'year_section_subject_id' => $classId,
+            'author_id' => $request->user()->id,
+            'body' => $body,
+            'published' => false,
+            'comments_enabled' => $data['comments_enabled'] ?? true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $copies = $publish || $scheduledAt
+            ? $this->publishAnnouncement($drive, $service, $id, $scheduledAt, $targets)
+            : [];
+
+        return response()->json(['id' => $id, 'copies' => $copies], 201);
+    }
+
+    /**
+     * Changes an announcement. Teachers can edit the text of any post; pin a
+     * posted one or turn its comments on or off; and post, schedule or
+     * reschedule an unposted one (`scheduled_at: null` makes it a plain
+     * draft again). Students see a posted announcement marked as edited
+     * once its text changes.
+     */
+    public function updateAnnouncement(
+        Request $request,
+        ClassworkDrive $drive,
+        ClassAnnouncements $service,
+        int $classId,
+        int $id
+    ) {
+        $this->teacher($request, $classId);
+
+        $data = $request->validate([
+            'body' => ['sometimes', 'required', 'string', 'max:' . self::ANNOUNCEMENT_MAX_LENGTH],
+            'published' => ['sometimes', 'accepted'],
+            'scheduled_at' => ['sometimes', 'nullable', 'date', 'after:now', 'before:+1 year'],
+            'also_class_ids' => ['sometimes', 'array', 'max:30'],
+            'also_class_ids.*' => ['integer', 'distinct'],
+            'pinned' => ['sometimes', 'boolean'],
+            'comments_enabled' => ['sometimes', 'boolean'],
+        ], self::ANNOUNCEMENT_MESSAGES);
+
+        $intent = match (true) {
+            array_key_exists('published', $data) => 'post',
+            ! empty($data['scheduled_at']) => 'schedule',
+            array_key_exists('scheduled_at', $data) => 'draft',
+            default => null,
+        };
+
+        if ($intent === 'post' && ! empty($data['scheduled_at'])) {
+            throw ValidationException::withMessages([
+                'scheduled_at' => 'Post it now or schedule it, not both.',
+            ]);
+        }
+
+        $scheduledAt = $intent === 'schedule' ? $this->utcTime($data['scheduled_at']) : null;
+
+        $body = array_key_exists('body', $data)
+            ? $this->announcementBody($data['body'])
+            : null;
+
+        $release = DB::transaction(function () use ($classId, $id, $data, $body, $intent) {
+            $post = $this->item($classId, 'announcements', $id, true);
+            $posted = (bool) $post->published;
+
+            if ($posted && in_array($intent, ['schedule', 'draft'], true)) {
+                throw ValidationException::withMessages([
+                    'scheduled_at' => 'This announcement is already posted.',
+                ]);
+            }
+
+            if ($posted && ! empty($data['also_class_ids'])) {
+                throw ValidationException::withMessages([
+                    'also_class_ids' => 'Only an announcement that isn’t posted yet can go to other classes.',
+                ]);
+            }
+
+            if (! $posted && ! empty($data['pinned'])) {
+                throw ValidationException::withMessages([
+                    'pinned' => 'Post the announcement before pinning it.',
+                ]);
+            }
+
+            $values = [];
+
+            if ($body !== null && $body !== $post->body) {
+                $values['body'] = $body;
+
+                if ($posted) {
+                    $values['edited_at'] = now()->utc();
+                }
+            }
+
+            if (array_key_exists('comments_enabled', $data)) {
+                $values['comments_enabled'] = (bool) $data['comments_enabled'];
+            }
+
+            if ($posted && array_key_exists('pinned', $data)) {
+                $values['pinned_at'] = $data['pinned']
+                    ? ($post->pinned_at ?? now()->utc())
+                    : null;
+            }
+
+            if (! $posted && $intent === 'draft') {
+                $values['scheduled_at'] = null;
+            }
+
+            if ($values !== []) {
+                DB::table('class_announcements')
+                    ->where('id', $id)
+                    ->update([...$values, 'updated_at' => now()]);
+            }
+
+            // Posting and scheduling happen once the copies are made.
+            return ! $posted && in_array($intent, ['post', 'schedule'], true);
+        });
+
+        $copies = $release
+            ? $this->publishAnnouncement(
+                $drive,
+                $service,
+                $id,
+                $scheduledAt,
+                $this->checkTargets($request, $classId, $data['also_class_ids'] ?? [])
+            )
+            : [];
+
+        return response()->json(['id' => $id, 'copies' => $copies]);
+    }
+
+    /** Deletes an announcement; its files go to the Drive trash. */
+    public function destroyAnnouncement(
+        Request $request,
+        ClassworkDrive $drive,
+        ClassAnnouncements $service,
+        int $classId,
+        int $id
+    ) {
+        $this->teacher($request, $classId);
+        $this->item($classId, 'announcements', $id);
+
         return response()->json([
             'deleted' => true,
-            'files_not_trashed' => $notTrashed,
+            'files_not_trashed' => $this->deleteAnnouncements($drive, $service, [$id]),
         ]);
+    }
+
+    /** Which students have seen a posted announcement, for its teacher. */
+    public function announcementSeen(
+        Request $request,
+        ClassAnnouncements $service,
+        int $classId,
+        int $id
+    ) {
+        $this->teacher($request, $classId);
+
+        abort_unless($this->item($classId, 'announcements', $id)->published, 404);
+
+        return response()->json($service->seenBy($id));
+    }
+
+    /** Marks the signed-in user's notifications about this class's posts read. */
+    public function readAnnouncements(Request $request, ClassAnnouncements $service, int $classId)
+    {
+        if (! $this->isTeacher($request, $classId)) {
+            $this->enrollment($request, $classId);
+        }
+
+        return response()->json([
+            'updated' => $service->markClassRead((int) $request->user()->id, $classId),
+        ]);
+    }
+
+    /** How many of this class's announcements the signed-in user hasn't seen. */
+    public function unreadAnnouncements(Request $request, ClassAnnouncements $service, int $classId)
+    {
+        if (! $this->isTeacher($request, $classId)) {
+            $this->enrollment($request, $classId);
+        }
+
+        $service->releaseDue($classId);
+
+        return response()->json([
+            'count' => $service->unreadByClass((int) $request->user()->id, [$classId])[$classId] ?? 0,
+        ]);
+    }
+
+    // ---- Announcement comments ----
+
+    /**
+     * A posted announcement the user may read, and whether they teach the
+     * class. Drafts and scheduled posts have no comments.
+     */
+    private function commentable(Request $request, int $classId, int $id): array
+    {
+        $teacher = $this->isTeacher($request, $classId);
+
+        if (! $teacher) {
+            $this->enrollment($request, $classId);
+        }
+
+        $post = $this->item($classId, 'announcements', $id);
+
+        abort_unless($post->published, 404);
+
+        return [$post, $teacher];
+    }
+
+    public function announcementComments(Request $request, int $classId, int $id)
+    {
+        [$post, $teacher] = $this->commentable($request, $classId, $id);
+
+        $userId = (string) $request->user()->id;
+        $facultyId = (string) DB::table('year_section_subjects')->where('id', $classId)->value('faculty_id');
+
+        $rows = DB::table('class_announcement_comments as c')
+            ->leftJoin('user_information as info', 'info.user_id', '=', 'c.user_id')
+            ->where('c.announcement_id', $id)
+            ->orderBy('c.id')
+            ->get([
+                'c.id',
+                'c.user_id',
+                'c.body',
+                'c.created_at',
+                'info.first_name',
+                'info.middle_name',
+                'info.last_name',
+            ]);
+
+        return response()->json([
+            'items' => $rows->map(fn($row) => [
+                'id' => (int) $row->id,
+                'body' => $row->body,
+                'author' => $row->user_id ? [
+                    'first_name' => $row->first_name,
+                    'middle_name' => $row->middle_name,
+                    'last_name' => $row->last_name,
+                ] : null,
+                'is_teacher' => $row->user_id !== null && (string) $row->user_id === $facultyId,
+                'mine' => (string) $row->user_id === $userId,
+                'can_delete' => $teacher || (string) $row->user_id === $userId,
+                'created_at' => $this->isoTime($row->created_at, config('app.timezone')),
+            ])->values(),
+            // Teachers can always reply; students only while comments are on.
+            'can_comment' => $teacher || (bool) $post->comments_enabled,
+        ]);
+    }
+
+    public function storeAnnouncementComment(
+        Request $request,
+        ClassAnnouncements $service,
+        int $classId,
+        int $id
+    ) {
+        [$post, $teacher] = $this->commentable($request, $classId, $id);
+
+        abort_unless(
+            $teacher || $post->comments_enabled,
+            403,
+            'Comments are turned off for this announcement.'
+        );
+
+        $data = $request->validate([
+            'body' => ['required', 'string', 'max:' . self::COMMENT_MAX_LENGTH],
+        ], [
+            'body.required' => 'Write a comment first.',
+            'body.max' => 'Keep comments under 1,000 characters.',
+        ]);
+
+        $body = trim(str_replace("\u{00A0}", ' ', $data['body']));
+
+        if ($body === '') {
+            throw ValidationException::withMessages(['body' => 'Write a comment first.']);
+        }
+
+        $commentId = DB::table('class_announcement_comments')->insertGetId([
+            'announcement_id' => $id,
+            'user_id' => $request->user()->id,
+            'body' => $body,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if (! $teacher) {
+            $service->notifyComment($post, (int) $request->user()->id, $body);
+        }
+
+        return response()->json(['id' => $commentId], 201);
+    }
+
+    /** Teachers remove any comment on their posts; others only their own. */
+    public function destroyAnnouncementComment(Request $request, int $classId, int $id, int $commentId)
+    {
+        [, $teacher] = $this->commentable($request, $classId, $id);
+
+        $comment = DB::table('class_announcement_comments')
+            ->where('id', $commentId)
+            ->where('announcement_id', $id)
+            ->first();
+
+        abort_unless($comment, 404);
+
+        abort_unless(
+            $teacher || (string) $comment->user_id === (string) $request->user()->id,
+            403,
+            'You can only delete your own comments.'
+        );
+
+        DB::table('class_announcement_comments')->where('id', $commentId)->delete();
+
+        return response()->json(['deleted' => true]);
     }
 
     public function gradingCategories(
@@ -1794,9 +2567,11 @@ class ClassworkController extends Controller
             }
 
             return [
-                $kind === 'materials'
-                    ? 'material_id'
-                    : 'assignment_id',
+                match ($kind) {
+                    'materials' => 'material_id',
+                    'announcements' => 'announcement_id',
+                    default => 'assignment_id',
+                },
                 $item,
             ];
         }
@@ -1972,7 +2747,7 @@ class ClassworkController extends Controller
                 $maxFiles
             ) {
                 // Recheck permissions and submission state after upload.
-                [$column] = $this->owner(
+                [$column, $locked] = $this->owner(
                     $request,
                     $classId,
                     $kind,
@@ -1997,6 +2772,8 @@ class ClassworkController extends Controller
                     '_',
                     $file->getClientOriginalName()
                 );
+
+                $this->markAnnouncementEdited($kind, $locked);
 
                 return DB::table('classwork_files')
                     ->insertGetId([
@@ -2030,8 +2807,20 @@ class ClassworkController extends Controller
         return match (true) {
             (bool) $file->material_id => ['materials', (int) $file->material_id],
             (bool) $file->assignment_id => ['assignments', (int) $file->assignment_id],
+            // empty(): the column only exists once announcements are migrated.
+            ! empty($file->announcement_id) => ['announcements', (int) $file->announcement_id],
             default => ['submissions', (int) $file->submission_id],
         };
+    }
+
+    // A posted announcement whose files change shows as edited to students.
+    private function markAnnouncementEdited(string $kind, object $item): void
+    {
+        if ($kind === 'announcements' && $item->published) {
+            DB::table('class_announcements')
+                ->where('id', $item->id)
+                ->update(['edited_at' => now()->utc(), 'updated_at' => now()]);
+        }
     }
 
     /**
@@ -2055,12 +2844,14 @@ class ClassworkController extends Controller
 
             // Locks the submission (or item) row, so a removal and a
             // turn-in never interleave.
-            $this->owner($request, $classId, $kind, $ownerId, true, true);
+            [, $owned] = $this->owner($request, $classId, $kind, $ownerId, true, true);
 
             abort_unless(
                 DB::table('classwork_files')->where('id', $fileId)->delete(),
                 404
             );
+
+            $this->markAnnouncementEdited($kind, $owned);
 
             return $file->drive_file_id;
         });

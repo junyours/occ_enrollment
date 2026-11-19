@@ -86,6 +86,40 @@ export function materialsGuide() {
     ]
 }
 
+// The class's Announcements tab.
+export function announcementsGuide() {
+    return [
+        {
+            target: '[data-tour="announce-composer"]',
+            title: 'Post an announcement',
+            body: (
+                <p>
+                    Share news, reminders and files with the whole class, now or at a time you
+                    {' '}{strong('schedule')}. Students get a notification, and you can post the
+                    same announcement to your other classes at once.
+                </p>
+            ),
+        },
+        {
+            target: '[data-tour="announcement-actions"]',
+            title: 'Manage a post',
+            body: (
+                <p>
+                    This menu edits a post, pins it to the top, turns its comments off, or deletes
+                    it. Students see when a post was edited.
+                </p>
+            ),
+            placement: 'left',
+        },
+        {
+            target: '[data-tour="guide-announcements"]',
+            title: 'Need a refresher?',
+            body: <p>Open this guide again anytime from here.</p>,
+            placement: 'left',
+        },
+    ]
+}
+
 const editStep = {
     target: '[data-tour="review-edit"]',
     title: 'Make changes',

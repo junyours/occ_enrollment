@@ -311,7 +311,6 @@ export default function ResourceList({ kind, renderWork }) {
     // Instructors get a guided tour the first time they open each tab.
     const guide = useGuide({
         guide: kind,
-        userId: key[1],
         steps: assignment ? assignmentsGuide : materialsGuide,
         ready: manage && query.isSuccess && !editor,
     })

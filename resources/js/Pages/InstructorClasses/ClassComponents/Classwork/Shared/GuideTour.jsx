@@ -4,6 +4,7 @@ import { ArrowRight, CircleHelp, X } from 'lucide-react'
 
 import { Button } from '@/Components/ui/button'
 import { cn } from '@/Lib/Utils'
+import { useSeenItems } from '@/Lib/seenItems'
 
 // A step-by-step guide that dims the screen, spotlights one control at a
 // time and explains it in a card, like a game's first-run tutorial.
@@ -310,41 +311,18 @@ export function GuideButton({ className, ...props }) {
     )
 }
 
-// Guides show once per person and browser; the Guide button replays them.
-const seenThisSession = new Set()
-
-function storageKey(guide, userId) {
-    return `classwork-guide:v1:${userId}:${guide}`
-}
-
-function hasSeen(guide, userId) {
-    const key = storageKey(guide, userId)
-    if (seenThisSession.has(key)) return true
-
-    try {
-        return window.localStorage.getItem(key) === 'done'
-    } catch {
-        return false
-    }
-}
-
-function markSeen(guide, userId) {
-    const key = storageKey(guide, userId)
-    seenThisSession.add(key)
-
-    try {
-        window.localStorage.setItem(key, 'done')
-    } catch {
-        // Blocked storage: the guide still won't repeat in this session.
-    }
-}
-
 /**
  * Runs one guide: on its own the first time `ready` turns true, and again
  * whenever `start()` is called. Steps whose control isn't on screen are
- * left out. Render `tour` somewhere in the component.
+ * left out. A guide shows on its own once per person, on any device (it is
+ * saved to their account); the Guide button replays it. Render `tour`
+ * somewhere in the component.
  */
-export function useGuide({ guide, userId, steps, ready, container = null }) {
+export function useGuide({ guide, steps, ready, container = null }) {
+    const { hasSeen, markSeen } = useSeenItems()
+    const seenKey = `guide:${guide}`
+    const seen = hasSeen(seenKey)
+
     const [active, setActive] = useState(null)
     const [run, setRun] = useState(0)
     const stepsRef = useRef(steps)
@@ -361,21 +339,21 @@ export function useGuide({ guide, userId, steps, ready, container = null }) {
     }, [])
 
     const close = useCallback(() => {
-        markSeen(guide, userId)
+        markSeen(seenKey)
         setActive(null)
 
         // Back to where the person was, such as the Guide button.
         const previous = returnFocus.current
         window.setTimeout(() => previous?.isConnected && previous.focus?.({ preventScroll: true }), 0)
-    }, [guide, userId])
+    }, [markSeen, seenKey])
 
     useEffect(() => {
-        if (!ready || hasSeen(guide, userId)) return undefined
+        if (!ready || seen) return undefined
 
         // Let the screen settle (data, drawers sliding in) before starting.
         const timer = window.setTimeout(start, 450)
         return () => window.clearTimeout(timer)
-    }, [ready, guide, userId, start])
+    }, [ready, seen, start])
 
     return {
         start,

@@ -13,7 +13,7 @@ import RelatedMaterials from '../Shared/RelatedMaterials'
 import RichTextContent from '../Shared/RichTextContent'
 import { GuideButton, useGuide } from '../Shared/GuideTour'
 import { instructionsGuide, studentWorkGuide } from '../Shared/guides'
-import { ErrorNotice, formatDateTime, useClasswork, useClassworkQuery } from '../Shared/api'
+import { ErrorNotice, formatDateTime, useClassworkQuery } from '../Shared/api'
 import { QUESTION_TYPES, SUBMISSION_TYPES, describeFiles, normalizeSettings } from '../Shared/submissionRules'
 import SubmissionReview from './SubmissionReview'
 
@@ -178,7 +178,6 @@ function Instructions({ item, guideButton }) {
  * posted. Data comes from the cached classwork list.
  */
 export default function ReviewPage({ assignmentId, backHref, backLabel }) {
-    const { key } = useClasswork()
     const query = useClassworkQuery('assignments')
     const item = query.data?.items?.find((entry) => entry.id === assignmentId)
     const [tab, setTab] = useState('work')
@@ -192,13 +191,11 @@ export default function ReviewPage({ assignmentId, backHref, backLabel }) {
     })
     const workGuide = useGuide({
         guide: 'review-work',
-        userId: key[1],
         steps: studentWorkGuide,
         ready: Boolean(item) && tab === 'work' && submissions.isSuccess && !editing,
     })
     const instructionsTour = useGuide({
         guide: 'review-instructions',
-        userId: key[1],
         steps: instructionsGuide,
         ready: Boolean(item) && tab === 'instructions' && !editing,
     })

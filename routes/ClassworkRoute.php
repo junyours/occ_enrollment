@@ -26,6 +26,45 @@ Route::middleware('auth')
             ->whereNumber('fileId')
             ->name('files.destroy');
 
+        Route::get('announcements', 'announcements')
+            ->name('announcements');
+
+        Route::post('announcements', 'storeAnnouncement')
+            ->name('announcements.store');
+
+        Route::get('announcements/targets', 'announcementTargets')
+            ->name('announcements.targets');
+
+        Route::get('announcements/unread', 'unreadAnnouncements')
+            ->name('announcements.unread');
+
+        Route::post('announcements/read', 'readAnnouncements')
+            ->name('announcements.read');
+
+        Route::get('announcements/{id}/seen', 'announcementSeen')
+            ->whereNumber('id')
+            ->name('announcements.seen');
+
+        Route::get('announcements/{id}/comments', 'announcementComments')
+            ->whereNumber('id')
+            ->name('announcements.comments');
+
+        Route::post('announcements/{id}/comments', 'storeAnnouncementComment')
+            ->whereNumber('id')
+            ->name('announcements.comments.store');
+
+        Route::delete('announcements/{id}/comments/{commentId}', 'destroyAnnouncementComment')
+            ->whereNumber(['id', 'commentId'])
+            ->name('announcements.comments.destroy');
+
+        Route::patch('announcements/{id}', 'updateAnnouncement')
+            ->whereNumber('id')
+            ->name('announcements.update');
+
+        Route::delete('announcements/{id}', 'destroyAnnouncement')
+            ->whereNumber('id')
+            ->name('announcements.destroy');
+
         Route::get(
             'assignments/{id}/submissions',
             'submissions'
@@ -54,14 +93,14 @@ Route::middleware('auth')
         Route::get('{kind}/{id}/files', 'files')
             ->whereIn(
                 'kind',
-                ['materials', 'assignments', 'submissions']
+                ['materials', 'assignments', 'submissions', 'announcements']
             )
             ->whereNumber('id');
 
         Route::post('{kind}/{id}/files', 'upload')
             ->whereIn(
                 'kind',
-                ['materials', 'assignments', 'submissions']
+                ['materials', 'assignments', 'submissions', 'announcements']
             )
             ->whereNumber('id');
 

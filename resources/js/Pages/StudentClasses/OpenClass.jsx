@@ -1,17 +1,28 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from '@inertiajs/react'
-import { ArrowLeft, UserRound } from 'lucide-react'
+import { ArrowLeft, FolderOpen, Megaphone, UserRound } from 'lucide-react'
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import NavigationTabs from '@/Components/ui/NavigationTabs'
 import { formatFullName } from '@/Lib/Utils'
 import Classwork from '@/Pages/InstructorClasses/ClassComponents/Classwork'
+import Announcements, { NewAnnouncementsBanner, NewAnnouncementsCount } from '@/Pages/InstructorClasses/ClassComponents/Announcements'
 
 function classTitle({ subjectCode, descriptiveTitle, courseSection }) {
     return `${subjectCode} - ${descriptiveTitle}${courseSection ? ` | ${courseSection}` : ''}`
 }
 
-// A student's page for one class: its assignments and materials. Classwork
-// is the same component teachers use; the server decides what each user
+const SECTIONS = ['classwork', 'announcements']
+
+// The section named in the URL (?tab=announcements), so links and the Back
+// button return to it.
+function initialSection() {
+    const requested = new URLSearchParams(window.location.search).get('tab')
+    return SECTIONS.includes(requested) ? requested : 'classwork'
+}
+
+// A student's page for one class: its classwork and announcements. These
+// are the same components teachers use; the server decides what each user
 // can see and do.
 export default function OpenClass({
     id,
@@ -21,6 +32,25 @@ export default function OpenClass({
     courseSection,
     instructor,
 }) {
+    const [tab, setTabState] = useState(initialSection)
+
+    // Keep the section in the URL without a new history entry.
+    function setTab(value) {
+        setTabState(value)
+        const url = new URL(window.location.href)
+        url.searchParams.set('tab', value)
+        window.history.replaceState(window.history.state, '', url)
+    }
+
+    const sections = [
+        { value: 'classwork', label: 'Classwork', icon: FolderOpen },
+        {
+            value: 'announcements',
+            label: <>Announcements<NewAnnouncementsCount classId={id} /></>,
+            icon: Megaphone,
+        },
+    ]
+
     return (
         <div className="flex min-w-0 flex-col gap-4">
             <div className="space-y-3">
@@ -44,10 +74,19 @@ export default function OpenClass({
                 </div>
             </div>
 
-            <Classwork
-                classId={id}
-                assignmentHref={(assignmentId) => `/classes/classroom/${classKey}/assignments/${assignmentId}`}
-            />
+            <NavigationTabs value={tab} onValueChange={setTab} items={sections} />
+
+            {tab === 'classwork' && (
+                <>
+                    <NewAnnouncementsBanner classId={id} onOpen={() => setTab('announcements')} />
+                    <Classwork
+                        classId={id}
+                        assignmentHref={(assignmentId) => `/classes/classroom/${classKey}/assignments/${assignmentId}`}
+                    />
+                </>
+            )}
+
+            {tab === 'announcements' && <Announcements classId={id} />}
         </div>
     )
 }

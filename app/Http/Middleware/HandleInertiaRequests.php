@@ -192,7 +192,25 @@ class HandleInertiaRequests extends Middleware
             'last_name' => $user->information?->last_name,
             'email_address' => $user->email,
             'password_change' => $user->password_change,
+            'seen' => $this->seenItems($user->id),
         ];
+    }
+
+    /**
+     * Guides and "New" labels this user has already seen, so they stay
+     * hidden on every device. Null until the table is migrated; the app
+     * then falls back to what each browser remembers.
+     */
+    protected function seenItems(int $userId): ?array
+    {
+        try {
+            return DB::table('user_seen_items')
+                ->where('user_id', $userId)
+                ->pluck('key')
+                ->all();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     // Function to getting userinformation

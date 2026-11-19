@@ -147,12 +147,9 @@ class ClassworkDrive
         return $this->folder($classwork, $name);
     }
 
-    public function upload(
-        int $classId,
-        string $kind,
-        int $ownerId,
-        UploadedFile $file
-    ): array {
+    /** The folder for one item's files: Classwork/Class-{id}/{Kind}/{ownerId}. */
+    private function ownerFolder(int $classId, string $kind, int $ownerId): string
+    {
         $root = config('services.google.folder_id');
 
         if (! $root) {
@@ -163,7 +160,7 @@ class ClassworkDrive
 
         $classwork = $this->classworkFolder($root);
 
-        $folder = Cache::lock(
+        return Cache::lock(
             'classwork.folders.' . $classId,
             300
         )->block(10, function () use (
@@ -189,6 +186,54 @@ class ClassworkDrive
                 (string) $ownerId
             );
         });
+    }
+
+    /**
+     * Copies a stored file into another item's folder inside Drive, without
+     * downloading it, e.g. when an announcement goes to several sections.
+     */
+    public function copy(
+        string $fileId,
+        int $classId,
+        string $kind,
+        int $ownerId,
+        string $name
+    ): array {
+        $folder = $this->ownerFolder($classId, $kind, $ownerId);
+
+        $result = $this->client()
+            ->post(
+                self::API . '/' . rawurlencode($fileId) . '/copy?' . http_build_query([
+                    'supportsAllDrives' => 'true',
+                    'fields' => 'id,mimeType',
+                ]),
+                [
+                    'name' => $name,
+                    'parents' => [$folder],
+                ]
+            )
+            ->throw()
+            ->json();
+
+        if (empty($result['id'])) {
+            throw new RuntimeException(
+                'Google did not finish the copy.'
+            );
+        }
+
+        return [
+            'drive_file_id' => $result['id'],
+            'mime_type' => $result['mimeType'] ?? 'application/octet-stream',
+        ];
+    }
+
+    public function upload(
+        int $classId,
+        string $kind,
+        int $ownerId,
+        UploadedFile $file
+    ): array {
+        $folder = $this->ownerFolder($classId, $kind, $ownerId);
 
         $mime = $file->getMimeType()
             ?: 'application/octet-stream';

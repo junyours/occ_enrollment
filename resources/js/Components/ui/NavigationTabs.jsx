@@ -19,21 +19,14 @@ export default function NavigationTabs({
             className={cn("w-full", className)}
         >
             {/* Below xl the content area (next to the sidebar) is too narrow
-                for one row, so tabs form a 3-column grid and stay visible. */}
+                for one row, so tabs form a grid of up to 3 columns and stay
+                visible. */}
             <div className="w-full overflow-x-auto border-b">
                 <TabsList
-                    className="
-                        grid
-                        h-auto
-                        w-full
-                        grid-cols-3
-                        rounded-none
-                        bg-transparent
-                        p-0
-                        xl:flex
-                        xl:min-w-max
-                        xl:justify-start
-                    "
+                    className={cn(
+                        "grid h-auto w-full rounded-none bg-transparent p-0 xl:flex xl:min-w-max xl:justify-start",
+                        items.length === 1 ? "grid-cols-1" : items.length === 2 ? "grid-cols-2" : "grid-cols-3"
+                    )}
                 >
                     {items.map((item) => {
                         const Icon = item.icon;

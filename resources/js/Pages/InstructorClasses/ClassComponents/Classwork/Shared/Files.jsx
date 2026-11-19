@@ -177,6 +177,47 @@ function AttachmentIcon({ Icon, type, small = false }) {
     )
 }
 
+// Images the browser can show straight from the download link.
+const THUMBNAIL_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+
+function isThumbnailImage(file) {
+    return THUMBNAIL_TYPES.includes(file.mime_type)
+}
+
+function Thumbnail({ file, src, single, onOpen }) {
+    const [failed, setFailed] = useState(false)
+
+    return (
+        <button
+            type="button"
+            onClick={onOpen}
+            aria-label={`Preview ${file.name}`}
+            title={file.name}
+            className={cn(
+                'group relative block w-full overflow-hidden rounded-lg border border-border bg-muted',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                single ? 'aspect-video max-h-80' : 'aspect-[4/3]'
+            )}
+        >
+            {failed ? (
+                <span className="flex size-full flex-col items-center justify-center gap-1 p-2 text-muted-foreground">
+                    <FileImage className="size-6" aria-hidden="true" />
+                    <span className="max-w-full truncate text-xs">{file.name}</span>
+                </span>
+            ) : (
+                <img
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    onError={() => setFailed(true)}
+                    className="size-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                />
+            )}
+        </button>
+    )
+}
+
 export default function Files({
     kind,
     id,
@@ -204,12 +245,21 @@ export default function Files({
     checkFile,
     maxFiles,
     hint,
+    // Files the page already loaded (the announcements feed lists them with
+    // each post), so the list skips its own request.
+    preloaded,
+    // Shows images as a grid of thumbnails above the other files.
+    thumbnails = false,
 }) {
     const { base } = useClasswork()
 
-    const query = useClassworkQuery(`${kind}/${id ?? 'pending'}/files`, {
-        enabled: Boolean(id),
+    const fetched = useClassworkQuery(`${kind}/${id ?? 'pending'}/files`, {
+        enabled: Boolean(id) && !preloaded,
     })
+
+    const query = preloaded
+        ? { data: preloaded, isPending: false, isSuccess: true, isError: false, error: null, refetch: () => {} }
+        : fetched
 
     const [progress, setProgress] = useState('')
     const [failed, setFailed] = useState([])
@@ -341,6 +391,8 @@ export default function Files({
 
     const files = query.data ?? []
     const empty = Boolean(id) && query.isSuccess && files.length === 0
+    const images = thumbnails ? files.filter(isThumbnailImage) : []
+    const rows = thumbnails ? files.filter((file) => !isThumbnailImage(file)) : files
 
     // Read-only lists with nothing to show disappear entirely.
     if (hideEmpty && !editable && (!id || query.isPending || empty)) {
@@ -397,12 +449,30 @@ export default function Files({
                 </p>
             )}
 
-            {files.length > 0 && (
+            {images.length > 0 && (
+                <ul
+                    className={cn('grid gap-2', images.length === 1 ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3')}
+                    aria-label="Attached images"
+                >
+                    {images.map((file) => (
+                        <li key={file.id}>
+                            <Thumbnail
+                                file={file}
+                                src={`${base}/files/${file.id}?preview=1`}
+                                single={images.length === 1}
+                                onOpen={() => setPreviewFile(file)}
+                            />
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {rows.length > 0 && (
                 <ul
                     className="space-y-2"
                     aria-label="Attached files"
                 >
-                    {files.map((file) => {
+                    {rows.map((file) => {
                         const { Icon, type } = fileDetails(file)
                         const busyRemoving = remove.isPending && removing?.id === file.id
 

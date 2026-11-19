@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react'
 import axios from 'axios'
 import {
+    useInfiniteQuery,
     useMutation,
     useQuery,
     useQueryClient,
@@ -54,6 +55,36 @@ export function useClassworkQuery(path, options = {}) {
             return response.data
         },
 
+        staleTime: 30_000,
+        gcTime: 5 * 60_000,
+
+        retry: (count, error) =>
+            count < 2 &&
+            (!error.response || error.response.status >= 500),
+
+        ...options,
+    })
+}
+
+// A list that loads in pages. `getNextPageParam(lastPage)` gives the next
+// page's query params, or undefined when there are no more.
+export function useClassworkInfiniteQuery(path, { getNextPageParam, ...options }) {
+    const { base, key } = useClasswork()
+
+    return useInfiniteQuery({
+        queryKey: [...key, path],
+
+        queryFn: async ({ pageParam, signal }) => {
+            const response = await axios.get(
+                `${base}/${path}`,
+                { params: pageParam ?? undefined, signal }
+            )
+
+            return response.data
+        },
+
+        initialPageParam: null,
+        getNextPageParam,
         staleTime: 30_000,
         gcTime: 5 * 60_000,
 

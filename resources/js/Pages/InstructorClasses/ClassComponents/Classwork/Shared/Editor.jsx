@@ -259,7 +259,6 @@ export default function Editor({ kind, item, onClose, onSaved }) {
     const [guideHost, setGuideHost] = useState(null)
     const guide = useGuide({
         guide: `${kind}-editor`,
-        userId: key[1],
         steps: () => editorGuide({ assignment, editing: Boolean(item) }),
         ready: opened && Boolean(guideHost),
         container: guideHost,

@@ -19,6 +19,7 @@ import {
     Italic,
     Link2,
     List,
+    ListOrdered,
     Underline,
     Unlink,
 } from 'lucide-react'
@@ -40,7 +41,6 @@ const extensions = [
         heading: false,
         horizontalRule: false,
         link: false,
-        orderedList: false,
         strike: false,
         trailingNode: false,
     }),
@@ -89,15 +89,27 @@ const tools = [
         Icon: List,
         command: 'toggleBulletList',
     },
+    {
+        name: 'orderedList',
+        label: 'Numbered list',
+        Icon: ListOrdered,
+        command: 'toggleOrderedList',
+    },
 ]
 
-// `optional` adds a muted "(optional)" to the label.
+// `optional` adds a muted "(optional)" to the label; `autoFocus` puts the
+// cursor at the end of the text once the editor is ready. `compact` starts
+// smaller and drops the visible label and tips (the box still has `label`
+// as its name); `placeholder` shows while it is empty.
 export default function RichTextEditor({
     value,
     onChange,
     label = 'Instructions',
     disabled = false,
     optional = false,
+    autoFocus = false,
+    compact = false,
+    placeholder = '',
 }) {
     const [linkOpen, setLinkOpen] = useState(false)
     const [linkText, setLinkText] = useState('')
@@ -112,13 +124,14 @@ export default function RichTextEditor({
         immediatelyRender: false,
         content: sanitizeRichHtml(value),
         editable: !disabled,
+        autofocus: autoFocus ? 'end' : false,
 
         editorProps: {
             attributes: {
                 role: 'textbox',
                 'aria-label': label,
                 'aria-multiline': 'true',
-                class: `${richTextClassName} min-h-[160px] px-3 py-3 outline-none`,
+                class: `${richTextClassName} ${compact ? 'min-h-[88px]' : 'min-h-[160px]'} px-3 py-3 outline-none`,
             },
 
             transformPastedHTML: sanitizeRichHtml,
@@ -143,6 +156,7 @@ export default function RichTextEditor({
             ),
 
             link: current?.isActive('link') ?? false,
+            empty: current?.isEmpty ?? true,
         }),
     })
 
@@ -280,10 +294,12 @@ export default function RichTextEditor({
 
     return (
         <div className="space-y-2">
-            <p className="text-sm font-medium">
-                {label}
-                {optional && <span className="font-normal text-muted-foreground"> (optional)</span>}
-            </p>
+            {!compact && (
+                <p className="text-sm font-medium">
+                    {label}
+                    {optional && <span className="font-normal text-muted-foreground"> (optional)</span>}
+                </p>
+            )}
 
             <div
                 className={`overflow-hidden rounded-md border bg-background focus-within:ring-2 focus-within:ring-ring/50 ${disabled ? 'opacity-60' : ''
@@ -470,13 +486,22 @@ export default function RichTextEditor({
                     </div>
                 )}
 
-                <EditorContent editor={editor} />
+                <div className="relative">
+                    {placeholder && active?.empty && (
+                        <p aria-hidden="true" className="pointer-events-none absolute left-3 top-3 text-sm leading-6 text-muted-foreground">
+                            {placeholder}
+                        </p>
+                    )}
+                    <EditorContent editor={editor} />
+                </div>
             </div>
 
-            <p className="text-xs text-muted-foreground">
-                Select text to format it or add a link.
-                Pasted web addresses become clickable links.
-            </p>
+            {!compact && (
+                <p className="text-xs text-muted-foreground">
+                    Select text to format it or add a link.
+                    Pasted web addresses become clickable links.
+                </p>
+            )}
         </div>
     )
 }

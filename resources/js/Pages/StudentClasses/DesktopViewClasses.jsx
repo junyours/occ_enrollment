@@ -5,6 +5,7 @@ import { convertToAMPM, formatFullName } from '@/Lib/Utils';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { classLink, isDropped } from './ClassesComponents/classLink';
+import NewAnnouncementsBadge from './ClassesComponents/NewAnnouncementsBadge';
 
 const LINK = 'rounded-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
@@ -24,7 +25,7 @@ export default function DesktopViewClasses({ classes }) {
         <Card className="mx-2 md:mx-0 border-border">
             <CardHeader>
                 <CardTitle className="text-2xl">Class List</CardTitle>
-                <CardDescription>Open a class to see its assignments and materials.</CardDescription>
+                <CardDescription>Open a class to see its classwork and announcements.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -68,6 +69,7 @@ export default function DesktopViewClasses({ classes }) {
                                                 {isDropped(classInfo) && (
                                                     <Badge variant="outline" className="font-normal text-muted-foreground">Dropped</Badge>
                                                 )}
+                                                <NewAnnouncementsBadge classInfo={classInfo} href={href} />
                                             </span>
                                         </TableCell>
 

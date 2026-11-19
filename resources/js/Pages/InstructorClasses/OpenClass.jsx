@@ -75,6 +75,19 @@ function initialTab() {
     return navigationTabs.some((item) => item.value === requested) ? requested : 'students'
 }
 
+// Recently added sections show a "New" mark, even after they're opened,
+// until Dec 11, 2026 (Philippine time); from then on it's gone.
+const NEW_TABS = ['attendance', 'grading', 'classwork', 'announcements']
+const NEW_UNTIL = new Date('2026-12-11T00:00:00+08:00').getTime()
+
+function NewMark() {
+    return (
+        <span className="ml-1.5 inline-flex items-center rounded-full bg-primary px-1.5 py-px text-[10px] font-semibold uppercase leading-4 tracking-wide text-primary-foreground">
+            New
+        </span>
+    )
+}
+
 export default function OpenClass({
     subjectCode,
     descriptiveTitle,
@@ -85,6 +98,13 @@ export default function OpenClass({
     schoolYear,
 }) {
     const [tab, setTabState] = useState(initialTab)
+    const showNew = Date.now() < NEW_UNTIL
+
+    const tabs = navigationTabs.map((item) => (
+        showNew && NEW_TABS.includes(item.value)
+            ? { ...item, label: <>{item.label}<NewMark /><span className="sr-only">, new</span></> }
+            : item
+    ))
 
     // Keep the tab in the URL without a new history entry. Inertia's page
     // state stays as it is, so going Back here restores this tab.
@@ -127,7 +147,7 @@ export default function OpenClass({
                 <NavigationTabs
                     value={tab}
                     onValueChange={setTab}
-                    items={navigationTabs}
+                    items={tabs}
                 />
             </div>
 
@@ -152,7 +172,7 @@ export default function OpenClass({
                     </SelectTrigger>
 
                     <SelectContent>
-                        {navigationTabs.map((item) => (
+                        {tabs.map((item) => (
                             <SelectItem
                                 key={item.value}
                                 value={item.value}
@@ -209,7 +229,7 @@ export default function OpenClass({
                 )} */}
 
                 {tab === 'announcements' && (
-                    <Announcements />
+                    <Announcements classId={id} />
                 )}
             </div>
         </div>

@@ -25,6 +25,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use App\Services\ClassAnnouncements;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -923,6 +924,23 @@ class ClassController extends Controller
                 )->leftJoin('rooms', 'rooms.id', '=', 'subject_secondary_schedule.room_id');
             }])
             ->get();
+
+        // How many announcements in each class the student hasn't seen. A
+        // failure here only hides the counts, never the class list.
+        try {
+            $announcements = app(ClassAnnouncements::class);
+            $announcements->releaseDue();
+
+            $unread = $announcements->unreadByClass(
+                (int) $studentId,
+                $classes->pluck('id')->map(fn($id) => (int) $id)->all()
+            );
+        } catch (\Throwable $error) {
+            report($error);
+            $unread = [];
+        }
+
+        $classes->each(fn($class) => $class->setAttribute('unread_announcements', $unread[(int) $class->id] ?? 0));
 
         return response()->json($classes);
     }

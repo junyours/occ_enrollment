@@ -7,6 +7,7 @@ import { Button } from "@/Components/ui/button"
 import axios from "axios"
 import { useState } from "react"
 import AttendanceSyncProvider from "@/Pages/InstructorClasses/ClassComponents/AttendancePartials/AttendanceSyncProvider"
+import NotificationBell from "@/Components/NotificationBell"
 
 export default function AuthenticatedLayout({ children, title, headerContent, fullWidth = false }) {
     const { impersonating } = usePage().props.auth
@@ -55,19 +56,23 @@ export default function AuthenticatedLayout({ children, title, headerContent, fu
                     </div>
 
                     {/* Right */}
-                    {impersonating && (
-                        <Button
-                            disabled={loading}
-                            onClick={stopImpersonate}
-                            variant="destructive"
-                            size="sm"
-                            className="ml-3 shrink-0"
-                        >
-                            {loading
-                                ? "Returning..."
-                                : "Stop Impersonating"}
-                        </Button>
-                    )}
+                    <div className="ml-2 flex shrink-0 items-center gap-2">
+                        <NotificationBell />
+
+                        {impersonating && (
+                            <Button
+                                disabled={loading}
+                                onClick={stopImpersonate}
+                                variant="destructive"
+                                size="sm"
+                                className="ml-1 shrink-0"
+                            >
+                                {loading
+                                    ? "Returning..."
+                                    : "Stop Impersonating"}
+                            </Button>
+                        )}
+                    </div>
                 </header>
 
                 <main className="flex-1 overflow-auto p-4">

@@ -20,7 +20,7 @@ final class ClassworkHtml
 
         $config->set(
             'HTML.Allowed',
-            'p,br,strong,b,em,i,u,ul,li,a[href|target|rel]'
+            'p,br,strong,b,em,i,u,ul,ol,li,a[href|target|rel]'
         );
 
         $config->set(
