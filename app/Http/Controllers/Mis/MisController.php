@@ -163,7 +163,7 @@ class MisController extends Controller
 
         // Update users table
         $user->update([
-            'user_id_no' => $validated['user_id_no'],
+            'user_id_no' => strtoupper($validated['user_id_no']),
             'user_role'  => $validated['user_role'],
             'email'      => $validated['email'] ?? null,
         ]);
