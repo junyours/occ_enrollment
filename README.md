@@ -18,6 +18,7 @@ Laravel handles authentication, authorization, database access, and server-side 
 | Faculty evaluation | Questionnaires, evaluations, feedback analysis, rankings, and reports for Guidance and VPAA |
 | NSTP | Components, sections, schedules, and grade workflows |
 | Administration | User management, announcements, site settings, maintenance controls, and file management |
+| Continue with SIS-OCC | Sign-in for other school systems through SIS-OCC (OAuth 2.0), with per-app rules managed by MIS |
 
 Access is controlled through authentication and role/permission middleware. Screens are organized for students, faculty, registrars, program heads, administrative offices, and other assigned roles.
 
@@ -25,7 +26,7 @@ Access is controlled through authentication and role/permission middleware. Scre
 
 | Layer | Tools |
 | --- | --- |
-| Backend | PHP 8.2+, Laravel 11, Laravel Sanctum |
+| Backend | PHP 8.2+, Laravel 11, Laravel Sanctum, Laravel Passport |
 | Frontend | React 18, Inertia 2, Vite 6, Tailwind CSS 3 |
 | UI and client state | Radix/Base UI components, TanStack Query and Table, Zustand |
 | Database | MySQL; historical migrations contain MySQL-specific SQL |
@@ -42,6 +43,7 @@ Dependency constraints are defined in `composer.json` and `package.json`. Use th
 - Node.js 22 and npm as a compatible baseline for the locked Vite toolchain.
 - MySQL and a dedicated local development database.
 - PHP extensions required by Composer, including `mbstring`, `gd`, `zip`, and XML/DOM support; enable `pdo_mysql` for the application and `pdo_sqlite` for SQLite-based tests.
+- The `sodium` and `openssl` PHP extensions, for Laravel Passport. XAMPP ships `sodium` disabled: remove the `;` from `;extension=sodium` in `php.ini`.
 
 The commands below run from the repository root. Environment file copying uses PowerShell syntax.
 
@@ -167,6 +169,19 @@ GOOGLE_DRIVE_FOLDER_ID=
 
 Use credentials with access to the configured folder, then run `php artisan config:clear` after changing local configuration. Supply real credentials privately.
 
+### Continue with SIS-OCC
+
+SIS-OCC can sign people in to other school systems, such as a library system or the CSG election, using OAuth 2.0 through Laravel Passport. MIS registers each app and its rules under **Integrations → Connected apps**.
+
+To enable it on an installation, run the migrations and create Passport's signing keys once:
+
+```powershell
+php artisan migrate
+php artisan passport:keys
+```
+
+The keys are written to `storage/oauth-private.key` and `storage/oauth-public.key`, which Git ignores. Keep them across deploys. The documentation for MIS, app developers, and server administrators is in [docs/oauth](docs/oauth/README.md).
+
 ### PWA and attendance synchronization
 
 PWA settings live in `config/pwa.php`, with browser assets in `public/manifest.json`, `public/sw.js`, and `public/offline.html`. The service worker provides an offline navigation fallback; it does not make every SIS screen available offline.
@@ -195,6 +210,9 @@ occ_enrollment/
 |   |-- factories/           Test data factories
 |   |-- migrations/          Schema and historical data changes
 |   `-- seeders/             Data/account seeders requiring review before use
+|-- docs/
+|   |-- oauth/               Continue with SIS-OCC guides
+|   `-- prototypes/          Clickable design prototypes
 |-- public/                  Web entry point, public assets, and PWA files
 |-- resources/
 |   |-- css/                 Application styles
@@ -214,7 +232,7 @@ occ_enrollment/
 
 ### Finding the code for a feature
 
-- Start at `routes/web.php` and its included feature route files for browser workflows. Token-authenticated mobile and CSG attendance endpoints are defined in `routes/api.php`.
+- Start at `routes/web.php` and its included feature route files for browser workflows. Token-authenticated mobile and CSG attendance endpoints are defined in `routes/api.php`. The OAuth endpoints for Continue with SIS-OCC are in `routes/oauth.php`; see [docs/oauth/server-setup.md](docs/oauth/server-setup.md#code-map).
 - Follow the route to a controller under `app/Http/Controllers/`, then to its models and services.
 - Inertia page names resolve to `resources/js/Pages/<name>.jsx`. Match the spelling and capitalization used by `Inertia::render()`.
 - The `@/` frontend import alias points to `resources/js/`. Shared UI primitives are in `Components/ui/`, and role navigation is configured in `Components/Config/menuConfig.js`.
@@ -231,33 +249,40 @@ occ_enrollment/
 | `php artisan route:list` | Inspect registered routes and middleware |
 | `php artisan config:clear` | Clear cached environment configuration |
 | `php artisan queue:listen --tries=1` | Process queued jobs when using a provisioned asynchronous queue |
-| `php artisan test` | Run tests after configuring a disposable test database |
+| `php artisan test` | Run tests on an in-memory SQLite database; see [Testing](#testing) |
+| `php artisan passport:keys` | Create the signing keys for Continue with SIS-OCC, once per installation |
 
 ## Testing
 
 Tests are configured in `phpunit.xml` and `tests/Pest.php`. Existing suites cover authentication/password flows, profile behavior, school-year management, and TOR photo services.
 
-**Configure a dedicated disposable test database before running the full suite.** `phpunit.xml` does not select a database connection or database name, and Pest feature tests use `RefreshDatabase`. Without a testing override, those tests can inherit the application's database settings.
-
-Create an untracked `.env.testing` with `APP_ENV=testing`, its own application key, and database credentials pointing only to the disposable MySQL database. Use `MAIL_MAILER=array`, `QUEUE_CONNECTION=sync`, `SESSION_DRIVER=array`, and `CACHE_STORE=array` for tests. The current `.gitignore` does not include `.env.testing`; keep it out of commits.
-
-Once the testing environment and schema requirements are understood:
+**Tests never use the database in `.env` by default.** `phpunit.xml` sets `DB_CONNECTION=sqlite` and `DB_DATABASE=:memory:`. This matters because the Pest feature tests use `RefreshDatabase`, which runs `migrate:fresh` and drops every table in whatever database it's given.
 
 ```powershell
 php artisan config:clear
 php artisan test
 ```
 
-Historical migrations depend on MySQL, so SQLite is not a substitute for the full migration history. Some starter authentication tests also reference registration/email-verification routes that are currently disabled; full-suite success has not been established by this documentation.
+Historical migrations depend on MySQL, so the Pest feature tests that use `RefreshDatabase` can't build their schema in SQLite and fail. Some starter authentication tests also reference registration/email-verification routes that are currently disabled; full-suite success has not been established by this documentation.
 
-Two focused tests explicitly isolate their dependencies:
+To run those tests against MySQL, create a **disposable** database and name it in the shell for that run only. Values in `.env` and `.env.testing` don't override `phpunit.xml`; shell variables do:
+
+```powershell
+try { $env:DB_CONNECTION = 'mysql'; $env:DB_DATABASE = 'occ_enrollment_test'; php artisan test } finally { Remove-Item Env:DB_CONNECTION, Env:DB_DATABASE }
+```
+
+Never name a database you want to keep: `RefreshDatabase` empties it. Other test settings, such as a separate application key, can go in an untracked `.env.testing`; keep it out of commits.
+
+These tests build their own SQLite in-memory schema or avoid the database entirely, and run safely on their own:
 
 ```powershell
 php artisan test --filter=SchoolYearManagementTest
+php artisan test --filter=ContinueWithSisOccTest
+php artisan test --filter=MisUserIdNumberTest
 php vendor/phpunit/phpunit/phpunit tests/Unit/TorPhotoServiceTest.php
 ```
 
-`SchoolYearManagementTest` builds its own SQLite in-memory schema and requires `pdo_sqlite`. `TorPhotoServiceTest` uses an isolated container and fakes without loading the application, a real database, or network services.
+`SchoolYearManagementTest`, `ContinueWithSisOccTest` (Continue with SIS-OCC) and `MisUserIdNumberTest` require `pdo_sqlite`. `TorPhotoServiceTest` uses an isolated container and fakes without loading the application, a real database, or network services.
 
 ## Serving a built application
 
@@ -276,3 +301,6 @@ For a production installation, set `APP_ENV=production`, `APP_DEBUG=false`, and 
 | Credential or reset emails never arrive | `MAIL_MAILER=log` writes messages locally; configure a delivery service to send them. |
 | Drive features report missing configuration or access | Check the four `GOOGLE_DRIVE_*` values and the credential's access to the configured folder. |
 | A page cannot be resolved by Inertia | Compare the controller's page name with the path and capitalization under `resources/js/Pages/`. |
+| Continue with SIS-OCC fails with a missing key file | Run `php artisan passport:keys` once on that installation, or set `PASSPORT_PRIVATE_KEY` and `PASSPORT_PUBLIC_KEY`. |
+| Composer or Passport reports that `sodium` is missing | Enable the `sodium` PHP extension and restart the web server. |
+| Someone can't sign in to another school app | See [Helping someone who can't sign in](docs/oauth/mis-guide.md#helping-someone-who-cant-sign-in). |

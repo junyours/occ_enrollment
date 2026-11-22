@@ -1,0 +1,935 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Continue with SIS-OCC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: header, scenario bar, two panes side by side (student's browser | behind-the-scenes log), registrar panel below; one column on phones */
+:root{
+  --bg:#f5f4f8; --surface:#ffffff; --surface-2:#eeecf3; --fg:#1c1925; --muted:#5d586b; --line:#dddae5;
+  --sis:#5a3ec2; --sis-ink:#ffffff; --sis-soft:#efebfb;
+  --lib:#0d7560; --lib-ink:#ffffff; --lib-soft:#e2f2ec;
+  --vote:#a8520e; --vote-ink:#ffffff; --vote-soft:#fbeedf;
+  --ok:#1d7437; --ok-soft:#e2f1e6; --bad:#b3261e; --bad-soft:#fcebea; --warn:#7f5300; --warn-soft:#fbf1d9;
+  --code:#f3f1f8;
+  --font-sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131118; --surface:#1c1924; --surface-2:#25212f; --fg:#ebe8f2; --muted:#a39db3; --line:#342f40;
+    --sis:#a08cf2; --sis-ink:#16121f; --sis-soft:#262038;
+    --lib:#4fc4a2; --lib-ink:#0b1f19; --lib-soft:#132a24;
+    --vote:#f0a35e; --vote-ink:#26160a; --vote-soft:#2f2114;
+    --ok:#63c784; --ok-soft:#14281b; --bad:#f28b82; --bad-soft:#331816; --warn:#e8bf5a; --warn-soft:#2e2412;
+    --code:#16131d; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131118; --surface:#1c1924; --surface-2:#25212f; --fg:#ebe8f2; --muted:#a39db3; --line:#342f40;
+  --sis:#a08cf2; --sis-ink:#16121f; --sis-soft:#262038;
+  --lib:#4fc4a2; --lib-ink:#0b1f19; --lib-soft:#132a24;
+  --vote:#f0a35e; --vote-ink:#26160a; --vote-soft:#2f2114;
+  --ok:#63c784; --ok-soft:#14281b; --bad:#f28b82; --bad-soft:#331816; --warn:#e8bf5a; --warn-soft:#2e2412;
+  --code:#16131d; color-scheme:dark;
+}
+[data-app="library"]{--app:var(--lib);--app-ink:var(--lib-ink);--app-soft:var(--lib-soft)}
+[data-app="voting"]{--app:var(--vote);--app-ink:var(--vote-ink);--app-soft:var(--vote-soft)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-sans);font-size:15px;line-height:1.5}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.page{max-width:1260px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button,input{font:inherit}
+:focus-visible{outline:2px solid var(--sis);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.eyebrow{margin:0 0 4px;font:500 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--sis)}
+h1{font-size:1.85rem;line-height:1.15;font-weight:600;letter-spacing:-.015em;margin:0;text-wrap:balance}
+.lede{margin:8px 0 0;color:var(--muted);max-width:64ch}
+.proto{margin:0;font:500 12px/1.4 var(--font-mono);color:var(--muted);border:1px dashed var(--line);padding:8px 10px;border-radius:6px;max-width:32ch}
+
+.setup{display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center;margin:22px 0;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.setup-group{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-width:0}
+.setup .reset{margin-left:auto}
+.field-label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;padding:3px;gap:3px;background:var(--surface-2)}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:6px;font-size:14px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 0 0 1px var(--line);font-weight:500}
+.policy{font-size:13.5px;color:var(--muted)}
+.policy b{color:var(--fg);font-weight:500}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:500;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+.btn:hover{border-color:var(--muted)}
+.btn-sis{background:var(--sis);border-color:var(--sis);color:var(--sis-ink)}
+.btn-sis:hover{border-color:var(--sis);filter:brightness(1.08)}
+.btn-quiet{background:transparent;border-color:transparent;color:var(--muted)}
+.btn-quiet:hover{color:var(--fg);background:var(--surface-2);border-color:transparent}
+.btn-small{padding:5px 10px;font-size:13px}
+
+.stage{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:20px;align-items:start}
+.pane{min-width:0;display:flex;flex-direction:column;gap:10px}
+.pane-head h2,.admin-head h2{font-size:15px;font-weight:600;margin:0}
+.pane-head p,.admin-head p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+
+.browser{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:600px}
+.chrome{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.site{flex:none;font-size:12px;font-weight:600;padding:6px 9px;border-radius:6px;white-space:nowrap;line-height:1.3}
+.site[data-site="sis"]{background:var(--sis-soft);color:var(--sis)}
+.site[data-site="app"]{background:var(--app-soft);color:var(--app)}
+.url{flex:1;min-width:0;font:12.5px/1.5 var(--font-mono);background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:5px 10px;word-break:break-all;color:var(--fg)}
+.url .k{color:var(--muted)}
+.url .host{font-weight:500}
+.url .v-code{background:var(--ok-soft);color:var(--ok);border-radius:3px}
+.url .v-state{background:var(--sis-soft);color:var(--sis);border-radius:3px}
+.url .v-error{background:var(--bad-soft);color:var(--bad);border-radius:3px}
+
+.screen{flex:1;display:flex;flex-direction:column}
+.app-bar{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--app);color:var(--app-ink)}
+.app-logo{font:600 11px/1 var(--font-mono);letter-spacing:.06em;border:1.5px solid currentColor;border-radius:6px;padding:5px 6px}
+.app-name{font-weight:600}
+.app-user{margin-left:auto;font-size:13.5px}
+.app-body{padding:28px 24px;display:flex;flex-direction:column;gap:14px;max-width:560px}
+.screen-title{font-size:1.35rem;line-height:1.25;font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.muted{color:var(--muted);margin:0}
+.fine{font-size:13px;color:var(--muted);margin:0}
+.fine b{color:var(--fg);font-weight:500}
+.btn-continue{display:inline-flex;align-items:center;gap:10px;align-self:flex-start;padding:9px 16px 9px 9px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:9px;font-size:15px;font-weight:500;cursor:pointer}
+.btn-continue:hover{border-color:var(--sis)}
+.mark{display:inline-grid;place-items:center;flex:none;background:var(--sis);color:var(--sis-ink);font:600 10px/1 var(--font-mono);letter-spacing:.04em;width:32px;height:26px;border-radius:5px}
+.mark-sm{width:28px;height:20px;font-size:9px}
+
+.sis-screen{background:var(--sis-soft);padding:24px 16px;align-items:center}
+.sis-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;width:100%;max-width:460px;display:flex;flex-direction:column;gap:14px}
+.sis-brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--sis)}
+.consent{background:var(--surface-2);border-radius:8px;padding:12px 14px}
+.consent-head{margin:0 0 6px;font-size:13px;font-weight:600}
+.consent ul{margin:0 0 8px;padding:0;list-style:none;display:grid;gap:5px;font-size:13.5px}
+.consent code{font:500 11.5px var(--font-mono);color:var(--sis);background:var(--sis-soft);padding:1px 5px;border-radius:4px;margin-right:6px}
+form{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;font-weight:500}
+.field input{font-size:15px;padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:100%}
+.field input::placeholder{color:var(--muted)}
+.form-error{margin:0;font-size:13.5px;color:var(--bad)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.demo{border-top:1px dashed var(--line);padding-top:12px}
+.demo-head{margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.demo-head span{text-transform:none;letter-spacing:0;font-weight:400;margin-left:4px}
+.demo-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px}
+.demo-chip{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--fg);display:flex;flex-direction:column;gap:1px}
+.demo-chip:hover{border-color:var(--sis)}
+.demo-name{font-size:13.5px;font-weight:500}
+.demo-meta{font-size:12px;color:var(--muted)}
+.account{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.avatar{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--sis-soft);color:var(--sis);font-weight:600;font-size:14px}
+.who{font-weight:500}
+.who-id{font-size:12.5px;color:var(--muted);font-family:var(--font-mono)}
+.account-text{flex:1;min-width:0}
+.btn-link{background:none;border:0;padding:0;color:var(--sis);font-size:13.5px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn-link:hover{text-decoration:underline}
+.btn-block{width:100%}
+.actions-end{justify-content:flex-end}
+.tick{color:var(--ok);font-weight:600;margin-right:8px}
+.demo-tag{margin:0;align-self:flex-start;font:500 11px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--line);border-radius:5px;padding:5px 7px}
+.switch-label{margin-left:10px;font-size:14px;color:var(--fg)}
+
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.check{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 12px;border-radius:8px;background:var(--surface-2);font-size:14px}
+.check-icon{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font-weight:600;font-size:12px;background:var(--surface);color:var(--muted)}
+.check-value{font-size:13px;color:var(--muted);text-align:right}
+.is-pass .check-icon{background:var(--ok);color:var(--surface)}
+.is-fail{background:var(--bad-soft)}
+.is-fail .check-icon{background:var(--bad);color:var(--surface)}
+.is-fail .check-value{color:var(--bad)}
+.is-skip .check-icon{background:var(--line);color:var(--fg)}
+.denied-icon{margin:0;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--bad-soft);color:var(--bad);font-size:18px;font-weight:600}
+.reasons{margin:0;padding-left:18px;display:grid;gap:4px}
+
+.banner{margin:0;padding:10px 12px;border-radius:8px;font-size:14px}
+.banner-bad{background:var(--bad-soft);color:var(--bad)}
+.banner-info{background:var(--sis-soft);color:var(--sis)}
+.banner-warn{background:var(--warn-soft);color:var(--warn)}
+.verified{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.verified-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;background:var(--surface-2);font-size:13.5px;font-weight:500}
+.verified-head .pill{margin-left:auto}
+.verified dl{margin:0;display:grid}
+.verified dl div{display:grid;grid-template-columns:130px minmax(0,1fr);gap:12px;padding:8px 14px;border-top:1px solid var(--line);font-size:14px}
+.verified dt{color:var(--muted)}
+.verified dd{margin:0;min-width:0}
+.pill{display:inline-block;font-size:12px;font-weight:500;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.pill-ok{background:var(--ok-soft);color:var(--ok)}
+.pill-bad{background:var(--bad-soft);color:var(--bad)}
+.pill-warn{background:var(--warn-soft);color:var(--warn)}
+.try{border-top:1px dashed var(--line);padding-top:14px;display:grid;gap:10px}
+.try-head{margin:0;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+
+.log{background:var(--surface);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;height:600px;min-height:0}
+.log-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px}
+.log-body{flex:1;overflow-y:auto;padding:4px 16px 16px;min-height:0}
+.log-empty{margin:16px 0 0;color:var(--muted);font-size:14px;max-width:44ch}
+.log-empty b{color:var(--fg);font-weight:500}
+.entries{list-style:none;margin:0;padding:0}
+.entry{padding:12px 0;border-bottom:1px solid var(--line)}
+.entry:last-child{border-bottom:0}
+.entry-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.step{font:500 11.5px/1 var(--font-mono);flex:none;width:22px;height:22px;display:inline-grid;place-items:center;border-radius:50%;background:var(--fg);color:var(--surface)}
+.step-none{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.chip{font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;padding:3px 7px;border-radius:5px;white-space:nowrap}
+.entry-title{font-size:14px;font-weight:500;min-width:0}
+.ch-browser .chip{background:var(--surface-2);color:var(--muted)}
+.ch-server .chip{background:var(--sis);color:var(--sis-ink)}
+.ch-sis .chip{background:var(--sis-soft);color:var(--sis)}
+.ch-app .chip{background:var(--app-soft);color:var(--app)}
+.ch-error .chip{background:var(--bad-soft);color:var(--bad)}
+.entry pre{margin:8px 0 0;font:12px/1.55 var(--font-mono);background:var(--code);border:1px solid var(--line);border-radius:8px;padding:9px 11px;white-space:pre-wrap;word-break:break-all;color:var(--fg)}
+.entry-note{margin:6px 0 0;font-size:13px;color:var(--muted)}
+
+.admin{margin-top:24px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.admin-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px 16px;justify-content:space-between;align-items:center}
+.session{margin:0;font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.session b{color:var(--fg);font-weight:500}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+th,td{text-align:left;padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+th{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface-2)}
+.signed{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.switch{position:relative;display:inline-flex;align-items:center;cursor:pointer}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.track{width:36px;height:20px;border-radius:10px;background:var(--line);position:relative;transition:background .15s}
+.track::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:transform .15s}
+.switch input:checked + .track{background:var(--ok)}
+.switch input:checked + .track::after{transform:translateX(16px)}
+.switch input:focus-visible + .track{outline:2px solid var(--sis);outline-offset:2px}
+
+@media (prefers-reduced-motion: no-preference){
+  .is-pending .check-icon{animation:pulse 1s ease-in-out infinite}
+  .entry{animation:enter .25s ease-out}
+}
+@keyframes pulse{50%{background:var(--line)}}
+@keyframes enter{from{opacity:0;transform:translateY(4px)}}
+@media (max-width: 920px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .browser{min-height:0}
+  .log{height:520px}
+}
+@media (max-width: 520px){
+  .app-body{padding:20px 16px}
+  .sis-card{padding:18px}
+  .verified dl div{grid-template-columns:minmax(0,1fr);gap:0}
+  .setup .reset{margin-left:0}
+}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div>
+      <p class="eyebrow">OAuth 2.0 prototype</p>
+      <h1>Continue with SIS-OCC</h1>
+      <p class="lede">SIS-OCC acts as the school's login provider. Pick a school app, sign in with a demo account, and watch what each system sends and decides.</p>
+    </div>
+    <p class="proto">Runs only in this page. Nothing is sent anywhere.</p>
+  </header>
+
+  <section class="setup" aria-label="Scenario">
+    <div class="setup-group">
+      <span class="field-label" id="app-label">School app</span>
+      <div class="seg" role="group" aria-labelledby="app-label">
+        <button type="button" id="pick-library" data-app-select="library" aria-pressed="true">OCC Library</button>
+        <button type="button" id="pick-voting" data-app-select="voting" aria-pressed="false">CSG Election</button>
+      </div>
+      <span class="policy" id="policy"></span>
+    </div>
+    <div class="setup-group">
+      <label class="switch" for="school-owned"><input type="checkbox" id="school-owned" checked><span class="track" aria-hidden="true"></span><span class="switch-label">School-owned app</span></label>
+    </div>
+    <div class="setup-group">
+      <span class="field-label" id="pace-label">Pace</span>
+      <div class="seg" role="group" aria-labelledby="pace-label">
+        <button type="button" id="pace-normal" data-pace="1" aria-pressed="true">Normal</button>
+        <button type="button" id="pace-slow" data-pace="2.4" aria-pressed="false">Slow</button>
+      </div>
+    </div>
+    <button type="button" id="reset" class="btn btn-small reset" data-action="reset">Start over</button>
+  </section>
+
+  <div class="stage">
+    <section class="pane" aria-labelledby="browser-title">
+      <div class="pane-head">
+        <h2 id="browser-title">Student's browser</h2>
+        <p>What the student sees and clicks</p>
+      </div>
+      <div class="browser" id="browser" data-app="library">
+        <div class="chrome">
+          <span class="site" id="site"></span>
+          <div class="url" id="url" aria-label="Address bar"></div>
+        </div>
+        <div class="screen" id="screen"></div>
+      </div>
+    </section>
+
+    <section class="pane" aria-labelledby="log-title">
+      <div class="pane-head">
+        <h2 id="log-title">Behind the scenes</h2>
+        <p>Numbered entries are the 10 steps of the login</p>
+      </div>
+      <div class="log">
+        <div class="log-head">
+          <div class="legend">
+            <span class="ch-browser"><span class="chip">Browser</span></span>
+            <span class="ch-server"><span class="chip">Server to server</span></span>
+            <span class="ch-sis"><span class="chip">SIS decision</span></span>
+            <span class="ch-error"><span class="chip">Refused</span></span>
+          </div>
+          <button type="button" id="clear-log" class="btn btn-small btn-quiet" data-action="clear-log">Clear</button>
+        </div>
+        <div class="log-body" id="log-body">
+          <p class="log-empty" id="log-empty">Nothing has happened yet. Click <b>Continue with SIS-OCC</b> in the student's browser to start a login.</p>
+          <ol class="entries" id="entries" aria-live="polite"></ol>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="admin" aria-labelledby="admin-title">
+    <div class="admin-head">
+      <div>
+        <h2 id="admin-title">Registrar panel</h2>
+        <p>Change a record in SIS-OCC and see which apps that person can sign in to</p>
+      </div>
+      <p class="session" id="sis-session"></p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th scope="col">Account</th><th scope="col">Role</th><th scope="col">Active</th><th scope="col">Enrolled this semester</th><th scope="col">OCC Library</th><th scope="col">CSG Election</th></tr>
+        </thead>
+        <tbody id="users"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  // Mirrors SIS-OCC as built: app/Services/OAuth/AccessPolicy.php, UserInfo.php and the OAuth pages.
+  const TERM = { sy: '2026-2027', sem: 'First' };
+  const PASSWORD = 'demo1234';
+  const SIS = 'https://sis-occ.test';
+  const SEED = [
+    { id: 1042, idNo: '2023-00123', first: 'Juan', middle: 'Santos', last: 'Dela Cruz', role: 'student', active: true, enrolled: true, course: 'BACHELOR OF SCIENCE IN INFORMATION TECHNOLOGY', courseCode: 'BSIT', major: null, year: 'Third Year', section: 'A' },
+    { id: 987, idNo: '2022-00456', first: 'Maria', middle: null, last: 'Santos', role: 'student', active: true, enrolled: false, course: 'BACHELOR OF SECONDARY EDUCATION', courseCode: 'BSED-ENG', major: 'ENGLISH', year: 'Second Year', section: 'B' },
+    { id: 731, idNo: '2021-00789', first: 'Pedro', middle: 'Garcia', last: 'Reyes', role: 'student', active: false, enrolled: true, course: 'BACHELOR OF ELEMENTARY EDUCATION', courseCode: 'BEED', major: null, year: 'Fourth Year', section: 'A' },
+    { id: 58, idNo: 'FAC-0042', first: 'Ana', middle: null, last: 'Lopez', role: 'faculty', active: true }
+  ].map(u => ({ ...u, name: [u.first, u.middle, u.last].filter(Boolean).join(' ') }));
+  // Client IDs are UUIDs in SIS-OCC. These are made up.
+  const APPS = {
+    library: { key: 'library', name: 'OCC Library', short: 'LIB', host: 'library.occ.test', clientId: '9c1f4e2a-6b7d-4c3e-8f1a-2d5b7e9c0a11', tagline: 'Borrow books and reserve study rooms.', roles: ['student', 'faculty'], needsEnrollment: false, who: 'Students and faculty' },
+    voting: { key: 'voting', name: 'CSG Election', short: 'CSG', host: 'vote.occ.test', clientId: '9c1f4e2a-6b7d-4c3e-8f1a-2d5b7e9c0a12', tagline: 'Vote for your student government officers.', roles: ['student'], needsEnrollment: true, who: 'Students enrolled this semester' }
+  };
+  Object.values(APPS).forEach(a => { a.redirect = 'https://' + a.host + '/auth/sis/callback'; a.schoolOwned = true; });
+  const SCOPES = [['profile', 'Your name, ID number and role'], ['enrollment', 'Your course, year level, section and whether you are enrolled this semester']];
+  const ROLE_PLURAL = { student: 'students', faculty: 'faculty' };
+  const CH = { browser: 'Browser', server: 'Server to server', sis: 'SIS decision', error: 'Refused' };
+
+  let USERS = SEED.map(u => ({ ...u }));
+  const S = { app: 'library', pace: 1, sisSession: null, sessions: {}, pending: null, run: 0, view: '', consented: new Set() };
+
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const rand = n => {
+    const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    const buf = new Uint32Array(n);
+    crypto.getRandomValues(buf);
+    return Array.from(buf, x => abc[x % abc.length]).join('');
+  };
+  const findUser = id => USERS.find(u => u.idNo.toLowerCase() === String(id).trim().toLowerCase());
+  const fullName = u => u.first + ' ' + u.last;
+  const shortTok = t => t.slice(0, 22) + '…';
+  const initials = n => n.split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const wait = ms => new Promise(r => setTimeout(r, ms * S.pace));
+  async function pause(ms, run) { await wait(ms); return run === S.run; }
+
+  // PKCE: the app keeps a random verifier and sends only its SHA-256 hash.
+  const base64Url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  async function makePkce() {
+    const verifier = rand(64);
+    try {
+      return { verifier, challenge: base64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))) };
+    } catch (e) {
+      return { verifier, challenge: rand(43) }; // crypto.subtle isn't available: a stand-in value
+    }
+  }
+
+  /* ---------- SIS-OCC's rules and data ---------- */
+  function describeRoles(roles) {
+    const labels = roles.map(r => ROLE_PLURAL[r] || r);
+    return labels.length === 1 ? labels[0] : labels.slice(0, -1).join(', ') + ' and ' + labels[labels.length - 1];
+  }
+  function evaluate(u, app) {
+    const checks = [
+      { key: 'role', label: 'Role allowed for ' + app.name, pass: app.roles.includes(u.role), value: cap(u.role), reason: app.name + ' is only for ' + describeRoles(app.roles) + '.' },
+      { key: 'active', label: 'Account is active', pass: !!u.active, value: u.active ? 'Active' : 'Deactivated', reason: 'Your SIS-OCC account has been deactivated. Contact the MIS office.' }
+    ];
+    if (app.needsEnrollment && u.role === 'student') {
+      checks.push({ key: 'enrollment', label: 'Enrolled this semester', pass: !!u.enrolled, value: u.enrolled ? 'Enrolled' : 'Not enrolled', reason: 'You have no enrollment record for the current semester. Contact the registrar if this is wrong.' });
+    }
+    return { checks, ok: checks.every(c => c.pass) };
+  }
+  // GET /api/oauth/me with the profile and enrollment scopes.
+  function buildMe(u) {
+    return {
+      sub: String(u.id),
+      user_id_no: u.idNo,
+      name: u.name,
+      given_name: u.first,
+      middle_name: u.middle,
+      family_name: u.last,
+      role: u.role,
+      active: !!u.active,
+      enrollment: u.role !== 'student' ? null : (u.enrolled
+        ? { currently_enrolled: true, school_year: TERM.sy, semester: TERM.sem, course: u.course, course_code: u.courseCode, major: u.major, year_level: u.year, section: u.section }
+        : { currently_enrolled: false })
+    };
+  }
+  function describe(u) {
+    if (u.role === 'faculty') return u.active ? 'Faculty' : 'Faculty, deactivated';
+    if (!u.active) return 'Deactivated student';
+    return u.enrolled ? 'Enrolled student' : 'Not enrolled this semester';
+  }
+
+  /* ---------- log ---------- */
+  function log(o) {
+    $('#log-empty').hidden = true;
+    const li = document.createElement('li');
+    li.className = 'entry ch-' + o.ch;
+    if (o.app) li.dataset.app = o.app.key;
+    const chip = o.ch === 'app' && o.app ? o.app.name : CH[o.ch];
+    li.innerHTML =
+      '<div class="entry-head">' +
+      (o.step ? '<span class="step">' + o.step + '</span>' : '<span class="step step-none" aria-hidden="true"></span>') +
+      '<span class="chip">' + esc(chip) + '</span>' +
+      '<span class="entry-title">' + esc(o.title) + '</span></div>' +
+      (o.detail ? '<pre>' + esc(o.detail) + '</pre>' : '') +
+      (o.note ? '<p class="entry-note">' + esc(o.note) + '</p>' : '');
+    $('#entries').appendChild(li);
+    const body = $('#log-body');
+    body.scrollTop = body.scrollHeight;
+  }
+  function clearLog() { $('#entries').innerHTML = ''; $('#log-empty').hidden = false; }
+
+  /* ---------- browser chrome ---------- */
+  function setUrl(u) {
+    const q = u.indexOf('?');
+    const base = q < 0 ? u : u.slice(0, q);
+    const query = q < 0 ? '' : u.slice(q + 1);
+    const m = base.match(/^(https:\/\/)([^/]+)(.*)$/);
+    let h = '<span class="k">' + m[1] + '</span><span class="host">' + esc(m[2]) + '</span>' + esc(m[3]);
+    if (query) {
+      h += '<span class="k">?</span>' + query.split('&').map(p => {
+        const i = p.indexOf('=');
+        const k = p.slice(0, i), v = p.slice(i + 1);
+        const cls = ['code', 'state', 'error'].includes(k) ? ' v-' + k : '';
+        return '<span class="k">' + esc(k) + '=</span><span class="v' + cls + '">' + esc(v) + '</span>';
+      }).join('<span class="k">&amp;</span>');
+    }
+    $('#url').innerHTML = h;
+  }
+  function site(kind) {
+    const b = $('#site');
+    b.dataset.site = kind;
+    b.textContent = kind === 'sis' ? 'SIS-OCC' : APPS[S.app].name;
+  }
+  function screen(kind, html, view) {
+    const el = $('#screen');
+    el.className = 'screen ' + kind;
+    el.innerHTML = html;
+    S.view = view;
+  }
+  function appBar(app, user) {
+    return '<div class="app-bar"><span class="app-logo">' + app.short + '</span><span class="app-name">' + esc(app.name) + '</span>' +
+      (user ? '<span class="app-user">' + esc(user) + '</span>' : '') + '</div>';
+  }
+  function sisBrand() { return '<div class="sis-brand"><span class="mark">SIS</span><span>SIS-OCC</span></div>'; }
+  function accountRow(u) {
+    return '<div class="account"><span class="avatar" aria-hidden="true">' + initials(fullName(u)) + '</span>' +
+      '<div class="account-text"><div class="who">' + esc(fullName(u)) + '</div><div class="who-id">' + esc(u.idNo) + '</div></div>' +
+      '<button type="button" class="btn-link" data-action="use-other">Use another account</button></div>';
+  }
+
+  /* ---------- school app screens ---------- */
+  function renderAppHome(banner, url) {
+    const app = APPS[S.app];
+    if (S.sessions[app.key] && !banner) return renderSignedIn();
+    setUrl(url || 'https://' + app.host + '/login');
+    site('app');
+    screen('app-screen',
+      appBar(app) +
+      '<div class="app-body">' +
+      (banner ? '<p class="banner banner-' + banner.kind + '" role="status">' + esc(banner.text) + '</p>' : '') +
+      '<h2 class="screen-title">Sign in to ' + esc(app.name) + '</h2>' +
+      '<p class="muted">' + esc(app.tagline) + '</p>' +
+      '<button type="button" id="btn-continue" class="btn-continue" data-action="continue"><span class="mark">SIS</span>Continue with SIS-OCC</button>' +
+      '<p class="fine">' + esc(app.name) + ' doesn\'t keep passwords. You sign in with your SIS-OCC account, and SIS-OCC decides who gets in.</p>' +
+      '<p class="fine"><b>Who can sign in:</b> ' + esc(app.who) + '.</p>' +
+      '</div>', 'app-home');
+  }
+
+  function renderSignedIn(flash) {
+    const app = APPS[S.app];
+    const s = S.sessions[app.key];
+    if (!s) return renderAppHome();
+    const me = s.me;
+    const e = me.enrollment;
+    setUrl('https://' + app.host + '/');
+    site('app');
+    const rows = [['Name', me.name], ['ID number', me.user_id_no], ['Role', cap(me.role)]];
+    if (e && e.currently_enrolled) {
+      rows.push(['Course', e.course + ' (' + e.course_code + ')']);
+      rows.push(['Year and section', e.year_level + ', section ' + e.section]);
+    }
+    let status = '';
+    if (e) {
+      status = e.currently_enrolled
+        ? '<span class="pill pill-ok">Enrolled · ' + esc(e.semester) + ' semester</span>'
+        : '<span class="pill pill-warn">Not enrolled this semester</span>';
+    }
+    const welcome = app.key === 'voting'
+      ? 'You can vote in this semester\'s CSG Election. Voting opens on the ballot page.'
+      : (me.role === 'faculty' ? 'You can borrow up to 10 books and reserve rooms for your classes.' : 'You can borrow up to 3 books at a time.');
+    screen('app-screen',
+      appBar(app, me.name) +
+      '<div class="app-body">' +
+      (s.revoked ? '<p class="banner banner-warn" role="status">SIS-OCC has revoked this sign-in, but ' + esc(app.name) + ' doesn\'t know yet. Reload your details to see what happens.</p>' : '') +
+      (flash ? '<p class="banner banner-info" role="status">' + esc(flash) + '</p>' : '') +
+      '<h2 class="screen-title">Welcome, ' + esc(me.given_name) + '</h2>' +
+      '<p class="muted">' + esc(welcome) + '</p>' +
+      '<section class="verified" aria-label="Details from SIS-OCC"><div class="verified-head"><span class="mark mark-sm">SIS</span>Verified by SIS-OCC' + status + '</div><dl>' +
+      rows.map(r => '<div><dt>' + r[0] + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('') +
+      '</dl></section>' +
+      '<div class="try"><p class="try-head">Try it</p><div class="actions">' +
+      '<button type="button" id="btn-reload" class="btn" data-action="reload">Reload my details from SIS</button>' +
+      '<button type="button" id="btn-replay" class="btn" data-action="replay">Reuse the one-time code</button>' +
+      '<button type="button" id="btn-signout" class="btn btn-quiet" data-action="signout">Sign out of ' + esc(app.name) + '</button>' +
+      '</div><p class="fine">Turn off this account\'s Active or Enrolled switch in the registrar panel, then reload your details.</p></div>' +
+      '</div>', 'signed-in');
+  }
+
+  /* ---------- SIS-OCC screens, as in the real pages ---------- */
+  function authorizeUrl(extra) {
+    const app = APPS[S.pending.app];
+    return SIS + '/oauth/authorize?client_id=' + app.clientId + '&redirect_uri=' + encodeURIComponent(app.redirect) +
+      '&response_type=code&scope=profile%20enrollment&state=' + S.pending.state +
+      '&code_challenge=' + S.pending.challenge + '&code_challenge_method=S256' + (extra || '');
+  }
+
+  // SIS-OCC's usual login page. It doesn't mention the app.
+  function renderSisLogin() {
+    setUrl(SIS + '/login');
+    site('sis');
+    screen('sis-screen',
+      '<div class="sis-card">' + sisBrand() +
+      '<div><h2 class="screen-title">Sign in</h2><p class="muted">Use your SIS-OCC ID number and password.</p></div>' +
+      '<form id="sis-form" novalidate>' +
+      '<div class="field"><label for="sis-id">ID number</label><input id="sis-id" name="sis-id" autocomplete="off" spellcheck="false" placeholder="2023-00123"></div>' +
+      '<div class="field"><label for="sis-pw">Password</label><input id="sis-pw" name="sis-pw" type="password" autocomplete="off" placeholder="demo1234"></div>' +
+      '<p class="form-error" id="sis-err" role="alert" hidden></p>' +
+      '<div class="actions"><button type="submit" id="btn-signin" class="btn btn-sis">Sign in</button></div>' +
+      '</form>' +
+      '<div class="demo"><p class="demo-head">Demo accounts<span>password demo1234. Don\'t type a real password here.</span></p><div class="demo-list">' +
+      USERS.map(u => '<button type="button" class="demo-chip" data-action="fill" data-id="' + esc(u.idNo) + '"><span class="demo-name">' + esc(u.name) + '</span><span class="demo-meta">' + esc(u.idNo) + ' · ' + esc(describe(u)) + '</span></button>').join('') +
+      '</div></div></div>', 'sis-login');
+  }
+
+  // "Continue to …": only for apps MIS didn't mark as school-owned.
+  function renderConsent(u) {
+    const app = APPS[S.pending.app];
+    setUrl(authorizeUrl());
+    site('sis');
+    screen('sis-screen',
+      '<div class="sis-card">' + sisBrand() +
+      '<div><h2 class="screen-title">Continue to ' + esc(app.name) + '</h2><p class="muted">' + esc(app.tagline) + '</p></div>' +
+      accountRow(u) +
+      '<div class="consent"><p class="consent-head">' + esc(app.name) + ' will receive</p><ul>' +
+      SCOPES.map(s => '<li><span class="tick" aria-hidden="true">✓</span>' + esc(s[1]) + '</li>').join('') +
+      '</ul><p class="fine">It won\'t receive your password, grades, address or billing records.</p></div>' +
+      '<div class="actions actions-end"><button type="button" id="btn-deny" class="btn" data-action="deny">Cancel</button>' +
+      '<button type="button" id="btn-allow" class="btn btn-sis" data-action="allow">Allow and continue</button></div>' +
+      '</div>', 'sis-consent');
+  }
+
+  function renderDenied(u, ev) {
+    const app = APPS[S.pending.app];
+    setUrl(authorizeUrl());
+    site('sis');
+    screen('sis-screen',
+      '<div class="sis-card">' + sisBrand() +
+      '<p class="denied-icon" aria-hidden="true">✗</p>' +
+      '<h2 class="screen-title">You can\'t use ' + esc(app.name) + ' with this account</h2>' +
+      '<ul class="reasons">' + ev.checks.filter(c => !c.pass).map(c => '<li>' + esc(c.reason) + '</li>').join('') + '</ul>' +
+      '<p class="muted">SIS-OCC didn\'t send ' + esc(app.name) + ' any of your details.</p>' +
+      accountRow(u) +
+      '<button type="button" id="btn-back" class="btn btn-sis btn-block" data-action="back-denied">Back to ' + esc(app.name) + '</button>' +
+      '</div>', 'sis-denied');
+  }
+
+  /* ---------- the flow ---------- */
+  async function startLogin() {
+    const app = APPS[S.app];
+    const run = ++S.run;
+    const button = $('#btn-continue');
+    if (button) button.disabled = true;
+    const pkce = await makePkce();
+    if (run !== S.run) return;
+    S.pending = { app: app.key, state: rand(10), verifier: pkce.verifier, challenge: pkce.challenge };
+    log({ step: 1, ch: 'browser', title: 'Student clicks "Continue with SIS-OCC" on ' + app.name });
+    if (!await pause(450, run)) return;
+    log({ step: 2, ch: 'browser', title: app.name + ' sends the browser to SIS-OCC', detail: 'HTTP/1.1 302 Found\nLocation: ' + authorizeUrl(), note: 'state is random, and code_challenge is a hash of a secret only ' + app.name + '\'s server keeps (PKCE). Together they stop forged and stolen sign-ins.' });
+    setUrl(authorizeUrl());
+    site('sis');
+    if (!await pause(400, run)) return;
+    if (S.sisSession) {
+      const u = findUser(S.sisSession);
+      log({ step: 3, ch: 'browser', title: 'SIS-OCC already knows this browser: ' + fullName(u), detail: 'GET ' + SIS + '/oauth/authorize?client_id=' + app.clientId + '&…\nCookie: sis_occ_session=••••••', note: 'No password and no screen. One SIS-OCC sign-in covers every school app (single sign-on).' });
+      return runChecks(u);
+    }
+    log({ ch: 'browser', title: 'SIS-OCC asks the student to sign in first', detail: 'HTTP/1.1 302 Found\nLocation: ' + SIS + '/login', note: 'This is SIS-OCC\'s usual login page. Nothing on it comes from ' + app.name + '.' });
+    renderSisLogin();
+  }
+
+  function sisLogin() {
+    if (!S.pending) return;
+    const app = APPS[S.pending.app];
+    const id = $('#sis-id').value.trim();
+    const pw = $('#sis-pw').value;
+    const err = $('#sis-err');
+    if (!id || !pw) { err.textContent = 'Enter your ID number and password, or pick a demo account below.'; err.hidden = false; return; }
+    const u = findUser(id);
+    if (!u || pw !== PASSWORD) {
+      err.textContent = 'That ID number and password don\'t match. Pick a demo account below to fill them in.';
+      err.hidden = false;
+      log({ ch: 'error', title: 'SIS-OCC rejects the sign-in', detail: 'POST ' + SIS + '/login\nuser_id_no=' + id + '\npassword=••••••••\n\nHTTP/1.1 302 Found → back to /login\n"These credentials do not match our records."', note: 'No code is issued, and ' + app.name + ' never hears about the attempt.' });
+      return;
+    }
+    S.sisSession = u.idNo;
+    renderAdmin();
+    log({ step: 3, ch: 'browser', title: fullName(u) + ' signs in on the SIS-OCC page', detail: 'POST ' + SIS + '/login\nuser_id_no=' + u.idNo + '\npassword=••••••••\n\nHTTP/1.1 302 Found\nLocation: ' + authorizeUrl(), note: 'The password goes only to SIS-OCC. ' + app.name + ' never sees it.' });
+    runChecks(u);
+  }
+
+  async function runChecks(u) {
+    const app = APPS[S.pending.app];
+    const run = ++S.run;
+    const ev = evaluate(u, app);
+    setUrl(authorizeUrl());
+    site('sis');
+    screen('sis-screen',
+      '<div class="sis-card">' + sisBrand() +
+      '<p class="demo-tag">Prototype only</p>' +
+      '<div><h2 class="screen-title">Checking ' + esc(app.name) + '\'s rules</h2>' +
+      '<p class="muted">In SIS-OCC this check is instant and the student never sees this screen. The prototype slows it down so you can watch.</p></div>' +
+      '<ul class="checks">' + ev.checks.map((c, i) => '<li id="chk-' + i + '" class="check is-pending"><span class="check-icon" aria-hidden="true">•</span><span class="check-label">' + esc(c.label) + '</span><span class="check-value">' + esc(c.value) + '</span></li>').join('') + '</ul></div>', 'sis-checking');
+    for (let i = 0; i < ev.checks.length; i++) {
+      if (!await pause(450, run)) return;
+      const c = ev.checks[i];
+      const li = $('#chk-' + i);
+      li.className = 'check is-' + (c.pass ? 'pass' : 'fail');
+      li.querySelector('.check-icon').textContent = c.pass ? '✓' : '✗';
+    }
+    log({
+      step: 4, ch: ev.ok ? 'sis' : 'error',
+      title: ev.ok ? 'SIS-OCC allows ' + fullName(u) + ' into ' + app.name : 'SIS-OCC blocks ' + fullName(u) + ' from ' + app.name,
+      detail: app.name + ' is for ' + describeRoles(app.roles) + (app.needsEnrollment ? ' enrolled this semester' : '') + '\n' +
+        ev.checks.map(c => (c.pass ? '✓' : '✗') + ' ' + c.label + ': ' + c.value).join('\n'),
+      note: ev.ok ? null : 'SIS-OCC stops here. No code is issued and no data leaves the SIS.'
+    });
+    if (!await pause(500, run)) return;
+    if (!ev.ok) return renderDenied(u, ev);
+    if (!app.schoolOwned) {
+      if (!S.consented.has(app.key + '|' + u.idNo)) {
+        log({ ch: 'sis', title: 'SIS-OCC asks ' + u.first + ' to allow ' + app.name, note: app.name + ' isn\'t marked school-owned, so the student sees what it will receive.' });
+        return renderConsent(u);
+      }
+      log({ ch: 'sis', title: u.first + ' already allowed ' + app.name, note: 'SIS-OCC remembers this while ' + app.name + ' holds an active token for ' + u.first + ' (about 15 minutes in SIS-OCC).' });
+    }
+    issueCode(u, run);
+  }
+
+  function allow() {
+    if (!S.pending || !S.sisSession) return;
+    const app = APPS[S.pending.app];
+    const u = findUser(S.sisSession);
+    const run = ++S.run;
+    S.consented.add(app.key + '|' + u.idNo);
+    log({ ch: 'browser', title: u.first + ' allows ' + app.name, detail: 'POST ' + SIS + '/oauth/authorize\nstate=' + S.pending.state + '\nclient_id=' + app.clientId + '\nauth_token=••••••', note: 'SIS-OCC checks ' + app.name + '\'s rules once more before it issues the code.' });
+    issueCode(u, run);
+  }
+
+  function deny() {
+    const p = S.pending;
+    if (!p) return renderAppHome();
+    const app = APPS[p.app];
+    ++S.run;
+    const url = app.redirect + '?state=' + p.state + '&error=access_denied&error_description=The+resource+owner+or+authorization+server+denied+the+request.&hint=The+user+denied+the+request';
+    log({ ch: 'browser', title: 'Student presses Cancel', detail: 'DELETE ' + SIS + '/oauth/authorize\n\nHTTP/1.1 302 Found\nLocation: ' + url, note: app.name + ' gets no code and no details.' });
+    S.pending = null;
+    renderAppHome({ kind: 'bad', text: 'SIS-OCC didn\'t allow this sign-in.' }, url);
+  }
+
+  async function issueCode(u, run) {
+    const p = S.pending;
+    const app = APPS[p.app];
+    p.code = 'def50200' + rand(48);
+    const url = app.redirect + '?code=' + p.code + '&state=' + p.state;
+    log({ step: 5, ch: 'browser', title: 'SIS-OCC sends the browser back with a one-time code', detail: 'HTTP/1.1 302 Found\nLocation: ' + url, note: 'The code works once and expires after 10 minutes. On its own it reveals nothing about the student.' });
+    setUrl(url);
+    site('app');
+    screen('app-screen',
+      appBar(app) +
+      '<div class="app-body"><h2 class="screen-title">Signing you in…</h2>' +
+      '<p class="muted">' + esc(app.name) + ' is confirming your details with SIS-OCC.</p>' +
+      '<ul class="checks">' + ['Code and state received', 'Swap the code for tokens', 'Get your verified details'].map((t, i) =>
+        '<li id="prog-' + i + '" class="check is-pending"><span class="check-icon" aria-hidden="true">•</span><span class="check-label">' + t + '</span><span class="check-value"></span></li>').join('') +
+      '</ul></div>', 'app-callback');
+    const done = i => { const li = $('#prog-' + i); if (li) { li.className = 'check is-pass'; li.querySelector('.check-icon').textContent = '✓'; } };
+
+    if (!await pause(550, run)) return;
+    log({ ch: 'app', app, title: app.name + ' checks the state value', detail: 'sent:     ' + p.state + '\nreceived: ' + p.state + '\n✓ match' });
+    done(0);
+    if (!await pause(650, run)) return;
+    log({ step: 6, ch: 'server', title: app.name + '\'s server swaps the code for tokens', detail: 'POST ' + SIS + '/oauth/token\n\ngrant_type=authorization_code\nclient_id=' + app.clientId + '\nclient_secret=••••••••••••\nredirect_uri=' + app.redirect + '\ncode=' + p.code + '\ncode_verifier=' + p.verifier, note: 'This goes straight from server to server. The client secret proves which app is asking, and code_verifier proves it\'s the one that started this sign-in. Neither ever reaches the browser.' });
+    if (!await pause(650, run)) return;
+    const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.' + rand(24) + '.' + rand(12);
+    const refreshToken = 'def50200' + rand(48);
+    log({ step: 7, ch: 'server', title: 'SIS-OCC returns an access token and a refresh token', detail: JSON.stringify({ token_type: 'Bearer', expires_in: 900, access_token: token, refresh_token: refreshToken }, null, 2), note: 'The code is now used up. The access token lasts 15 minutes. The refresh token renews it for up to 7 days and works once.' });
+    done(1);
+    if (!await pause(650, run)) return;
+    log({ step: 8, ch: 'server', title: app.name + ' asks SIS-OCC who signed in', detail: 'GET ' + SIS + '/api/oauth/me\nAuthorization: Bearer ' + shortTok(token) });
+    if (!await pause(650, run)) return;
+    const me = buildMe(u);
+    log({ step: 9, ch: 'server', title: 'SIS-OCC answers with verified details', detail: JSON.stringify(me, null, 2), note: 'Only what the profile and enrollment scopes allow. Grades, address and billing stay in the SIS.' });
+    done(2);
+    if (!await pause(550, run)) return;
+    S.sessions[app.key] = { user: u.idNo, token, code: p.code, verifier: p.verifier, me, revoked: false, revokeReason: '' };
+    S.pending = null;
+    log({ step: 10, ch: 'app', app, title: app.name + ' signs ' + u.first + ' in', detail: 'link sis_user_id ' + me.sub + ' → local account\nstart a session on ' + app.host, note: app.name + ' stores no password and needs no separate sign-up.' });
+    renderSignedIn();
+    renderAdmin();
+  }
+
+  function backDenied() {
+    const p = S.pending;
+    if (!p) return renderAppHome();
+    const app = APPS[p.app];
+    const url = app.redirect + '?error=access_denied&error_description=' + encodeURIComponent('SIS-OCC did not allow this person to use ' + app.name + '.') + '&state=' + p.state;
+    log({ ch: 'browser', title: 'Student goes back to ' + app.name, detail: 'HTTP/1.1 302 Found\nLocation: ' + url, note: app.name + ' learns only error=access_denied, not why.' });
+    S.pending = null;
+    renderAppHome({ kind: 'bad', text: 'SIS-OCC didn\'t allow this sign-in.' }, url);
+  }
+
+  function useOther() {
+    if (!S.pending) return;
+    ++S.run;
+    const u = S.sisSession ? findUser(S.sisSession) : null;
+    S.sisSession = null;
+    renderAdmin();
+    log({ ch: 'browser', title: 'Student chooses "Use another account"', detail: 'GET ' + authorizeUrl('&prompt=login') + '\n\nHTTP/1.1 302 Found\nLocation: ' + SIS + '/login', note: (u ? 'SIS-OCC signs ' + u.first + ' out first. ' : '') + 'Then the other person signs in on the usual login page.' });
+    renderSisLogin();
+  }
+
+  async function reloadMe() {
+    const app = APPS[S.app];
+    const s = S.sessions[app.key];
+    if (!s) return;
+    const run = ++S.run;
+    log({ step: 8, ch: 'server', title: app.name + ' asks SIS-OCC for fresh details', detail: 'GET ' + SIS + '/api/oauth/me\nAuthorization: Bearer ' + shortTok(s.token) });
+    if (!await pause(600, run)) return;
+    if (s.revoked) {
+      log({ step: 9, ch: 'error', title: 'SIS-OCC refuses: the token was revoked', detail: 'HTTP/1.1 401 Unauthorized\n' + JSON.stringify({ message: 'Unauthenticated.' }, null, 2), note: 'SIS-OCC revoked it because ' + s.revokeReason + ' ' + app.name + ' only sees the 401.' });
+      if (!await pause(450, run)) return;
+      S.sessions[app.key] = null;
+      log({ ch: 'app', app, title: app.name + ' signs the user out', note: 'A refused token ends the session.' });
+      renderAdmin();
+      renderAppHome({ kind: 'bad', text: 'Your access through SIS-OCC has ended. Sign in again.' });
+      return;
+    }
+    const me = buildMe(findUser(s.user));
+    s.me = me;
+    log({ step: 9, ch: 'server', title: 'SIS-OCC answers with current details', detail: JSON.stringify(me, null, 2), note: 'SIS-OCC checks ' + app.name + '\'s rules again on every call.' });
+    renderSignedIn('Details reloaded from SIS-OCC.');
+  }
+
+  async function replayCode() {
+    const app = APPS[S.app];
+    const s = S.sessions[app.key];
+    if (!s) return;
+    const run = ++S.run;
+    log({ ch: 'server', title: 'Someone tries to swap the same code again', detail: 'POST ' + SIS + '/oauth/token\n\ngrant_type=authorization_code\nclient_id=' + app.clientId + '\nclient_secret=••••••••••••\nredirect_uri=' + app.redirect + '\ncode=' + s.code + '\ncode_verifier=' + s.verifier });
+    if (!await pause(550, run)) return;
+    log({ ch: 'error', title: 'SIS-OCC rejects it: a code works only once', detail: 'HTTP/1.1 400 Bad Request\n' + JSON.stringify({ error: 'invalid_grant', error_description: 'The provided authorization grant (e.g., authorization code, resource owner credentials) or refresh token is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.', hint: 'Authorization code has been revoked' }, null, 2), note: 'A code copied from the address bar or browser history is useless after the first swap.' });
+  }
+
+  function signOutApp() {
+    const app = APPS[S.app];
+    const s = S.sessions[app.key];
+    if (!s) return;
+    ++S.run;
+    const u = findUser(s.user);
+    S.sessions[app.key] = null;
+    log({ ch: 'app', app, title: u.first + ' signs out of ' + app.name, note: S.sisSession ? 'This browser is still signed in to SIS-OCC, so the next "Continue" needs no password.' : null });
+    renderAdmin();
+    renderAppHome();
+  }
+
+  function sisSignOut() {
+    if (!S.sisSession) return;
+    S.sisSession = null;
+    log({ ch: 'sis', title: 'This browser signs out of SIS-OCC', note: 'School apps keep their own sessions until they sign out, or until SIS-OCC revokes their token.' });
+    renderAdmin();
+    if (S.view === 'sis-consent') { ++S.run; renderSisLogin(); }
+  }
+
+  /* ---------- registrar panel ---------- */
+  function sw(u, f) {
+    const id = 'sw-' + f + '-' + u.idNo;
+    return '<label class="switch" for="' + id + '"><input type="checkbox" id="' + id + '" data-user="' + esc(u.idNo) + '" data-field="' + f + '"' + (u[f] ? ' checked' : '') + '>' +
+      '<span class="track" aria-hidden="true"></span><span class="sr-only">' + (f === 'active' ? 'Active account' : 'Enrolled this semester') + ': ' + esc(u.name) + '</span></label>';
+  }
+  function renderAdmin() {
+    const focused = document.activeElement && document.activeElement.id;
+    const sess = S.sisSession ? findUser(S.sisSession) : null;
+    $('#sis-session').innerHTML = sess
+      ? '<span>This browser is signed in to SIS-OCC as <b>' + esc(sess.name) + '</b></span><button type="button" id="btn-sis-signout" class="btn btn-small" data-action="sis-signout">Sign out of SIS-OCC</button>'
+      : '<span>This browser isn\'t signed in to SIS-OCC.</span>';
+    $('#users').innerHTML = USERS.map(u => {
+      const cells = Object.values(APPS).map(a => {
+        const ok = evaluate(u, a).ok;
+        const s = S.sessions[a.key];
+        const mine = s && s.user === u.idNo;
+        return '<td><span class="pill ' + (ok ? 'pill-ok' : 'pill-bad') + '">' + (ok ? 'Allowed' : 'Blocked') + '</span>' +
+          (mine ? '<span class="signed">' + (s.revoked ? 'Signed in, token revoked' : 'Signed in now') + '</span>' : '') + '</td>';
+      }).join('');
+      return '<tr><td><div class="who">' + esc(u.name) + '</div><div class="who-id">' + esc(u.idNo) + '</div></td><td>' + cap(u.role) + '</td>' +
+        '<td>' + sw(u, 'active') + '</td><td>' + (u.role === 'student' ? sw(u, 'enrolled') : '<span class="muted">Not a student</span>') + '</td>' + cells + '</tr>';
+    }).join('');
+    if (focused) { const el = document.getElementById(focused); if (el) el.focus(); }
+  }
+
+  function onToggle(id, field, val) {
+    const u = findUser(id);
+    u[field] = val;
+    const what = field === 'active'
+      ? (val ? 'reactivates ' : 'deactivates ') + u.name + '\'s account'
+      : (val ? 'enrolls ' + u.name + ' for ' : 'removes ' + u.name + '\'s enrollment for ') + TERM.sy + ', ' + TERM.sem + ' semester';
+    log({
+      ch: 'sis', title: 'Registrar ' + what,
+      detail: field === 'active'
+        ? "UPDATE users SET active = " + (val ? 1 : 0) + " WHERE user_id_no = '" + u.idNo + "';"
+        : (val ? 'INSERT INTO enrolled_students (student_id, year_section_id, …)\nVALUES (' + u.id + ', <current term section>, …);' : 'DELETE FROM enrolled_students\nWHERE student_id = ' + u.id + ' AND year_section_id IN (<current term>);')
+    });
+    Object.values(APPS).forEach(a => {
+      if (evaluate(u, a).ok) return;
+      S.consented.delete(a.key + '|' + u.idNo); // revoked tokens also end remembered consent
+      const s = S.sessions[a.key];
+      if (s && s.user === u.idNo && !s.revoked) {
+        s.revoked = true;
+        s.revokeReason = field === 'active' ? 'the account was deactivated.' : 'the student is no longer enrolled this semester.';
+        log({ ch: 'sis', title: 'SIS-OCC revokes ' + a.name + '\'s token for ' + u.name, detail: "UPDATE oauth_access_tokens SET revoked = 1\nWHERE user_id = " + u.id + " AND client_id = '" + a.clientId + "';", note: u.first + ' no longer meets ' + a.name + '\'s rules. The next time ' + a.name + ' calls SIS-OCC, the token is refused.' });
+      }
+    });
+    if (field === 'active' && !val && S.sisSession === u.idNo) {
+      S.sisSession = null;
+      log({ ch: 'sis', title: 'SIS-OCC ends ' + u.first + '\'s SIS session in this browser' });
+      if (S.view === 'sis-consent') { ++S.run; renderSisLogin(); }
+    }
+    renderAdmin();
+    if (S.view === 'signed-in') renderSignedIn();
+    if (S.view === 'sis-login') document.querySelectorAll('.demo-chip').forEach(b => {
+      const x = findUser(b.dataset.id);
+      b.querySelector('.demo-meta').textContent = x.idNo + ' · ' + describe(x);
+    });
+  }
+
+  /* ---------- scenario controls ---------- */
+  function policyText() { return 'Who can sign in: <b>' + esc(APPS[S.app].who) + '</b>'; }
+  function syncSchoolOwned() { $('#school-owned').checked = APPS[S.app].schoolOwned; }
+  function selectApp(key) {
+    if (key === S.app) return;
+    S.app = key;
+    ++S.run;
+    S.pending = null;
+    $('#browser').dataset.app = key;
+    document.querySelectorAll('[data-app-select]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.appSelect === key)));
+    $('#policy').innerHTML = policyText();
+    syncSchoolOwned();
+    renderAppHome();
+  }
+  function setSchoolOwned(on) {
+    const app = APPS[S.app];
+    app.schoolOwned = on;
+    log({ ch: 'sis', title: 'MIS turns "School-owned app" ' + (on ? 'on' : 'off') + ' for ' + app.name, note: on ? 'Students go straight back to ' + app.name + ' after signing in, with no "allow access?" screen.' : 'Students now see a "Continue to ' + app.name + '" screen listing what it will receive. MIS does this for apps run outside the school.' });
+  }
+  function setPace(v) {
+    S.pace = parseFloat(v);
+    document.querySelectorAll('[data-pace]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pace === v)));
+  }
+  function resetAll() {
+    ++S.run;
+    USERS = SEED.map(u => ({ ...u }));
+    Object.values(APPS).forEach(a => { a.schoolOwned = true; });
+    S.sisSession = null;
+    S.sessions = {};
+    S.pending = null;
+    S.consented = new Set();
+    syncSchoolOwned();
+    clearLog();
+    renderAdmin();
+    renderAppHome();
+  }
+  function fillDemo(id) {
+    const u = findUser(id);
+    if (!u) return;
+    $('#sis-id').value = u.idNo;
+    $('#sis-pw').value = PASSWORD;
+    $('#sis-err').hidden = true;
+    $('#btn-signin').focus();
+  }
+
+  const ACTIONS = {
+    'continue': startLogin, 'allow': allow, 'deny': deny, 'use-other': useOther, 'back-denied': backDenied,
+    'reload': reloadMe, 'replay': replayCode, 'signout': signOutApp, 'sis-signout': sisSignOut, 'reset': resetAll, 'clear-log': clearLog
+  };
+  document.addEventListener('click', e => {
+    const appBtn = e.target.closest('[data-app-select]');
+    if (appBtn) return selectApp(appBtn.dataset.appSelect);
+    const paceBtn = e.target.closest('[data-pace]');
+    if (paceBtn) return setPace(paceBtn.dataset.pace);
+    const b = e.target.closest('[data-action]');
+    if (!b) return;
+    if (b.dataset.action === 'fill') return fillDemo(b.dataset.id);
+    const fn = ACTIONS[b.dataset.action];
+    if (fn) fn();
+  });
+  document.addEventListener('submit', e => {
+    if (e.target.id === 'sis-form') { e.preventDefault(); sisLogin(); }
+  });
+  document.addEventListener('input', e => {
+    if (e.target.id === 'sis-id' || e.target.id === 'sis-pw') { const err = $('#sis-err'); if (err) err.hidden = true; }
+  });
+  document.addEventListener('change', e => {
+    const t = e.target;
+    if (t.id === 'school-owned') return setSchoolOwned(t.checked);
+    if (t.dataset && t.dataset.field) onToggle(t.dataset.user, t.dataset.field, t.checked);
+  });
+
+  $('#policy').innerHTML = policyText();
+  syncSchoolOwned();
+  renderAdmin();
+  renderAppHome();
+})();
+</script>

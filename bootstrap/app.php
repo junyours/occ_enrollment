@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -14,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
+        then: function () {
+            // "Continue with SIS-OCC". Outside the web group: the token endpoint is called
+            // server to server, with no session or CSRF token.
+            Route::prefix('oauth')->name('passport.')->group(base_path('routes/oauth.php'));
+        },
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(append: [\App\Http\Middleware\EnsurePasswordChanged::class]);
@@ -58,11 +64,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'billing' => \App\Http\Middleware\Billing::class,
             'csg-attendance' => \App\Http\Middleware\CsgAttendanceToken::class,
+            'oauth.school-rules' => \App\Http\Middleware\EnforceOAuthClientPolicy::class,
         ]);
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->dontFlash(['otp']);
+
+        // Other school apps call these from their servers: always answer in JSON.
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/oauth/*', 'oauth/token') || $request->expectsJson()
+        );
         $exceptions->render(function (TokenMismatchException $e, Request $request) {
             return Inertia::location(route('login'));
         });
@@ -80,7 +92,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         if (
             in_array($status, [403, 404, 500], true) &&
-            ! $request->expectsJson()
+            ! $request->expectsJson() &&
+            ! $request->is('api/oauth/*', 'oauth/token')
         ) {
             return Inertia::render('Errors/GuestErrorPage', [
                 'status'  => $status,

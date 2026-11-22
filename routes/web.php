@@ -51,6 +51,7 @@ require __DIR__ . '/MaintenanceRoute.php';
 require __DIR__ . '/NotificationRoute.php';
 require __DIR__ . '/SeenItemRoute.php';
 require __DIR__ . '/NstpDirectorRoute.php';
+require __DIR__ . '/OAuthAppsRoute.php';
 require __DIR__ . '/OjtCoordinatorRoute.php';
 require __DIR__ . '/PresidentRoute.php';
 require __DIR__ . '/ProfileRoute.php';

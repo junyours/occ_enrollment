@@ -183,6 +183,12 @@ export const MENU_CONFIG = {
             ],
         },
         {
+            label: "Integrations",
+            items: [
+                { name: "Connected apps", route: "mis.oauth-apps.index", icon: KeyRound },
+            ],
+        },
+        {
             label: "Others",
             items: [
                 { name: "Recycle Bin", route: "recycle-bin", icon: Presentation },

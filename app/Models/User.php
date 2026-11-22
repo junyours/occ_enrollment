@@ -8,11 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\YearSectionSubjects;
+use App\Models\Concerns\RequiresPasswordChange;
+use App\Models\OAuth\Client as OAuthClient;
 use Illuminate\Database\Eloquent\Concerns\HasRelationships;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, HasRelationships;
+    use HasFactory, Notifiable, HasApiTokens, HasRelationships, RequiresPasswordChange;
 
     protected $fillable = [
         'user_id_no',
@@ -48,13 +50,6 @@ class User extends Authenticatable
             'user_id_no' => $this->user_id_no,
             'user_role' => $this->user_role,
         ];
-    }
-
-    public function requiresPasswordChange(): bool
-    {
-        return in_array($this->getAttribute('password_change'), [false, 0, '0'], true)
-            && $this->created_at !== null
-            && $this->created_at->gte(\Illuminate\Support\Carbon::parse('2026-10-26 00:00:00', config('app.timezone')));
     }
 
     public function username()
@@ -160,5 +155,14 @@ class User extends Authenticatable
     public function preliminaryEducation()
     {
         return $this->hasOne(PreliminaryEducation::class, 'user_id');
+    }
+
+    /**
+     * School apps this person may manage on the "My apps" page.
+     */
+    public function maintainedOAuthClients()
+    {
+        return $this->belongsToMany(OAuthClient::class, 'oauth_client_maintainers', 'user_id', 'oauth_client_id')
+            ->withTimestamps();
     }
 }

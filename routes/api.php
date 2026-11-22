@@ -3,6 +3,7 @@
 use App\Http\Controllers\Mobile\AuthController;
 use App\Http\Controllers\Mobile\ClassController;
 use App\Http\Controllers\CsgAttendance\CsgAttendanceController;
+use App\Http\Controllers\OAuth\UserInfoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -29,6 +30,11 @@ Route::middleware(['auth:sanctum', 'csg-attendance'])->group(function () {
     Route::get('/school-structure', [CsgAttendanceController::class, 'getSchoolStructure']);
     Route::get('/student-enrollment', [CsgAttendanceController::class, 'getStudentEnrollment']);
 });
+
+// "Continue with SIS-OCC": who signed in, for the app holding the Bearer token.
+Route::middleware(['auth:api', 'throttle:120,1'])
+    ->get('/oauth/me', UserInfoController::class)
+    ->name('oauth.me');
 
 // Limit password guessing (limiters defined in AppServiceProvider).
 Route::middleware('guest')->group(function () {

@@ -16,3 +16,7 @@ Schedule::call(fn() => app(ClassAnnouncements::class)->releaseDue())
     ->everyMinute()
     ->name('announcements:release')
     ->withoutOverlapping();
+
+// "Continue with SIS-OCC": delete expired and revoked codes and tokens once
+// they're more than a week old, so the oauth_* tables don't keep growing.
+Schedule::command('passport:purge --hours=168')->dailyAt('02:30');

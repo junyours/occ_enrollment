@@ -193,7 +193,21 @@ class HandleInertiaRequests extends Middleware
             'email_address' => $user->email,
             'password_change' => $user->password_change,
             'seen' => $this->seenItems($user->id),
+            'maintains_oauth_apps' => $this->maintainsOAuthApps($user->id),
         ];
+    }
+
+    /**
+     * Shows "My apps" in the menu for people who maintain a school app that
+     * signs in through SIS-OCC. False until the OAuth tables are migrated.
+     */
+    protected function maintainsOAuthApps(int $userId): bool
+    {
+        try {
+            return DB::table('oauth_client_maintainers')->where('user_id', $userId)->exists();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /**

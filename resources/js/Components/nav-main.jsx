@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { Link, usePage } from "@inertiajs/react";
-import { ChevronDown } from "lucide-react";
+import { AppWindow, ChevronDown } from "lucide-react";
 import { cn } from "@/Lib/Utils";
 import {
     SidebarGroup,
@@ -21,6 +21,11 @@ const SCHOOL_YEAR_ROLES = new Set([
     "lts_evaluator",
     "academic_dean",
 ]);
+
+const MAINTAINER_SECTION = {
+    label: "Developer",
+    items: [{ name: "My apps", route: "oauth.my-apps", icon: AppWindow }],
+};
 
 function getPath(url) {
     return new URL(url, "http://localhost").pathname.replace(/\/+$/, "") || "/";
@@ -101,9 +106,13 @@ export function NavMain() {
     const { user, courses = [] } = props.auth;
     const { setOpenMobile, expanded, setPopupOpen } = useSidebar();
     const menuConfigForRole = MENU_CONFIG[user.user_role];
-    const menuSections = typeof menuConfigForRole === "function"
+    const roleSections = typeof menuConfigForRole === "function"
         ? menuConfigForRole(courses)
         : menuConfigForRole || [];
+    // People MIS assigned to maintain a school app get "My apps", whatever their role.
+    const menuSections = user.maintains_oauth_apps
+        ? [...roleSections, MAINTAINER_SECTION]
+        : roleSections;
     const collapsible = menuSections.filter((section) => section.label).length >= 3;
     const pathname = getPath(url);
 

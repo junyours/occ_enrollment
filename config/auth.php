@@ -40,6 +40,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Bearer tokens issued to other school apps through "Continue with SIS-OCC".
+        // It uses its own user model so Passport's token trait never collides with
+        // the Sanctum trait the mobile and CSG attendance logins rely on.
+        'api' => [
+            'driver' => 'passport',
+            'provider' => 'oauth_users',
+        ],
     ],
 
     /*
@@ -63,6 +71,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'oauth_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\OAuth\OAuthUser::class,
         ],
 
         // 'users' => [
