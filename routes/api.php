@@ -3,6 +3,7 @@
 use App\Http\Controllers\Mobile\AuthController;
 use App\Http\Controllers\Mobile\ClassController;
 use App\Http\Controllers\CsgAttendance\CsgAttendanceController;
+use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\OAuth\UserInfoController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Student classes
     Route::get('/mobile/current-student-classes', [ClassController::class, 'getStudentCurrentClasses']);
     Route::get('/mobile/enrollment-record', [ClassController::class, 'getStudentEnrollmentRecord']);
+    // The signed-in student's own attendance in one class (same data as the web).
+    Route::get('/mobile/classes/{classId}/attendance', [StudentAttendanceController::class, 'show'])
+        ->whereNumber('classId');
 
     // Faculty classes
     Route::get('/mobile/current-faculty-classes', [ClassController::class, 'getFacultyCurrentClasses']);

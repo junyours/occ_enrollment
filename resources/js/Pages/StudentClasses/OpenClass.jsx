@@ -1,18 +1,19 @@
 import React, { useState } from 'react'
 import { Link } from '@inertiajs/react'
-import { ArrowLeft, FolderOpen, Megaphone, UserRound } from 'lucide-react'
+import { ArrowLeft, CalendarDays, FolderOpen, Megaphone, UserRound } from 'lucide-react'
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 import NavigationTabs from '@/Components/ui/NavigationTabs'
 import { formatFullName } from '@/Lib/Utils'
 import Classwork from '@/Pages/InstructorClasses/ClassComponents/Classwork'
 import Announcements, { NewAnnouncementsBanner, NewAnnouncementsCount } from '@/Pages/InstructorClasses/ClassComponents/Announcements'
+import StudentAttendance from './ClassesComponents/StudentAttendance'
 
 function classTitle({ subjectCode, descriptiveTitle, courseSection }) {
     return `${subjectCode} - ${descriptiveTitle}${courseSection ? ` | ${courseSection}` : ''}`
 }
 
-const SECTIONS = ['classwork', 'announcements']
+const SECTIONS = ['classwork', 'announcements', 'attendance']
 
 // The section named in the URL (?tab=announcements), so links and the Back
 // button return to it.
@@ -21,9 +22,9 @@ function initialSection() {
     return SECTIONS.includes(requested) ? requested : 'classwork'
 }
 
-// A student's page for one class: its classwork and announcements. These
-// are the same components teachers use; the server decides what each user
-// can see and do.
+// A student's page for one class: its classwork, announcements and the
+// student's own attendance. Classwork and announcements are the same
+// components teachers use; the server decides what each user can see and do.
 export default function OpenClass({
     id,
     classKey,
@@ -49,6 +50,7 @@ export default function OpenClass({
             label: <>Announcements<NewAnnouncementsCount classId={id} /></>,
             icon: Megaphone,
         },
+        { value: 'attendance', label: 'Attendance', icon: CalendarDays },
     ]
 
     return (
@@ -87,6 +89,8 @@ export default function OpenClass({
             )}
 
             {tab === 'announcements' && <Announcements classId={id} />}
+
+            {tab === 'attendance' && <StudentAttendance classId={id} />}
         </div>
     )
 }

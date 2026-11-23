@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\InstructorClasses\ClassController;
+use App\Http\Controllers\StudentAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,student,registrar,nstp_faculty'])->group(function () {
@@ -67,6 +68,11 @@ Route::middleware(['auth', 'maintenance', 'student'])->group(function () {
     Route::post('/api/get-student-classes', [ClassController::class, 'getStudentClasses'])->name('student.classes');
 
     Route::post('/get-student-course-section', [ClassController::class, 'getStudentCourseSection'])->name('student.course-section');
+
+    // The signed-in student's own attendance in one class.
+    Route::get('/classes/{classId}/attendance/mine', [StudentAttendanceController::class, 'show'])
+        ->whereNumber('classId')
+        ->name('student.class-attendance');
 });
 
 Route::middleware(['auth', 'role:faculty,program_head,evaluator'])->group(function () {

@@ -20,12 +20,14 @@ export default function NavigationTabs({
         >
             {/* Below xl the content area (next to the sidebar) is too narrow
                 for one row, so tabs form a grid of up to 3 columns and stay
-                visible. */}
+                visible. On phones equal columns are too narrow for longer
+                labels, so tabs drop their icons and size to their labels,
+                and scroll if they still don't fit. */}
             <div className="w-full overflow-x-auto border-b">
                 <TabsList
                     className={cn(
-                        "grid h-auto w-full rounded-none bg-transparent p-0 xl:flex xl:min-w-max xl:justify-start",
-                        items.length === 1 ? "grid-cols-1" : items.length === 2 ? "grid-cols-2" : "grid-cols-3"
+                        "flex h-auto w-full min-w-max rounded-none bg-transparent p-0 sm:grid sm:min-w-0 xl:flex xl:min-w-max xl:justify-start",
+                        items.length === 1 ? "sm:grid-cols-1" : items.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"
                     )}
                 >
                     {items.map((item) => {
@@ -40,12 +42,14 @@ export default function NavigationTabs({
                                     "relative",
                                     "h-10",
                                     "min-w-0",
+                                    "flex-auto",
                                     "xl:min-w-[140px]",
                                     "xl:flex-1",
                                     "gap-2",
                                     "rounded-none",
                                     "border-0",
-                                    "px-5",
+                                    "px-3",
+                                    "sm:px-5",
                                     "text-muted-foreground",
                                     "shadow-none",
                                     "transition-colors",
@@ -70,7 +74,7 @@ export default function NavigationTabs({
                                 )}
                             >
                                 {Icon && (
-                                    <Icon className="size-4 shrink-0" />
+                                    <Icon className="hidden size-4 shrink-0 sm:block" aria-hidden="true" />
                                 )}
 
                                 <span className="whitespace-nowrap text-sm font-medium">
