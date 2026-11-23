@@ -26,6 +26,7 @@ use App\Models\User;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use App\Services\ClassAnnouncements;
+use App\Services\GradeUploadGate;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -107,14 +108,16 @@ class ClassController extends Controller
 
         $schoolYear = SchoolYear::where('school_years.id', '=', $courseSection->school_year_id)
             ->select(
-                'allow_upload_final',
-                'allow_upload_midterm',
                 'start_year',
                 'end_year',
                 'semester_name'
             )
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
+
+        // When each period's grades can be entered and submitted.
+        $gate = app(GradeUploadGate::class);
+        $schoolYear = $gate->describe($schoolYear, $gate->regularClass($yearSectionSubjects->id));
 
         return Inertia::render('InstructorClasses/OpenClass', [
             'id' => $yearSectionSubjects->id,
@@ -332,14 +335,16 @@ class ClassController extends Controller
 
         $schoolYear = SchoolYear::where('school_years.id', '=', $section->school_year_id)
             ->select(
-                'allow_upload_final',
-                'allow_upload_midterm',
                 'start_year',
                 'end_year',
                 'semester_name'
             )
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
+
+        // When each period's grades can be entered and submitted.
+        $gate = app(GradeUploadGate::class);
+        $schoolYear = $gate->describe($schoolYear, $gate->nstpSchedule($nstpSection->id));
 
         return Inertia::render('InstructorClasses/OpenNstpClass', [
             'id' => $nstpSection->id,
@@ -408,31 +413,21 @@ class ClassController extends Controller
 
     public function nstpStudentUpdateGrade($field, $id, Request $request)
     {
-        $schoolYearSubmissionDetails = StudentSubjectNstpSchedule::where('student_subject_id', '=', $id)
-            ->select('school_years.*')
-            ->join('nstp_section_schedules', 'nstp_section_schedules.id', '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
-            ->join('nstp_sections', 'nstp_sections.id', '=', 'student_subject_nstp_schedule.nstp_section_schedule_id')
-            ->join('school_years', 'school_years.id', '=', 'nstp_sections.school_year_id')
-            ->first();
-
-        if ($field == 'midterm_grade') {
-            if (!$schoolYearSubmissionDetails->allow_upload_midterm) {
-                return response()->json([
-                    'message' => 'Changing of midterm grade is not allowed.'
-                ], 403);
-            }
-        } else if ($field == 'final_grade') {
-            if (!$schoolYearSubmissionDetails->allow_upload_final) {
-                return response()->json([
-                    'message' => 'Changing of final grade is not allowed.'
-                ], 403);
-            }
-        }
-
         $allowedFields = ['midterm_grade', 'final_grade'];
 
         if (!in_array($field, $allowedFields)) {
             abort(400, 'Invalid field');
+        }
+
+        // Only the class's teacher, while that period's grades can be entered.
+        $gate = app(GradeUploadGate::class);
+        $context = $gate->nstpStudent((int) $id);
+        $gate->assertTeacher($context, Auth::user());
+
+        $period = $field === 'midterm_grade' ? 'midterm' : 'final';
+
+        if ($message = $gate->refusal($context, $period, 'edit')) {
+            return response()->json(['message' => $message], 403);
         }
 
         $studentSubject = StudentSubject::findOrFail($id);
@@ -474,6 +469,10 @@ class ClassController extends Controller
 
     public function submitNstpStudentGrades($period, $nstpSectionId)
     {
+        if ($refused = $this->nstpGradeRefusal($period, (int) $nstpSectionId, 'submit')) {
+            return $refused;
+        }
+
         $gradeSubmission = NstpGradeSubmission::where('nstp_section_id', '=', $nstpSectionId)->first();
 
         if (!$gradeSubmission) {
@@ -499,6 +498,10 @@ class ClassController extends Controller
 
     public function cancelSubmission($period, $nstpSectionId)
     {
+        if ($refused = $this->nstpGradeRefusal($period, (int) $nstpSectionId, 'cancel')) {
+            return $refused;
+        }
+
         $gradeSubmission = NstpGradeSubmission::where('nstp_section_id', '=', $nstpSectionId)->first();
 
         if (!$gradeSubmission) {
@@ -549,15 +552,14 @@ class ClassController extends Controller
 
     public function updateStudentsGrades($yearSectionSubjectsId, Request $request)
     {
-        $schoolYearId = YearSectionSubjects::select('school_year_id')
-            ->where('year_section_subjects.id', '=', $yearSectionSubjectsId)
-            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
-            ->first()->school_year_id;
+        // Only the class's teacher; each period's grades only while they can
+        // be entered (the other period's columns are skipped).
+        $allowMidterm = $this->gradeRefusal((int) $yearSectionSubjectsId, 'midterm', 'edit') === null;
+        $allowFinal = $this->gradeRefusal((int) $yearSectionSubjectsId, 'final', 'edit') === null;
 
-        $schoolYear = SchoolYear::find($schoolYearId);
-
-        $allowMidterm = $schoolYear->allow_upload_midterm;
-        $allowFinal = $schoolYear->allow_upload_final;
+        if (! $allowMidterm && ! $allowFinal) {
+            return response()->json(['message' => 'Grade upload isn’t open for this class right now.'], 403);
+        }
 
         $data = $request->input('data', []);
 
@@ -597,7 +599,12 @@ class ClassController extends Controller
 
     public function updateStudentMidtermGrade($yearSectionSubjectsId, $studentId, Request $request)
     {
+        if ($message = $this->gradeRefusal((int) $yearSectionSubjectsId, 'midterm', 'edit')) {
+            return response()->json(['message' => $message], 403);
+        }
+
         $student = User::where('user_id_no', '=', $studentId)->first();
+        abort_unless($student, 404, 'Student not found.');
 
         StudentSubject::join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
             ->where('student_id', '=', $student->id)
@@ -611,7 +618,12 @@ class ClassController extends Controller
 
     public function updateStudentFinalGrade($yearSectionSubjectsId, $studentId, Request $request)
     {
+        if ($message = $this->gradeRefusal((int) $yearSectionSubjectsId, 'final', 'edit')) {
+            return response()->json(['message' => $message], 403);
+        }
+
         $student = User::where('user_id_no', '=', $studentId)->first();
+        abort_unless($student, 404, 'Student not found.');
 
         StudentSubject::join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
             ->where('student_id', '=', $student->id)
@@ -623,6 +635,8 @@ class ClassController extends Controller
 
     public function submitGrade($yearSectionSubjectsId)
     {
+        $this->assertClassTeacher((int) $yearSectionSubjectsId);
+
         $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
             ->where(function ($query) {
                 $query->whereNull('midterm_grade')
@@ -646,6 +660,10 @@ class ClassController extends Controller
 
     public function cancelMidtermSubmission($yearSectionSubjectsId)
     {
+        if ($message = $this->gradeRefusal((int) $yearSectionSubjectsId, 'midterm', 'cancel')) {
+            return back()->withErrors(['grades' => $message]);
+        }
+
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
                 'midterm_status' => 'draft',
@@ -656,6 +674,10 @@ class ClassController extends Controller
 
     public function cancelFinalSubmission($yearSectionSubjectsId)
     {
+        if ($message = $this->gradeRefusal((int) $yearSectionSubjectsId, 'final', 'cancel')) {
+            return back()->withErrors(['grades' => $message]);
+        }
+
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
                 'final_status' => 'draft',
@@ -666,6 +688,10 @@ class ClassController extends Controller
 
     public function submitMidtermGrade($yearSectionSubjectsId)
     {
+        if ($message = $this->gradeRefusal((int) $yearSectionSubjectsId, 'midterm', 'submit')) {
+            return back()->withErrors(['grades' => $message]);
+        }
+
         $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
             ->where(function ($query) {
                 $query->whereNull('midterm_grade');
@@ -687,6 +713,10 @@ class ClassController extends Controller
 
     public function submitFinalGrade($yearSectionSubjectsId)
     {
+        if ($message = $this->gradeRefusal((int) $yearSectionSubjectsId, 'final', 'submit')) {
+            return back()->withErrors(['grades' => $message]);
+        }
+
         $noGrades = StudentSubject::where('year_section_subjects_id', $yearSectionSubjectsId)
             ->where(function ($query) {
                 $query->orWhereNull('final_grade');
@@ -748,11 +778,47 @@ class ClassController extends Controller
 
     public function cancelGrade($yearSectionSubjectsId)
     {
+        $this->assertClassTeacher((int) $yearSectionSubjectsId);
+
         GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
             ->update([
                 'submitted_at' => null,
                 'is_submitted' => 0,
             ]);
+    }
+
+    /** Stops anyone but the class's teacher. */
+    private function assertClassTeacher(int $classId): void
+    {
+        $gate = app(GradeUploadGate::class);
+        $gate->assertTeacher($gate->regularClass($classId), Auth::user());
+    }
+
+    /**
+     * Stops anyone but the class's teacher, then says why this period's
+     * grades can't be entered, submitted or withdrawn now (null if they can).
+     */
+    private function gradeRefusal(int $classId, string $period, string $action): ?string
+    {
+        $gate = app(GradeUploadGate::class);
+        $context = $gate->regularClass($classId);
+        $gate->assertTeacher($context, Auth::user());
+
+        return $gate->refusal($context, $period, $action);
+    }
+
+    /** The same for an NSTP class (by its schedule id), as a JSON reply. */
+    private function nstpGradeRefusal(string $period, int $scheduleId, string $action)
+    {
+        abort_unless(in_array($period, SchoolYear::GRADE_PERIODS, true), 400, 'Invalid period');
+
+        $gate = app(GradeUploadGate::class);
+        $context = $gate->nstpSchedule($scheduleId);
+        $gate->assertTeacher($context, Auth::user());
+
+        $message = $gate->refusal($context, $period, $action);
+
+        return $message === null ? null : response()->json(['message' => $message], 403);
     }
 
     public function getFacultyClasses($schoolYearId)

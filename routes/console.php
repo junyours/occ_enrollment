@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use App\Services\ClassAnnouncements;
+use App\Services\GradeUploadReminders;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
@@ -15,6 +16,13 @@ Artisan::command('inspire', function () {
 Schedule::call(fn() => app(ClassAnnouncements::class)->releaseDue())
     ->everyMinute()
     ->name('announcements:release')
+    ->withoutOverlapping();
+
+// Reminds teachers with unsubmitted grades 3 days and 1 day before a
+// period's grade upload closes.
+Schedule::call(fn() => app(GradeUploadReminders::class)->send())
+    ->dailyAt('08:00')
+    ->name('grades:upload-reminders')
     ->withoutOverlapping();
 
 // "Continue with SIS-OCC": delete expired and revoked codes and tokens once

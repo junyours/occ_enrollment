@@ -14,7 +14,7 @@ import { ArrowRight, CalendarDays, Check, ChevronDown, ChevronUp, CircleAlert, L
 import axios from 'axios';
 import React, { useCallback, useEffect, useState } from 'react';
 import SchoolYearSettings from './SchoolYearSettings';
-import { getEnrollmentStatus, getEnrollmentStatusClass, getNextSchoolYear, isEnabled, validateSchoolYear } from './schoolYearUtils';
+import { getEnrollmentStatus, getEnrollmentStatusClass, getNextSchoolYear, gradeUploadDetail, gradeUploadLabel, isEnabled, validateSchoolYear } from './schoolYearUtils';
 
 const semesterColors = {
     1: 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300',
@@ -50,11 +50,16 @@ function SemesterCard({ schoolYear, canManage, featured, onEdit, onSettings }) {
                 </div>
                 </div>
                 <div className={`grid grid-cols-3 gap-1 border-t pt-3 text-center text-xs ${featured ? 'md:border-l md:border-t-0 md:py-4 md:pl-5' : ''}`}>
+                    <div className="space-y-1"><p className="text-muted-foreground">Evaluation</p><p className={`font-medium ${isEnabled(schoolYear.evaluating) ? 'text-foreground' : 'text-muted-foreground'}`}>{isEnabled(schoolYear.evaluating) ? 'Enabled' : 'Disabled'}</p></div>
                     {[
-                        ['Evaluation', schoolYear.evaluating],
-                        ['Midterm upload', schoolYear.allow_upload_midterm],
-                        ['Final upload', schoolYear.allow_upload_final],
-                    ].map(([label, value]) => <div key={label} className="space-y-1"><p className="text-muted-foreground">{label}</p><p className={`font-medium ${isEnabled(value) ? 'text-foreground' : 'text-muted-foreground'}`}>{isEnabled(value) ? 'Enabled' : 'Disabled'}</p></div>)}
+                        ['Midterm upload', schoolYear.grade_upload?.midterm],
+                        ['Final upload', schoolYear.grade_upload?.final],
+                    ].map(([label, upload]) => (
+                        <div key={label} className="space-y-1" title={gradeUploadDetail(upload)}>
+                            <p className="text-muted-foreground">{label}</p>
+                            <p className={`font-medium ${upload?.status === 'open' ? 'text-foreground' : 'text-muted-foreground'}`}>{gradeUploadLabel(upload)}</p>
+                        </div>
+                    ))}
                 </div>
                 <div className="mt-auto space-y-2 pt-2">
                     {canManage && <div className="grid grid-cols-2 gap-2">

@@ -28,8 +28,7 @@ Route::middleware(['auth', 'maintenance', 'registrar'])->group(function () {
     Route::patch('/school-year/is_current/{schoolYearId}', [SchoolYearController::class, 'updateIsCurrent']);
     Route::patch('/school-year/allow_enrollment/{schoolYearId}', [SchoolYearController::class, 'updateAllowEnrollment']);
     Route::patch('/school-year/evaluating/{schoolYearId}', [SchoolYearController::class, 'updateEvaluating']);
-    Route::patch('/school-year/allow_upload_midterm/{schoolYearId}', [SchoolYearController::class, 'updateAllowUploadMidterm']);
-    Route::patch('/school-year/allow_upload_final/{schoolYearId}', [SchoolYearController::class, 'updateAllowUploadFinal']);
+    // Grade upload dates are set on the registrar's Grade Submission page (GradeUploadController).
 });
 
 Route::middleware(['auth', 'maintenance', 'SchoolYearPermission'])->group(function () {

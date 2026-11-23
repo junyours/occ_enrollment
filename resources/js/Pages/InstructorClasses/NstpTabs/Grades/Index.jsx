@@ -94,13 +94,14 @@ export default function GradesIndex({ id, allowMidtermUpload, allowFinalUpload, 
                 <NstpGradeSignatories faculty={formatName(faculty, { format: 'FMI', casing: 'upper' })} />
             </div>
 
-            <div className='h-28' />
+            <div className='h-40' />
 
             {!isLoading && gradeSubmissionStatus && !isError && (
                 <SubmitButton
                     nstpSectionId={id}
                     allowMidtermUpload={allowMidtermUpload}
                     allowFinalUpload={allowFinalUpload}
+                    gradeUpload={schoolYear?.grade_upload}
                     localGrades={localGrades}
                     setMissingFields={setMissingFields}
                     gradeSubmissionStatus={gradeSubmissionStatus}

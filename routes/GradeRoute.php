@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\GradeController;
+use App\Http\Controllers\GradeUploadController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -54,7 +55,11 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
         Route::post('/reject-request', [GradeController::class, 'rejectRequest'])->name('reject-request');
 
         Route::get('/verified-grades', [GradeController::class, 'viewVerifiedGrades'])->name('verified-grades');
-        Route::post('/faculty-list/verified-grades', [GradeController::class, 'getFacultyListVerifiedGrades'])->name(name: 'faculty-list.verified-grades');
+
+        // When teachers can upload midterm and final grades, per school year.
+        Route::get('/grade-upload/{schoolYearId}', [GradeUploadController::class, 'show'])->whereNumber('schoolYearId')->name('grade-upload.show');
+        Route::patch('/grade-upload/{schoolYearId}', [GradeUploadController::class, 'update'])->whereNumber('schoolYearId')->name('grade-upload.update');
+        Route::get('/grade-submission-overview/{schoolYearId}', [GradeController::class, 'gradeSubmissionOverview'])->whereNumber('schoolYearId')->name('grade-submission.overview');
 
         Route::get('/verified-grades/{schoolYear}/{semester}/{facultyId}', [GradeController::class, 'viewFacultyVerifiedSubjects'])->name('verified.faculty.subjects');
         Route::post('/verified-grades/{schoolYear}/{semester}/{facultyId}', [GradeController::class, 'getFacultyVerifiedSubjects'])->name('verified.faculty.subjects');

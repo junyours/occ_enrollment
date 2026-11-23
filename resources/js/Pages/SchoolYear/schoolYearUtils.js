@@ -32,6 +32,23 @@ export const getEnrollmentStatusClass = (status) => ({
     Closed: 'border-border bg-muted text-muted-foreground',
 }[status] || 'border-border bg-muted text-muted-foreground');
 
+// Grade upload for one period, from the dates set on the registrar's Grade
+// Submission page: { status: not_set | scheduled | open | closed, opens_at, closes_at }.
+const formatUploadTime = (iso) => new Intl.DateTimeFormat('en-PH', {
+    timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+}).format(new Date(iso));
+
+export function gradeUploadLabel(upload) {
+    return { open: 'Open', scheduled: 'Scheduled', closed: 'Closed' }[upload?.status] || 'Not open';
+}
+
+export function gradeUploadDetail(upload) {
+    if (!upload || upload.status === 'not_set') return 'No opening time set';
+    if (upload.status === 'scheduled') return `Opens ${formatUploadTime(upload.opens_at)}`;
+    if (upload.status === 'closed') return `Closed ${formatUploadTime(upload.closes_at)}`;
+    return upload.closes_at ? `Until ${formatUploadTime(upload.closes_at)}` : 'No closing time';
+}
+
 export function getNextSchoolYear(schoolYears) {
     const latest = [...schoolYears].sort((a, b) => Number(b.start_year) - Number(a.start_year) || Number(b.end_year) - Number(a.end_year) || Number(b.semester_id) - Number(a.semester_id))[0];
     const nextAcademicYear = latest && Number(latest.semester_id) === 3;

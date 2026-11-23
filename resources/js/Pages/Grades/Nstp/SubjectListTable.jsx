@@ -28,6 +28,16 @@ function SubjectListTable({ subjects, schoolYear, facultyId, isLoading, isError 
     };
 
     // Status badge component
+    // Submitted after that period's grade upload closed.
+    const LateBadge = ({ period }) => (
+        <span
+            title={`Submitted after ${period} grade upload closed`}
+            className="inline-block rounded border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+        >
+            Late
+        </span>
+    );
+
     const StatusBadge = ({ status, label }) => {
         const statusConfig = {
             deployed: { label: 'Deployed', className: 'bg-green-600' },
@@ -132,7 +142,10 @@ function SubjectListTable({ subjects, schoolYear, facultyId, isLoading, isError 
                                         </TableCell>
 
                                         <TableCell>
-                                            <StatusBadge status={subject.midterm_status} />
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                <StatusBadge status={subject.midterm_status} />
+                                                {subject.midterm_late && <LateBadge period="midterm" />}
+                                            </div>
                                         </TableCell>
 
                                         <TableCell rowSpan={2} className="align-middle">
@@ -162,7 +175,10 @@ function SubjectListTable({ subjects, schoolYear, facultyId, isLoading, isError 
                                         </TableCell>
 
                                         <TableCell>
-                                            <StatusBadge status={subject.final_status} />
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                <StatusBadge status={subject.final_status} />
+                                                {subject.final_late && <LateBadge period="final" />}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 </React.Fragment>

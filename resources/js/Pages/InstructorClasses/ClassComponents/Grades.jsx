@@ -26,6 +26,7 @@ import { useGradeSubmission } from './GradePartials/useGradeSubmission'
 import PreLoader from '@/Components/preloader/PreLoader'
 import InstructorGradeSubmitionButton from './GradePartials/InstructorGradeSubmitionButton'
 import GradeRequestEditAction from './GradePartials/GradeRequestEditAction'
+import UploadWindow, { canSubmitOrUnsubmit } from './GradePartials/UploadWindow'
 import { toast } from 'sonner'
 
 /* -------------------------------------------------------------------------- */
@@ -151,6 +152,7 @@ function SubmissionPanel({
     title,
     data,
     canUpload,
+    upload,
     submitting,
     onSubmit,
     onCancel,
@@ -163,6 +165,8 @@ function SubmissionPanel({
     const status = data[`${type}_status`]
     const rejectionMessage = data[`${type}_rejection_message`]
     const showReason = status == 'rejected' && rejectionMessage
+    // Submitting needs upload to have opened; unsubmitting needs it open.
+    const allowed = canSubmitOrUnsubmit(upload, status, canUpload)
 
     return (
         <div className="rounded-xl border bg-card p-3">
@@ -202,12 +206,14 @@ function SubmissionPanel({
                 </div>
             </div>
 
+            <UploadWindow upload={upload} status={status} className="mb-2" />
+
             <div className="flex items-center gap-3">
                 <StatusTrack label={status} />
 
                 <InstructorGradeSubmitionButton
                     handleSubmit={onSubmit}
-                    disabledButton={!canUpload || submitting === type}
+                    disabledButton={!allowed || submitting === type}
                     handleCancel={onCancel}
                     type={type}
                     status={{
@@ -411,6 +417,7 @@ function Grades({
         } catch (error) {
             console.error('Upload failed:', error)
             setUploadStatus('idle')
+            toast.error(error.response?.data?.message ?? 'Couldn’t upload the grades. Please try again.')
         } finally {
             getClassStudents()
         }
@@ -453,6 +460,8 @@ function Grades({
                 .catch((err) => {
                     console.error('Update failed', err)
                     setUploadStatus('idle')
+                    // e.g. grade upload closed since the page loaded
+                    toast.error(err.response?.data?.message ?? 'Couldn’t save this grade. Please try again.')
                 })
         }, 1500)
     }
@@ -735,6 +744,7 @@ function Grades({
                             title="Midterm grade"
                             data={data}
                             canUpload={schoolYear.allow_upload_midterm}
+                            upload={schoolYear.grade_upload?.midterm}
                             submitting={submitting}
                             onSubmit={handleSubmit}
                             onCancel={handleCancel}
@@ -750,6 +760,7 @@ function Grades({
                             title="Final grade"
                             data={data}
                             canUpload={schoolYear.allow_upload_final}
+                            upload={schoolYear.grade_upload?.final}
                             submitting={submitting}
                             onSubmit={handleSubmit}
                             onCancel={handleCancel}

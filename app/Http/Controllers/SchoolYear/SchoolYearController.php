@@ -56,8 +56,10 @@ class SchoolYearController extends Controller
             'allow_enrollment',
             'allowed_enrollment_roles',
             'evaluating',
-            'allow_upload_midterm',
-            'allow_upload_final',
+            'midterm_upload_opens_at',
+            'midterm_upload_closes_at',
+            'final_upload_opens_at',
+            'final_upload_closes_at',
             'semester_name'
         )
             ->where('school_years.id', $id)
@@ -88,6 +90,16 @@ class SchoolYearController extends Controller
         $schoolYear->setAttribute('enrollment_ongoing', $status === 'open');
         $schoolYear->setAttribute('preparation', $status === 'scheduled'
             && $start <= Carbon::today(config('app.timezone'))->addWeeks(2)->toDateString());
+
+        // Grade upload opens and closes on dates set on the registrar's
+        // Grade Submission page.
+        $schoolYear->setAttribute('grade_upload', $schoolYear->gradeUploadWindows());
+        $schoolYear->makeHidden([
+            'midterm_upload_opens_at',
+            'midterm_upload_closes_at',
+            'final_upload_opens_at',
+            'final_upload_closes_at',
+        ]);
 
         return $schoolYear;
     }
@@ -122,16 +134,6 @@ class SchoolYearController extends Controller
         return $this->updateSchoolYearPermission($schoolYearId, $request, 'evaluating');
     }
 
-    public function updateAllowUploadMidterm($schoolYearId, Request $request)
-    {
-        return $this->updateSchoolYearPermission($schoolYearId, $request, 'allow_upload_midterm');
-    }
-
-    public function updateAllowUploadFinal($schoolYearId, Request $request)
-    {
-        return $this->updateSchoolYearPermission($schoolYearId, $request, 'allow_upload_final');
-    }
-
     private function updateSchoolYearPermission($schoolYearId, Request $request, string $field)
     {
         $validated = $request->validate(['value' => ['required', 'boolean']]);
@@ -156,8 +158,10 @@ class SchoolYearController extends Controller
             'is_current',
             'allow_enrollment',
             'evaluating',
-            'allow_upload_midterm',
-            'allow_upload_final',
+            'midterm_upload_opens_at',
+            'midterm_upload_closes_at',
+            'final_upload_opens_at',
+            'final_upload_closes_at',
             'semester_name'
         )
             ->join('semesters', 'school_years.semester_id', '=', 'semesters.id')

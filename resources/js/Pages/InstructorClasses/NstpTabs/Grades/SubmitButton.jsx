@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { AlertCircle, CheckCircle, ChevronDown, ChevronUp, FileText, Rocket, Send, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import axios from 'axios';
+import UploadWindow, { canSubmitOrUnsubmit } from '../../ClassComponents/GradePartials/UploadWindow';
 
 const statusMap = {
     draft: { color: "text-gray-500", icon: FileText },
@@ -27,7 +28,9 @@ function StatusLabel({ label }) {
 }
 
 
-export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowFinalUpload, localGrades, setMissingFields, gradeSubmissionStatus, refetchGradeSubmissionStatus }) {
+// `gradeUpload` is schoolYear.grade_upload: when each period's grades can be
+// entered, submitted (late after closing) or unsubmitted.
+export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowFinalUpload, gradeUpload, localGrades, setMissingFields, gradeSubmissionStatus, refetchGradeSubmissionStatus }) {
     const [submitting, setSubmitting] = useState(false);
     const [expandedRejection, setExpandedRejection] = useState({ midterm: false, final: false });
 
@@ -102,8 +105,8 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
     }
 
     return (
-        <div className='fixed bottom-0 z-50 flex gap-4 w-full max-w-6xl h-28 px-4'>
-            <Card className='no-print w-96 mb-4'>
+        <div className='fixed bottom-0 z-50 flex w-full max-w-6xl items-end gap-4 px-4 pb-4'>
+            <Card className='no-print w-96'>
                 <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
                     {/* Rejection message for midterm */}
                     <p className='underline w-max'>Midterm grade</p>
@@ -136,6 +139,7 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
                     )}
                 </CardHeader>
                 <CardContent className='py-2 px-4 space-y-2'>
+                    <UploadWindow upload={gradeUpload?.midterm} status={gradeSubmissionStatus.midterm_status} />
                     <div className='w-full flex gap-4 max-w-7xl mx-auto'>
                         <div className='w-48 flex border px-2 h-[37px]'>
                             <StatusLabel label={gradeSubmissionStatus.midterm_status} />
@@ -143,7 +147,7 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
 
                         <InstructorGradeSubmitionButton
                             handleSubmit={handleSubmit}
-                            disabledButton={!allowMidtermUpload || submitting === 'midterm'}
+                            disabledButton={!canSubmitOrUnsubmit(gradeUpload?.midterm, gradeSubmissionStatus.midterm_status, allowMidtermUpload) || submitting === 'midterm'}
                             handleCancel={handleCancel}
                             type='midterm'
                             status={{
@@ -158,7 +162,7 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
                 </CardContent>
             </Card>
 
-            <Card className='no-print w-96 mb-4'>
+            <Card className='no-print w-96'>
                 <CardHeader className='flex-row justify-between px-4 mt-2 space-y-0 items-center'>
                     {/* Rejection message for midterm */}
                     <p className='underline w-max'>Final grade</p>
@@ -191,6 +195,7 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
                     )}
                 </CardHeader>
                 <CardContent className='py-2 px-4 space-y-2'>
+                    <UploadWindow upload={gradeUpload?.final} status={gradeSubmissionStatus.final_status} />
                     <div className='w-full flex gap-4 max-w-7xl mx-auto'>
                         <div className='w-48 flex border px-2 h-[37px]'>
                             <StatusLabel label={gradeSubmissionStatus.final_status} />
@@ -198,7 +203,7 @@ export default function SubmitButton({ nstpSectionId, allowMidtermUpload, allowF
 
                         <InstructorGradeSubmitionButton
                             handleSubmit={handleSubmit}
-                            disabledButton={!allowFinalUpload || submitting === 'final'}
+                            disabledButton={!canSubmitOrUnsubmit(gradeUpload?.final, gradeSubmissionStatus.final_status, allowFinalUpload) || submitting === 'final'}
                             handleCancel={handleCancel}
                             type='final'
                             status={{

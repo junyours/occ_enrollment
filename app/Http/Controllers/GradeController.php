@@ -16,7 +16,9 @@ use App\Models\User;
 use App\Models\UserInformation;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use App\Services\GradeUploadGate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -165,6 +167,20 @@ class GradeController extends Controller
             ->join('nstp_section_schedules', 'nstp_sections.id', '=', 'nstp_section_schedules.nstp_section_id')
             ->join('nstp_grade_submissions', 'nstp_sections.id', '=', 'nstp_grade_submissions.nstp_section_id')
             ->get();
+
+        // Late: submitted after that period's grade upload closed.
+        $schoolYear = SchoolYear::find($schoolYearId);
+
+        foreach ($subjects as $subject) {
+            foreach (SchoolYear::GRADE_PERIODS as $period) {
+                $submittedAt = $subject->getAttribute("{$period}_submitted_at");
+                $closesAt = $schoolYear?->getAttribute("{$period}_upload_closes_at");
+
+                $subject->setAttribute("{$period}_late", $submittedAt !== null
+                    && $closesAt !== null
+                    && Carbon::parse($submittedAt, config('app.timezone'))->gt($closesAt));
+            }
+        }
 
         return response()->json($subjects);
     }
@@ -662,60 +678,114 @@ class GradeController extends Controller
         return Inertia::render('Grades/VerifiedGrades');
     }
 
-    public function getFacultyListVerifiedGrades(Request $request)
+    /**
+     * The registrar's Grade Submission list: each teacher with classes in the
+     * school year and, per period, how many of their classes aren't submitted
+     * yet (including ones sent back), are submitted and waiting for
+     * verification, are ready to deploy, are deployed, and were submitted late.
+     */
+    public function gradeSubmissionOverview(int $schoolYearId)
     {
-        $instructors = Faculty::select(
-            'faculty.faculty_id',
-            'users.user_id_no',
-            DB::raw("CONCAT(user_information.last_name, ', ', user_information.first_name, ' ',
-         IF(user_information.middle_name IS NOT NULL AND user_information.middle_name != '',
-            CONCAT(SUBSTRING(user_information.middle_name, 1, 1), '.'),
-            '')
-            ) AS name"),
-            DB::raw('
-                SUM(
-                    (grade_submissions.midterm_status = "verified")
-                    + (grade_submissions.final_status = "verified")
-                    ) AS verified_count
-            ')
-        )
-            ->join('users', 'users.id', '=', 'faculty.faculty_id')
-            ->join('user_information', 'users.id', '=', 'user_information.user_id')
-            ->join('year_section_subjects', 'users.id', '=', 'year_section_subjects.faculty_id')
-            ->join('year_section', 'year_section.id', '=', 'year_section_subjects.year_section_id')
-            ->leftJoin('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
-            ->where('year_section.school_year_id', '=', $request->schoolYearId)
-            ->groupBy(
-                'faculty.faculty_id',
-                'users.user_id_no',
-                'user_information.last_name',
-                'user_information.first_name',
-                'user_information.middle_name'
-            )
-            ->orderBy('last_name', 'ASC')
-            ->withCount([
-                'yearSectionSubjects as subjects_count' => function ($q) use ($request) {
-                    $q->whereHas('yearSection', function ($qs) use ($request) {
-                        $qs->where('school_year_id', $request->schoolYearId);
-                    });
+        $schoolYear = SchoolYear::findOrFail($schoolYearId);
+        $zone = config('app.timezone');
+
+        // The latest profile row per user, so old rows don't repeat a teacher.
+        $profiles = DB::table('user_information')
+            ->select('user_id')
+            ->selectRaw('MAX(id) AS id')
+            ->groupBy('user_id');
+
+        $classes = DB::table('year_section_subjects as ys')
+            ->join('year_section as sec', 'sec.id', '=', 'ys.year_section_id')
+            ->join('users as u', 'u.id', '=', 'ys.faculty_id')
+            ->leftJoinSub($profiles, 'profile', 'profile.user_id', '=', 'u.id')
+            ->leftJoin('user_information as ui', 'ui.id', '=', 'profile.id')
+            ->leftJoin('grade_submissions as gs', 'gs.year_section_subjects_id', '=', 'ys.id')
+            ->where('sec.school_year_id', $schoolYear->id)
+            ->whereExists(fn($query) => $query
+                ->selectRaw('1')
+                ->from('faculty')
+                ->whereColumn('faculty.faculty_id', 'ys.faculty_id'))
+            ->get([
+                'ys.id',
+                'u.id as faculty_id',
+                'u.user_id_no',
+                'ui.first_name',
+                'ui.middle_name',
+                'ui.last_name',
+                'gs.midterm_status',
+                'gs.midterm_submitted_at',
+                'gs.final_status',
+                'gs.final_submitted_at',
+            ]);
+
+        $counts = fn() => ['not_submitted' => 0, 'submitted' => 0, 'ready' => 0, 'deployed' => 0, 'late' => 0];
+        $teachers = [];
+
+        foreach ($classes as $class) {
+            $id = (int) $class->faculty_id;
+
+            $teachers[$id] ??= [
+                'faculty_id' => $id,
+                'user_id_no' => $class->user_id_no,
+                'name' => $this->listName($class),
+                'classes' => 0,
+                'midterm' => $counts(),
+                'final' => $counts(),
+            ];
+            $teachers[$id]['classes']++;
+
+            foreach (SchoolYear::GRADE_PERIODS as $period) {
+                // No submission row yet means nobody opened the class: a draft.
+                $state = match ($class->{"{$period}_status"} ?? 'draft') {
+                    'submitted' => 'submitted',
+                    'verified' => 'ready',
+                    'deployed' => 'deployed',
+                    default => 'not_submitted',
+                };
+                $teachers[$id][$period][$state]++;
+
+                $submittedAt = $class->{"{$period}_submitted_at"};
+                $closesAt = $schoolYear->getAttribute("{$period}_upload_closes_at");
+
+                if ($state !== 'not_submitted' && $submittedAt && $closesAt
+                    && Carbon::parse($submittedAt, $zone)->gt($closesAt)) {
+                    $teachers[$id][$period]['late']++;
                 }
-            ])
-            ->withCount([
-                'gradeSubmissions as midterm_deployed_count' => function ($q) use ($request) {
-                    $q->whereHas('yearSectionSubject.yearSection', function ($qs) use ($request) {
-                        $qs->where('school_year_id', $request->schoolYearId);
-                    })->whereIn('midterm_status', ['deployed']);
-                },
+            }
+        }
 
-                'gradeSubmissions as final_deployed_count' => function ($q) use ($request) {
-                    $q->whereHas('yearSectionSubject.yearSection', function ($qs) use ($request) {
-                        $qs->where('school_year_id', $request->schoolYearId);
-                    })->whereIn('final_status', ['deployed']);
-                },
-            ])
-            ->get();
+        $teachers = array_values($teachers);
+        usort($teachers, fn($a, $b) => strcasecmp($a['name'], $b['name']));
 
-        return response()->json($instructors, 200);
+        return response()->json([
+            'school_year_id' => (int) $schoolYear->id,
+            'teachers' => $teachers,
+        ]);
+    }
+
+    // "Abuloc, Jezeil A.": all-caps or all-lowercase parts are title-cased;
+    // names already written in mixed case (McArthur) are kept.
+    private function listName(object $person): string
+    {
+        $tidy = function (?string $value): string {
+            $value = trim((string) $value);
+
+            return $value === mb_strtoupper($value) || $value === mb_strtolower($value)
+                ? mb_convert_case($value, MB_CASE_TITLE, 'UTF-8')
+                : $value;
+        };
+
+        $last = $tidy($person->last_name);
+        $first = $tidy($person->first_name);
+        $middle = $tidy($person->middle_name);
+        $initial = $middle !== '' ? ' ' . mb_substr($middle, 0, 1) . '.' : '';
+
+        if ($last === '' && $first === '') {
+            return 'Unnamed teacher';
+        }
+
+        return trim("{$last}, {$first}{$initial}", ' ,');
     }
 
     public function viewFacultyVerifiedSubjects($schoolYear, $semester, $facultyId)
@@ -780,6 +850,20 @@ class GradeController extends Controller
             ->join('grade_submissions', 'year_section_subjects.id', '=', 'grade_submissions.year_section_subjects_id')
             ->where('school_year_id', '=', $request->schoolYearId)
             ->get();
+
+        // Late: submitted after that period's grade upload closed.
+        $schoolYear = SchoolYear::find($request->schoolYearId);
+
+        foreach ($subjects as $subject) {
+            foreach (SchoolYear::GRADE_PERIODS as $period) {
+                $submittedAt = $subject->getAttribute("{$period}_submitted_at");
+                $closesAt = $schoolYear?->getAttribute("{$period}_upload_closes_at");
+
+                $subject->setAttribute("{$period}_late", $submittedAt !== null
+                    && $closesAt !== null
+                    && Carbon::parse($submittedAt, config('app.timezone'))->gt($closesAt));
+            }
+        }
 
         return response()->json($subjects, 200);
     }
@@ -1288,14 +1372,16 @@ class GradeController extends Controller
 
         $schoolYear = SchoolYear::where('school_years.id', '=', $courseSection->school_year_id)
             ->select(
-                'allow_upload_final',
-                'allow_upload_midterm',
                 'start_year',
                 'end_year',
                 'semester_name'
             )
             ->join('semesters', 'semesters.id', '=', 'school_years.semester_id')
             ->first();
+
+        // When each period's grades can be entered and submitted.
+        $gate = app(GradeUploadGate::class);
+        $schoolYear = $gate->describe($schoolYear, $gate->regularClass($yearSectionSubjects->id));
 
         return Inertia::render('Grades/InstructorSubjectView', [
             'id' => $yearSectionSubjects->id,

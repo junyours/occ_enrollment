@@ -7,12 +7,17 @@ import { formatDateShort } from '@/Lib/Utils';
 import axios from 'axios';
 import { Check, Loader2, Settings2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { getEnrollmentStatus, getEnrollmentStatusClass, isEnabled } from './schoolYearUtils';
+import { Link } from '@inertiajs/react';
+import { getEnrollmentStatus, getEnrollmentStatusClass, gradeUploadDetail, gradeUploadLabel, isEnabled } from './schoolYearUtils';
 
 const operations = [
     { field: 'evaluating', label: 'Student Evaluation', description: 'Enable student evaluation.' },
-    { field: 'allow_upload_midterm', label: 'Midterm Grade Upload', description: 'Allow faculty to submit midterm grades.' },
-    { field: 'allow_upload_final', label: 'Final Grade Upload', description: 'Allow faculty to submit final grades.' },
+];
+
+// Grade upload opens and closes on dates set on the Grade Submission page.
+const gradeUploads = [
+    { period: 'midterm', label: 'Midterm Grade Upload' },
+    { period: 'final', label: 'Final Grade Upload' },
 ];
 
 function SchoolYearSettings({ schoolYearId, open, setOpen, onUpdated }) {
@@ -167,6 +172,29 @@ function SchoolYearSettings({ schoolYearId, open, setOpen, onUpdated }) {
                                     <Switch id={field} aria-describedby={`${field}-description`} checked={isEnabled(schoolYear[field])} onCheckedChange={(checked) => handleToggle(field, checked)} disabled={saving} />
                                 </div>
                             ))}
+                        </section>
+
+                        <section className="space-y-4 py-5" aria-labelledby="grade-upload-heading">
+                            <div className="flex items-center justify-between gap-3">
+                                <h3 id="grade-upload-heading" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Grade Upload</h3>
+                                <Link href={route('verified-grades')} className="text-xs font-medium text-primary hover:underline">Set dates</Link>
+                            </div>
+                            {gradeUploads.map(({ period, label }) => {
+                                const upload = schoolYear.grade_upload?.[period];
+
+                                return (
+                                    <div key={period} className="flex items-center justify-between gap-4">
+                                        <div>
+                                            <p className="text-sm font-semibold">{label}</p>
+                                            <p className="mt-1 text-xs text-muted-foreground">{gradeUploadDetail(upload)}</p>
+                                        </div>
+                                        <Badge variant="outline" className={upload?.status === 'open' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'text-muted-foreground'}>
+                                            {gradeUploadLabel(upload)}
+                                        </Badge>
+                                    </div>
+                                );
+                            })}
+                            <p className="text-xs text-muted-foreground">Upload opens and closes on the dates set on the Grade Submission page.</p>
                         </section>
                     </div>
                 )}

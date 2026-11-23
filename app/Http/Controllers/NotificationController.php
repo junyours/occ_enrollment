@@ -27,6 +27,8 @@ class NotificationController extends Controller
                     'post' => $params['announcement_id'] ?? null,
                 ]))
                 : null,
+            // The teacher's class list, e.g. grade upload reminders.
+            'classes' => '/classes',
             default => null,
         };
     }
