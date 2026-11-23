@@ -18,13 +18,24 @@ import {
 } from "@/Components/ui/tooltip"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 const SIDEBAR_WIDTH = "15rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 const SidebarContext = React.createContext(null)
+
+function savedSidebarState() {
+    if (typeof document === "undefined") return null
+
+    const match = document.cookie.match(
+        new RegExp(`(?:^|;\\s*)${SIDEBAR_COOKIE_NAME}=(true|false)(?:;|$)`)
+    )
+
+    return match ? match[1] === "true" : null
+}
 
 function useSidebar() {
     const context = React.useContext(SidebarContext)
@@ -37,7 +48,7 @@ function useSidebar() {
 
 const SidebarProvider = React.forwardRef((
     {
-        defaultOpen = true,
+        defaultOpen,
         open: openProp,
         onOpenChange: setOpenProp,
         className,
@@ -53,9 +64,7 @@ const SidebarProvider = React.forwardRef((
     const [focusOpen, setFocusOpen] = React.useState(false)
     const [popupOpen, setPopupOpen] = React.useState(false)
 
-    // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen)
+    const [_open, _setOpen] = React.useState(() => defaultOpen ?? savedSidebarState() ?? true)
     const open = openProp ?? _open
     const setOpen = React.useCallback((value) => {
         const openState = typeof value === "function" ? value(open) : value
