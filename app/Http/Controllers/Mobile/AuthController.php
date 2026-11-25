@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Mobile;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\InstructorDashboardController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -45,7 +46,8 @@ class AuthController extends Controller
             return response()->json(['message' => 'The provided credentials are incorrect.'], 422);
         }
 
-        if (!in_array($user->user_role, ['student', 'faculty', 'evaluator'], true)) {
+        // Students and every teaching role (the same roles as the instructor dashboard).
+        if (!in_array($user->user_role, ['student', ...InstructorDashboardController::ROLES], true)) {
             return response()->json(['message' => 'Access to this portal is restricted to students and teachers only.'], 403);
         }
 

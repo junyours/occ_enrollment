@@ -23,15 +23,30 @@ const KINDS = {
     attendance: { icon: UserCheck, tone: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' },
 }
 
-// "in 3 days", "tomorrow" or "today", counting school days.
-function timeLeft(iso, today) {
-    const date = new Intl.DateTimeFormat('en-CA', { timeZone: SCHOOL_TIME_ZONE }).format(new Date(iso))
-    const days = daysBetween(today, date)
+// School days from today until an ISO time's date.
+function daysUntil(iso, today) {
+    return daysBetween(today, new Intl.DateTimeFormat('en-CA', { timeZone: SCHOOL_TIME_ZONE }).format(new Date(iso)))
+}
 
+// "in 3 days", "tomorrow" or "today".
+function timeLeft(days) {
     if (days <= 0) return 'today'
     if (days === 1) return 'tomorrow'
 
     return `in ${days} days`
+}
+
+// A closing grade upload gets louder: amber in its last 3 days, red on the day.
+const URGENCY = {
+    soon: { icon: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300', text: 'text-amber-800 dark:text-amber-300', bar: 'bg-amber-500' },
+    last: { icon: 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300', text: 'text-rose-700 dark:text-rose-400', bar: 'bg-rose-500' },
+}
+
+function urgency(days) {
+    if (days === null) return null
+    if (days <= 0) return URGENCY.last
+
+    return days <= 3 ? URGENCY.soon : null
 }
 
 function classLabel(ref) {
@@ -111,15 +126,21 @@ function describe(item, today) {
                 classes: item.classes,
                 progress: { done: item.submitted, total: item.total, tone: 'bg-amber-500' },
             }
-        case 'grades_due':
+        case 'grades_due': {
+            const days = item.closes_at ? daysUntil(item.closes_at, today) : null
+            const level = urgency(days)
+
             return {
                 title: `${period} grades due`,
                 detail: item.closes_at
-                    ? `Upload closes ${formatMoment(item.closes_at)} · ${timeLeft(item.closes_at, today)}`
+                    ? `Upload closes ${formatMoment(item.closes_at)} · ${timeLeft(days)}`
                     : 'Upload is open.',
+                detailTone: level?.text,
+                iconTone: level?.icon,
                 classes: item.classes,
-                progress: { done: item.submitted, total: item.total, tone: 'bg-primary' },
+                progress: { done: item.submitted, total: item.total, tone: level?.bar ?? 'bg-primary' },
             }
+        }
         case 'to_grade':
             return {
                 title: item.title,
@@ -143,7 +164,7 @@ function TodoRow({ item, today }) {
 
     return (
         <li className="grid grid-cols-[2rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[2rem_minmax(0,1fr)_auto]">
-            <span className={cn('flex size-8 items-center justify-center self-start rounded-full', tone)}>
+            <span className={cn('flex size-8 items-center justify-center self-start rounded-full', text.iconTone ?? tone)}>
                 <Icon aria-hidden="true" className="size-4" />
             </span>
 
@@ -156,7 +177,7 @@ function TodoRow({ item, today }) {
                         </p>
                     )}
                 </div>
-                <p className="text-xs text-muted-foreground">{text.detail}</p>
+                <p className={cn('text-xs', text.detailTone ?? 'text-muted-foreground')}>{text.detail}</p>
                 {text.progress?.total > 0 && <Progress {...text.progress} />}
                 {text.note && (
                     <p className="mt-1 line-clamp-2 border-l-2 pl-2 text-xs italic text-muted-foreground">{text.note}</p>

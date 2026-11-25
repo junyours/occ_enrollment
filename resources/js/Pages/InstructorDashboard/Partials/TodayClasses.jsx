@@ -1,12 +1,14 @@
 import { Link } from '@inertiajs/react'
-import { Button } from '@/Components/ui/button'
+import { ChevronRight } from 'lucide-react'
+import { buttonVariants } from '@/Components/ui/button'
 import { cn } from '@/Lib/Utils'
 import Section from './Section'
-import { classUrl, formatClock, plural } from '../dashboardUtils'
+import { classUrl, formatClock, plural, relativeDay } from '../dashboardUtils'
 
 const WARN = 'text-amber-700 dark:text-amber-400'
 
 // Where the meeting's attendance stands. NSTP classes have no attendance.
+// `phoneOnly` notes stand in for the button, which phones don't show.
 function attendanceNote(meeting) {
     const attendance = meeting.attendance
 
@@ -18,7 +20,9 @@ function attendanceNote(meeting) {
         case 'cancelled':
             return { text: 'Meeting cancelled', tone: 'text-muted-foreground' }
         case 'not_taken':
-            return meeting.state === 'done' ? { text: 'Attendance not taken', tone: WARN } : null
+            if (meeting.state === 'done') return { text: 'Attendance not taken', tone: WARN }
+            if (meeting.state === 'ongoing') return { text: 'Take attendance', tone: 'text-primary', phoneOnly: true }
+            return null
         default:
             return null
     }
@@ -44,6 +48,8 @@ function nextStep(meeting) {
         : { label: 'View', variant: 'ghost', href }
 }
 
+// One meeting, as a single link. Wider screens show the next step as a
+// button-styled label; phones show an arrow, which keeps the row short.
 function MeetingRow({ meeting }) {
     const note = attendanceNote(meeting)
     const step = nextStep(meeting)
@@ -51,49 +57,73 @@ function MeetingRow({ meeting }) {
     const done = meeting.state === 'done'
 
     return (
-        <li className={cn(
-            'grid grid-cols-[4.25rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 px-4 py-3 sm:grid-cols-[4.25rem_minmax(0,1fr)_auto]',
-            ongoing && 'bg-primary/5',
-        )}>
-            <div className="self-start tabular-nums">
-                <p className={cn('text-sm font-medium', done && 'text-muted-foreground')}>
-                    {formatClock(meeting.start) ?? 'TBA'}
-                </p>
-                {ongoing ? (
-                    <p className="flex items-center gap-1 text-xs font-medium text-primary">
-                        <span aria-hidden="true" className="size-1.5 animate-pulse rounded-full bg-primary" />
-                        Now
-                    </p>
-                ) : meeting.end && (
-                    <p className="text-xs text-muted-foreground">{formatClock(meeting.end)}</p>
-                )}
-            </div>
-
-            <div className="min-w-0">
-                <p className={cn('truncate text-sm font-medium', done && 'text-muted-foreground')}>{meeting.class.title}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                    {[meeting.class.section, meeting.room].filter(Boolean).join(' · ')}
-                </p>
-                {note && <p className={cn('mt-0.5 text-xs font-medium', note.tone)}>{note.text}</p>}
-            </div>
-
-            <Button
-                asChild
-                size="sm"
-                variant={step.variant}
+        <li>
+            <Link
+                href={step.href}
                 className={cn(
-                    'col-start-2 justify-self-start sm:col-start-auto sm:justify-self-end',
-                    // Under the text on phones: line the borderless label up with it.
-                    step.variant === 'ghost' && '-ml-3 sm:ml-0',
+                    'grid grid-cols-[4.25rem_minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none',
+                    ongoing && 'bg-primary/5 hover:bg-primary/10',
                 )}
             >
-                <Link href={step.href}>{step.label}</Link>
-            </Button>
+                <span className="self-start tabular-nums">
+                    <span className={cn('block text-sm font-medium', done && 'text-muted-foreground')}>
+                        {formatClock(meeting.start) ?? 'TBA'}
+                    </span>
+                    {ongoing ? (
+                        <span className="flex items-center gap-1 text-xs font-medium text-primary">
+                            <span aria-hidden="true" className="size-1.5 rounded-full bg-primary motion-safe:animate-pulse" />
+                            Now
+                        </span>
+                    ) : meeting.end && (
+                        <span className="block text-xs text-muted-foreground">{formatClock(meeting.end)}</span>
+                    )}
+                </span>
+
+                <span className="min-w-0">
+                    <span className={cn('block truncate text-sm font-medium', done && 'text-muted-foreground')}>{meeting.class.title}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                        {[meeting.class.section, meeting.room].filter(Boolean).join(' · ')}
+                    </span>
+                    {note && (
+                        <span className={cn('mt-0.5 block text-xs font-medium', note.tone, note.phoneOnly && 'sm:hidden')}>{note.text}</span>
+                    )}
+                </span>
+
+                <span aria-hidden="true" className={cn(buttonVariants({ variant: step.variant, size: 'sm' }), 'hidden sm:inline-flex')}>
+                    {step.label}
+                </span>
+                <ChevronRight aria-hidden="true" className="size-4 text-muted-foreground sm:hidden" />
+            </Link>
         </li>
     )
 }
 
-export default function TodayClasses({ meetings, className }) {
+// The soonest class still to come, for days with no classes left.
+function NextClass({ item, today }) {
+    const { next } = item
+
+    return (
+        <Link
+            href={classUrl(item)}
+            className="flex items-center justify-between gap-3 border-t px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
+        >
+            <span className="min-w-0">
+                <span className="block text-xs text-muted-foreground">Next class</span>
+                <span className="block truncate text-sm font-medium">{item.title} · {item.section}</span>
+            </span>
+            <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+                <span className="block font-medium text-foreground">
+                    {relativeDay(next.date, today)}{next.start ? `, ${formatClock(next.start)}` : ''}
+                </span>
+                {next.room && <span className="block">{next.room}</span>}
+            </span>
+        </Link>
+    )
+}
+
+export default function TodayClasses({ meetings, upcoming, today, className }) {
+    const allDone = meetings.length > 0 && meetings.every((meeting) => meeting.state === 'done')
+
     return (
         <Section id="today" title="Today" meta={meetings.length > 0 && plural(meetings.length, 'class', 'classes')} className={className}>
             {meetings.length === 0 ? (
@@ -105,6 +135,7 @@ export default function TodayClasses({ meetings, className }) {
                     ))}
                 </ul>
             )}
+            {(meetings.length === 0 || allDone) && upcoming && <NextClass item={upcoming} today={today} />}
         </Section>
     )
 }

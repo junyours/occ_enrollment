@@ -112,7 +112,13 @@ export default function Dashboard({ dashboard }) {
                         // between them on narrow ones.
                         watch.length > 0 && 'xl:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] xl:grid-rows-[auto_1fr] xl:items-start',
                     )}>
-                        <TodayClasses meetings={meetings} className="xl:col-start-1" />
+                        <TodayClasses
+                            meetings={meetings}
+                            // Classes come soonest next meeting first.
+                            upcoming={classes.find((item) => item.next)}
+                            today={today}
+                            className="xl:col-start-1"
+                        />
                         {watch.length > 0 && (
                             <StudentsToWatch
                                 students={watch}

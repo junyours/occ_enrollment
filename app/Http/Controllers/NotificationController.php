@@ -33,6 +33,8 @@ class NotificationController extends Controller
                 : null,
             // The teacher's class list, e.g. grade upload reminders.
             'classes' => '/classes',
+            // The student's grades, e.g. when grades are released.
+            'enrollment.record' => '/enrollment-record',
             default => null,
         };
     }

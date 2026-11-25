@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Models\UserInformation;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use App\Services\GradeReleaseNotices;
 use App\Services\GradeUploadGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -1000,21 +1001,28 @@ class GradeController extends Controller
 
     public function deployMidtermGrades($yearSectionSubjectsId)
     {
-        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
-            ->update([
-                'midterm_status' => 'deployed',
-                'midterm_deployed_at' => now(),
-            ]);
+        $this->deployGradesFor((int) $yearSectionSubjectsId, 'midterm');
     }
 
 
     public function deployFinalGrades($yearSectionSubjectsId)
     {
-        GradeSubmission::where('year_section_subjects_id', '=', $yearSectionSubjectsId)
+        $this->deployGradesFor((int) $yearSectionSubjectsId, 'final');
+    }
+
+    /** Releases a period's grades to the class's students, and tells them. */
+    private function deployGradesFor(int $classId, string $period): void
+    {
+        $deployed = GradeSubmission::where('year_section_subjects_id', '=', $classId)
             ->update([
-                'final_status' => 'deployed',
-                'final_deployed_at' => now(),
+                "{$period}_status" => 'deployed',
+                "{$period}_deployed_at" => now(),
             ]);
+
+        if ($deployed > 0) {
+            // The grades are out either way; a failed notice is only logged.
+            rescue(fn() => app(GradeReleaseNotices::class)->send($classId, $period));
+        }
     }
 
     public function undeployMidtermGrades($yearSectionSubjectsId)
