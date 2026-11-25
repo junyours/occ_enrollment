@@ -8,6 +8,9 @@ import { Label } from '@/Components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/Components/ui/toggle-group'
+import DatePicker from '@/Components/DatePicker'
+import { usePage } from '@inertiajs/react'
 import useAttendance from './AttendancePartials/useAttendance'
 import { RemarksCell, TermAttendance } from './AttendancePartials/AttendanceRowDetails'
 import { formatDate, meetingLabel, sessionCounts, STATUSES, studentName, suggestedDates } from './AttendancePartials/attendanceUtils'
@@ -38,19 +41,42 @@ function MeetingCounts({ session }) {
     </span>
 }
 
+// The grading period this teacher last picked for a new meeting, so the next
+// one starts there. Kept per teacher in this browser.
+const periodKey = (userId) => `attendance:new-meeting-period:${userId}`
+
+function savedPeriod(userId) {
+    try {
+        const value = window.localStorage.getItem(periodKey(userId))
+        return periods.some((item) => item.value === value) ? value : null
+    } catch {
+        return null
+    }
+}
+
+function savePeriod(userId, value) {
+    try {
+        window.localStorage.setItem(periodKey(userId), value)
+    } catch {
+        // Private browsing or blocked storage: the choice just isn't remembered.
+    }
+}
+
 function NewMeeting({ open, onClose, attendance: a, initialPeriod }) {
     const id = useId()
+    const userId = usePage().props.auth.user.id
     const [date, setDate] = useState('')
     const [number, setNumber] = useState(1)
     const [period, setPeriod] = useState(initialPeriod)
+    const thisYear = new Date().getFullYear()
     const suggestions = suggestedDates(a.scheduleDay, a.today, a.sessions)
     useEffect(() => {
         if (open) {
             setDate(a.today)
             setNumber(1)
-            setPeriod(periods.some((item) => item.value === initialPeriod) ? initialPeriod : 'midterm')
+            setPeriod(savedPeriod(userId) ?? (periods.some((item) => item.value === initialPeriod) ? initialPeriod : 'midterm'))
         }
-    }, [open, a.today, initialPeriod])
+    }, [open, a.today, initialPeriod, userId])
     return <Dialog open={open} onOpenChange={(next) => { if (!next && !a.busy) onClose() }}>
         <DialogContent className="sm:max-w-lg">
             <DialogHeader><DialogTitle>Add a meeting</DialogTitle>
@@ -61,9 +87,20 @@ function NewMeeting({ open, onClose, attendance: a, initialPeriod }) {
                 if (await a.create({ attendance_date: date, session_number: Number(number), period })) onClose()
             }}>
                 <div className="space-y-2">
-                    <Label htmlFor={`${id}-period`}>Grading period</Label>
-                    <Choice id={`${id}-period`} label="Grading period" value={period} options={periods}
-                        disabled={a.busy} onChange={(next) => next && setPeriod(next)} />
+                    <Label id={`${id}-period`}>Grading period</Label>
+                    <ToggleGroup type="single" value={period} disabled={a.busy} aria-labelledby={`${id}-period`}
+                        className="grid grid-cols-2 gap-2"
+                        onValueChange={(next) => {
+                            // Clicking the chosen period again leaves it chosen.
+                            if (!next) return
+                            setPeriod(next)
+                            savePeriod(userId, next)
+                        }}>
+                        {periods.map((item) => <ToggleGroupItem key={item.value} value={item.value} variant="outline"
+                            className="h-10 data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90 data-[state=on]:hover:text-primary-foreground">
+                            {item.label}
+                        </ToggleGroupItem>)}
+                    </ToggleGroup>
                 </div>
                 <div className="space-y-2">
                     <p className="text-sm font-medium">Class schedule: {a.scheduleDay || 'Not set'}</p>
@@ -73,15 +110,17 @@ function NewMeeting({ open, onClose, attendance: a, initialPeriod }) {
                     </div>
                     <p className="text-xs text-muted-foreground">Suggestions follow the class days. Holidays and makeup classes can be selected manually.</p>
                 </div>
-                <div className="space-y-2"><Label htmlFor={`${id}-date`}>Meeting date</Label>
-                    <Input id={`${id}-date`} type="date" required value={date} disabled={a.busy} onChange={(event) => setDate(event.target.value)} /></div>
+                <div className="space-y-2"><Label id={`${id}-date-label`} htmlFor={`${id}-date`}>Meeting date</Label>
+                    <DatePicker id={`${id}-date`} labelledBy={`${id}-date-label`} value={date} onChange={setDate}
+                        required disabled={a.busy} className="h-10"
+                        startMonth={new Date(thisYear - 1, 0)} endMonth={new Date(thisYear + 1, 11)} /></div>
                 <div className="space-y-2"><Label htmlFor={`${id}-number`}>Meeting number</Label>
                     <Input id={`${id}-number`} type="number" required min={1} max={65535} step={1} value={number}
                         disabled={a.busy} onChange={(event) => setNumber(event.target.value)} /></div>
                 <p className="text-xs text-muted-foreground">Use meeting 2 for another meeting on the same date. Attendance stays editable until you permanently lock the meeting.</p>
                 {a.error && <p role="alert" className="text-sm text-destructive">{a.error}</p>}
                 <DialogFooter><Button type="button" variant="outline" disabled={a.busy} onClick={onClose}>Cancel</Button>
-                    <Button type="submit" disabled={a.busy || !a.online}>{a.busy && <LoaderCircle className="size-4 animate-spin" />}Add meeting</Button></DialogFooter>
+                    <Button type="submit" disabled={a.busy || !a.online || !date}>{a.busy && <LoaderCircle className="size-4 animate-spin" />}Add meeting</Button></DialogFooter>
             </form>
         </DialogContent>
     </Dialog>

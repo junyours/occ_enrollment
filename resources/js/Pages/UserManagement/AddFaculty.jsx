@@ -1,6 +1,7 @@
 import { Button } from '@/Components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
+import DatePicker, { todayValue } from '@/Components/DatePicker';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { formatPhoneNumber } from '@/Lib/Utils';
@@ -309,13 +310,15 @@ function AddFaculty({ open, setOpen, faculty, editing, setEditing, setFaculty })
                                                 </Select>
                                             </div>
                                             <div>
-                                                <Label>Birthday</Label>
-                                                <Input
-                                                    type="date"
-                                                    name="birthday"
+                                                <Label id="add-faculty-birthday-label" htmlFor="add-faculty-birthday">Birthday</Label>
+                                                <DatePicker
+                                                    id="add-faculty-birthday"
+                                                    labelledBy="add-faculty-birthday-label"
                                                     value={data.birthday}
-                                                    onChange={handleChange}
-                                                    className={`${errors.birthday && 'border-red-500'}`}
+                                                    onChange={value => handleChange({ target: { name: 'birthday', value } })}
+                                                    max={todayValue()}
+                                                    startMonth={new Date(1940, 0)}
+                                                    invalid={!!errors.birthday}
                                                 />
                                             </div>
                                         </div>

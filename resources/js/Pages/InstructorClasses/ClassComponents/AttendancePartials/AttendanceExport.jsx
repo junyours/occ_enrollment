@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from 'react'
 import { Download, FileSpreadsheet, LoaderCircle } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
-import { Input } from '@/Components/ui/input'
+import DatePicker from '@/Components/DatePicker'
 import { Label } from '@/Components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
@@ -80,9 +80,9 @@ export default function AttendanceExport({ attendance: a, section }) {
                             </Button>)}
                     </div>
                     {scope === 'date' && <div className="space-y-2">
-                        <Label htmlFor={`${id}-date`}>Meeting date</Label>
-                        <Input id={`${id}-date`} type="date" value={date} disabled={busy}
-                            onChange={(event) => { setDate(event.target.value); setError('') }} />
+                        <Label id={`${id}-date-label`} htmlFor={`${id}-date`}>Meeting date</Label>
+                        <DatePicker id={`${id}-date`} labelledBy={`${id}-date-label`} value={date} disabled={busy} required
+                            onChange={(next) => { setDate(next); setError('') }} />
                     </div>}
                     {scope === 'all' && <div className="space-y-2">
                         <Label htmlFor={`${id}-period`}>Grading period</Label>

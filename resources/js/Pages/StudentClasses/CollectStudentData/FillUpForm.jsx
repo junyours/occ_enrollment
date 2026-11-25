@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Input } from '@/Components/ui/input'
+import DatePicker, { todayValue } from '@/Components/DatePicker'
 import { Button } from '@/Components/ui/button'
 import { Alert, AlertDescription } from '@/Components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
@@ -645,14 +646,19 @@ function FillUpForm({ open = true, setOpen = () => { } }) {
 
                                     {/* Birthday */}
                                     <div>
-                                        <label className="text-sm font-medium mb-1.5 block">
+                                        <label id="fill-up-birthday-label" htmlFor="fill-up-birthday" className="text-sm font-medium mb-1.5 block">
                                             Birthday <span className="text-destructive">*</span>
                                         </label>
-                                        <Input
-                                            type="date"
+                                        <DatePicker
+                                            id="fill-up-birthday"
+                                            labelledBy="fill-up-birthday-label"
                                             value={formData.birthday}
-                                            onChange={(e) => handleInputChange('birthday', e.target.value)}
-                                            className={`text-base ${errors.birthday ? 'border-destructive' : ''}`}
+                                            onChange={(value) => handleInputChange('birthday', value)}
+                                            max={todayValue()}
+                                            startMonth={new Date(1940, 0)}
+                                            invalid={!!errors.birthday}
+                                            required
+                                            className="text-base"
                                         />
                                     </div>
 

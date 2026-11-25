@@ -7,6 +7,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { createTorLastPageDefaults, getNstpNoteTemplate } from './torNoteTemplates';
 import { getTorProgramDetails } from './torProgram';
+import DatePicker from '@/Components/DatePicker';
 import './TorOptions.css';
 
 const LAST_PAGE_DEFAULTS = createTorLastPageDefaults();
@@ -25,16 +26,29 @@ function OptionField({ name, label, options, update, type = 'text', maxLength = 
     const id = `tor-${name}`;
     return (
         <div className="min-w-0 space-y-1.5">
-            <Label htmlFor={id} className="text-xs">{label}</Label>
-            <Input
-                id={id}
-                type={type}
-                value={options[name] ?? ''}
-                onChange={(event) => update(name, event.target.value)}
-                maxLength={maxLength}
-                placeholder={placeholder}
-                className="h-9 w-full min-w-0 max-w-full text-sm"
-            />
+            <Label id={`${id}-label`} htmlFor={id} className="text-xs">{label}</Label>
+            {type === 'date' ? (
+                <DatePicker
+                    id={id}
+                    labelledBy={`${id}-label`}
+                    value={options[name] ?? ''}
+                    onChange={(value) => update(name, value)}
+                    // Graduates from long ago still get transcripts.
+                    startMonth={new Date(1950, 0)}
+                    endMonth={new Date(new Date().getFullYear() + 1, 11)}
+                    className="h-9 min-w-0 max-w-full text-sm"
+                />
+            ) : (
+                <Input
+                    id={id}
+                    type={type}
+                    value={options[name] ?? ''}
+                    onChange={(event) => update(name, event.target.value)}
+                    maxLength={maxLength}
+                    placeholder={placeholder}
+                    className="h-9 w-full min-w-0 max-w-full text-sm"
+                />
+            )}
         </div>
     );
 }

@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
+import { Label } from "@/Components/ui/label";
+import DatePicker, { todayValue } from "@/Components/DatePicker";
 import { useToast } from "@/hooks/use-toast";
 import {
     Dialog,
@@ -513,19 +515,29 @@ const confirmDelete = async () => {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                            <Input
-                                type="date"
-                                min={today}
-                                value={form.start_date}
-                                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                            />
-                            <Input
-                                type="date"
-                                min={today}
-                                value={form.end_date}
-                                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                            />
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="min-w-0 space-y-1">
+                                <Label id="evaluation-start-label" htmlFor="evaluation-start" className="text-xs">Starts</Label>
+                                <DatePicker
+                                    id="evaluation-start"
+                                    labelledBy="evaluation-start-label"
+                                    min={todayValue()}
+                                    max={form.end_date || undefined}
+                                    value={form.start_date}
+                                    onChange={(value) => setForm({ ...form, start_date: value })}
+                                />
+                            </div>
+                            <div className="min-w-0 space-y-1">
+                                <Label id="evaluation-end-label" htmlFor="evaluation-end" className="text-xs">Ends</Label>
+                                <DatePicker
+                                    id="evaluation-end"
+                                    labelledBy="evaluation-end-label"
+                                    // Not before today, nor before it starts.
+                                    min={form.start_date > todayValue() ? form.start_date : todayValue()}
+                                    value={form.end_date}
+                                    onChange={(value) => setForm({ ...form, end_date: value })}
+                                />
+                            </div>
                         </div>
                         <Select
                             value={form.status}

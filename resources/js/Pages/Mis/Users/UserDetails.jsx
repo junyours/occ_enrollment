@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/Components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Input } from '@/Components/ui/input';
+import DatePicker, { todayValue } from '@/Components/DatePicker';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
@@ -209,12 +210,15 @@ export default function UserDetailsDialog({ selectedUser, setSelectedUser }) {
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Birthday</Label>
-                                        <Input
-                                            type="date"
+                                        <Label id="mis-user-birthday-label" htmlFor="mis-user-birthday">Birthday</Label>
+                                        <DatePicker
+                                            id="mis-user-birthday"
+                                            labelledBy="mis-user-birthday-label"
                                             disabled={!isEditing}
-                                            value={data.birthday}
-                                            onChange={e => setData('birthday', e.target.value)}
+                                            value={data.birthday ?? ''}
+                                            onChange={value => setData('birthday', value)}
+                                            max={todayValue()}
+                                            startMonth={new Date(1940, 0)}
                                             className="disabled:opacity-80 disabled:bg-muted/50"
                                         />
                                     </div>
