@@ -45,6 +45,14 @@
     scrollbar-color: rgb(148 163 184 / 0.35) transparent;
 }
 
+/* Full screen: the list grows into the room the toolbar and footer leave,
+   and scrolls once it's full. */
+.attendance-roster[data-full-screen] {
+    flex: 0 1 auto;
+    min-height: 12rem;
+    max-height: none;
+}
+
 .attendance-roster:focus-visible,
 .attendance-dates:focus-visible {
     outline: 2px solid currentColor;

@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { AlertCircle, CalendarDays, Check, ClipboardList, Info, Keyboard, LoaderCircle, LockKeyhole, Plus, RotateCcw, Search, WifiOff } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, ClipboardList, Info, Keyboard, LoaderCircle, LockKeyhole, Maximize2, Plus, RotateCcw, Search, WifiOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/Lib/Utils'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Badge } from '@/Components/ui/badge'
@@ -14,8 +15,9 @@ import DatePicker from '@/Components/DatePicker'
 import { usePage } from '@inertiajs/react'
 import useAttendance from './AttendancePartials/useAttendance'
 import { RemarksCell, TermAttendance } from './AttendancePartials/AttendanceRowDetails'
-import { formatDate, meetingLabel, sessionCounts, STATUSES, studentName, suggestedDates } from './AttendancePartials/attendanceUtils'
+import { formatDate, meetingLabel, sessionCounts, STATUSES, studentName, suggestedDates, typingIn } from './AttendancePartials/attendanceUtils'
 import AttendanceExport from './AttendancePartials/AttendanceExport.jsx'
+import RosterFullScreen from './AttendancePartials/RosterFullScreen'
 import { attendanceGuide, Key } from './AttendancePartials/attendanceGuide'
 import { GuideButton, useGuide } from './Classwork/Shared/GuideTour'
 import './AttendancePartials/attendance.css'
@@ -103,7 +105,6 @@ function PeriodSwitch({ attendance: a }) {
 const STATUS_KEYS = new Map([['p', 'present'], ['1', 'present'], ['l', 'late'], ['2', 'late'], ['a', 'absent'], ['3', 'absent'], ['e', 'excused'], ['4', 'excused']])
 const CLEAR_KEYS = new Set(['Backspace', 'Delete', '0'])
 const rowKey = (row) => String(row.student_subject_id)
-const typingIn = (target) => target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
 
 // Shown where there's likely a keyboard: a mouse or trackpad is the pointer.
 function ShortcutLegend({ id }) {
@@ -367,6 +368,16 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
     const [activeId, setActiveId] = useState(null)
     const rowNodes = useRef(new Map())
     const keysId = useId()
+    // Full screen: the list fills the screen, and the browser's own full
+    // screen too where it's allowed. The page keeps the list's height
+    // meanwhile, so nothing jumps on the way back.
+    const [fullScreen, setFullScreen] = useState(false)
+    const [placeholder, setPlaceholder] = useState(0)
+    const fullScreenOpen = useRef(false)
+    const ownsBrowserFullScreen = useRef(false)
+    const toolbarRef = useRef(null)
+    const footerRef = useRef(null)
+    const fullScreenButton = useRef(null)
     const a = useAttendance({ classId })
     useEffect(() => { setSearch(''); setFilter('all'); setUndo(null); setConfirmation(null); setActiveId(null) }, [classId, a.session?.id])
     const visible = useMemo(() => a.rows.filter((row) =>
@@ -380,7 +391,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
     const guide = useGuide({
         guide: 'attendance',
         steps: () => attendanceGuide({ keyboard: window.matchMedia?.('(pointer: fine)').matches ?? true }),
-        ready: hasRoster && !a.loading && !newMeeting,
+        ready: hasRoster && !a.loading && !newMeeting && !fullScreen,
     })
     async function bulk(clear = false) {
         const targets = a.rows.filter((row) => clear ? row.status !== null : !row.status)
@@ -428,6 +439,163 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
             event.preventDefault()
             node.querySelector('[data-remarks-trigger]')?.click()
         }
+    }
+
+    async function openFullScreen() {
+        const top = toolbarRef.current?.getBoundingClientRect().top
+        const bottom = footerRef.current?.getBoundingClientRect().bottom
+        setPlaceholder(top != null && bottom != null ? bottom - top : 0)
+        fullScreenOpen.current = true
+        setFullScreen(true)
+
+        // Not every browser allows it (iPhones don't); the view still fills the window.
+        if (!document.fullscreenEnabled || document.fullscreenElement) return
+        try {
+            await document.documentElement.requestFullscreen()
+            ownsBrowserFullScreen.current = true
+            // Closed again before the browser got there.
+            if (!fullScreenOpen.current) leaveBrowserFullScreen()
+        } catch {
+            // Refused: the view still fills the window.
+        }
+    }
+
+    function leaveBrowserFullScreen() {
+        if (ownsBrowserFullScreen.current && document.fullscreenElement) void document.exitFullscreen().catch(() => { })
+        ownsBrowserFullScreen.current = false
+    }
+
+    function exitFullScreen() {
+        fullScreenOpen.current = false
+        setFullScreen(false)
+        leaveBrowserFullScreen()
+    }
+
+    // Leaving the browser's full screen (Esc, F11) leaves the view too.
+    useEffect(() => {
+        if (!fullScreen) return undefined
+        const changed = () => {
+            if (ownsBrowserFullScreen.current && !document.fullscreenElement) {
+                ownsBrowserFullScreen.current = false
+                fullScreenOpen.current = false
+                setFullScreen(false)
+            }
+        }
+        document.addEventListener('fullscreenchange', changed)
+        return () => document.removeEventListener('fullscreenchange', changed)
+    }, [fullScreen])
+
+    // A meeting without a list has nothing to show full screen.
+    useEffect(() => {
+        if (fullScreen && !(a.session && hasRoster)) exitFullScreen()
+    })
+
+    useEffect(() => () => leaveBrowserFullScreen(), [])
+
+    // Full screen opens on the current student, and closing goes back to them.
+    function focusCurrent(event) {
+        const node = tabStop && rowNodes.current.get(tabStop)
+        if (!node) return
+        event.preventDefault()
+        node.focus({ preventScroll: true })
+        node.scrollIntoView({ block: 'nearest' })
+    }
+
+    function focusAfterFullScreen(event) {
+        event.preventDefault()
+        const node = (tabStop && rowNodes.current.get(tabStop)) || fullScreenButton.current
+        node?.focus({ preventScroll: true })
+        node?.scrollIntoView({ block: 'nearest' })
+    }
+
+    const blockedBanner = a.blocked && <div role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-400/50 bg-amber-50 p-3 text-sm dark:bg-amber-950">
+        <p className="flex-1">{a.blocked.message} Your pending changes are kept on this device.</p>
+        {[409, 423].includes(a.blocked.status) ? <Button type="button" variant="outline" disabled={!a.online} onClick={a.openReview}>Review changes</Button>
+            : <Button type="button" variant="outline" disabled={!a.online} onClick={a.retry}>Retry sync</Button>}
+    </div>
+
+    // The toolbar, shortcuts, list, rates note and marked count: on the page,
+    // or filling the screen (`full`).
+    function workArea(full) {
+        return <>
+            <div ref={full ? undefined : toolbarRef} className="flex flex-wrap gap-2">
+                <div className="relative min-w-48 flex-1"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input className="h-10 pl-9" aria-label="Search students" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or student number…" /></div>
+                <Choice label="Filter attendance status" value={filter} options={filters} onChange={(next) => next && setFilter(next)} />
+                <Button type="button" variant="outline" className="h-10" disabled={!a.editable || !a.stats.unmarked} data-tour="attendance-bulk" onClick={() => bulk(false)}>Mark unmarked present</Button>
+                <Button type="button" variant="ghost" className="h-10" disabled={!a.editable || !a.stats.marked} onClick={() => setConfirmation('clear')}>Clear marks</Button>
+                {undo && <Button type="button" variant="outline" disabled={!a.editable} onClick={async () => { if (await a.patchMany(undo)) setUndo(null) }}>Undo</Button>}
+            </div>
+            {/* <p className="text-xs text-muted-foreground">Bulk actions include hidden rows. Click a selected status again to unmark it.</p> */}
+            {(a.editable || !full) && <div className="flex items-center gap-3">
+                {a.editable && <ShortcutLegend id={keysId} />}
+                {!full && <Button ref={fullScreenButton} type="button" variant="outline" size="sm" className="ml-auto h-8"
+                    data-tour="attendance-fullscreen" onClick={openFullScreen}>
+                    <Maximize2 aria-hidden="true" className="size-4" />Full screen
+                </Button>}
+            </div>}
+            {/* Rows take focus themselves (Tab lands on the current student),
+                so the list needs no tab stop of its own to scroll. */}
+            <div
+                className="attendance-roster rounded-xl border"
+                data-full-screen={full ? '' : undefined}
+                role="region"
+                aria-label="Scrollable student attendance"
+                aria-describedby={a.editable ? keysId : undefined}
+            >
+                <div role="table" aria-label="Student attendance">
+                <div role="rowgroup" className="attendance-table-head sticky top-0 z-10 hidden border-b bg-background shadow-sm"><div role="row" className={`grid gap-3 px-4 py-3 text-xs font-medium text-muted-foreground ${rowGrid}`}>
+                    {['Student', 'Term attendance', 'Status', 'Remarks'].map((name) => <span role="columnheader" key={name}>{name}</span>)}
+                </div>
+                </div>
+                {/* Only the current student's row and its buttons are in the Tab
+                    order; the arrow keys move between students. */}
+                <div role="rowgroup" onKeyDown={rosterKeys}>{visible.map((row, index) => {
+                    const stop = rowKey(row) === tabStop
+                    return <div role="row" key={row.student_subject_id}
+                    ref={(node) => { if (node) rowNodes.current.set(rowKey(row), node); else rowNodes.current.delete(rowKey(row)) }}
+                    data-attendance-row={rowKey(row)} data-tour={index === 0 ? 'attendance-row' : undefined}
+                    tabIndex={stop ? 0 : -1} onFocus={() => setActiveId(rowKey(row))}
+                    className={`grid scroll-mb-24 scroll-mt-14 gap-3 border-t px-4 py-4 outline-none focus-within:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${rowGrid}`}>
+                    <div role="cell"><p className="text-sm font-medium">{studentName(row)}</p><p className="text-xs text-muted-foreground">{row.user_id_no || 'No student number'}</p></div>
+                    <div role="cell" className="text-sm">
+                        <span className="attendance-term-label mr-1 text-xs text-muted-foreground">Term attendance:</span>
+                        <TermAttendance row={row} />
+                    </div>
+                    <div role="cell"><div role="group" aria-label={`Attendance status for ${studentName(row)}`} className="grid grid-cols-4 gap-1.5">
+                        {STATUSES.map((status) => <Button type="button" variant="outline" key={status.value} disabled={!a.editable}
+                            tabIndex={stop ? undefined : -1}
+                            aria-label={`${status.label} for ${studentName(row)}`} aria-pressed={row.status === status.value}
+                            className={`h-10 gap-1 px-1 text-xs ${row.status === status.value ? status.tone : ''}`}
+                            onClick={() => edit(row.student_subject_id, { status: row.status === status.value ? null : status.value })}>
+                            {row.status === status.value && <Check className="size-3" />}{status.label}
+                        </Button>)}
+                    </div></div>
+                    <div role="cell" className="min-w-0">
+                        <RemarksCell key={`${a.session.id}:${row.student_subject_id}`} row={row} editable={a.editable}
+                            tabIndex={stop ? undefined : -1}
+                            onChange={(remarks) => edit(row.student_subject_id, { remarks })} />
+                    </div>
+                </div>
+                })}</div>
+                </div>
+                {!visible.length && <p className="p-6 text-center text-sm text-muted-foreground">No students match this view.</p>}
+            </div>
+            {/* Full screen keeps this and the marked count at the bottom. */}
+            <details className={cn('rounded-lg border p-3 text-sm', full && 'mt-auto')}><summary className="cursor-pointer font-medium">How attendance rates work</summary>
+                <p className="mt-2 text-muted-foreground">(Present + Late) ÷ (Present + Late + Absent) × 100. Excused and unmarked students are excluded. Cancelled meetings are excluded from term attendance. Percentages are rounded. Term attendance uses synced records across Midterm and Final, including meetings marked in advance.</p>
+            </details>
+            <footer ref={full ? undefined : footerRef} className={cn(
+                'flex flex-wrap items-center justify-between gap-2 border px-4 py-3 shadow-sm',
+                // On the page it stays in view while the list scrolls; full
+                // screen keeps it at the bottom anyway.
+                full ? 'rounded-xl bg-background' : 'sticky bottom-0 z-20 rounded-t-xl bg-background/95 backdrop-blur',
+            )}>
+                <p className="text-sm">{a.stats.marked} of {a.stats.total} marked · {a.stats.unmarked} remaining</p>
+                <p role="status" aria-live="polite" className={`flex items-center gap-2 text-sm ${a.blocked || a.writeError ? 'text-destructive' : a.pending ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
+                    {a.syncLabel === 'Syncing…' ? <LoaderCircle className="size-4 animate-spin" /> : a.pending ? <AlertCircle className="size-4" /> : <Check className="size-4" />}{a.syncLabel}
+                </p>
+            </footer>
+        </>
     }
 
     return <section
@@ -502,11 +670,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                         </div>}
                 </div>
             </div>
-            {a.blocked && <div role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-400/50 bg-amber-50 p-3 text-sm dark:bg-amber-950">
-                <p className="flex-1">{a.blocked.message} Your pending changes are kept on this device.</p>
-                {[409, 423].includes(a.blocked.status) ? <Button type="button" variant="outline" disabled={!a.online} onClick={a.openReview}>Review changes</Button>
-                    : <Button type="button" variant="outline" disabled={!a.online} onClick={a.retry}>Retry sync</Button>}
-            </div>}
+            {blockedBanner}
             {a.unavailableOffline && <p className="rounded-lg border p-4 text-sm">This roster has not been loaded on this device. Open it while connected first.</p>}
             {!hasRoster && !a.locked && a.session.status === 'open' && <Button type="button" variant="outline" disabled={!a.online || a.busy} onClick={a.start}>Start attendance</Button>}
             {hasRoster && <>
@@ -516,75 +680,27 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                     onFilterChange={setFilter}
                     cancelled={a.session.status === 'cancelled'}
                 />
-                <div className="flex flex-wrap gap-2">
-                    <div className="relative min-w-48 flex-1"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input className="h-10 pl-9" aria-label="Search students" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or student number…" /></div>
-                    <Choice label="Filter attendance status" value={filter} options={filters} onChange={(next) => next && setFilter(next)} />
-                    <Button type="button" variant="outline" className="h-10" disabled={!a.editable || !a.stats.unmarked} data-tour="attendance-bulk" onClick={() => bulk(false)}>Mark unmarked present</Button>
-                    <Button type="button" variant="ghost" className="h-10" disabled={!a.editable || !a.stats.marked} onClick={() => setConfirmation('clear')}>Clear marks</Button>
-                    {undo && <Button type="button" variant="outline" disabled={!a.editable} onClick={async () => { if (await a.patchMany(undo)) setUndo(null) }}>Undo</Button>}
-                </div>
-                {/* <p className="text-xs text-muted-foreground">Bulk actions include hidden rows. Click a selected status again to unmark it.</p> */}
-                {a.editable && <ShortcutLegend id={keysId} />}
-                {/* Rows take focus themselves (Tab lands on the current student),
-                    so the list needs no tab stop of its own to scroll. */}
-                <div
-                    className="attendance-roster rounded-xl border"
-                    role="region"
-                    aria-label="Scrollable student attendance"
-                    aria-describedby={a.editable ? keysId : undefined}
-                >
-                    <div role="table" aria-label="Student attendance">
-                    <div role="rowgroup" className="attendance-table-head sticky top-0 z-10 hidden border-b bg-background shadow-sm"><div role="row" className={`grid gap-3 px-4 py-3 text-xs font-medium text-muted-foreground ${rowGrid}`}>
-                        {['Student', 'Term attendance', 'Status', 'Remarks'].map((name) => <span role="columnheader" key={name}>{name}</span>)}
-                    </div>
-                    </div>
-                    {/* Only the current student's row and its buttons are in the Tab
-                        order; the arrow keys move between students. */}
-                    <div role="rowgroup" onKeyDown={rosterKeys}>{visible.map((row, index) => {
-                        const stop = rowKey(row) === tabStop
-                        return <div role="row" key={row.student_subject_id}
-                        ref={(node) => { if (node) rowNodes.current.set(rowKey(row), node); else rowNodes.current.delete(rowKey(row)) }}
-                        data-attendance-row={rowKey(row)} data-tour={index === 0 ? 'attendance-row' : undefined}
-                        tabIndex={stop ? 0 : -1} onFocus={() => setActiveId(rowKey(row))}
-                        className={`grid scroll-mb-24 scroll-mt-14 gap-3 border-t px-4 py-4 outline-none focus-within:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${rowGrid}`}>
-                        <div role="cell"><p className="text-sm font-medium">{studentName(row)}</p><p className="text-xs text-muted-foreground">{row.user_id_no || 'No student number'}</p></div>
-                        <div role="cell" className="text-sm">
-                            <span className="attendance-term-label mr-1 text-xs text-muted-foreground">Term attendance:</span>
-                            <TermAttendance row={row} />
-                        </div>
-                        <div role="cell"><div role="group" aria-label={`Attendance status for ${studentName(row)}`} className="grid grid-cols-4 gap-1.5">
-                            {STATUSES.map((status) => <Button type="button" variant="outline" key={status.value} disabled={!a.editable}
-                                tabIndex={stop ? undefined : -1}
-                                aria-label={`${status.label} for ${studentName(row)}`} aria-pressed={row.status === status.value}
-                                className={`h-10 gap-1 px-1 text-xs ${row.status === status.value ? status.tone : ''}`}
-                                onClick={() => edit(row.student_subject_id, { status: row.status === status.value ? null : status.value })}>
-                                {row.status === status.value && <Check className="size-3" />}{status.label}
-                            </Button>)}
-                        </div></div>
-                        <div role="cell" className="min-w-0">
-                            <RemarksCell key={`${a.session.id}:${row.student_subject_id}`} row={row} editable={a.editable}
-                                tabIndex={stop ? undefined : -1}
-                                onChange={(remarks) => edit(row.student_subject_id, { remarks })} />
-                        </div>
-                    </div>
-                    })}</div>
-                    </div>
-                    {!visible.length && <p className="p-6 text-center text-sm text-muted-foreground">No students match this view.</p>}
-                </div>
-                <details className="rounded-lg border p-3 text-sm"><summary className="cursor-pointer font-medium">How attendance rates work</summary>
-                    <p className="mt-2 text-muted-foreground">(Present + Late) ÷ (Present + Late + Absent) × 100. Excused and unmarked students are excluded. Cancelled meetings are excluded from term attendance. Percentages are rounded. Term attendance uses synced records across Midterm and Final, including meetings marked in advance.</p>
-                </details>
-                <footer className="sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-2 rounded-t-xl border bg-background/95 px-4 py-3 shadow-sm backdrop-blur">
-                    <p className="text-sm">{a.stats.marked} of {a.stats.total} marked · {a.stats.unmarked} remaining</p>
-                    <p role="status" aria-live="polite" className={`flex items-center gap-2 text-sm ${a.blocked || a.writeError ? 'text-destructive' : a.pending ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
-                        {a.syncLabel === 'Syncing…' ? <LoaderCircle className="size-4 animate-spin" /> : a.pending ? <AlertCircle className="size-4" /> : <Check className="size-4" />}{a.syncLabel}
-                    </p>
-                </footer>
+                {fullScreen
+                    ? <div aria-hidden="true" style={{ height: placeholder }} />
+                    : workArea(false)}
             </>}
         </>}
         <NewMeeting open={newMeeting} onClose={() => setNewMeeting(false)} attendance={a} initialPeriod={a.session?.period || initialPeriod} />
         <Confirmation action={confirmation} attendance={a} onClose={() => setConfirmation(null)} onClear={() => bulk(true)} />
         <ConflictReview attendance={a} />
+        {a.session && hasRoster && <RosterFullScreen
+            open={fullScreen}
+            onExit={exitFullScreen}
+            title={formatDate(a.session.attendance_date)}
+            description={`${periodLabel(a.session.period)} · Meeting ${a.session.session_number} · ${a.stats.total} students`}
+            offline={!a.online}
+            onOpenAutoFocus={focusCurrent}
+            onCloseAutoFocus={focusAfterFullScreen}
+        >
+            {a.error && <div role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{a.error}</div>}
+            {blockedBanner}
+            {fullScreen && workArea(true)}
+        </RosterFullScreen>}
         {guide.tour}
     </section>
 }

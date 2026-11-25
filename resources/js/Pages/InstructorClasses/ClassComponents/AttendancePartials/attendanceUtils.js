@@ -1,5 +1,9 @@
 import { formatName } from "@/Lib/InfoUtils"
 
+// Whether a key press is typing into a field, which shortcuts leave alone.
+export const typingIn = (target) =>
+    target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+
 export const STATUSES = [
     {
         value: 'present',

@@ -75,6 +75,17 @@ export function attendanceGuide({ keyboard }) {
             ),
         },
         {
+            target: '[data-tour="attendance-fullscreen"]',
+            title: 'Full screen',
+            body: (
+                <p>
+                    Give the list the whole screen while you take attendance. The search,
+                    shortcuts and marked count come along. {strong('Exit full screen')} brings
+                    you back{keyboard && <>, and so does <Key>Esc</Key></>}.
+                </p>
+            ),
+        },
+        {
             target: '[data-tour="attendance-bulk"]',
             title: 'Everyone here?',
             body: (
