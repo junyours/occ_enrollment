@@ -11,11 +11,14 @@ export default function OpenNstpClass({ id, componentName, sectionName, gradeSub
     
     const section = `${componentName.toUpperCase()}-${sectionName}`
 
+    // A link can open the Grades tab (?tab=grades).
+    const initialTab = new URLSearchParams(window.location.search).get('tab') === 'grades' ? 'grades' : 'students'
+
     return (
         <div className="space-y-4">
             <Head title={section} />
             <PageTitle align='center'>{section}</PageTitle>
-            <Tabs defaultValue="students" className="w-full space-y-4">
+            <Tabs defaultValue={initialTab} className="w-full space-y-4">
                 <div className="w-full flex justify-start">
                     <TabsList className="w-96">
                         <TabsTrigger value="students" className='w-full'>Students</TabsTrigger>

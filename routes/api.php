@@ -3,6 +3,7 @@
 use App\Http\Controllers\Mobile\AuthController;
 use App\Http\Controllers\Mobile\ClassController;
 use App\Http\Controllers\CsgAttendance\CsgAttendanceController;
+use App\Http\Controllers\InstructorDashboardController;
 use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\OAuth\UserInfoController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Faculty classes
     Route::get('/mobile/current-faculty-classes', [ClassController::class, 'getFacultyCurrentClasses']);
     Route::get('/mobile/classes-classroom-students', [ClassController::class, 'getStudents']);
+    // The teacher's dashboard (same data as the web page).
+    Route::get('/mobile/instructor/dashboard', [InstructorDashboardController::class, 'mobile']);
+    Route::post('/mobile/instructor/students/{studentSubjectId}/absence-notice', [InstructorDashboardController::class, 'notifyAbsences'])
+        ->whereNumber('studentSubjectId');
 
     Route::post('/mobile/change-password', [AuthController::class, 'changePassword']);
 

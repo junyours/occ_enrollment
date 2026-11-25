@@ -27,6 +27,10 @@ class NotificationController extends Controller
                     'post' => $params['announcement_id'] ?? null,
                 ]))
                 : null,
+            // The student's attendance in one class, e.g. absence notices.
+            'class.attendance' => isset($params['class_id'])
+                ? '/classes/classroom/' . hash('sha256', (string) $params['class_id']) . '?tab=attendance'
+                : null,
             // The teacher's class list, e.g. grade upload reminders.
             'classes' => '/classes',
             default => null,

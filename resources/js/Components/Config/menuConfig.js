@@ -43,6 +43,7 @@ import {
     FileClock,
     UserX,
     HardDrive,
+    LayoutDashboard,
 } from "lucide-react";
 
 import { PiStudent } from "react-icons/pi";
@@ -53,6 +54,7 @@ function createTeacherMenu(facultyResultRoute) {
         {
             label: "Academic",
             items: [
+                { name: "Dashboard", route: "instructor.dashboard", icon: LayoutDashboard },
                 { name: "Classes", route: "classes", icon: Presentation },
             ],
         },
@@ -79,6 +81,7 @@ export const MENU_CONFIG = {
             items: [
                 { name: "School Year", route: "school-year", icon: Calendar1 },
                 { name: "Curriculum", route: "curriculum", icon: BookOpen },
+                { name: "Teaching Dashboard", route: "instructor.dashboard", icon: LayoutDashboard },
                 { name: "Classes", route: "classes", icon: Presentation },
             ],
         },

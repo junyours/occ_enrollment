@@ -2,8 +2,17 @@
 
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\InstructorClasses\ClassController;
+use App\Http\Controllers\InstructorDashboardController;
 use App\Http\Controllers\StudentAttendanceController;
 use Illuminate\Support\Facades\Route;
+
+Route::middleware(['auth', 'maintenance', 'role:' . implode(',', InstructorDashboardController::ROLES)])->group(function () {
+    Route::get('/instructor/dashboard', [InstructorDashboardController::class, 'view'])->name('instructor.dashboard');
+    // Tell a student about their absences in a row.
+    Route::post('/instructor/students/{studentSubjectId}/absence-notice', [InstructorDashboardController::class, 'notifyAbsences'])
+        ->whereNumber('studentSubjectId')
+        ->name('instructor.absence-notice');
+});
 
 Route::middleware(['auth', 'maintenance', 'role:program_head,evaluator,faculty,student,registrar,nstp_faculty'])->group(function () {
     Route::get('/classes', [ClassController::class, 'view'])->name('classes');

@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
+use App\Http\Controllers\InstructorDashboardController;
 
 class SuperAdminController extends Controller
 {
@@ -123,6 +124,8 @@ class SuperAdminController extends Controller
             return redirect()->intended(route('nstp-director.dashboard', absolute: false));
         } else if ($user->user_role == 'academic_dean') {
             return redirect()->intended(route('schedules.view-faculty-schedules', absolute: false));
+        } else if (in_array($user->user_role, InstructorDashboardController::ROLES, true)) {
+            return redirect()->intended(route('instructor.dashboard', absolute: false));
         } else {
             return redirect()->intended(route('classes', absolute: false));
         }

@@ -359,6 +359,8 @@ class ClassController extends Controller
 
     public function nstpSectionGradeSubmissionStatus(int $id)
     {
+        $this->assertNstpSectionAccess($id, overseers: true);
+
         $gradeSubmissionStatus = NstpGradeSubmission::where('nstp_section_id', $id)->first();
 
         if (!$gradeSubmissionStatus) {
@@ -372,6 +374,9 @@ class ClassController extends Controller
 
     public function nstpStudents($id)
     {
+        // Contacts and grades: the section's teacher only.
+        $this->assertNstpSectionAccess((int) $id);
+
         return NstpSection::where('nstp_sections.id', '=', $id)
             ->select('users.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'email_address', 'contact_number', 'gender', 'midterm_grade', 'final_grade')
             ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
@@ -386,6 +391,8 @@ class ClassController extends Controller
 
     public function nstpGradeSubmissionDetails($id)
     {
+        $this->assertNstpSectionAccess((int) $id);
+
         $gradeSubmissionStatus = NstpGradeSubmission::where('nstp_section_id', '=', $id)->first();
 
         if (!$gradeSubmissionStatus) {
@@ -399,6 +406,9 @@ class ClassController extends Controller
 
     public function nstpStudentsGrades($id)
     {
+        // The section's teacher, plus the NSTP director and registrar, who review grades.
+        $this->assertNstpSectionAccess((int) $id, overseers: true);
+
         return NstpSection::where('nstp_sections.id', '=', $id)
             ->select('student_subjects.id', 'user_id_no', 'first_name', 'middle_name', 'last_name', 'midterm_grade', 'final_grade')
             ->join('nstp_section_schedules', 'nstp_section_schedules.nstp_section_id', '=', 'nstp_sections.id')
@@ -527,6 +537,9 @@ class ClassController extends Controller
 
     public function getStudents($id)
     {
+        // Contacts and grades: the class's teacher only.
+        $this->assertClassTeacher((int) $id);
+
         $students = StudentSubject::select(
             'users.id',
             'user_id_no',
@@ -792,6 +805,27 @@ class ClassController extends Controller
     {
         $gate = app(GradeUploadGate::class);
         $gate->assertTeacher($gate->regularClass($classId), Auth::user());
+    }
+
+    /**
+     * Stops anyone who doesn't teach this NSTP section. With `$overseers`,
+     * the NSTP director and the registrar may also look.
+     */
+    private function assertNstpSectionAccess(int $sectionId, bool $overseers = false): void
+    {
+        $user = Auth::user();
+        abort_unless($user, 401, 'Unauthenticated.');
+
+        if ($overseers && in_array($user->user_role, ['nstp_director', 'registrar'], true)) {
+            return;
+        }
+
+        $teaches = DB::table('nstp_section_schedules')
+            ->where('nstp_section_id', $sectionId)
+            ->where('faculty_id', $user->id)
+            ->exists();
+
+        abort_unless($teaches, 403, 'You are not assigned to this class.');
     }
 
     /**
@@ -1358,6 +1392,8 @@ class ClassController extends Controller
 
     public function downloadStudentsExcel($id)
     {
+        $this->assertClassTeacher((int) $id);
+
         $section = YearSectionSubjects::with('yearSection')->findOrFail($id)->yearSection;
 
         $students = YearSectionSubjects::query()
