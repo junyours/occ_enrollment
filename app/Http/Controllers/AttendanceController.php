@@ -357,6 +357,30 @@ class AttendanceController extends Controller
         return response()->json($result);
     }
 
+    // Moves a meeting to the other grading period, for one added under the
+    // wrong one. The marks stay as they are; locked meetings keep theirs.
+    public function setPeriod(Request $request, int $classId, int $sessionId): JsonResponse
+    {
+        $this->checkActor($request);
+        $data = $request->validate([
+            'version' => ['required', 'integer', 'min:0'],
+            'period' => ['required', 'in:midterm,final'],
+        ]);
+        $result = DB::transaction(function () use ($request, $classId, $sessionId, $data) {
+            $session = $this->ownedSession($request, $classId, $sessionId);
+            $this->assertUnlocked($session);
+            // Already there (a double click, another tab): nothing to change,
+            // so pending edits elsewhere aren't put into conflict.
+            if ($session->period === $data['period']) {
+                return $this->detail($session);
+            }
+            $this->checkVersion($session, (int) $data['version']);
+            $this->bumpVersion($session, ['period' => $data['period']]);
+            return $this->detail($session);
+        }, 3);
+        return response()->json($result);
+    }
+
     public function lock(Request $request, int $classId, int $sessionId): JsonResponse
     {
         $this->checkActor($request);

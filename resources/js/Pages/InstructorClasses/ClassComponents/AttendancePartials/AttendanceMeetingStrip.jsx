@@ -158,7 +158,7 @@ export default function AttendanceMeetingStrip({
     }
 
     return (
-        <div className="flex min-w-0 items-stretch gap-2">
+        <div className="flex min-w-0 items-stretch gap-2" data-tour="attendance-meetings">
             <nav
                 ref={stripRef}
                 aria-label="Attendance meetings"

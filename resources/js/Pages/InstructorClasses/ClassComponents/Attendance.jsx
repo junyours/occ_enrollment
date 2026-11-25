@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { AlertCircle, CalendarDays, Check, ClipboardList, Info, LoaderCircle, LockKeyhole, Plus, RotateCcw, Search, WifiOff } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, ClipboardList, Info, Keyboard, LoaderCircle, LockKeyhole, Plus, RotateCcw, Search, WifiOff } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Badge } from '@/Components/ui/badge'
@@ -15,6 +16,8 @@ import useAttendance from './AttendancePartials/useAttendance'
 import { RemarksCell, TermAttendance } from './AttendancePartials/AttendanceRowDetails'
 import { formatDate, meetingLabel, sessionCounts, STATUSES, studentName, suggestedDates } from './AttendancePartials/attendanceUtils'
 import AttendanceExport from './AttendancePartials/AttendanceExport.jsx'
+import { attendanceGuide, Key } from './AttendancePartials/attendanceGuide'
+import { GuideButton, useGuide } from './Classwork/Shared/GuideTour'
 import './AttendancePartials/attendance.css'
 const periods = [{ value: 'midterm', label: 'Midterm' }, { value: 'final', label: 'Final' }]
 const filters = [{ value: 'all', label: 'All students' }, { value: 'unmarked', label: 'Unmarked' }, ...STATUSES]
@@ -60,6 +63,64 @@ function savePeriod(userId, value) {
     } catch {
         // Private browsing or blocked storage: the choice just isn't remembered.
     }
+}
+
+const periodLabel = (value) => periods.find((item) => item.value === value)?.label
+
+// The grading period a meeting counts toward. One added under the wrong
+// period moves with a click and keeps its marks; locked meetings keep theirs.
+function PeriodSwitch({ attendance: a }) {
+    const id = useId()
+    const current = a.session.period
+    // The period being saved shows right away; a failed save goes back.
+    const [saving, setSaving] = useState(null)
+
+    async function change(next) {
+        // Clicking the chosen period again leaves it chosen.
+        if (!next || next === current || saving) return
+        setSaving(next)
+        try {
+            if (await a.setPeriod(next)) toast.success(`Meeting moved to ${periodLabel(next)}.`)
+        } finally {
+            setSaving(null)
+        }
+    }
+
+    return <div className="flex items-center gap-2" data-tour="attendance-period">
+        <span id={`${id}-label`} className="text-xs text-muted-foreground">Grading period</span>
+        <ToggleGroup type="single" value={saving ?? current} onValueChange={change} aria-labelledby={`${id}-label`}
+            disabled={!a.online || a.pending || a.busy} className="gap-1">
+            {periods.map((item) => <ToggleGroupItem key={item.value} value={item.value} variant="outline"
+                className="h-8 px-3 text-xs data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:text-primary">
+                {item.label}
+            </ToggleGroupItem>)}
+        </ToggleGroup>
+    </div>
+}
+
+// Roster shortcuts. A status key marks the current student and moves to the
+// next one; clearing stays put so the student can be marked again.
+const STATUS_KEYS = new Map([['p', 'present'], ['1', 'present'], ['l', 'late'], ['2', 'late'], ['a', 'absent'], ['3', 'absent'], ['e', 'excused'], ['4', 'excused']])
+const CLEAR_KEYS = new Set(['Backspace', 'Delete', '0'])
+const rowKey = (row) => String(row.student_subject_id)
+const typingIn = (target) => target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+
+// Shown where there's likely a keyboard: a mouse or trackpad is the pointer.
+function ShortcutLegend({ id }) {
+    return <>
+        <p id={id} className="sr-only">
+            On a student, press P, L, A or E to mark them Present, Late, Absent or Excused and move to the next student.
+            Backspace clears a mark, the up and down arrows move between students, and R writes a remark.
+        </p>
+        <div aria-hidden="true" data-tour="attendance-keys"
+            className="hidden flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground [@media(pointer:fine)]:flex">
+            <span className="flex items-center gap-1.5 font-medium text-foreground"><Keyboard className="size-3.5" />Keyboard</span>
+            {STATUSES.map((status) => <span key={status.value} className="flex items-center gap-1"><Key>{status.short}</Key>{status.label}</span>)}
+            <span className="flex items-center gap-1"><Key>⌫</Key>Clear</span>
+            <span className="flex items-center gap-1"><Key>↑</Key><Key>↓</Key>Move</span>
+            <span className="flex items-center gap-1"><Key>R</Key>Remarks</span>
+        </div>
+    </>
 }
 
 function NewMeeting({ open, onClose, attendance: a, initialPeriod }) {
@@ -215,7 +276,7 @@ function Confirmation({ action, attendance: a, onClose, onClear }) {
                     <div>
                         <p className="font-medium">{formatDate(a.session.attendance_date)}</p>
                         <p className="text-xs text-muted-foreground">
-                            {periods.find((period) => period.value === a.session.period)?.label} · Meeting {a.session.session_number}
+                            {periodLabel(a.session.period)} · Meeting {a.session.session_number}
                         </p>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
@@ -302,12 +363,25 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
     const [newMeeting, setNewMeeting] = useState(false)
     const [confirmation, setConfirmation] = useState(null)
     const [undo, setUndo] = useState(null)
+    // The student the keyboard marks: the last row focused.
+    const [activeId, setActiveId] = useState(null)
+    const rowNodes = useRef(new Map())
+    const keysId = useId()
     const a = useAttendance({ classId })
-    useEffect(() => { setSearch(''); setFilter('all'); setUndo(null); setConfirmation(null) }, [classId, a.session?.id])
+    useEffect(() => { setSearch(''); setFilter('all'); setUndo(null); setConfirmation(null); setActiveId(null) }, [classId, a.session?.id])
     const visible = useMemo(() => a.rows.filter((row) =>
         `${studentName(row)} ${row.user_id_no || ''}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()) &&
         (filter === 'all' || (row.status || 'unmarked') === filter)), [a.rows, search, filter])
     const hasRoster = Boolean(a.session?.roster_initialized_at)
+    // Tab lands on the current student, or the first one left to mark.
+    const tabStop = visible.some((row) => rowKey(row) === activeId)
+        ? activeId
+        : visible.length ? rowKey(visible.find((row) => !row.status) ?? visible[0]) : null
+    const guide = useGuide({
+        guide: 'attendance',
+        steps: () => attendanceGuide({ keyboard: window.matchMedia?.('(pointer: fine)').matches ?? true }),
+        ready: hasRoster && !a.loading && !newMeeting,
+    })
     async function bulk(clear = false) {
         const targets = a.rows.filter((row) => clear ? row.status !== null : !row.status)
         if (!targets.length) return false
@@ -318,6 +392,43 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
         return success
     }
     function edit(studentId, values) { setUndo(null); return a.patch(studentId, values) }
+
+    function focusRow(index) {
+        const row = visible[Math.min(Math.max(index, 0), visible.length - 1)]
+        const node = row && rowNodes.current.get(rowKey(row))
+        if (!node) return
+        setActiveId(rowKey(row))
+        node.focus({ preventScroll: true })
+        node.scrollIntoView({ block: 'nearest' })
+    }
+
+    function rosterKeys(event) {
+        if (event.ctrlKey || event.metaKey || event.altKey || event.nativeEvent.isComposing || typingIn(event.target)) return
+        const node = event.target.closest('[data-attendance-row]')
+        const index = node ? visible.findIndex((row) => rowKey(row) === node.dataset.attendanceRow) : -1
+        if (index < 0) return
+        const row = visible[index]
+        const key = event.key.length === 1 ? event.key.toLowerCase() : event.key
+        const status = STATUS_KEYS.has(key) ? STATUS_KEYS.get(key) : CLEAR_KEYS.has(key) ? null : undefined
+
+        if (status !== undefined) {
+            event.preventDefault()
+            // Holding a key down mustn't run through the whole class.
+            if (event.repeat || !a.editable) return
+            if ((row.status ?? null) !== status) edit(row.student_subject_id, { status })
+            if (status) focusRow(index + 1)
+            return
+        }
+
+        const moves = new Map([['ArrowDown', index + 1], ['ArrowUp', index - 1], ['Home', 0], ['End', visible.length - 1]])
+        if (moves.has(key)) {
+            event.preventDefault()
+            focusRow(moves.get(key))
+        } else if (key === 'r' && a.editable) {
+            event.preventDefault()
+            node.querySelector('[data-remarks-trigger]')?.click()
+        }
+    }
 
     return <section
         className="attendance-panel min-w-0 w-full max-w-full space-y-4"
@@ -348,8 +459,8 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
 
                         <p className="text-xs text-amber-800 dark:text-amber-300">
                             Changes saved on this device will sync automatically
-                            when the connection returns. Adding meetings
-                            requires internet.
+                            when the connection returns. Adding meetings and
+                            changing a meeting’s grading period need internet.
                         </p>
                     </div>
                 </CardContent>
@@ -364,8 +475,12 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
         {!a.loading && !a.sessions.length && <Card className="border-dashed shadow-none"><CardContent className="py-10 text-center"><CalendarDays className="mx-auto mb-2 size-8 text-muted-foreground" />No meetings yet. Add one using your class schedule.</CardContent></Card>}
         {a.session && <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <div><h3 className="font-semibold">{formatDate(a.session.attendance_date)}</h3><p className="text-xs text-muted-foreground">{periods.find((item) => item.value === a.session.period)?.label} · Meeting {a.session.session_number} · {a.stats.total} students</p></div>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                    <div><h3 className="font-semibold">{formatDate(a.session.attendance_date)}</h3><p className="text-xs text-muted-foreground">{a.locked && `${periodLabel(a.session.period)} · `}Meeting {a.session.session_number} · {a.stats.total} students</p></div>
+                    {!a.locked && <PeriodSwitch attendance={a} />}
+                </div>
                 <div className="flex flex-wrap items-center gap-2">
+                    <GuideButton onClick={guide.start} data-tour="guide-attendance" />
                     <AttendanceExport key={classId} attendance={a} section={section} />
                     {/* <Button type="button" variant="outline" size="icon" aria-label="Refresh" title="Refresh attendance"
                         disabled={!a.online || a.busy} onClick={a.refresh}><RotateCcw className="size-4" /></Button> */}
@@ -382,6 +497,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                                     Cancel meeting
                                 </Button>
                                     <Button type="button" variant="outline" disabled={!a.online || a.pending || a.busy || !hasRoster || a.stats.unmarked > 0}
+                                        data-tour="attendance-lock"
                                         title="Mark all students and wait for sync before permanently locking." onClick={() => setConfirmation('lock')}><LockKeyhole className="size-4" />Lock meeting</Button></>}
                         </div>}
                 </div>
@@ -403,29 +519,42 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                 <div className="flex flex-wrap gap-2">
                     <div className="relative min-w-48 flex-1"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input className="h-10 pl-9" aria-label="Search students" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or student number…" /></div>
                     <Choice label="Filter attendance status" value={filter} options={filters} onChange={(next) => next && setFilter(next)} />
-                    <Button type="button" variant="outline" className="h-10" disabled={!a.editable || !a.stats.unmarked} onClick={() => bulk(false)}>Mark unmarked present</Button>
+                    <Button type="button" variant="outline" className="h-10" disabled={!a.editable || !a.stats.unmarked} data-tour="attendance-bulk" onClick={() => bulk(false)}>Mark unmarked present</Button>
                     <Button type="button" variant="ghost" className="h-10" disabled={!a.editable || !a.stats.marked} onClick={() => setConfirmation('clear')}>Clear marks</Button>
                     {undo && <Button type="button" variant="outline" disabled={!a.editable} onClick={async () => { if (await a.patchMany(undo)) setUndo(null) }}>Undo</Button>}
                 </div>
                 {/* <p className="text-xs text-muted-foreground">Bulk actions include hidden rows. Click a selected status again to unmark it.</p> */}
+                {a.editable && <ShortcutLegend id={keysId} />}
+                {/* Rows take focus themselves (Tab lands on the current student),
+                    so the list needs no tab stop of its own to scroll. */}
                 <div
                     className="attendance-roster rounded-xl border"
                     role="region"
                     aria-label="Scrollable student attendance"
-                    tabIndex={0}
+                    aria-describedby={a.editable ? keysId : undefined}
                 >
+                    <div role="table" aria-label="Student attendance">
                     <div role="rowgroup" className="attendance-table-head sticky top-0 z-10 hidden border-b bg-background shadow-sm"><div role="row" className={`grid gap-3 px-4 py-3 text-xs font-medium text-muted-foreground ${rowGrid}`}>
                         {['Student', 'Term attendance', 'Status', 'Remarks'].map((name) => <span role="columnheader" key={name}>{name}</span>)}
                     </div>
                     </div>
-                    <div role="rowgroup">{visible.map((row) => <div role="row" key={row.student_subject_id} className={`grid gap-3 border-t px-4 py-4 ${rowGrid}`}>
-                        <div role="cell"><p className="text-sm font-medium">{studentName(row)}</p><p className="text-xs text-muted-foreground">{row.user_id_no || 'No student number'}</p>{!row.status && <Badge variant="secondary" className="mt-1 text-[11px]">Unmarked</Badge>}</div>
+                    {/* Only the current student's row and its buttons are in the Tab
+                        order; the arrow keys move between students. */}
+                    <div role="rowgroup" onKeyDown={rosterKeys}>{visible.map((row, index) => {
+                        const stop = rowKey(row) === tabStop
+                        return <div role="row" key={row.student_subject_id}
+                        ref={(node) => { if (node) rowNodes.current.set(rowKey(row), node); else rowNodes.current.delete(rowKey(row)) }}
+                        data-attendance-row={rowKey(row)} data-tour={index === 0 ? 'attendance-row' : undefined}
+                        tabIndex={stop ? 0 : -1} onFocus={() => setActiveId(rowKey(row))}
+                        className={`grid scroll-mb-24 scroll-mt-14 gap-3 border-t px-4 py-4 outline-none focus-within:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${rowGrid}`}>
+                        <div role="cell"><p className="text-sm font-medium">{studentName(row)}</p><p className="text-xs text-muted-foreground">{row.user_id_no || 'No student number'}</p></div>
                         <div role="cell" className="text-sm">
                             <span className="attendance-term-label mr-1 text-xs text-muted-foreground">Term attendance:</span>
                             <TermAttendance row={row} />
                         </div>
                         <div role="cell"><div role="group" aria-label={`Attendance status for ${studentName(row)}`} className="grid grid-cols-4 gap-1.5">
                             {STATUSES.map((status) => <Button type="button" variant="outline" key={status.value} disabled={!a.editable}
+                                tabIndex={stop ? undefined : -1}
                                 aria-label={`${status.label} for ${studentName(row)}`} aria-pressed={row.status === status.value}
                                 className={`h-10 gap-1 px-1 text-xs ${row.status === status.value ? status.tone : ''}`}
                                 onClick={() => edit(row.student_subject_id, { status: row.status === status.value ? null : status.value })}>
@@ -434,9 +563,12 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                         </div></div>
                         <div role="cell" className="min-w-0">
                             <RemarksCell key={`${a.session.id}:${row.student_subject_id}`} row={row} editable={a.editable}
+                                tabIndex={stop ? undefined : -1}
                                 onChange={(remarks) => edit(row.student_subject_id, { remarks })} />
                         </div>
-                    </div>)}</div>
+                    </div>
+                    })}</div>
+                    </div>
                     {!visible.length && <p className="p-6 text-center text-sm text-muted-foreground">No students match this view.</p>}
                 </div>
                 <details className="rounded-lg border p-3 text-sm"><summary className="cursor-pointer font-medium">How attendance rates work</summary>
@@ -453,5 +585,6 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
         <NewMeeting open={newMeeting} onClose={() => setNewMeeting(false)} attendance={a} initialPeriod={a.session?.period || initialPeriod} />
         <Confirmation action={confirmation} attendance={a} onClose={() => setConfirmation(null)} onClear={() => bulk(true)} />
         <ConflictReview attendance={a} />
+        {guide.tour}
     </section>
 }

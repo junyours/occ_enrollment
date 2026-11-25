@@ -39,7 +39,9 @@ export function TermAttendance({ row }) {
     )
 }
 
-export function RemarksCell({ row, editable, onChange }) {
+// tabIndex: -1 keeps the note button out of the Tab order (the roster lets
+// only the current student's row be tabbed into).
+export function RemarksCell({ row, editable, onChange, tabIndex }) {
     const [editing, setEditing] = useState(false)
 
     const inputRef = useRef(null)
@@ -131,6 +133,9 @@ export function RemarksCell({ row, editable, onChange }) {
             ref={buttonRef}
             type="button"
             variant="ghost"
+            // The roster's R shortcut opens this.
+            data-remarks-trigger=""
+            tabIndex={tabIndex}
             size={hasNote ? 'default' : 'icon'}
             aria-label={`${hasNote ? 'Edit' : 'Add'} remarks for ${name}`}
             aria-expanded={false}

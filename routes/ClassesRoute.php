@@ -144,6 +144,7 @@ Route::middleware(['auth', 'role:faculty,program_head,evaluator'])->group(functi
             Route::post('/sessions/{sessionId}/start', [AttendanceController::class, 'start'])->whereNumber('sessionId')->name('start');
             Route::put('/sessions/{sessionId}/records', [AttendanceController::class, 'save'])->whereNumber('sessionId')->name('save');
             Route::patch('/sessions/{sessionId}/status', [AttendanceController::class, 'setStatus'])->whereNumber('sessionId')->name('status');
+            Route::patch('/sessions/{sessionId}/period', [AttendanceController::class, 'setPeriod'])->whereNumber('sessionId')->name('period');
             Route::post('/sessions/{sessionId}/lock', [AttendanceController::class, 'lock'])->whereNumber('sessionId')->name('lock');
         });
 });

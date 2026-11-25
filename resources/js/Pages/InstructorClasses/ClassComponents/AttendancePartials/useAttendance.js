@@ -150,10 +150,13 @@ export default function useAttendance({ classId, period = 'all' }) {
     }, [local.data?.lists, period])
 
     const listing = list.data || cachedListing
+    const fromServer = Boolean(list.data)
 
     const today = schoolToday()
     const docs = local.data?.docs || []
 
+    // The server's meetings, updated with what this device has: unsynced
+    // marks (shown as Pending sync) and anything newer than the list.
     const sessions = useMemo(() => {
         const found = new Map(
             (listing?.sessions || []).map((session) => [
@@ -163,15 +166,22 @@ export default function useAttendance({ classId, period = 'all' }) {
         )
 
         for (const doc of docs) {
-            if (period === 'all' || doc.detail.session.period === period) continue
+            // A list for one grading period takes only that period's meetings.
+            if (period !== 'all' && doc.detail.session.period !== period) continue
 
             const known = found.get(
                 String(doc.detail.session.id),
             )
+            const pending = hasPending(doc)
+
+            // A meeting the server no longer lists (say, after a database
+            // restore) stays hidden, unless this device still has marks
+            // for it or the list is the copy saved for offline use.
+            if (!known && !pending && fromServer) continue
 
             if (
                 !known ||
-                hasPending(doc) ||
+                pending ||
                 Number(doc.detail.session.lock_version) >=
                 Number(known.lock_version)
             ) {
@@ -180,7 +190,7 @@ export default function useAttendance({ classId, period = 'all' }) {
                         doc.detail.session,
                         documentRows(doc),
                     ),
-                    pending_sync: hasPending(doc),
+                    pending_sync: pending,
                 })
             }
         }
@@ -190,7 +200,7 @@ export default function useAttendance({ classId, period = 'all' }) {
                 a.attendance_date.localeCompare(b.attendance_date) ||
                 a.session_number - b.session_number,
         )
-    }, [listing, docs, period])
+    }, [listing, fromServer, docs, period])
 
     const defaultSession =
         sessions
@@ -298,7 +308,7 @@ export default function useAttendance({ classId, period = 'all' }) {
                 fresh?.detail.session.lock_version ??
                 session.lock_version,
                 userId,
-                values?.status,
+                values,
             )
         },
 
@@ -446,7 +456,15 @@ export default function useAttendance({ classId, period = 'all' }) {
             await action.mutateAsync({ kind, values })
             return true
         } catch (failure) {
-            setError(apiError(failure))
+            // Changed on another device. Nothing is pending here (actions
+            // wait for sync), so load the latest and let the teacher retry.
+            if (failure.response?.status === 409 && kind !== 'create' && selected) {
+                setError('This meeting was just changed on another device. The latest version is loaded now, so try again.')
+                void detailQuery.refetch()
+            } else {
+                setError(apiError(failure))
+            }
+
             return false
         }
     }
@@ -647,6 +665,9 @@ export default function useAttendance({ classId, period = 'all' }) {
 
         setStatus: (status) =>
             manage('status', { status }),
+
+        setPeriod: (period) =>
+            manage('period', { period }),
 
         lock: () => manage('lock'),
 

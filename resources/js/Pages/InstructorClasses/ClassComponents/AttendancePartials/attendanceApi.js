@@ -43,19 +43,14 @@ export const attendanceApi = {
         ).data
     },
 
-    async action(classId, id, action, version, actorId, status) {
-        const values = {
-            version,
-            actor_id: actorId,
-            ...(status ? { status } : {}),
-        }
-
-        const method = action === 'status' ? 'patch' : 'post'
+    // `values` carries what the action changes, like { status } or { period }.
+    async action(classId, id, action, version, actorId, values = {}) {
+        const method = ['status', 'period'].includes(action) ? 'patch' : 'post'
 
         return (
             await axios[method](
                 `${meeting(classId, id)}/${action}`,
-                values,
+                { ...values, version, actor_id: actorId },
                 config,
             )
         ).data
