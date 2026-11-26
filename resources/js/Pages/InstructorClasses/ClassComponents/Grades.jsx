@@ -1,21 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Button } from '@/Components/ui/button'
-import {
-    Download,
-    Printer,
-    Upload,
-    Cloud,
-    CloudUpload,
-    AlertCircle,
-    ChevronUp,
-    ChevronDown,
-    FileText,
-    Send,
-    CheckCircle,
-    XCircle,
-    Rocket,
-} from 'lucide-react'
+import { Download, Printer, Upload, Cloud, CloudUpload, AlertCircle } from 'lucide-react'
 import axios from 'axios'
 import GradesStudentList from './GradePartials/GradesStudentList'
 import { router, usePage } from '@inertiajs/react'
@@ -24,56 +10,14 @@ import GradeSignatories from './GradePartials/GradeSignatories'
 import GradeHeader from './GradePartials/GradeHeader'
 import { useGradeSubmission } from './GradePartials/useGradeSubmission'
 import PreLoader from '@/Components/preloader/PreLoader'
-import InstructorGradeSubmitionButton from './GradePartials/InstructorGradeSubmitionButton'
-import GradeRequestEditAction from './GradePartials/GradeRequestEditAction'
-import UploadWindow, { canSubmitOrUnsubmit } from './GradePartials/UploadWindow'
+import { lockedReason, uploadWindowText } from './GradePartials/UploadWindow'
+import { ConfirmGradeAction, gradeConfirmText, statusMap, SubmissionBar, SubmissionPanel } from './GradePartials/SubmissionBar'
+import { buildGradeTemplate, TEMPLATE_WRITE_OPTIONS } from './GradePartials/gradeTemplate'
 import { toast } from 'sonner'
 
 /* -------------------------------------------------------------------------- */
 /*  Status config                                                              */
 /* -------------------------------------------------------------------------- */
-
-// Order of the submission pipeline. "rejected" is a detour that sits at the
-// "submitted" step, so it reuses that position with a red fill.
-const STEPS = ['draft', 'submitted', 'verified', 'deployed']
-
-const statusMap = {
-    draft: {
-        label: 'Draft',
-        text: 'text-gray-500 dark:text-gray-400',
-        bar: 'bg-gray-400',
-        icon: FileText,
-        step: 0,
-    },
-    submitted: {
-        label: 'Submitted',
-        text: 'text-blue-600 dark:text-blue-400',
-        bar: 'bg-blue-500',
-        icon: Send,
-        step: 1,
-    },
-    verified: {
-        label: 'Verified',
-        text: 'text-green-600 dark:text-green-400',
-        bar: 'bg-green-600',
-        icon: CheckCircle,
-        step: 2,
-    },
-    rejected: {
-        label: 'Rejected',
-        text: 'text-red-600 dark:text-red-400',
-        bar: 'bg-red-500',
-        icon: XCircle,
-        step: 1,
-    },
-    deployed: {
-        label: 'Deployed',
-        text: 'text-indigo-600 dark:text-indigo-400',
-        bar: 'bg-indigo-600',
-        icon: Rocket,
-        step: 3,
-    },
-}
 
 const saveStateMap = {
     uploading: {
@@ -115,120 +59,6 @@ function SaveIndicator({ status }) {
     )
 }
 
-function StatusTrack({ label }) {
-    const status = label?.toLowerCase?.()
-    const config = statusMap[status]
-    const Icon = config?.icon
-
-    return (
-        <div
-            className="min-w-0 flex-1"
-            role="group"
-            aria-label={`Status: ${config?.label ?? 'Not started'}`}
-        >
-            <div
-                className={`mb-1.5 flex items-center gap-1.5 text-xs font-semibold ${config?.text ?? 'text-muted-foreground'}`}
-            >
-                {Icon && <Icon size={14} />}
-                <span>{config?.label ?? '—'}</span>
-            </div>
-
-            <div className="flex gap-1">
-                {STEPS.map((step, index) => (
-                    <span
-                        key={step}
-                        title={step.charAt(0).toUpperCase() + step.slice(1)}
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${config && index <= config.step ? config.bar : 'bg-muted'
-                            }`}
-                    />
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function SubmissionPanel({
-    type,
-    title,
-    data,
-    canUpload,
-    upload,
-    submitting,
-    onSubmit,
-    onCancel,
-    onRequestEdit,
-    onCancelRequestEdit,
-    requestStatus,
-    reasonOpen,
-    onToggleReason,
-}) {
-    const status = data[`${type}_status`]
-    const rejectionMessage = data[`${type}_rejection_message`]
-    const showReason = status == 'rejected' && rejectionMessage
-    // Submitting needs upload to have opened; unsubmitting needs it open.
-    const allowed = canSubmitOrUnsubmit(upload, status, canUpload)
-
-    return (
-        <div className="rounded-xl border bg-card p-3">
-            <div className="mb-3 flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">{title}</h3>
-
-                <div className="flex items-center gap-3">
-                    {showReason && (
-                        <div className="relative">
-                            <button
-                                type="button"
-                                onClick={onToggleReason}
-                                aria-expanded={reasonOpen}
-                                className="flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                                <AlertCircle className="h-3 w-3" />
-                                View reason
-                                {reasonOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
-                            </button>
-
-                            {reasonOpen && (
-                                <div className="absolute bottom-full right-0 z-50 mb-2 w-64 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-900 shadow-lg dark:border-red-900 dark:bg-red-950 dark:text-red-100">
-                                    {rejectionMessage}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    <GradeRequestEditAction
-                        gradeSubmissionStatus={status}
-                        isDisabled={submitting === type}
-                        handleRequestEdit={onRequestEdit}
-                        type={type}
-                        requestStatus={requestStatus}
-                        handleCancelRequestEdit={onCancelRequestEdit}
-                    />
-                </div>
-            </div>
-
-            <UploadWindow upload={upload} status={status} className="mb-2" />
-
-            <div className="flex items-center gap-3">
-                <StatusTrack label={status} />
-
-                <InstructorGradeSubmitionButton
-                    handleSubmit={onSubmit}
-                    disabledButton={!allowed || submitting === type}
-                    handleCancel={onCancel}
-                    type={type}
-                    status={{
-                        deployed_at: data[`${type}_deployed_at`],
-                        rejection_message: rejectionMessage,
-                        status,
-                        submitted_at: data[`${type}_submitted_at`],
-                        verified_at: data[`${type}_verified_at`],
-                    }}
-                />
-            </div>
-        </div>
-    )
-}
-
 /* -------------------------------------------------------------------------- */
 /*  Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -236,10 +66,11 @@ function SubmissionPanel({
 // The server's reason for a refused action, if it gave one.
 const reason = (errors) => Object.values(errors ?? {}).flat()[0] ?? 'Please try again.'
 
+// 0.0 for a dropped student, or 1.0–5.0, as in the grade boxes.
 const isValidGrade = (grade) => {
     if (grade === undefined || grade === null || grade === '') return false;
     const num = Number(grade);
-    return !isNaN(num) && num >= 1 && num <= 5;
+    return !isNaN(num) && (num === 0 || (num >= 1 && num <= 5));
 };
 
 /* -------------------------------------------------------------------------- */
@@ -311,23 +142,29 @@ function Grades({
         setGrades(updated)
     }
 
+    // Whether Import grades will take a period's column, for the template.
+    const importNote = (type) => {
+        const status = data?.[`${type}_status`]
+        const upload = schoolYear.grade_upload?.[type]
+        const allowed = type === 'final' ? schoolYear.allow_upload_final : schoolYear.allow_upload_midterm
+
+        if (allowed) return ['Will be imported.', uploadWindowText(upload, status)].filter(Boolean).join(' ')
+        if (['submitted', 'verified', 'deployed'].includes(status)) {
+            return `${statusMap[status].label}: this column won’t be imported.`
+        }
+
+        return `${lockedReason(type, upload)} This column won’t be imported.`
+    }
+
+    // The current grades, one decimal, with an instructions sheet.
     const downloadExcel = () => {
-        const worksheetData = grades.map((s) => ({
-            'ID NUMBER': s.id_number,
-            NAME: s.name,
-            MIDTERM: s.midterm,
-            FINAL: s.final,
-        }))
-        const worksheet = XLSX.utils.json_to_sheet(worksheetData)
-        worksheet['!cols'] = [
-            { wch: 15 },
-            { wch: 30 },
-            { wch: 10 },
-            { wch: 10 },
-        ]
-        const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Grades')
-        XLSX.writeFile(workbook, `${subjectCode} - ${descriptiveTitle}_${courseSection}_students_grades.xlsx`)
+        const workbook = buildGradeTemplate({
+            grades,
+            subject: `${subjectCode} - ${descriptiveTitle}`,
+            section: courseSection,
+            notes: { midterm: importNote('midterm'), final: importNote('final') },
+        })
+        XLSX.writeFile(workbook, `${subjectCode} - ${descriptiveTitle}_${courseSection}_students_grades.xlsx`, TEMPLATE_WRITE_OPTIONS)
     }
 
     const uploadExcel = (e) => {
@@ -380,7 +217,7 @@ function Grades({
             });
 
             if (invalidEntriesCount > 0) {
-                toast.error(`${invalidEntriesCount} invalid grade(s) were skipped. Grades must be a number between 1 and 5.`);
+                toast.error(`${invalidEntriesCount} invalid grade(s) were skipped. Grades must be 1.0 to 5.0, or 0.0 for dropped.`);
             } else {
                 toast.success('Grades applied successfully!');
             }
@@ -627,9 +464,38 @@ function Grades({
     // registrar's dates and whether the grades were handed in.
     const canImport = Boolean(schoolYear.allow_upload_midterm || schoolYear.allow_upload_final)
 
+    // Submit, Unsubmit and Cancel request each ask first: { action, type }.
+    const [confirm, setConfirm] = useState(null)
+
+    function askSubmit(type) {
+        // Missing grades are pointed out first; nothing to confirm yet.
+        if (validateGradesBeforeSubmit(type)) setConfirm({ action: 'submit', type })
+    }
+
+    const askUnsubmit = (type) => setConfirm({ action: 'unsubmit', type })
+    const askCancelRequest = (type) => setConfirm({ action: 'cancel-request', type })
+
+    function runConfirmed() {
+        const { action, type } = confirm
+        setConfirm(null)
+
+        if (action === 'submit') handleSubmit(type)
+        else if (action === 'unsubmit') handleCancel(type)
+        else handleCancelRequestEdit(type)
+    }
+
+    const confirmText = gradeConfirmText({
+        confirm,
+        grades,
+        upload: confirm && schoolYear.grade_upload?.[confirm.type],
+        status: confirm && data?.[`${confirm.type}_status`],
+        reviewer: 'program head',
+    })
+
     return (
         <>
-            <div className="relative space-y-4 overflow-auto pb-4">
+            {/* grades-panel: lets the submission bar stick (grades.css). */}
+            <div className="grades-panel relative space-y-4 overflow-auto pb-4">
                 {/* Toolbar: save state on the left, actions on the right */}
                 <div className="no-print flex flex-wrap items-center justify-between gap-3 print:hidden">
                     <SaveIndicator status={uploadStatus} />
@@ -640,7 +506,7 @@ function Grades({
                             onClick={downloadExcel}
                         >
                             <Download className="mr-2 h-4 w-4" />
-                            Download Template
+                            Download template
                         </Button>
 
                         {/* Importing only fills a period that can still be
@@ -652,7 +518,7 @@ function Grades({
                             onClick={() => fileInputRef.current?.click()}
                         >
                             <Upload className="mr-2 h-4 w-4" />
-                            Upload Students
+                            Import grades
                         </Button>
 
                         <span className="mx-1 hidden h-6 w-px bg-border sm:block" aria-hidden />
@@ -697,6 +563,8 @@ function Grades({
                             setMissingFields={setMissingFields}
                             allowMidtermUpload={schoolYear.allow_upload_midterm}
                             allowFinalUpload={schoolYear.allow_upload_final}
+                            midtermLock={lockedReason('midterm', schoolYear.grade_upload?.midterm)}
+                            finalLock={lockedReason('final', schoolYear.grade_upload?.final)}
                             yearSectionSubjectsId={yearSectionSubjectsId}
                         />
                     )}
@@ -705,13 +573,11 @@ function Grades({
                 </div>
             </div>
 
-            {/* Spacer so the fixed dock never covers the signatories (desktop only) */}
-            <div className="hidden h-36 md:block" />
-
-            {/* Submission dock: fixed on desktop, flows under the sheet on mobile */}
+            {/* Submission bar: part of the page, so never wider than it. On
+                wider screens it sticks to the bottom of the window while the
+                sheet scrolls; on phones it follows the sheet. */}
             {!isLoading && (
-                <div className="no-print z-50 w-full px-4 pb-4 print:hidden md:fixed md:bottom-0 md:max-w-6xl">
-                    <div className="grid gap-2 rounded-2xl border bg-background/90 p-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/75 md:grid-cols-2">
+                <SubmissionBar>
                         <SubmissionPanel
                             type="midterm"
                             title="Midterm grade"
@@ -719,10 +585,10 @@ function Grades({
                             canUpload={schoolYear.allow_upload_midterm}
                             upload={schoolYear.grade_upload?.midterm}
                             submitting={submitting}
-                            onSubmit={handleSubmit}
-                            onCancel={handleCancel}
+                            onSubmit={askSubmit}
+                            onCancel={askUnsubmit}
                             onRequestEdit={handleRequestEdit}
-                            onCancelRequestEdit={handleCancelRequestEdit}
+                            onCancelRequestEdit={askCancelRequest}
                             requestStatus={midtermRequestStatus}
                             reasonOpen={expandedRejection.midterm}
                             onToggleReason={() => toggleReason('midterm')}
@@ -735,17 +601,22 @@ function Grades({
                             canUpload={schoolYear.allow_upload_final}
                             upload={schoolYear.grade_upload?.final}
                             submitting={submitting}
-                            onSubmit={handleSubmit}
-                            onCancel={handleCancel}
+                            onSubmit={askSubmit}
+                            onCancel={askUnsubmit}
                             onRequestEdit={handleRequestEdit}
-                            onCancelRequestEdit={handleCancelRequestEdit}
+                            onCancelRequestEdit={askCancelRequest}
                             requestStatus={finalRequestStatus}
                             reasonOpen={expandedRejection.final}
                             onToggleReason={() => toggleReason('final')}
                         />
-                    </div>
-                </div>
+                </SubmissionBar>
             )}
+
+            <ConfirmGradeAction
+                text={confirmText}
+                onClose={() => setConfirm(null)}
+                onConfirm={runConfirmed}
+            />
         </>
     )
 }

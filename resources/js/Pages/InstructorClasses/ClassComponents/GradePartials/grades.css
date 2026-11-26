@@ -1,0 +1,8 @@
+/* The layout's <main> is an overflow box that never scrolls itself (the
+   window does), which keeps position: sticky from sticking to anything inside
+   it (see attendance.css). On the grades tab, let the submission bar stick to
+   the bottom of the window. (clip, unlike hidden, isn't a scroll box.) */
+main.overflow-auto:has(.grades-panel) {
+    overflow: visible;
+    overflow-x: clip;
+}

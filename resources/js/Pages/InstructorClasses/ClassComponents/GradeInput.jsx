@@ -2,6 +2,24 @@ import { Input } from '@/Components/ui/input'
 import { cn } from '@/Lib/Utils'
 import React, { useRef, useEffect } from 'react'
 
+// Enter or ↓ goes to the same column's box for the next student, ↑ (or
+// Shift+Enter) to the one before, skipping locked boxes, so a column is
+// typed straight down. The text is selected, so typing replaces it.
+function moveInColumn(input, step) {
+    const field = input.dataset.gradeField
+    const list = input.closest('[data-grade-list]') ?? input.closest('table')
+    if (!field || !list) return false
+
+    const boxes = [...list.querySelectorAll('input[data-grade-field]')]
+        .filter((box) => box.dataset.gradeField === field && !box.disabled && box.offsetParent !== null)
+    const next = boxes[boxes.indexOf(input) + step]
+    if (!next) return false
+
+    next.focus()
+    next.select()
+    return true
+}
+
 // A grade box: 0.0 for dropped, or 1.0–5.0 with one decimal. It's a text box
 // with a number keypad rather than type="number", which changes its value
 // on a mouse-wheel turn or an arrow key: scrolling the page past a box you
@@ -10,6 +28,8 @@ export default function GradeInput({
     onValueChange,
     index,
     className,
+    // Which column the box is in ("midterm_grade", "final_grade").
+    field,
     // Range is enforced below; a text box ignores these.
     min,
     max,
@@ -64,13 +84,27 @@ export default function GradeInput({
         return /^\d+\.\d{2}$/.test(value);
     }
 
+    function handleKeyDown(event) {
+        rest.onKeyDown?.(event)
+        if (event.defaultPrevented || event.nativeEvent.isComposing || event.altKey || event.ctrlKey || event.metaKey) return
+
+        const step = event.key === 'Enter' ? (event.shiftKey ? -1 : 1)
+            : event.key === 'ArrowDown' ? 1
+                : event.key === 'ArrowUp' ? -1 : 0
+
+        if (step && moveInColumn(event.currentTarget, step)) event.preventDefault()
+    }
+
     return (
         <Input
             {...rest}
             type="text"
             inputMode="decimal"
             autoComplete="off"
+            enterKeyHint="next"
+            data-grade-field={field}
             onChange={handleGradeChange}
+            onKeyDown={handleKeyDown}
             className={cn(className)}
         />
     )

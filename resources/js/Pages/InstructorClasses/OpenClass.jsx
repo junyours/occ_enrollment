@@ -6,6 +6,7 @@ import Students from './ClassComponents/Students'
 import Attendance from './ClassComponents/Attendance'
 import Grades from './ClassComponents/Grades'
 import PreLoader from '@/Components/preloader/PreLoader'
+import { Button } from '@/Components/ui/button'
 import Grading from './ClassComponents/Grading'
 import Materials from './ClassComponents/Materials'
 import Classwork from './ClassComponents/Classwork.jsx'
@@ -138,7 +139,7 @@ export default function OpenClass({
         }
     }
 
-    const { data: students = [], isLoading } = useQuery({
+    const { data: students = [], isLoading, isError, refetch: refetchStudents } = useQuery({
         queryKey: ['class.students', id],
         queryFn: getClassStudents
     })
@@ -219,7 +220,14 @@ export default function OpenClass({
                     </div>
                 )}
 
-                {tab === 'grades' && !isLoading && (
+                {tab === 'grades' && isError && (
+                    <div className="flex flex-col items-center gap-3 py-16 text-center text-sm text-muted-foreground">
+                        Couldn’t load the students for this class.
+                        <Button variant="outline" size="sm" onClick={() => refetchStudents()}>Try again</Button>
+                    </div>
+                )}
+
+                {tab === 'grades' && !isLoading && !isError && (
                     <Grades
                         students={students}
                         subjectCode={subjectCode}

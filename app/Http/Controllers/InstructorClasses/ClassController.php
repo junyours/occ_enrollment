@@ -585,16 +585,20 @@ class ClassController extends Controller
 
             $updateData = [];
 
+            // 0.0 for a dropped student, or 1.0–5.0; blanks are skipped.
+            $valid = fn($grade) => is_numeric($grade)
+                && ((float) $grade == 0.0 || ((float) $grade >= 1 && (float) $grade <= 5));
+
             if ($allowMidterm && isset($entry['midterm_grade'])) {
                 $mGrade = $entry['midterm_grade'];
-                if ($mGrade >= 1 && $mGrade <= 5) {
+                if ($valid($mGrade)) {
                     $updateData['student_subjects.midterm_grade'] = $mGrade;
                 }
             }
 
             if ($allowFinal && isset($entry['final_grade'])) {
                 $fGrade = $entry['final_grade'];
-                if ($fGrade >= 1 && $fGrade <= 5) {
+                if ($valid($fGrade)) {
                     $updateData['student_subjects.final_grade'] = $fGrade;
                 }
             }

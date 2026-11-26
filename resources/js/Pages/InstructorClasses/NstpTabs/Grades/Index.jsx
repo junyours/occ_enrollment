@@ -58,7 +58,8 @@ export default function GradesIndex({ id, allowMidtermUpload, allowFinalUpload, 
         Render
        ========================================================================== */
     return (
-        <div className="">
+        // grades-panel: lets the submission bar stick (grades.css).
+        <div className="grades-panel">
             {/* TOP */}
             <Button
                 variant="outline"
@@ -82,6 +83,7 @@ export default function GradesIndex({ id, allowMidtermUpload, allowFinalUpload, 
                     id={id}
                     allowMidtermUpload={allowMidtermUpload}
                     allowFinalUpload={allowFinalUpload}
+                    gradeUpload={schoolYear?.grade_upload}
                     localGrades={localGrades}
                     setLocalGrades={setLocalGrades}
                     missingFields={missingFields}
@@ -93,8 +95,6 @@ export default function GradesIndex({ id, allowMidtermUpload, allowFinalUpload, 
                 {/* SINATORIES */}
                 <NstpGradeSignatories faculty={formatName(faculty, { format: 'FMI', casing: 'upper' })} />
             </div>
-
-            <div className='h-40' />
 
             {!isLoading && gradeSubmissionStatus && !isError && (
                 <SubmitButton
