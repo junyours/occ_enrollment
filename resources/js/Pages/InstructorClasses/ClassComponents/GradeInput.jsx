@@ -2,10 +2,17 @@ import { Input } from '@/Components/ui/input'
 import { cn } from '@/Lib/Utils'
 import React, { useRef, useEffect } from 'react'
 
+// A grade box: 0.0 for dropped, or 1.0–5.0 with one decimal. It's a text box
+// with a number keypad rather than type="number", which changes its value
+// on a mouse-wheel turn or an arrow key: scrolling the page past a box you
+// had clicked into would quietly change (and save) a grade.
 export default function GradeInput({
     onValueChange,
     index,
     className,
+    // Range is enforced below; a text box ignores these.
+    min,
+    max,
     ...rest
 }) {
     const timeoutRef = useRef(null)
@@ -15,8 +22,12 @@ export default function GradeInput({
     }, [])
 
     const handleGradeChange = (e) => {
-        // 1. Grab the raw string
-        let value = e.target.value
+        // 1. Digits and one decimal point only.
+        let value = e.target.value.replace(/[^\d.]/g, '')
+        const dot = value.indexOf('.')
+        if (dot !== -1) {
+            value = value.slice(0, dot + 1) + value.slice(dot + 1).replace(/\./g, '')
+        }
 
         // 2. INSTANT BOUNDARY CHECK: Prevent < 0 and > 5 instantly
         if (value !== '' && !isNaN(value)) {
@@ -25,7 +36,7 @@ export default function GradeInput({
             if (numericValue < 0) value = '0'
             if (numericValue > 0.0 && numericValue < 1) value = '0.0'
             if (hasExactlyTwoDecimals(numericValue)) return;
-            
+
         }
 
         // 3. Immediately update state with raw typing (allows empty strings & decimals)
@@ -56,14 +67,11 @@ export default function GradeInput({
     return (
         <Input
             {...rest}
-            min={0}
-            max={5}
+            type="text"
+            inputMode="decimal"
+            autoComplete="off"
             onChange={handleGradeChange}
-            type="number"
-            className={cn(
-                '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
-                className,
-            )}
+            className={cn(className)}
         />
     )
 }

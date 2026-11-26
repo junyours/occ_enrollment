@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Who may enter, submit or unsubmit a class's grades for a period, and
  * when. Only the class's own teacher, and:
- * - grades can be entered while the period's upload is open;
+ * - grades can be entered while the period's upload is open and they
+ *   haven't been handed in (submitted, verified or released grades stay as
+ *   they are; unsubmitting, or an approved correction request, changes them);
  * - they can be submitted once it has opened, even after it closes (the
  *   registrar sees those as late);
  * - a submission can be withdrawn while upload is open;
@@ -76,12 +78,13 @@ class GradeUploadGate
         $window = $schoolYear ? $schoolYear->gradeUploadStatus($period, $now) : 'not_set';
         $times = $schoolYear ? $schoolYear->gradeUploadWindows($now)[$period] : ['opens_at' => null, 'closes_at' => null];
         $rejected = $context['statuses'][$period] === 'rejected';
+        $draft = $context['statuses'][$period] === 'draft';
 
         return [
             'status' => $window,
             'opens_at' => $times['opens_at'],
             'closes_at' => $times['closes_at'],
-            'can_edit' => $window === 'open' || $rejected,
+            'can_edit' => ($window === 'open' && $draft) || $rejected,
             'can_submit' => in_array($window, ['open', 'closed'], true) || $rejected,
             'can_cancel' => $window === 'open',
             // A draft submitted now would be after the closing time.
@@ -124,6 +127,19 @@ class GradeUploadGate
 
         $label = ucfirst($period);
         $schoolYear = $context['school_year'];
+        $submission = $context['statuses'][$period];
+
+        // Handed-in grades stay as they are, whatever the dates say.
+        if ($action === 'edit' && $submission !== 'draft') {
+            return match ($submission) {
+                'submitted' => $allowed['can_cancel']
+                    ? "{$label} grades are submitted. Unsubmit them to make changes."
+                    : "{$label} grades are submitted and upload has closed.",
+                'verified' => "{$label} grades are verified and can't be changed here.",
+                'deployed' => "{$label} grades are released. Send an edit request to change them.",
+                default => "{$label} grades can't be changed right now.",
+            };
+        }
 
         return match ($allowed['status']) {
             'not_set' => "{$label} grade upload hasn't opened yet.",

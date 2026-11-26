@@ -233,6 +233,9 @@ function SubmissionPanel({
 /*  Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
+// The server's reason for a refused action, if it gave one.
+const reason = (errors) => Object.values(errors ?? {}).flat()[0] ?? 'Please try again.'
+
 const isValidGrade = (grade) => {
     if (grade === undefined || grade === null || grade === '') return false;
     const num = Number(grade);
@@ -468,23 +471,11 @@ function Grades({
 
     const componentRef = useRef(null);
 
+    // Print button only. (A bare "P" anywhere on the tab used to open the
+    // print dialog, even while typing in a grade box.)
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
     });
-
-    useEffect(() => {
-        const handleKeyPress = (event) => {
-            if (event.key === 'p' || event.key === 'P') {
-                handlePrint();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyPress);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyPress);
-        };
-    }, [handlePrint]);
 
     // Cleanup timers on unmount
     useEffect(() => {
@@ -518,15 +509,7 @@ function Grades({
                     toast.success("Submitted successfully");
                 },
                 onError: (errors) => {
-                    if (errors && errors.grades) {
-                        toast({
-                            title: "Submission failed",
-                            description: errors.grades,
-                            variant: "destructive",
-                        });
-                    } else {
-                        toast.error("Failed to submit");
-                    }
+                    toast.error("Couldn’t submit the grades", { description: reason(errors) });
                 },
                 onFinish: async () => {
                     await refetch();
@@ -553,15 +536,7 @@ function Grades({
                     toast.warning("Submission canceled");
                 },
                 onError: (errors) => {
-                    if (errors && errors.grades) {
-                        toast({
-                            title: "Submission failed",
-                            description: errors.grades,
-                            variant: "destructive",
-                        });
-                    } else {
-                        toast.error("Failed to submit");
-                    }
+                    toast.error("Couldn’t unsubmit the grades", { description: reason(errors) });
                 },
                 onFinish: async () => {
                     await refetch();
@@ -588,11 +563,7 @@ function Grades({
                     toast.success("Request successfully sent");
                 },
                 onError: (errors) => {
-                    if (errors && errors.grades) {
-                        toast.success("Something went wrong");
-                    } else {
-                        toast.error("Failed to submit");
-                    }
+                    toast.error("Couldn’t send the edit request", { description: reason(errors) });
                 },
                 onFinish: async () => {
                     await getChangeRequests();
@@ -639,11 +610,7 @@ function Grades({
                     toast.success("Request canceled");
                 },
                 onError: (errors) => {
-                    if (errors && errors.grades) {
-                        toast.success("Something went wrong");
-                    } else {
-                        toast.error("Failed to submit");
-                    }
+                    toast.error("Couldn’t cancel the edit request", { description: reason(errors) });
                 },
                 onFinish: async () => {
                     await getChangeRequests();
@@ -656,6 +623,10 @@ function Grades({
     const toggleReason = (type) =>
         setExpandedRejection((prev) => ({ ...prev, [type]: !prev[type] }))
 
+    // The server decides per period (schoolYear.allow_upload_*), from the
+    // registrar's dates and whether the grades were handed in.
+    const canImport = Boolean(schoolYear.allow_upload_midterm || schoolYear.allow_upload_final)
+
     return (
         <>
             <div className="relative space-y-4 overflow-auto pb-4">
@@ -665,7 +636,6 @@ function Grades({
 
                     <div className="flex flex-wrap items-center gap-2">
                         <Button
-                            disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
                             variant="outline"
                             onClick={downloadExcel}
                         >
@@ -673,8 +643,11 @@ function Grades({
                             Download Template
                         </Button>
 
+                        {/* Importing only fills a period that can still be
+                            edited: open and not yet submitted, or sent back. */}
                         <Button
-                            disabled={gradeStatus.is_submitted || gradeStatus.is_deployed}
+                            disabled={!canImport}
+                            title={canImport ? undefined : 'Neither period’s grades can be changed right now.'}
                             variant="outline"
                             onClick={() => fileInputRef.current?.click()}
                         >
