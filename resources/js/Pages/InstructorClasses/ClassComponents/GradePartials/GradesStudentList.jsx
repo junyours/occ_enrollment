@@ -7,6 +7,7 @@ import { computeFinalGrade } from '@/Pages/Grades/GradeUtility'
 import GradeInput from '../GradeInput'
 import { cn } from '@/Lib/Utils'
 import GradeRemarkBadge from '@/Components/GradeRemarkBadge'
+import './grades.css'
 
 // Statuses where a period's grades are handed in and show as plain text.
 const HANDED_IN = ['submitted', 'verified', 'deployed']
@@ -124,7 +125,7 @@ function GradesStudentList({
                                     <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">{EMPTY}</TableCell>
                                 </TableRow>
                             ) : grades.map((student, index) => (
-                                <TableRow key={`${student.id_number}-${index}`} className='p-0 print:p-0'>
+                                <TableRow key={`${student.id_number}-${index}`} className='p-0 transition-colors print:p-0'>
                                     <TableCell className="text-center print:p-0.5">{index + 1}.</TableCell>
                                     <TableCell className='print:p-0.5'>{student.id_number}</TableCell>
                                     <TableCell className='print:p-0.5'>{student.name}</TableCell>
@@ -147,7 +148,7 @@ function GradesStudentList({
                     {grades.length === 0 ? (
                         <li className="py-8 text-center text-sm text-muted-foreground">{EMPTY}</li>
                     ) : grades.map((student, index) => (
-                        <li key={`${student.id_number}-${index}`} className="space-y-2 py-3">
+                        <li key={`${student.id_number}-${index}`} className="-mx-3 space-y-2 px-3 py-3 transition-colors">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <p className="text-sm font-medium">{index + 1}. {student.name}</p>

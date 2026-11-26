@@ -16,7 +16,7 @@ export function GradeListSkeleton({ rows = 8 }) {
             <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                     <Skeleton className="size-4 shrink-0 rounded-full" />
-                    <Skeleton className="h-4 w-full max-w-md" />
+                    <Skeleton className="h-5 w-full max-w-md" />
                 </div>
             </CardHeader>
             <CardContent>
@@ -79,7 +79,7 @@ export function GradeListSkeleton({ rows = 8 }) {
 function SubmissionPanelSkeleton({ title }) {
     return (
         <div className="rounded-xl border bg-card px-3 py-2.5">
-            <div className="flex h-8 items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold text-muted-foreground">{title}</h3>
             </div>
             <div className="mt-1.5 flex items-center gap-3">

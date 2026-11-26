@@ -6,3 +6,18 @@ main.overflow-auto:has(.grades-panel) {
     overflow: visible;
     overflow-x: clip;
 }
+
+/* The student whose grade box is active: a light tint and a bar on the left,
+   following the cursor as Enter and the arrow keys move between students.
+   Beats the table's hover colour, so the active row stays marked. */
+@media screen {
+    [data-grade-list] tr:focus-within,
+    [data-grade-list] li:focus-within {
+        background-color: hsl(var(--primary) / 0.07);
+    }
+
+    [data-grade-list] tr:focus-within > td:first-child,
+    [data-grade-list] li:focus-within {
+        box-shadow: inset 3px 0 0 hsl(var(--primary));
+    }
+}
