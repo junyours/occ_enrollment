@@ -11,7 +11,7 @@ import { AlertCircle, ArrowRight, BookOpen, Download, Loader2 } from 'lucide-rea
 import React, { useEffect, useState } from 'react'
 import FillUpPrompt from './CollectStudentData/FillUpPrompt';
 import { useQuery } from '@tanstack/react-query';
-import { computeFinalGrade } from '../Grades/GradeUtility';
+import { officialRating } from '../Grades/GradeUtility';
 import { Badge } from '@/Components/ui/badge';
 
 function EnrollmentRecord({ need_fill_up }) {
@@ -162,7 +162,7 @@ function EnrollmentRecord({ need_fill_up }) {
                                                         ) : (
                                                             <>
                                                                 {record.subjects.map(classInfo => {
-                                                                    const finalGrade = computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+                                                                    const finalGrade = officialRating(classInfo);
                                                                     const isDropped = classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0;
                                                                     const isPassed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade <= 3;
                                                                     const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;

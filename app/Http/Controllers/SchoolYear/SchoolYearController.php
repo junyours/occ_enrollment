@@ -30,6 +30,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
+use App\Services\FinalRating;
 
 class SchoolYearController extends Controller
 {
@@ -781,6 +782,7 @@ class SchoolYearController extends Controller
                 'descriptive_title',
                 'midterm_grade',
                 'final_grade',
+                FinalRating::column(),
             )
             ->join('student_subjects', 'year_section_subjects.id', '=', 'student_subjects.year_section_subjects_id')
             ->leftJoin('subject_secondary_schedule', 'year_section_subjects.id', '=', 'subject_secondary_schedule.year_section_subjects_id')
@@ -1202,33 +1204,12 @@ class SchoolYearController extends Controller
                 $sheet->setCellValue("M{$row}", $subject->yearSectionSubjects->subject->descriptive_title); // COURSE DESCRIPTION
                 $sheet->setCellValue("N{$row}", $subject->yearSectionSubjects->subject->credit_units); // NO. OF UNITS
 
-                $midterm = $subject->midterm_grade;
-                $final   = $subject->final_grade;
-
-                if ($midterm === null || $final === null) {
-                    // No grade yet → leave cell empty or mark as "N/A"
-                    $sheet->setCellValue("O{$row}", '');
-                    $sheet->setCellValue("P{$row}", '');
-                } else if ($midterm == 0 || $final == 0) {
-                    $sheet->setCellValue("O{$row}", number_format(0, 1));
-                    $sheet->setCellValue("P{$row}", 'DROPPED');
-                } else {
-                    $average = ($midterm + $final) / 2;
-
-                    if ($average >= 3.0 && $average <= 3.09) {
-                        $averageFormat = 3.0;
-                    } elseif ($average >= 3.1) {
-                        $averageFormat = 5.0;
-                    } else {
-                        $averageFormat = $average;
-                    }
-
-                    // Column O: numeric grade with 1 decimal place, clamp >= 3.1 to 5.0
-                    $sheet->setCellValue("O{$row}", number_format($averageFormat, 1));
-
-                    // Column P: PASSED / FAILED
-                    $sheet->setCellValue("P{$row}", $averageFormat >= 3.1 ? 'FAILED' : 'PASSED');
-                }
+                // Column O: the final rating (the saved one once deployed);
+                // column P: PASSED, FAILED or DROPPED. Blank without both grades.
+                $rating = FinalRating::of($subject);
+                $sheet->setCellValue("O{$row}", $rating ?? '');
+                $sheet->getStyle("O{$row}")->getNumberFormat()->setFormatCode('0.0');
+                $sheet->setCellValue("P{$row}", FinalRating::remark($rating) ?? '');
 
                 $row++;
                 $firstRow = false;

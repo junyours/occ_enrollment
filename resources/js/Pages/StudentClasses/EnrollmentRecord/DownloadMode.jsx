@@ -13,7 +13,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Loader2, ZoomIn, ZoomOut, RotateCcw, EyeOff, Eye, ArrowRight } from 'lucide-react';
 import React, { useState, useRef } from 'react'
 import { Badge } from '@/Components/ui/badge';
-import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
+import { officialRating } from '@/Pages/Grades/GradeUtility';
 import AppLogo from '@/Components/AppLogo';
 import html2canvas from 'html2canvas';
 import { formatName } from '@/Lib/InfoUtils';
@@ -419,7 +419,7 @@ export default function DownloadMode({ records }) {
                                                 ) : (
                                                     <>
                                                         {record.subjects.map(classInfo => {
-                                                            const finalGrade = classInfo.grade ? classInfo.grade : computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+                                                            const finalGrade = officialRating(classInfo);
                                                             const isDropped = (classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0) || classInfo.grade == 0.0;
                                                             const isPassed = !isDropped && (classInfo.midterm_grade || classInfo.grade) && (classInfo.final_grade || classInfo.grade) && (finalGrade <= 3 || classInfo.grade <= 3);
                                                             const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;

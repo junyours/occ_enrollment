@@ -5,7 +5,7 @@ import { Button } from '@/Components/ui/button';
 import { Link } from '@inertiajs/react';
 import { ArrowRight } from 'lucide-react';
 import { formatFullName } from '@/Lib/Utils';
-import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
+import { officialRating } from '@/Pages/Grades/GradeUtility';
 
 // --- Shared Helpers ---
 export const getInstructorName = (classInfo) => {
@@ -21,7 +21,7 @@ export const getInstructorName = (classInfo) => {
 };
 
 export const getSubjectStatus = (classInfo) => {
-    const finalGrade = classInfo.grade ? classInfo.grade : computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+    const finalGrade = officialRating(classInfo);
     const isDropped = (classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0) || classInfo.grade == 0.0;
     const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Registrar;
 
+use App\Services\FinalRating;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicRecord;
 use App\Models\AcademicRecordSubject;
@@ -71,7 +72,8 @@ class FormNineController extends Controller
                 $isDropped = (bool) $enrolledSubject->dropped
                     || (is_numeric($midterm) && (float) $midterm === 0.0)
                     || (is_numeric($final) && (float) $final === 0.0);
-                $finalComputedGrade = $isDropped ? '0.0' : computeFinalGrade($midterm, $final);
+                // The rating saved when the grades were released, or worked out.
+                $finalComputedGrade = $isDropped ? '0.0' : FinalRating::of($enrolledSubject);
 
                 return [
                     'subject_code'      => $subjectDetails?->subject_code,

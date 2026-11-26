@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Models\UserInformation;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use App\Services\FinalRating;
 use App\Services\GradeReleaseNotices;
 use App\Services\GradeUploadGate;
 use Illuminate\Http\Request;
@@ -1020,6 +1021,9 @@ class GradeController extends Controller
             ]);
 
         if ($deployed > 0) {
+            // Released final grades keep the rating they were released with.
+            FinalRating::syncClass($classId);
+
             // The grades are out either way; a failed notice is only logged.
             rescue(fn() => app(GradeReleaseNotices::class)->send($classId, $period));
         }
@@ -1032,6 +1036,8 @@ class GradeController extends Controller
                 'midterm_status' => 'verified',
                 'midterm_deployed_at' => null,
             ]);
+
+        FinalRating::syncClass((int) $yearSectionSubjectsId);
     }
 
 
@@ -1042,6 +1048,9 @@ class GradeController extends Controller
                 'final_status' => 'verified',
                 'final_deployed_at' => null,
             ]);
+
+        // Taken back: the saved rating goes until it's released again.
+        FinalRating::syncClass((int) $yearSectionSubjectsId);
     }
 
     public function programHeadName($yearSectionSubjectsId)
@@ -1140,38 +1149,28 @@ class GradeController extends Controller
         $validated = $request->validate(['editRequestId' => ['required', 'integer']]);
         $gradeRequest = $this->ownedGradeEditRequest($validated['editRequestId']);
 
-        if ($gradeRequest->period == 'midterm') {
-            $grades = StudentSubject::where('year_section_subjects_id', '=', $gradeRequest->year_section_subjects_id)
-                ->select(
-                    'student_subjects.id',
-                    'users.user_id_no',
-                    'first_name',
-                    'middle_name',
-                    'last_name',
-                    'midterm_grade as grade',
-                )
-                ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
-                ->join('users', 'users.id', '=', 'enrolled_students.student_id')
-                ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
-                ->orderBy('last_name', 'ASC')
-                ->orderBy('first_name', 'ASC')
-                ->get();
-        } else {
-            $grades = StudentSubject::where('year_section_subjects_id', '=', $gradeRequest->year_section_subjects_id)
-                ->select(
-                    'student_subjects.id',
-                    'users.user_id_no',
-                    'first_name',
-                    'middle_name',
-                    'last_name',
-                    'final_grade as grade',
-                )
-                ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
-                ->join('users', 'users.id', '=', 'enrolled_students.student_id')
-                ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
-                ->orderBy('last_name', 'ASC')
-                ->get();
-        }
+        // The period being corrected as `grade`, and the other period as
+        // `other_grade`, so the page can preview each student's final rating.
+        [$column, $other] = $gradeRequest->period == 'midterm'
+            ? ['midterm_grade', 'final_grade']
+            : ['final_grade', 'midterm_grade'];
+
+        $grades = StudentSubject::where('year_section_subjects_id', '=', $gradeRequest->year_section_subjects_id)
+            ->select(
+                'student_subjects.id',
+                'users.user_id_no',
+                'first_name',
+                'middle_name',
+                'last_name',
+                "{$column} as grade",
+                "{$other} as other_grade",
+            )
+            ->join('enrolled_students', 'enrolled_students.id', '=', 'student_subjects.enrolled_students_id')
+            ->join('users', 'users.id', '=', 'enrolled_students.student_id')
+            ->leftJoin('user_information', 'users.id', '=', 'user_information.user_id')
+            ->orderBy('last_name', 'ASC')
+            ->orderBy('first_name', 'ASC')
+            ->get();
 
         return response()->json($grades);
     }
@@ -1252,6 +1251,9 @@ class GradeController extends Controller
                 'submission_date' => now(),
                 'status' => 'submitted',
             ]);
+
+            // A corrected grade changes a released rating too.
+            FinalRating::sync($ids);
         });
     }
 

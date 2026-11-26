@@ -5,13 +5,52 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatFullName } from '@/Lib/Utils';
+import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
 import { Head, router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertCircle, ArrowBigRight, BookOpen, BookOpenCheck, Loader2, Trash, Users } from 'lucide-react';
+import { AlertCircle, ArrowBigRight, ArrowRight, BookOpen, BookOpenCheck, Loader2, Trash, Users } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+const PASSED_TONE = 'text-green-700 dark:text-green-400';
+const FAILED_TONE = 'text-red-600 dark:text-red-400';
+
+/** A final rating from the two grades, as shown on this page (a preview of the server's rule). */
+function describeRating(midterm, final) {
+    const rating = computeFinalGrade(midterm, final);
+    if (rating === '-') return { text: '—', remark: null, passed: null, tone: 'text-muted-foreground' };
+    if (rating === 'DROPPED') return { text: '0.0', remark: 'Dropped', passed: false, tone: FAILED_TONE };
+    const failed = Number(rating) >= 3.1;
+    return { text: rating, remark: failed ? 'Failed' : 'Passed', passed: !failed, tone: failed ? FAILED_TONE : PASSED_TONE };
+}
+
+function Rating({ rating, muted }) {
+    return (
+        <span className={`whitespace-nowrap ${muted ? 'text-muted-foreground' : rating.tone}`}>
+            <span className="font-mono">{rating.text}</span>
+            {rating.remark && <span className="ml-1 text-xs">{rating.remark}</span>}
+        </span>
+    );
+}
+
+/** "5.0 Failed → 2.9 Passed", or just the rating when the change doesn't move it. */
+function RatingChange({ before, after, className = '' }) {
+    if (before.text === after.text) {
+        return <span className={`text-sm ${className}`}><Rating rating={after} /></span>;
+    }
+
+    return (
+        <span className={`inline-flex items-center gap-1 text-sm ${className}`}>
+            <Rating rating={before} muted />
+            <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground" aria-label="becomes" />
+            <span className="font-semibold"><Rating rating={after} /></span>
+        </span>
+    );
+}
+
 export default function EditGrade({ gradeEditRequest, classInfo }) {
+    const isMidterm = gradeEditRequest.period === 'midterm';
+    const otherPeriod = isMidterm ? 'Final' : 'Midterm';
 
     const fetchEditRequestGrades = async () => {
         const response = await axios.post(route('edit-request-grades'), {
@@ -123,6 +162,24 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
         setDebounceTimers(prev => ({ ...prev, [id]: timer }));
     }
 
+    // The student's final rating before and after this request's change. The
+    // other period's grade isn't part of the request, so it stays as it is.
+    const ratingsFor = (student, change) => {
+        const rate = (grade) => isMidterm
+            ? describeRating(grade, student?.other_grade)
+            : describeRating(student?.other_grade, grade);
+        const before = change ? change.originalGrade : student?.grade;
+        const after = change && change.newGrade !== '' ? change.newGrade : before;
+        return { before: rate(before), after: rate(after) };
+    };
+
+    const flips = changes.reduce((tally, change) => {
+        const { before, after } = ratingsFor(students.find(s => s.id == change.id), change);
+        if (before.passed !== true && after.passed === true) tally.passes++;
+        if (before.passed !== false && after.passed === false) tally.fails++;
+        return tally;
+    }, { passes: 0, fails: 0 });
+
     const submitChanges = () => {
         router.post(route('submit-edit-request-changes'),
             {
@@ -199,8 +256,9 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                                             <TableHead className="font-semibold">Student</TableHead>
                                             <TableHead className="font-semibold">Grade</TableHead>
                                             <TableHead></TableHead>
-                                            <TableHead className="font-semibold w-24">To Change</TableHead>
-                                            <TableHead></TableHead>
+                                            <TableHead className="font-semibold w-24 whitespace-nowrap">To Change</TableHead>
+                                            <TableHead className="font-semibold text-right">{otherPeriod}</TableHead>
+                                            <TableHead className="font-semibold">Final rating</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -233,7 +291,7 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                                                                 } else {
                                                                     return (
                                                                         <span
-                                                                            className={`font-mono text-sm ${change?.originalGrade == 0 ? 'text-red-500' : ''}`}
+                                                                            className={`font-mono text-sm ${student.grade != null && student.grade == 0 ? 'text-red-500' : ''}`}
                                                                         >
                                                                             {student.grade != null ? student.grade.toFixed(1) : '-'}
                                                                         </span>
@@ -305,7 +363,15 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                                                         </>
                                                     )}
                                                 </TableCell>
-                                                <TableCell className='w-fit' />
+                                                <TableCell className="whitespace-nowrap text-right font-mono text-sm text-muted-foreground">
+                                                    {student.other_grade != null ? Number(student.other_grade).toFixed(1) : '—'}
+                                                </TableCell>
+                                                <TableCell className="whitespace-nowrap">
+                                                    {(() => {
+                                                        const { before, after } = ratingsFor(student, changes.find(c => c.id == student.id));
+                                                        return <RatingChange before={before} after={after} />;
+                                                    })()}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -321,8 +387,18 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                             <BookOpenCheck className="w-5 h-5" />
                             All Changes
                         </CardTitle>
-                        <CardDescription>
-                            {changes.length > 0 && `${changes.length} Changes`}
+                        <CardDescription className="space-y-1">
+                            {changes.length > 0 && (
+                                <span className="block">
+                                    {changes.length} {changes.length === 1 ? 'change' : 'changes'}
+                                    {flips.passes > 0 && <span className={PASSED_TONE}> · {flips.passes} now {flips.passes === 1 ? 'passes' : 'pass'}</span>}
+                                    {flips.fails > 0 && <span className={FAILED_TONE}> · {flips.fails} now {flips.fails === 1 ? 'fails' : 'fail'}</span>}
+                                </span>
+                            )}
+                            <span className="block text-xs">
+                                Final ratings are worked out from both grades as you type.
+                                {students.length > 0 && students.every(s => s.other_grade == null) && ` No ${otherPeriod.toLowerCase()} grades yet, so there's no rating to show.`}
+                            </span>
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
@@ -354,6 +430,14 @@ export default function EditGrade({ gradeEditRequest, classInfo }) {
                                                             <p className='w-5 text-center ml-1'>{' -> '}</p>
                                                             <p className='w-4 text-left'>{change.newGrade}</p>
                                                         </div>
+                                                        {(() => {
+                                                            const { before, after } = ratingsFor(student, change);
+                                                            return (
+                                                                <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                                                                    Rating <RatingChange before={before} after={after} className="text-xs" />
+                                                                </div>
+                                                            );
+                                                        })()}
                                                     </TableCell>
                                                     <TableCell>
                                                         <Trash

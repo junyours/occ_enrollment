@@ -67,25 +67,9 @@ if (!function_exists('log_activity')) {
 }
 
 if (!function_exists('computeFinalGrade')) {
+    // The final rating rule lives in App\Services\FinalRating.
     function computeFinalGrade($midterm, $final)
     {
-        if (is_null($midterm) || is_null($final)) {
-            return null;
-        }
-
-        // If either grade is 0, return 0.0
-        if ((float) $midterm === 0.0 || (float) $final === 0.0) {
-            return number_format(0, 1); // "0.0"
-        }
-
-        $average = round(($midterm + $final) / 2, 2);
-
-        if ($average >= 3.0 && $average <= 3.09) {
-            $average = 3.0;
-        } elseif ($average > 3.09) {
-            $average = 5.0;
-        }
-
-        return number_format($average, 1);
+        return \App\Services\FinalRating::compute($midterm, $final);
     }
 }

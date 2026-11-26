@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Enrollment\ClassScheduling;
 
+use App\Services\FinalRating;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicRecord;
 use App\Models\EnrolledStudent;
@@ -502,7 +503,8 @@ class EnrollmentClassSchedulingController extends Controller
                 $midterm = $enrolledSubject->midterm_grade;
                 $final = $enrolledSubject->final_grade;
 
-                $finalComputedGrade = computeFinalGrade($midterm, $final);
+                // The rating saved when the grades were released, or worked out.
+                $finalComputedGrade = FinalRating::of($enrolledSubject);
 
                 return [
                     'subject_code'      => $subjectDetails?->subject_code,

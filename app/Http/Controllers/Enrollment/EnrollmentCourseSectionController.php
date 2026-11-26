@@ -24,6 +24,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use App\Services\FinalRating;
 use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -1046,19 +1047,23 @@ class EnrollmentCourseSectionController extends Controller
                 ->delete();
 
             // 10. Enroll student in matching subjects from new section
+            $movedIds = [];
             foreach ($matchingNewSectionSubjects as $yearSectionSubject) {
                 $subjectId = $yearSectionSubject->subject_id;
                 $preservedGrades = $subjectGrades[$subjectId];
 
-                StudentSubject::create([
+                $movedIds[] = StudentSubject::create([
                     'enrolled_students_id' => $enrolledStudentId,
                     'year_section_subjects_id' => $yearSectionSubject->id,
                     'dropped' => $preservedGrades['dropped'],
                     'midterm_grade' => $preservedGrades['midterm_grade'],
                     'final_grade' => $preservedGrades['final_grade'],
                     'remarks' => $preservedGrades['remarks'],
-                ]);
+                ])->id;
             }
+
+            // The carried grades' saved rating follows the new class's release.
+            FinalRating::sync($movedIds);
 
             DB::commit();
 

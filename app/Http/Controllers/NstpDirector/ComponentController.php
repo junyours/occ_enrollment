@@ -32,6 +32,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Mail\NstpFacultyCredentialsMail;
 use Illuminate\Support\Facades\Log;
+use App\Services\FinalRating;
 
 class ComponentController extends Controller
 {
@@ -407,42 +408,20 @@ class ComponentController extends Controller
             $sheet->setCellValue('J' . $row, $student->contact_number);
             $sheet->setCellValue('K' . $row, $student->email); // Maps to users.email
 
-            $midterm = $student->midterm_grade;
-            $final   = $student->final_grade;
+            // Column L: the final rating, as text ("2.0"); column M: PASSED,
+            // FAILED or DROPPED, red unless passed. Blank without both grades.
+            $rating = FinalRating::of($student);
+            $remark = FinalRating::remark($rating);
 
-            if ($midterm === null || $final === null) {
-                // No grade yet → leave cell empty or mark as "N/A"
+            if ($rating === null) {
                 $sheet->setCellValue("L{$row}", '');
                 $sheet->setCellValue("M{$row}", '');
-            } else if ($midterm == 0 || $final == 0) {
-                // Force the "0.0" to be stored as Text
-                $sheet->setCellValueExplicit("L{$row}", number_format(0, 1), DataType::TYPE_STRING);
-                $sheet->setCellValue("M{$row}", 'DROPPED');
-
-                // Make both the Grade (K) and Status (L) red for DROPPED
-                $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
             } else {
-                $average = ($midterm + $final) / 2;
+                $sheet->setCellValueExplicit("L{$row}", $rating, DataType::TYPE_STRING);
+                $sheet->setCellValue("M{$row}", $remark);
 
-                if ($average >= 3.0 && $average <= 3.09) {
-                    $averageFormat = 3.0;
-                } elseif ($average >= 3.1) {
-                    $averageFormat = 5.0;
-                } else {
-                    $averageFormat = $average;
-                }
-
-                // Force the formatted grade (e.g., "2.0") to be stored strictly as Text
-                $sheet->setCellValueExplicit("L{$row}", number_format($averageFormat, 1), DataType::TYPE_STRING);
-
-                // Column L: PASSED / FAILED
-                if ($averageFormat >= 3.1) {
-                    $sheet->setCellValue("M{$row}", 'FAILED');
-
-                    // Make both the Grade (K) and Status (L) red for FAILED
+                if ($remark !== 'PASSED') {
                     $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
-                } else {
-                    $sheet->setCellValue("M{$row}", 'PASSED');
                 }
             }
 
@@ -561,42 +540,20 @@ class ComponentController extends Controller
             $sheet->setCellValue('J' . $row, $student->contact_number);
             $sheet->setCellValue('K' . $row, $student->email);
 
-            $midterm = $student->midterm_grade;
-            $final   = $student->final_grade;
+            // Column L: the final rating, as text ("2.0"); column M: PASSED,
+            // FAILED or DROPPED, red unless passed. Blank without both grades.
+            $rating = FinalRating::of($student);
+            $remark = FinalRating::remark($rating);
 
-            if ($midterm === null || $final === null) {
-                // No grade yet → leave cell empty or mark as "N/A"
+            if ($rating === null) {
                 $sheet->setCellValue("L{$row}", '');
                 $sheet->setCellValue("M{$row}", '');
-            } else if ($midterm == 0 || $final == 0) {
-                // Force the "0.0" to be stored as Text
-                $sheet->setCellValueExplicit("L{$row}", number_format(0, 1), DataType::TYPE_STRING);
-                $sheet->setCellValue("M{$row}", 'DROPPED');
-
-                // Make both the Grade (K) and Status (L) red for DROPPED
-                $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
             } else {
-                $average = ($midterm + $final) / 2;
+                $sheet->setCellValueExplicit("L{$row}", $rating, DataType::TYPE_STRING);
+                $sheet->setCellValue("M{$row}", $remark);
 
-                if ($average >= 3.0 && $average <= 3.09) {
-                    $averageFormat = 3.0;
-                } elseif ($average >= 3.1) {
-                    $averageFormat = 5.0;
-                } else {
-                    $averageFormat = $average;
-                }
-
-                // Force the formatted grade (e.g., "2.0") to be stored strictly as Text
-                $sheet->setCellValueExplicit("L{$row}", number_format($averageFormat, 1), DataType::TYPE_STRING);
-
-                // Column L: PASSED / FAILED
-                if ($averageFormat >= 3.1) {
-                    $sheet->setCellValue("M{$row}", 'FAILED');
-
-                    // Make both the Grade (K) and Status (L) red for FAILED
+                if ($remark !== 'PASSED') {
                     $sheet->getStyle("L{$row}:M{$row}")->getFont()->getColor()->setARGB(Color::COLOR_RED);
-                } else {
-                    $sheet->setCellValue("M{$row}", 'PASSED');
                 }
             }
 

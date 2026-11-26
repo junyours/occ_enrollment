@@ -8,7 +8,7 @@ import {
 import { ArrowRight, GraduationCap } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import { formatFullName } from '@/Lib/Utils';
-import { computeFinalGrade } from '@/Pages/Grades/GradeUtility';
+import { officialRating } from '@/Pages/Grades/GradeUtility';
 import { StatusBadge, getSubjectStatus } from './StatusBadge';
 
 function getInstructorName(classInfo) {
@@ -57,9 +57,7 @@ function SubjectDetailRow({ label, value }) {
 }
 
 function SubjectAccordionItem({ classInfo }) {
-    const finalGrade = classInfo.grade
-        ? classInfo.grade
-        : computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+    const finalGrade = officialRating(classInfo);
     const status = getSubjectStatus(classInfo, finalGrade);
     const instructor = getInstructorName(classInfo);
 
@@ -136,9 +134,7 @@ function SemesterAccordionItem({ record }) {
     const counts = useMemo(() => {
         const tally = { passed: 0, failed: 0, dropped: 0, pending: 0, evaluation_required: 0 };
         record.subjects.forEach((classInfo) => {
-            const finalGrade = classInfo.grade
-                ? classInfo.grade
-                : computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+            const finalGrade = officialRating(classInfo);
             const status = getSubjectStatus(classInfo, finalGrade);
             tally[status] = (tally[status] ?? 0) + 1;
         });

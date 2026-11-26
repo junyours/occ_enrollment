@@ -26,6 +26,7 @@ use App\Models\User;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
 use App\Services\ClassAnnouncements;
+use App\Services\FinalRating;
 use App\Services\GradeUploadGate;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -611,6 +612,8 @@ class ClassController extends Controller
             }
         }
 
+        FinalRating::syncClass((int) $yearSectionSubjectsId);
+
         return response()->json(['message' => 'Grades updated successfully.']);
     }
 
@@ -630,6 +633,8 @@ class ClassController extends Controller
                 'midterm_grade' => $request->midterm_grade
             ]);
 
+        FinalRating::syncClass((int) $yearSectionSubjectsId);
+
         return response()->json(['message' => $request->midterm_grade]);
     }
 
@@ -648,6 +653,8 @@ class ClassController extends Controller
             ->update([
                 'final_grade' => $request->final_grade
             ]);
+
+        FinalRating::syncClass((int) $yearSectionSubjectsId);
     }
 
     public function submitGrade($yearSectionSubjectsId)
@@ -1143,6 +1150,9 @@ class ClassController extends Controller
                         // NEW: Added a null 'grade' column so it matches the old record structure
                         DB::raw("NULL as grade"),
 
+                        // The rating saved at deploy (shown below only when both grades are).
+                        FinalRating::column('stored_final_rating'),
+
                         // EVALUATED STATUS
                         DB::raw("IF(
                                 student_subjects.id IN (" . $idsString . ")
@@ -1174,6 +1184,19 @@ class ClassController extends Controller
             ])
             ->orderBy('id', 'DESC')
             ->get();
+
+        // The official rating, only once both grades are visible to the student.
+        $record->each(function ($enrollment) {
+            $enrollment->Subjects->each(function ($subject) {
+                $visible = $subject->midterm_grade !== null && $subject->final_grade !== null;
+                $subject->final_rating = $visible ? FinalRating::of((object) [
+                    'final_rating'  => $subject->stored_final_rating,
+                    'midterm_grade' => $subject->midterm_grade,
+                    'final_grade'   => $subject->final_grade,
+                ]) : null;
+                unset($subject->stored_final_rating);
+            });
+        });
 
         $semesterWeights = [
             'First' => 1,

@@ -1,7 +1,7 @@
 import { Badge } from '@/Components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import React, { useEffect, useState } from 'react'
-import { computeFinalGrade } from '../Grades/GradeUtility';
+import { officialRating } from '../Grades/GradeUtility';
 
 function StudentSubjectsGrades({ schoolYearId, studentId }) {
     const [subjects, setSubjects] = useState([])
@@ -31,7 +31,7 @@ function StudentSubjectsGrades({ schoolYearId, studentId }) {
                 </TableHeader>
                 <TableBody>
                     {subjects.map((classInfo) => {
-                        const finalGrade = computeFinalGrade(classInfo.midterm_grade, classInfo.final_grade);
+                        const finalGrade = officialRating(classInfo);
                         const isDropped = classInfo.midterm_grade == 0.0 || classInfo.final_grade == 0.0;
                         const isPassed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade <= 3;
                         const isFailed = !isDropped && classInfo.midterm_grade && classInfo.final_grade && finalGrade > 3;
