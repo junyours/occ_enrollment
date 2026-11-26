@@ -37,23 +37,46 @@
     user-select: none;
 }
 
+/* The layout's <main> is an overflow box that never scrolls itself (the
+   window does), and that keeps position: sticky from sticking to anything
+   inside it. On the attendance tab, let the list's header and the marked
+   bar stick to the window. (clip, unlike hidden, isn't a scroll box.) */
+main.overflow-auto:has(.attendance-panel) {
+    overflow: visible;
+    overflow-x: clip;
+}
+
+/* On the page the list grows with the class and the page scrolls (no
+   scroll box inside a scrolling page); the header sticks below the app's
+   top bar. clip rounds the corners without making a scroll box. */
 .attendance-roster {
-    max-height: min(65vh, 44rem);
+    --attendance-sticky-top: 3.5rem;
+    overflow: clip;
+}
+
+/* Full screen: the list grows into the room the toolbar and footer leave,
+   and scrolls once it's full. */
+.attendance-roster[data-full-screen] {
+    --attendance-sticky-top: 0px;
+    flex: 0 1 auto;
+    min-height: 12rem;
     overflow: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: rgb(148 163 184 / 0.35) transparent;
 }
 
-/* Full screen: the list grows into the room the toolbar and footer leave,
-   and scrolls once it's full. */
-.attendance-roster[data-full-screen] {
-    flex: 0 1 auto;
-    min-height: 12rem;
-    max-height: none;
+.attendance-table-head {
+    top: var(--attendance-sticky-top);
 }
 
-.attendance-roster:focus-visible,
+/* Keyboard moves keep the current student clear of the sticky header and
+   the marked bar, with the next few students in view. */
+.attendance-row {
+    scroll-margin-top: calc(var(--attendance-sticky-top) + 3rem);
+    scroll-margin-bottom: 6rem;
+}
+
 .attendance-dates:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 2px;
@@ -61,9 +84,10 @@
 
 /* Respond to available content width, including sidebar layouts. */
 @container (min-width: 960px) {
+    /* Status buttons keep one width; the rest goes to the name and remarks. */
     .attendance-row-grid {
         grid-template-columns:
-            minmax(180px, 1.2fr) 180px minmax(300px, 1.6fr) minmax(140px, 1fr);
+            minmax(180px, 1.2fr) 150px 24rem minmax(160px, 1fr);
     }
 
     .attendance-table-head {
@@ -72,5 +96,17 @@
 
     .attendance-term-label {
         display: none;
+    }
+
+    /* Denser rows where there's a mouse and room; phones keep the larger
+       tap targets. */
+    .attendance-roster .attendance-row {
+        padding-top: 0.625rem;
+        padding-bottom: 0.625rem;
+        align-items: center;
+    }
+
+    .attendance-roster .attendance-status {
+        height: 2.25rem;
     }
 }

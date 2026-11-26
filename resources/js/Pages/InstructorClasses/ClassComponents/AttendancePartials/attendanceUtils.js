@@ -4,30 +4,35 @@ import { formatName } from "@/Lib/InfoUtils"
 export const typingIn = (target) =>
     target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
 
+// tone: the chosen status; hover: its colour while pointing at it.
 export const STATUSES = [
     {
         value: 'present',
         label: 'Present',
         short: 'P',
         tone: 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200',
+        hover: 'hover:border-emerald-600/60 hover:text-emerald-700 dark:hover:text-emerald-300',
     },
     {
         value: 'late',
         label: 'Late',
         short: 'L',
         tone: 'border-amber-600 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
+        hover: 'hover:border-amber-600/60 hover:text-amber-700 dark:hover:text-amber-300',
     },
     {
         value: 'absent',
         label: 'Absent',
         short: 'A',
         tone: 'border-rose-600 bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-200',
+        hover: 'hover:border-rose-600/60 hover:text-rose-700 dark:hover:text-rose-300',
     },
     {
         value: 'excused',
         label: 'Excused',
         short: 'E',
         tone: 'border-sky-600 bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200',
+        hover: 'hover:border-sky-600/60 hover:text-sky-700 dark:hover:text-sky-300',
     },
 ]
 

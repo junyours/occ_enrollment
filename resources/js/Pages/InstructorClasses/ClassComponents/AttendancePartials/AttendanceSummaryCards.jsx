@@ -3,12 +3,13 @@ import {
     CheckCircle2,
     CircleDashed,
     Clock3,
-    Percent,
     ShieldCheck,
     XCircle,
 } from 'lucide-react'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent } from '@/Components/ui/card'
+import { cn } from '@/Lib/Utils'
+import RatesInfo from './RatesInfo'
 
 const items = [
     {
@@ -43,22 +44,45 @@ const items = [
     },
 ]
 
+// The meeting's rate. Unmarked students don't count toward it, so until
+// everyone is marked it says how many it covers instead of passing for the
+// whole class.
+function rateText(stats, cancelled) {
+    const partial = stats.unmarked > 0 && stats.marked > 0
+
+    return {
+        value: stats.rate == null || cancelled ? '—' : `${stats.rate}%`,
+        label: partial && !cancelled
+            ? `Rate so far · ${stats.marked} of ${stats.total} marked`
+            : 'Meeting rate',
+        // For the one-line full-screen version.
+        short: partial && !cancelled ? `so far · ${stats.marked}/${stats.total}` : 'rate',
+        partial,
+    }
+}
+
+// The counts for each status. Choosing one shows only those students;
+// choosing it again shows everyone. `compact` is the one-line version for
+// full screen.
 export default function AttendanceSummaryCards({
     stats,
     filter,
     onFilterChange,
     cancelled,
+    compact = false,
 }) {
+    const rate = rateText(stats, cancelled)
+
     return (
         <div
-            aria-label="Meeting summary"
-            className="grid grid-cols-3 gap-2 lg:grid-cols-6"
+            role="group"
+            aria-label="Meeting summary. Choose a status to show only those students."
+            className={cn('grid gap-2', compact ? 'grid-cols-3 sm:grid-cols-6' : 'grid-cols-3 lg:grid-cols-6')}
         >
             {items.map(({ value, label, Icon, tone }) => (
                 <Card
                     key={value}
-                    className={`py-0 shadow-none ${filter === value ? 'border-primary' : ''
-                        }`}
+                    className={cn('py-0 shadow-none', filter === value && 'border-primary ring-1 ring-primary')}
                 >
                     <CardContent className="p-0">
                         <Button
@@ -70,47 +94,58 @@ export default function AttendanceSummaryCards({
                                     filter === value ? 'all' : value
                                 )
                             }
-                            className="h-auto w-full flex-col items-start gap-0.5 rounded-xl px-3 py-2"
+                            className={cn(
+                                'h-auto w-full rounded-xl',
+                                compact
+                                    ? 'justify-start gap-2 px-3 py-1.5'
+                                    : 'flex-col items-start gap-0.5 px-3 py-2',
+                            )}
                         >
-                            <span
-                                className={`flex w-full items-center justify-between gap-2 ${tone}`}
-                            >
-                                <span className="text-xl font-semibold tabular-nums">
-                                    {stats[value]}
-                                </span>
-
-                                <Icon
-                                    aria-hidden="true"
-                                    className="size-4"
-                                />
-                            </span>
-
-                            <span className="text-xs font-normal text-muted-foreground">
-                                {label}
-                            </span>
+                            {compact ? (
+                                <>
+                                    <Icon aria-hidden="true" className={cn('size-4', tone)} />
+                                    <span className={cn('font-semibold tabular-nums', tone)}>{stats[value]}</span>
+                                    <span className="truncate text-xs font-normal text-muted-foreground">{label}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className={`flex w-full items-center justify-between gap-2 ${tone}`}>
+                                        <span className="text-xl font-semibold tabular-nums">
+                                            {stats[value]}
+                                        </span>
+                                        <Icon aria-hidden="true" className="size-4" />
+                                    </span>
+                                    <span className="text-xs font-normal text-muted-foreground">
+                                        {label}
+                                    </span>
+                                </>
+                            )}
                         </Button>
                     </CardContent>
                 </Card>
             ))}
 
             <Card className="py-0 shadow-none">
-                <CardContent className="space-y-0.5 px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                        <p className="text-xl font-semibold tabular-nums">
-                            {stats.rate == null || cancelled
-                                ? '—'
-                                : `${stats.rate}%`}
-                        </p>
-
-                        <Percent
-                            aria-hidden="true"
-                            className="size-4 text-muted-foreground"
-                        />
-                    </div>
-
-                    <p className="text-xs text-muted-foreground">
-                        Meeting rate
-                    </p>
+                <CardContent className={cn(compact ? 'flex items-center gap-2 px-3 py-1.5' : 'space-y-0.5 px-3 py-2')}>
+                    {compact ? (
+                        <>
+                            <span className={cn('font-semibold tabular-nums', rate.partial && 'text-muted-foreground')}>{rate.value}</span>
+                            <span aria-hidden="true" className="min-w-0 flex-1 truncate text-xs text-muted-foreground" title={rate.label}>{rate.short}</span>
+                            <span className="sr-only">{rate.label}</span>
+                            <RatesInfo className="-mr-1" />
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex items-center justify-between gap-2">
+                                {/* Grey while it covers only part of the class. */}
+                                <p className={cn('text-xl font-semibold tabular-nums', rate.partial && 'text-muted-foreground')}>
+                                    {rate.value}
+                                </p>
+                                <RatesInfo className="-mr-1" />
+                            </div>
+                            <p className="text-xs text-muted-foreground">{rate.label}</p>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>

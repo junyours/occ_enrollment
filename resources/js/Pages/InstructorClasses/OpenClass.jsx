@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useSeenItems } from '@/Lib/seenItems'
 
 import Students from './ClassComponents/Students'
 import Attendance from './ClassComponents/Attendance'
@@ -75,10 +76,12 @@ function initialTab() {
     return navigationTabs.some((item) => item.value === requested) ? requested : 'students'
 }
 
-// Recently added sections show a "New" mark, even after they're opened,
-// until Dec 11, 2026 (Philippine time); from then on it's gone.
+// Recently added sections show a "New" mark until each teacher first opens
+// them (remembered on their account, so on every device), and for nobody
+// after Dec 11, 2026 (Philippine time).
 const NEW_TABS = ['attendance', 'grading', 'classwork', 'announcements']
 const NEW_UNTIL = new Date('2026-12-11T00:00:00+08:00').getTime()
+const newTabKey = (tab) => `class-tab:${tab}`
 
 function NewMark() {
     return (
@@ -98,10 +101,16 @@ export default function OpenClass({
     schoolYear,
 }) {
     const [tab, setTabState] = useState(initialTab)
+    const { hasSeen, markSeen } = useSeenItems()
     const showNew = Date.now() < NEW_UNTIL
 
+    // Opening a new section clears its mark for this teacher.
+    useEffect(() => {
+        if (showNew && NEW_TABS.includes(tab)) markSeen(newTabKey(tab))
+    }, [showNew, tab, markSeen])
+
     const tabs = navigationTabs.map((item) => (
-        showNew && NEW_TABS.includes(item.value)
+        showNew && NEW_TABS.includes(item.value) && !hasSeen(newTabKey(item.value))
             ? { ...item, label: <>{item.label}<NewMark /><span className="sr-only">, new</span></> }
             : item
     ))

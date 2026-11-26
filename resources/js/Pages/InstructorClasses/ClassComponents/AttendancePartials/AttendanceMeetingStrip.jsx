@@ -163,7 +163,9 @@ export default function AttendanceMeetingStrip({
                 ref={stripRef}
                 aria-label="Attendance meetings"
                 tabIndex={0}
-                className="attendance-dates relative flex min-w-0 flex-1 items-start gap-2 overflow-x-auto overscroll-x-contain p-1 pb-2"
+                // Only as wide as its meetings, so Add meeting follows the
+                // last one; it scrolls once they don't fit.
+                className="attendance-dates relative flex min-w-0 flex-initial items-start gap-2 overflow-x-auto overscroll-x-contain p-1 pb-2"
                 onPointerDown={startDrag}
                 onPointerMove={moveDrag}
                 onPointerUp={finishDrag}

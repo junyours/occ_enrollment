@@ -136,22 +136,28 @@ export function RemarksCell({ row, editable, onChange, tabIndex }) {
             // The roster's R shortcut opens this.
             data-remarks-trigger=""
             tabIndex={tabIndex}
-            size={hasNote ? 'default' : 'icon'}
+            size={hasNote ? 'default' : 'sm'}
             aria-label={`${hasNote ? 'Edit' : 'Add'} remarks for ${name}`}
             aria-expanded={false}
             title={hasNote ? value : 'Add a note'}
             className={
                 hasNote
                     ? 'h-auto min-h-9 w-full justify-start gap-2 whitespace-normal px-2 text-left text-sm font-normal text-muted-foreground'
-                    : 'size-9 text-muted-foreground hover:text-primary'
+                    : 'h-9 gap-2 px-2.5 text-xs font-normal text-muted-foreground hover:text-primary'
             }
             onClick={() => setEditing(true)}
         >
             <StickyNote aria-hidden="true" className="size-4 shrink-0" />
 
-            {hasNote && (
+            {hasNote ? (
                 <span className="min-w-0 break-words [overflow-wrap:anywhere]">
                     {value}
+                </span>
+            ) : (
+                // Named on the row being pointed at or worked on, so 34
+                // rows don't all say it.
+                <span className="sr-only group-hover:not-sr-only group-focus-within:not-sr-only">
+                    Add note
                 </span>
             )}
         </Button>

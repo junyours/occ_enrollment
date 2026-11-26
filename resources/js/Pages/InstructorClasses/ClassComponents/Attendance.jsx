@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { AlertCircle, CalendarDays, Check, ClipboardList, Info, Keyboard, LoaderCircle, LockKeyhole, Maximize2, Plus, RotateCcw, Search, WifiOff } from 'lucide-react'
+import { AlertCircle, CalendarDays, Check, ClipboardList, Info, Keyboard, LoaderCircle, LockKeyhole, Maximize2, Plus, RotateCcw, Search, WifiOff, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/Lib/Utils'
 import { Button } from '@/Components/ui/button'
@@ -9,7 +9,6 @@ import { Card, CardContent } from '@/Components/ui/card'
 import { Label } from '@/Components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/Components/ui/alert-dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/Components/ui/toggle-group'
 import DatePicker from '@/Components/DatePicker'
 import { usePage } from '@inertiajs/react'
@@ -17,25 +16,19 @@ import useAttendance from './AttendancePartials/useAttendance'
 import { RemarksCell, TermAttendance } from './AttendancePartials/AttendanceRowDetails'
 import { formatDate, meetingLabel, sessionCounts, STATUSES, studentName, suggestedDates, typingIn } from './AttendancePartials/attendanceUtils'
 import AttendanceExport from './AttendancePartials/AttendanceExport.jsx'
+import RatesInfo from './AttendancePartials/RatesInfo'
 import RosterFullScreen from './AttendancePartials/RosterFullScreen'
 import { attendanceGuide, Key } from './AttendancePartials/attendanceGuide'
 import { GuideButton, useGuide } from './Classwork/Shared/GuideTour'
 import './AttendancePartials/attendance.css'
 const periods = [{ value: 'midterm', label: 'Midterm' }, { value: 'final', label: 'Final' }]
-const filters = [{ value: 'all', label: 'All students' }, { value: 'unmarked', label: 'Unmarked' }, ...STATUSES]
+const filterLabels = { unmarked: 'Unmarked', ...Object.fromEntries(STATUSES.map((status) => [status.value, status.label])) }
 const rowGrid = 'attendance-row-grid'
+// The theme's red is too dark to read as text in dark mode.
+const dangerText = 'text-destructive dark:text-red-400'
 import AttendanceMeetingStrip from './AttendancePartials/AttendanceMeetingStrip'
 import AttendanceSummaryCards from './AttendancePartials/AttendanceSummaryCards'
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
-
-function Choice({ id, label, value, options, onChange, disabled }) {
-    return <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger id={id} aria-label={label} className="h-10 w-auto min-w-32">
-            <SelectValue>{options.find((item) => item.value === value)?.label}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>{options.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent>
-    </Select>
-}
 
 function MeetingCounts({ session }) {
     return <span className="mt-2 grid w-full grid-cols-2 gap-x-3 gap-y-1 text-xs">
@@ -93,7 +86,9 @@ function PeriodSwitch({ attendance: a }) {
         <ToggleGroup type="single" value={saving ?? current} onValueChange={change} aria-labelledby={`${id}-label`}
             disabled={!a.online || a.pending || a.busy} className="gap-1">
             {periods.map((item) => <ToggleGroupItem key={item.value} value={item.value} variant="outline"
-                className="h-8 px-3 text-xs data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:text-primary">
+                // The chosen period is filled; the other stays quiet, so the
+                // choice reads right in light and dark mode.
+                className="h-8 px-3 text-xs font-normal text-muted-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:font-semibold data-[state=on]:text-primary-foreground data-[state=on]:hover:bg-primary/90 data-[state=on]:hover:text-primary-foreground">
                 {item.label}
             </ToggleGroupItem>)}
         </ToggleGroup>
@@ -180,7 +175,7 @@ function NewMeeting({ open, onClose, attendance: a, initialPeriod }) {
                     <Input id={`${id}-number`} type="number" required min={1} max={65535} step={1} value={number}
                         disabled={a.busy} onChange={(event) => setNumber(event.target.value)} /></div>
                 <p className="text-xs text-muted-foreground">Use meeting 2 for another meeting on the same date. Attendance stays editable until you permanently lock the meeting.</p>
-                {a.error && <p role="alert" className="text-sm text-destructive">{a.error}</p>}
+                {a.error && <p role="alert" className={cn('text-sm', dangerText)}>{a.error}</p>}
                 <DialogFooter><Button type="button" variant="outline" disabled={a.busy} onClick={onClose}>Cancel</Button>
                     <Button type="submit" disabled={a.busy || !a.online || !date}>{a.busy && <LoaderCircle className="size-4 animate-spin" />}Add meeting</Button></DialogFooter>
             </form>
@@ -201,7 +196,7 @@ function ConflictReview({ attendance: a }) {
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-xl">
             <DialogHeader><DialogTitle>Review pending changes</DialogTitle>
                 <DialogDescription>Compare this device’s changes with the latest saved records. Keep my changes submits them again. Use server records discards this device’s pending changes.</DialogDescription></DialogHeader>
-            {review?.latest.session.locked_at && <p className="text-sm font-medium text-destructive">This meeting is permanently locked. Pending edits cannot be submitted.</p>}
+            {review?.latest.session.locked_at && <p className={cn('text-sm font-medium', dangerText)}>This meeting is permanently locked. Pending edits cannot be submitted.</p>}
             <div className="space-y-3">{review?.rows.filter((row) => review.doc.patches[String(row.student_subject_id)]).map((row) => {
                 const server = latest.get(String(row.student_subject_id))
                 const fields = Object.keys(review.doc.patches[String(row.student_subject_id)])
@@ -212,7 +207,7 @@ function ConflictReview({ attendance: a }) {
                         This device: {row[field] || '—'}</p>)}
                 </CardContent></Card>
             })}</div>
-            {a.error && <p role="alert" className="text-sm text-destructive">{a.error}</p>}
+            {a.error && <p role="alert" className={cn('text-sm', dangerText)}>{a.error}</p>}
             <DialogFooter>
                 <Button type="button" variant="outline" disabled={resolving} onClick={a.closeReview}>Decide later</Button>
                 <Button type="button" variant="outline" disabled={resolving || !a.online} onClick={() => resolve(false)}>Use server records</Button>
@@ -305,7 +300,7 @@ function Confirmation({ action, attendance: a, onClose, onClear }) {
                     Changes autosave. Use Undo in the attendance toolbar before another edit or leaving this meeting.
                 </p>}
 
-                {(error || a.error) && <p role="alert" className="text-sm text-destructive">{error || a.error}</p>}
+                {(error || a.error) && <p role="alert" className={cn('text-sm', dangerText)}>{error || a.error}</p>}
 
                 <AlertDialogFooter>
                     <AlertDialogCancel autoFocus disabled={isBusy} onClick={onClose}>
@@ -375,8 +370,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
     const [placeholder, setPlaceholder] = useState(0)
     const fullScreenOpen = useRef(false)
     const ownsBrowserFullScreen = useRef(false)
-    const toolbarRef = useRef(null)
-    const footerRef = useRef(null)
+    const workRef = useRef(null)
     const fullScreenButton = useRef(null)
     const a = useAttendance({ classId })
     useEffect(() => { setSearch(''); setFilter('all'); setUndo(null); setConfirmation(null); setActiveId(null) }, [classId, a.session?.id])
@@ -388,6 +382,13 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
     const tabStop = visible.some((row) => rowKey(row) === activeId)
         ? activeId
         : visible.length ? rowKey(visible.find((row) => !row.status) ?? visible[0]) : null
+    // Why Lock meeting is greyed out, shown beside it: a tooltip wouldn't
+    // appear on a disabled button.
+    const lockHintId = useId()
+    const lockHint = !hasRoster ? 'Start attendance first'
+        : a.stats.unmarked > 0 ? `Mark ${a.stats.unmarked} more to lock`
+            : a.pending ? 'Locking waits for sync'
+                : !a.online ? 'Locking needs internet' : ''
     const guide = useGuide({
         guide: 'attendance',
         steps: () => attendanceGuide({ keyboard: window.matchMedia?.('(pointer: fine)').matches ?? true }),
@@ -442,9 +443,9 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
     }
 
     async function openFullScreen() {
-        const top = toolbarRef.current?.getBoundingClientRect().top
-        const bottom = footerRef.current?.getBoundingClientRect().bottom
-        setPlaceholder(top != null && bottom != null ? bottom - top : 0)
+        // Layout height, not screen position: the marked bar may be stuck to
+        // the bottom of the window.
+        setPlaceholder(workRef.current?.offsetHeight ?? 0)
         fullScreenOpen.current = true
         setFullScreen(true)
 
@@ -514,18 +515,25 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
             : <Button type="button" variant="outline" disabled={!a.online} onClick={a.retry}>Retry sync</Button>}
     </div>
 
-    // The toolbar, shortcuts, list, rates note and marked count: on the page,
-    // or filling the screen (`full`).
+    // The toolbar, shortcuts, list and marked count: on the page, or filling
+    // the screen (`full`), where the status counts come along as the filter.
     function workArea(full) {
+        const progress = a.stats.total ? Math.round(a.stats.marked / a.stats.total * 100) : 0
+
         return <>
-            <div ref={full ? undefined : toolbarRef} className="flex flex-wrap gap-2">
+            {full && <AttendanceSummaryCards compact stats={a.stats} filter={filter} onFilterChange={setFilter}
+                cancelled={a.session.status === 'cancelled'} />}
+            <div className="flex flex-wrap gap-2">
                 <div className="relative min-w-48 flex-1"><Search className="absolute left-3 top-3 size-4 text-muted-foreground" /><Input className="h-10 pl-9" aria-label="Search students" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or student number…" /></div>
-                <Choice label="Filter attendance status" value={filter} options={filters} onChange={(next) => next && setFilter(next)} />
+                {/* The status counts are the filter; this says which one is on. */}
+                {filter !== 'all' && <Button type="button" variant="secondary" className="h-10 gap-1.5"
+                    aria-label={`Showing ${filterLabels[filter]} only. Show all students.`} onClick={() => setFilter('all')}>
+                    {filterLabels[filter]} only<X aria-hidden="true" className="size-4" />
+                </Button>}
                 <Button type="button" variant="outline" className="h-10" disabled={!a.editable || !a.stats.unmarked} data-tour="attendance-bulk" onClick={() => bulk(false)}>Mark unmarked present</Button>
                 <Button type="button" variant="ghost" className="h-10" disabled={!a.editable || !a.stats.marked} onClick={() => setConfirmation('clear')}>Clear marks</Button>
                 {undo && <Button type="button" variant="outline" disabled={!a.editable} onClick={async () => { if (await a.patchMany(undo)) setUndo(null) }}>Undo</Button>}
             </div>
-            {/* <p className="text-xs text-muted-foreground">Bulk actions include hidden rows. Click a selected status again to unmark it.</p> */}
             {(a.editable || !full) && <div className="flex items-center gap-3">
                 {a.editable && <ShortcutLegend id={keysId} />}
                 {!full && <Button ref={fullScreenButton} type="button" variant="outline" size="sm" className="ml-auto h-8"
@@ -533,18 +541,22 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                     <Maximize2 aria-hidden="true" className="size-4" />Full screen
                 </Button>}
             </div>}
-            {/* Rows take focus themselves (Tab lands on the current student),
-                so the list needs no tab stop of its own to scroll. */}
+            {/* Rows take focus themselves (Tab lands on the current student).
+                On the page the list grows and the page scrolls; full screen
+                gives the list its own scroll. */}
             <div
                 className="attendance-roster rounded-xl border"
                 data-full-screen={full ? '' : undefined}
                 role="region"
-                aria-label="Scrollable student attendance"
+                aria-label="Student attendance list"
                 aria-describedby={a.editable ? keysId : undefined}
             >
                 <div role="table" aria-label="Student attendance">
-                <div role="rowgroup" className="attendance-table-head sticky top-0 z-10 hidden border-b bg-background shadow-sm"><div role="row" className={`grid gap-3 px-4 py-3 text-xs font-medium text-muted-foreground ${rowGrid}`}>
-                    {['Student', 'Term attendance', 'Status', 'Remarks'].map((name) => <span role="columnheader" key={name}>{name}</span>)}
+                <div role="rowgroup" className="attendance-table-head sticky z-10 hidden border-b bg-background shadow-sm"><div role="row" className={`grid items-center gap-3 px-4 py-2 text-xs font-medium text-muted-foreground ${rowGrid}`}>
+                    <span role="columnheader">Student</span>
+                    <span role="columnheader" className="flex items-center gap-1">Term attendance<RatesInfo className="-my-1" /></span>
+                    <span role="columnheader">Status</span>
+                    <span role="columnheader">Remarks</span>
                 </div>
                 </div>
                 {/* Only the current student's row and its buttons are in the Tab
@@ -555,20 +567,27 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                     ref={(node) => { if (node) rowNodes.current.set(rowKey(row), node); else rowNodes.current.delete(rowKey(row)) }}
                     data-attendance-row={rowKey(row)} data-tour={index === 0 ? 'attendance-row' : undefined}
                     tabIndex={stop ? 0 : -1} onFocus={() => setActiveId(rowKey(row))}
-                    className={`grid scroll-mb-24 scroll-mt-14 gap-3 border-t px-4 py-4 outline-none focus-within:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${rowGrid}`}>
+                    className={`attendance-row group grid gap-3 border-t px-4 py-4 outline-none focus-within:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${rowGrid}`}>
                     <div role="cell"><p className="text-sm font-medium">{studentName(row)}</p><p className="text-xs text-muted-foreground">{row.user_id_no || 'No student number'}</p></div>
                     <div role="cell" className="text-sm">
                         <span className="attendance-term-label mr-1 text-xs text-muted-foreground">Term attendance:</span>
                         <TermAttendance row={row} />
                     </div>
                     <div role="cell"><div role="group" aria-label={`Attendance status for ${studentName(row)}`} className="grid grid-cols-4 gap-1.5">
-                        {STATUSES.map((status) => <Button type="button" variant="outline" key={status.value} disabled={!a.editable}
-                            tabIndex={stop ? undefined : -1}
-                            aria-label={`${status.label} for ${studentName(row)}`} aria-pressed={row.status === status.value}
-                            className={`h-10 gap-1 px-1 text-xs ${row.status === status.value ? status.tone : ''}`}
-                            onClick={() => edit(row.student_subject_id, { status: row.status === status.value ? null : status.value })}>
-                            {row.status === status.value && <Check className="size-3" />}{status.label}
-                        </Button>)}
+                        {STATUSES.map((status) => {
+                            const chosen = row.status === status.value
+                            return <Button type="button" variant="outline" key={status.value} disabled={!a.editable}
+                                tabIndex={stop ? undefined : -1}
+                                aria-label={`${status.label} for ${studentName(row)}`} aria-pressed={chosen}
+                                // Only the chosen status is coloured; the others stay
+                                // quiet until hovered, so the answers stand out.
+                                className={cn('attendance-status h-10 gap-1 px-1 text-xs', chosen
+                                    ? cn(status.tone, 'font-semibold')
+                                    : cn('border-border/60 bg-transparent font-normal text-muted-foreground', status.hover))}
+                                onClick={() => edit(row.student_subject_id, { status: chosen ? null : status.value })}>
+                                {chosen && <Check className="size-3" />}{status.label}
+                            </Button>
+                        })}
                     </div></div>
                     <div role="cell" className="min-w-0">
                         <RemarksCell key={`${a.session.id}:${row.student_subject_id}`} row={row} editable={a.editable}
@@ -580,18 +599,20 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                 </div>
                 {!visible.length && <p className="p-6 text-center text-sm text-muted-foreground">No students match this view.</p>}
             </div>
-            {/* Full screen keeps this and the marked count at the bottom. */}
-            <details className={cn('rounded-lg border p-3 text-sm', full && 'mt-auto')}><summary className="cursor-pointer font-medium">How attendance rates work</summary>
-                <p className="mt-2 text-muted-foreground">(Present + Late) ÷ (Present + Late + Absent) × 100. Excused and unmarked students are excluded. Cancelled meetings are excluded from term attendance. Percentages are rounded. Term attendance uses synced records across Midterm and Final, including meetings marked in advance.</p>
-            </details>
-            <footer ref={full ? undefined : footerRef} className={cn(
-                'flex flex-wrap items-center justify-between gap-2 border px-4 py-3 shadow-sm',
+            <footer className={cn(
+                'flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border px-4 py-3 shadow-sm',
                 // On the page it stays in view while the list scrolls; full
-                // screen keeps it at the bottom anyway.
-                full ? 'rounded-xl bg-background' : 'sticky bottom-0 z-20 rounded-t-xl bg-background/95 backdrop-blur',
+                // screen keeps it at the bottom.
+                full ? 'mt-auto rounded-xl bg-background' : 'sticky bottom-0 z-20 rounded-t-xl bg-background/95 backdrop-blur',
             )}>
-                <p className="text-sm">{a.stats.marked} of {a.stats.total} marked · {a.stats.unmarked} remaining</p>
-                <p role="status" aria-live="polite" className={`flex items-center gap-2 text-sm ${a.blocked || a.writeError ? 'text-destructive' : a.pending ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
+                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                    <p className="text-sm">{a.stats.marked} of {a.stats.total} marked · {a.stats.unmarked} remaining</p>
+                    <div role="progressbar" aria-label="Students marked" aria-valuemin={0} aria-valuemax={a.stats.total} aria-valuenow={a.stats.marked}
+                        className="h-1.5 w-24 overflow-hidden rounded-full bg-muted sm:w-40">
+                        <div className="h-full rounded-full bg-primary motion-safe:transition-[width]" style={{ width: `${progress}%` }} />
+                    </div>
+                </div>
+                <p role="status" aria-live="polite" className={`flex items-center gap-2 text-sm ${a.blocked || a.writeError ? dangerText : a.pending ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
                     {a.syncLabel === 'Syncing…' ? <LoaderCircle className="size-4 animate-spin" /> : a.pending ? <AlertCircle className="size-4" /> : <Check className="size-4" />}{a.syncLabel}
                 </p>
             </footer>
@@ -633,7 +654,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                     </div>
                 </CardContent>
             </Card>
-        )}{a.error && <div role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{a.error}</div>}
+        )}{a.error && <div role="alert" className={cn('rounded-lg border border-destructive/30 p-3 text-sm', dangerText)}>{a.error}</div>}
         {a.loading && <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />Loading attendance…</p>}
         <AttendanceMeetingStrip
             attendance={a}
@@ -653,20 +674,21 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                     {/* <Button type="button" variant="outline" size="icon" aria-label="Refresh" title="Refresh attendance"
                         disabled={!a.online || a.busy} onClick={a.refresh}><RotateCcw className="size-4" /></Button> */}
                     {a.locked ? <Badge variant="secondary"><LockKeyhole className="mr-1 size-3" />Permanently locked</Badge>
-                        : <div className="flex gap-2">
+                        : <div className="flex flex-wrap items-center gap-2">
                             {a.session.status === 'cancelled' ? <Button type="button" variant="outline" disabled={!a.online || a.pending || a.busy} onClick={() => a.setStatus('open')}>Restore meeting</Button>
                                 : <><Button
                                     type="button"
                                     variant="ghost"
-                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    className={cn(dangerText, 'hover:bg-destructive/10 hover:text-destructive dark:hover:text-red-300')}
                                     disabled={!a.online || a.pending || a.busy}
                                     onClick={() => setConfirmation('cancel')}
                                 >
                                     Cancel meeting
                                 </Button>
-                                    <Button type="button" variant="outline" disabled={!a.online || a.pending || a.busy || !hasRoster || a.stats.unmarked > 0}
-                                        data-tour="attendance-lock"
-                                        title="Mark all students and wait for sync before permanently locking." onClick={() => setConfirmation('lock')}><LockKeyhole className="size-4" />Lock meeting</Button></>}
+                                    {lockHint && <span id={lockHintId} className="text-xs text-muted-foreground">{lockHint}</span>}
+                                    <Button type="button" variant="outline" disabled={Boolean(lockHint) || a.busy}
+                                        data-tour="attendance-lock" aria-describedby={lockHint ? lockHintId : undefined}
+                                        onClick={() => setConfirmation('lock')}><LockKeyhole className="size-4" />Lock meeting</Button></>}
                         </div>}
                 </div>
             </div>
@@ -682,7 +704,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
                 />
                 {fullScreen
                     ? <div aria-hidden="true" style={{ height: placeholder }} />
-                    : workArea(false)}
+                    : <div ref={workRef} className="space-y-4">{workArea(false)}</div>}
             </>}
         </>}
         <NewMeeting open={newMeeting} onClose={() => setNewMeeting(false)} attendance={a} initialPeriod={a.session?.period || initialPeriod} />
@@ -697,7 +719,7 @@ export default function Attendance({ classId, initialPeriod = 'midterm', section
             onOpenAutoFocus={focusCurrent}
             onCloseAutoFocus={focusAfterFullScreen}
         >
-            {a.error && <div role="alert" className="rounded-lg border border-destructive/30 p-3 text-sm text-destructive">{a.error}</div>}
+            {a.error && <div role="alert" className={cn('rounded-lg border border-destructive/30 p-3 text-sm', dangerText)}>{a.error}</div>}
             {blockedBanner}
             {fullScreen && workArea(true)}
         </RosterFullScreen>}
