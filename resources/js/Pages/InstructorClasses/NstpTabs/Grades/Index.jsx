@@ -10,6 +10,7 @@ import { useReactToPrint } from 'react-to-print';
 import { Button } from '@/Components/ui/button';
 import { Printer } from 'lucide-react';
 import GradeSignatories from '../../ClassComponents/GradePartials/GradeSignatories';
+import { SubmissionBarSkeleton } from '../../ClassComponents/GradePartials/GradesSkeleton';
 import NstpGradeSignatories from './NstpGradeSignatories';
 
 export default function GradesIndex({ id, allowMidtermUpload, allowFinalUpload, faculty, componentName, sectionName, schoolYear }) {
@@ -95,6 +96,8 @@ export default function GradesIndex({ id, allowMidtermUpload, allowFinalUpload, 
                 {/* SINATORIES */}
                 <NstpGradeSignatories faculty={formatName(faculty, { format: 'FMI', casing: 'upper' })} />
             </div>
+
+            {isLoading && <SubmissionBarSkeleton />}
 
             {!isLoading && gradeSubmissionStatus && !isError && (
                 <SubmitButton

@@ -5,7 +5,7 @@ import { useSeenItems } from '@/Lib/seenItems'
 import Students from './ClassComponents/Students'
 import Attendance from './ClassComponents/Attendance'
 import Grades from './ClassComponents/Grades'
-import PreLoader from '@/Components/preloader/PreLoader'
+import GradesSkeleton from './ClassComponents/GradePartials/GradesSkeleton'
 import { Button } from '@/Components/ui/button'
 import Grading from './ClassComponents/Grading'
 import Materials from './ClassComponents/Materials'
@@ -214,11 +214,7 @@ export default function OpenClass({
                 {/* The grade sheet takes its rows from the students once, when it
                     opens, so it waits for them: opened straight from a link, it
                     would otherwise start (and stay) empty. */}
-                {tab === 'grades' && isLoading && (
-                    <div className="grid min-h-[240px] place-items-center">
-                        <PreLoader />
-                    </div>
-                )}
+                {tab === 'grades' && isLoading && <GradesSkeleton />}
 
                 {tab === 'grades' && isError && (
                     <div className="flex flex-col items-center gap-3 py-16 text-center text-sm text-muted-foreground">

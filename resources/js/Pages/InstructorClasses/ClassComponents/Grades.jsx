@@ -9,9 +9,9 @@ import { useReactToPrint } from 'react-to-print'
 import GradeSignatories from './GradePartials/GradeSignatories'
 import GradeHeader from './GradePartials/GradeHeader'
 import { useGradeSubmission } from './GradePartials/useGradeSubmission'
-import PreLoader from '@/Components/preloader/PreLoader'
 import { lockedReason, uploadWindowText } from './GradePartials/UploadWindow'
 import { ConfirmGradeAction, gradeConfirmText, statusMap, SubmissionBar, SubmissionPanel } from './GradePartials/SubmissionBar'
+import { GradeListSkeleton, SubmissionBarSkeleton } from './GradePartials/GradesSkeleton'
 import { buildGradeTemplate, TEMPLATE_WRITE_OPTIONS } from './GradePartials/gradeTemplate'
 import { toast } from 'sonner'
 
@@ -551,9 +551,7 @@ function Grades({
                     />
 
                     {isLoading ? (
-                        <div className="grid h-full min-h-[240px] place-items-center">
-                            <PreLoader />
-                        </div>
+                        <GradeListSkeleton rows={Math.min(Math.max(grades.length, 4), 12)} />
                     ) : (
                         <GradesStudentList
                             grades={grades}
@@ -576,7 +574,7 @@ function Grades({
             {/* Submission bar: part of the page, so never wider than it. On
                 wider screens it sticks to the bottom of the window while the
                 sheet scrolls; on phones it follows the sheet. */}
-            {!isLoading && (
+            {isLoading ? <SubmissionBarSkeleton /> : (
                 <SubmissionBar>
                         <SubmissionPanel
                             type="midterm"

@@ -1,4 +1,3 @@
-import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -6,18 +5,9 @@ import { useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
 import { formatName } from '@/Lib/InfoUtils';
 import GradesStudentList from '../../ClassComponents/GradePartials/GradesStudentList';
+import { GradeListSkeleton } from '../../ClassComponents/GradePartials/GradesSkeleton';
 import { lockedReason } from '../../ClassComponents/GradePartials/UploadWindow';
 
-// While the grades load.
-const Skeleton = () => (
-    <Card>
-        <CardContent className="space-y-3 pt-6">
-            {Array.from({ length: 12 }).map((_, index) => (
-                <div key={index} className="h-6 animate-pulse rounded bg-muted" />
-            ))}
-        </CardContent>
-    </Card>
-)
 
 // A saved grade as the boxes show it: one decimal, or blank.
 const asGrade = (value) => (
@@ -162,7 +152,7 @@ export default function StudentList({ id, allowMidtermUpload, allowFinalUpload, 
             </div>
         );
     }
-    if (isLoading || !data || gradeSubmissionLoading) return <Skeleton />;
+    if (isLoading || !data || gradeSubmissionLoading) return <GradeListSkeleton />;
 
     // The Grades tab's list: bigger boxes, Enter to go down a column, the
     // reason a box is locked, and a card per student on phones.
