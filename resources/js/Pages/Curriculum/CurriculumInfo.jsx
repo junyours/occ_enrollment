@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useForm, usePage } from "@inertiajs/react";
-import { AlertCircle, BookOpen, ChevronDown, Layers3, Loader2, Plus, RefreshCw } from "lucide-react";
+import { AlertCircle, BookOpen, ChevronDown, Layers3, ListChecks, Loader2, Plus, RefreshCw, X } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -13,9 +13,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/Components/ui/dialog";
+import { Label } from "@/Components/ui/label";
+import { Switch } from "@/Components/ui/switch";
 import PreLoader from "@/Components/preloader/PreLoader";
 import { useToast } from "@/hooks/use-toast";
 import CurriculumTable from "./CurriculumTable";
+import { SemesterLabel } from "./semesters";
+import { dependentsByEntryId, hasPrerequisites, linkedPrerequisites, termCanHavePrerequisites, yearStandingLabel } from "./prerequisites";
 
 const YEAR_LEVELS = [
     { key: "firstYear", id: 1, label: "First Year" },
@@ -38,14 +42,34 @@ const summarizeTerms = (terms) => terms.reduce((summary, term) => {
     return summary;
 }, { semesters: 0, subjects: 0, units: 0 });
 
+// Remember which year sections are open, per curriculum, in this browser only.
+// Storage can be unavailable (private mode, blocked site data); fall back to First Year open.
+const openYearsKey = () => `curriculum-open-years:${window.location.pathname}`;
+const readOpenYears = () => {
+    try {
+        const saved = JSON.parse(window.localStorage.getItem(openYearsKey()) ?? "null");
+        if (saved && typeof saved === "object" && !Array.isArray(saved)) {
+            return Object.fromEntries(YEAR_LEVELS.map(({ key }) => [key, saved[key] === true]));
+        }
+    } catch { /* fall through */ }
+    return { firstYear: true };
+};
+const saveOpenYears = (openYears) => {
+    try { window.localStorage.setItem(openYearsKey(), JSON.stringify(openYears)); } catch { /* not critical */ }
+};
+
 export default function CurriculumInfo() {
     const { course_name } = usePage().props;
     const { toast } = useToast();
     const [curriculumData, setCurriculumData] = useState(emptyCurriculum);
+    const allTerms = Object.values(curriculumData).flat();
     const [fetching, setFetching] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [fetchError, setFetchError] = useState("");
-    const [openYears, setOpenYears] = useState({ firstYear: true });
+    const [openYears, setOpenYears] = useState(readOpenYears);
+    const [onlyMissing, setOnlyMissing] = useState(false);
+    const [focusedId, setFocusedId] = useState(null);
+    const [hoveredId, setHoveredId] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedYear, setSelectedYear] = useState(null);
     const requestSequence = useRef(0);
@@ -64,6 +88,19 @@ export default function CurriculumInfo() {
         getCurriculumInfo();
         return () => { requestSequence.current += 1; };
     }, []);
+
+    useEffect(() => { saveOpenYears(openYears); }, [openYears]);
+
+    // Escape clears the selected subject (unless a dialog is open; it handles Escape itself).
+    useEffect(() => {
+        if (focusedId === null) return undefined;
+        const onKeyDown = (event) => {
+            if (event.key === "Escape" && !document.querySelector("[role=dialog], [role=alertdialog]")) setFocusedId(null);
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [focusedId]);
+
 
     async function getCurriculumInfo() {
         const sequence = ++requestSequence.current;
@@ -137,19 +174,78 @@ export default function CurriculumInfo() {
     const summary = summarizeTerms(Object.values(curriculumData).flat());
     const allExpanded = YEAR_LEVELS.every(({ key }) => openYears[key]);
 
+    // Prerequisite progress. First-semester subjects can't have any, so they don't count.
+    const termEligible = Object.fromEntries(allTerms.map((term) => [term.id, termCanHavePrerequisites(term, allTerms)]));
+    const dependentsById = dependentsByEntryId(allTerms);
+
+    // Highlighting links (direct prerequisites and the subjects that require it):
+    // - click selects a subject: it's marked, the rest dims, related years open, a summary bar shows;
+    // - hover only colours the hovered subject's links, and only while nothing is selected.
+    const entryById = Object.fromEntries(allTerms.flatMap((term) =>
+        (term.curriculum_term_subject ?? []).map((entry) => [Number(entry.id), { entry, term }])));
+    const linksOf = (id) => ({
+        prerequisites: linkedPrerequisites(entryById[id]?.entry).map((p) => entryById[Number(p.required_term_subject_id)]).filter(Boolean),
+        dependents: (dependentsById[id] ?? []).map((entry) => entryById[Number(entry.id)]).filter(Boolean),
+    });
+    const focused = focusedId !== null ? entryById[focusedId] : null;
+    const focusedLinks = focused ? linksOf(focusedId) : { prerequisites: [], dependents: [] };
+    const activeId = focused ? focusedId : (hoveredId !== null && entryById[hoveredId] ? hoveredId : null);
+    const activeLinks = activeId === null ? null : (focused ? focusedLinks : linksOf(activeId));
+    const focus = activeLinks ? {
+        id: activeId,
+        mode: focused ? "select" : "hover",
+        prerequisiteIds: new Set(activeLinks.prerequisites.map(({ entry }) => Number(entry.id))),
+        dependentIds: new Set(activeLinks.dependents.map(({ entry }) => Number(entry.id))),
+    } : null;
+    const yearKeyOf = (term) => YEAR_LEVELS.find(({ id }) => id === Number(term.year_level_id))?.key;
+
+    const focusEntry = (id) => {
+        if (focusedId === id) { setFocusedId(null); return; }
+        const target = entryById[id];
+        if (!target) return;
+        // Open every year that holds a related subject, so nothing highlighted is hidden.
+        const { prerequisites, dependents } = linksOf(id);
+        const related = [target, ...prerequisites, ...dependents];
+        setOpenYears((current) => ({ ...current, ...Object.fromEntries(related.map(({ term }) => [yearKeyOf(term), true]).filter(([key]) => key)) }));
+        setFocusedId(id);
+    };
+
+    const scrollToEntry = (id) => {
+        document.getElementById(`curriculum-entry-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    const termLabel = (term) => `${YEAR_LEVELS.find(({ id }) => id === Number(term.year_level_id))?.label ?? ""}, ${SEMESTERS[term.semester_id] ?? "Semester"}`;
+    const eligibleSubjects = allTerms
+        .filter((term) => termEligible[term.id])
+        .flatMap((term) => (term.curriculum_term_subject ?? []).filter((entry) => entry.subject));
+    const withPrerequisites = eligibleSubjects.filter(hasPrerequisites).length;
+    const missingPrerequisites = eligibleSubjects.length - withPrerequisites;
+    const yearHasMissing = (terms) => terms.some((term) => termEligible[term.id]
+        && (term.curriculum_term_subject ?? []).some((entry) => entry.subject && !hasPrerequisites(entry)));
+
+    const toggleOnlyMissing = (checked) => {
+        setOnlyMissing(checked);
+        // Show every year so nothing that still needs prerequisites is hidden in a collapsed section.
+        if (checked) setOpenYears(Object.fromEntries(YEAR_LEVELS.map(({ key }) => [key, true])));
+    };
+
     return (
-        <div className="min-w-0 space-y-6 py-2 sm:py-4">
-            <header className="space-y-5">
+        <div className={`min-w-0 space-y-5 py-2 sm:py-3 ${focused ? "pb-36" : ""}`}>
+            <header className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <p className="min-w-0 text-sm text-muted-foreground">{course_name}</p>
                     {refreshing && <span role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />Refreshing…</span>}
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {[
                         { label: "Credit units", value: summary.units, icon: BookOpen },
                         { label: "Subjects", value: summary.subjects, icon: BookOpen },
                         { label: "Semesters", value: summary.semesters, icon: Layers3 },
+                        {
+                            label: "Have prerequisites",
+                            value: <>{withPrerequisites}<span className="text-base font-normal text-muted-foreground sm:text-lg"> / {eligibleSubjects.length}</span></>,
+                            icon: ListChecks,
+                        },
                     ].map(({ label, value, icon: Icon }) => (
                         <div key={label} className="rounded-lg bg-muted/50 px-3 py-4 sm:px-5">
                             <div className="flex items-center justify-between gap-2">
@@ -167,16 +263,32 @@ export default function CurriculumInfo() {
                             <Button key={key} type="button" variant="outline" size="sm" className="text-[13px]" onClick={() => jumpToYear(key)}>{label}</Button>
                         ))}
                     </div>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-[13px] text-muted-foreground"
-                        onClick={() => setOpenYears(Object.fromEntries(YEAR_LEVELS.map(({ key }) => [key, !allExpanded])))}
-                    >
-                        {allExpanded ? "Collapse all" : "Expand all"}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <div className="flex items-center gap-2">
+                            <Switch id="only-missing-prerequisites" checked={onlyMissing} onCheckedChange={toggleOnlyMissing} disabled={eligibleSubjects.length === 0} />
+                            <Label htmlFor="only-missing-prerequisites" className="cursor-pointer text-[13px] font-normal">
+                                Only subjects without prerequisites
+                                {eligibleSubjects.length > 0 && <span className="ml-1 text-muted-foreground">({missingPrerequisites})</span>}
+                            </Label>
+                        </div>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-[13px] text-muted-foreground"
+                            onClick={() => setOpenYears(Object.fromEntries(YEAR_LEVELS.map(({ key }) => [key, !allExpanded])))}
+                        >
+                            {allExpanded ? "Collapse all" : "Expand all"}
+                        </Button>
+                    </div>
                 </nav>
+                {onlyMissing && (
+                    <p role="status" className="rounded-md bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
+                        {missingPrerequisites === 0
+                            ? "Every subject that can have prerequisites has at least one. Turn off the filter to see all subjects."
+                            : `Showing ${missingPrerequisites} ${missingPrerequisites === 1 ? "subject" : "subjects"} without prerequisites. Many general-education subjects correctly have none.`}
+                    </p>
+                )}
             </header>
 
             {fetchError && (
@@ -219,9 +331,13 @@ export default function CurriculumInfo() {
                                     <Button type="button" variant="ghost" size="sm" className="text-[13px]" disabled={!semesterData.curr_id || refreshing} onClick={(event) => handleOpenSemester(year, event.currentTarget)} aria-label={`Add semester to ${year.label}`}><Plus />Add Semester</Button>
                                 )}
                             </div>
-                            <div id={`curriculum-${year.key}-content`} hidden={!expanded} className="space-y-5 px-3 pb-4 sm:px-5 sm:pb-5">
-                                {terms.length > 0 ? terms.map((term) => (
-                                    <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={year.label} semesterId={term.semester_id} getCurriculumInfo={getCurriculumInfo} />
+                            <div id={`curriculum-${year.key}-content`} hidden={!expanded} className="space-y-4 px-3 pb-3 sm:px-4 sm:pb-4">
+                                {onlyMissing && terms.length > 0 && !yearHasMissing(terms) ? (
+                                    <p className="rounded-lg bg-muted/30 px-5 py-6 text-center text-sm text-muted-foreground">
+                                        {terms.some((term) => termEligible[term.id]) ? `Every subject in ${year.label.toLowerCase()} has prerequisites.` : "First-semester subjects can't have prerequisites."}
+                                    </p>
+                                ) : terms.length > 0 ? terms.map((term) => (
+                                    <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={year.label} semesterId={term.semester_id} allTerms={allTerms} dependentsById={dependentsById} canHavePrerequisites={termEligible[term.id]} onlyMissing={onlyMissing} focus={focus} onFocusEntry={focusEntry} onHoverEntry={setHoveredId} getCurriculumInfo={getCurriculumInfo} />
                                 )) : (
                                     <div className="rounded-lg bg-muted/30 px-5 py-8 text-center">
                                         <p className="text-sm font-medium">No semesters yet</p>
@@ -257,6 +373,38 @@ export default function CurriculumInfo() {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {focused && (
+                <div role="region" aria-label={`Prerequisite links for ${focused.entry.subject?.subject_code}`} className="fixed inset-x-3 bottom-3 z-40 mx-auto max-w-3xl rounded-xl border bg-background/95 p-3 shadow-lg backdrop-blur sm:inset-x-6">
+                    <div className="flex items-start gap-3">
+                        <div className="min-w-0 flex-1 space-y-1.5 text-sm">
+                            <p className="truncate">
+                                <button type="button" onClick={() => scrollToEntry(focusedId)} className="font-semibold hover:underline">{focused.entry.subject?.subject_code}</button>
+                                <span className="text-muted-foreground"> · {focused.entry.subject?.descriptive_title} · {YEAR_LEVELS.find(({ id }) => id === Number(focused.term.year_level_id))?.label} · </span>
+                                <SemesterLabel semesterId={focused.term.semester_id} className="align-middle text-xs" />
+                            </p>
+                            <p className="flex flex-wrap items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1.5 text-xs font-medium"><span className="h-2.5 w-2.5 rounded-sm bg-amber-500" aria-hidden="true" />Prerequisites:</span>
+                                {focusedLinks.prerequisites.length === 0 && !Number(focused.entry.required_year_level_id) && <span className="text-xs text-muted-foreground">none</span>}
+                                {focusedLinks.prerequisites.map(({ entry, term }) => (
+                                    <button key={entry.id} type="button" onClick={() => scrollToEntry(entry.id)} title={`${entry.subject?.descriptive_title} · ${termLabel(term)}`} className="rounded bg-amber-500/15 px-1.5 text-xs font-medium hover:bg-amber-500/25">{entry.subject?.subject_code}</button>
+                                ))}
+                                {Number(focused.entry.required_year_level_id) > 0 && <span className="rounded bg-muted px-1.5 text-xs">{yearStandingLabel(Number(focused.entry.required_year_level_id))}</span>}
+                            </p>
+                            <p className="flex flex-wrap items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1.5 text-xs font-medium"><span className="h-2.5 w-2.5 rounded-sm bg-sky-500" aria-hidden="true" />Required for:</span>
+                                {focusedLinks.dependents.length === 0 && <span className="text-xs text-muted-foreground">none</span>}
+                                {focusedLinks.dependents.map(({ entry, term }) => (
+                                    <button key={entry.id} type="button" onClick={() => scrollToEntry(entry.id)} title={`${entry.subject?.descriptive_title} · ${termLabel(term)}`} className="rounded bg-sky-500/15 px-1.5 text-xs font-medium hover:bg-sky-500/25">{entry.subject?.subject_code}</button>
+                                ))}
+                            </p>
+                        </div>
+                        <Button type="button" variant="ghost" size="sm" className="h-8 shrink-0 text-xs" onClick={() => setFocusedId(null)}>
+                            <X aria-hidden="true" /> Clear <kbd className="ml-1 hidden rounded border px-1 text-[10px] text-muted-foreground sm:inline">Esc</kbd>
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -268,6 +416,7 @@ CurriculumInfo.layout = (page) => {
 
     return (
         <AuthenticatedLayout
+            stickyContent
             title={`${curriculumTitle} ${schoolYear}`}
             headerContent={
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">

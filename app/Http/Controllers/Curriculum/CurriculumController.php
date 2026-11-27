@@ -8,6 +8,7 @@ use App\Models\Curriculum;
 use App\Models\CurriculumTerm;
 use App\Models\CurriculumTermSubject;
 use App\Models\Faculty;
+use App\Models\PreRequisiteSubjects;
 use App\Models\Subject;
 use App\Models\YearLevel;
 use Inertia\Inertia;
@@ -80,7 +81,7 @@ class CurriculumController extends Controller
         $curData = Curriculum::where('id', '=', $curriculumId)
             ->with('CurriculumTerm.Semester')
             ->with('CurriculumTerm.YearLevel')
-            ->with('CurriculumTerm.CurriculumTermSubject.PreRequisiteSubjects')
+            ->with('CurriculumTerm.CurriculumTermSubject.PreRequisiteSubjects.RequiredEntry.Subject')
             ->with('CurriculumTerm.CurriculumTermSubject.Subject')
             ->get();
 
@@ -94,10 +95,28 @@ class CurriculumController extends Controller
 
     public function addSemester(Request $request)
     {
+        $validated = Validator::make($request->all(), [
+            'curr_id' => ['required', 'integer', 'exists:curriculum,id'],
+            'year_level_id' => ['required', 'integer', 'exists:year_level,id'],
+            'semester_id' => ['required', 'integer', 'exists:semesters,id'],
+        ])->validate();
+
+        $this->authorizeCurriculum($request, (int) $validated['curr_id']);
+
+        $exists = CurriculumTerm::where('curriculum_id', $validated['curr_id'])
+            ->where('year_level_id', $validated['year_level_id'])
+            ->where('semester_id', $validated['semester_id'])
+            ->exists();
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'semester_id' => 'This semester already exists in this year level.',
+            ]);
+        }
+
         CurriculumTerm::create([
-            'semester_id' => $request->semester_id,
-            'year_level_id' => $request->year_level_id,
-            'curriculum_id' => $request->curr_id,
+            'semester_id' => $validated['semester_id'],
+            'year_level_id' => $validated['year_level_id'],
+            'curriculum_id' => $validated['curr_id'],
         ]);
     }
 
@@ -130,21 +149,54 @@ class CurriculumController extends Controller
 
     public function setCurriculumTermActive(Request $request)
     {
-        CurriculumTerm::where('year_level_id', '=', $request->yearLevel)
-            ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
-            ->where('curriculum.course_id', '=', $request->courseId)
-            ->update(['active' => 0]);
+        $validated = Validator::make($request->all(), [
+            'courseId' => ['required', 'integer', 'exists:course,id'],
+            'yearLevel' => ['required', 'integer', 'exists:year_level,id'],
+            'curriculumId' => ['required', 'integer', 'exists:curriculum,id'],
+        ])->validate();
 
-        CurriculumTerm::where('year_level_id', '=', $request->yearLevel)
-            ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
-            ->where('curriculum.id', '=', $request->curriculumId)
-            ->update(['active' => 1]);
+        $this->authorizeCourse($request, (int) $validated['courseId']);
+
+        $belongsToCourse = Curriculum::whereKey($validated['curriculumId'])
+            ->where('course_id', $validated['courseId'])
+            ->exists();
+        if (!$belongsToCourse) {
+            throw ValidationException::withMessages([
+                'curriculumId' => 'This curriculum does not belong to the selected program.',
+            ]);
+        }
+
+        DB::transaction(function () use ($validated) {
+            CurriculumTerm::where('year_level_id', '=', $validated['yearLevel'])
+                ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
+                ->where('curriculum.course_id', '=', $validated['courseId'])
+                ->update(['active' => 0]);
+
+            CurriculumTerm::where('year_level_id', '=', $validated['yearLevel'])
+                ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
+                ->where('curriculum.id', '=', $validated['curriculumId'])
+                ->update(['active' => 1]);
+        });
     }
 
 
     public function addSchoolYear(Request $request)
     {
-        // You already have course_id as MD5(id), so match on that
+        $validated = Validator::make($request->all(), [
+            'course_id' => ['required', 'integer', 'exists:course,id'],
+            'school_year_start' => ['required', 'integer', 'between:1900,2100'],
+            'school_year_end' => ['required', 'integer'],
+        ])->validate();
+
+        if ((int) $validated['school_year_end'] !== (int) $validated['school_year_start'] + 1) {
+            throw ValidationException::withMessages([
+                'school_year' => 'The ending year must be the year after the starting year.',
+            ]);
+        }
+
+        $this->authorizeCourse($request, (int) $validated['course_id']);
+        $request->merge($validated);
+
         $exist = Curriculum::where('course_id', $request->course_id)
             ->where('school_year_start', $request->school_year_start)
             ->where('school_year_end', $request->school_year_end)
@@ -266,6 +318,77 @@ class CurriculumController extends Controller
         return Redirect::back();
     }
 
+    /**
+     * Replaces a curriculum subject's prerequisites.
+     *
+     * Prerequisites must be subjects from an EARLIER term of the same curriculum
+     * (earlier year, or same year and earlier semester; Summer comes after Second),
+     * which also rules out self-references and circular chains. All listed
+     * subjects are required (AND). Year standing is optional and can't be above
+     * the subject's own year level.
+     */
+    public function setPrerequisites(Request $request)
+    {
+        $validated = Validator::make($request->all(), [
+            'id' => ['required', 'integer', 'exists:curriculum_term_subjects,id'],
+            'prerequisite_ids' => ['present', 'array', 'max:20'],
+            'prerequisite_ids.*' => ['integer', 'distinct'],
+            'required_year_level_id' => ['nullable', 'integer', 'exists:year_level,id'],
+        ], [
+            'prerequisite_ids.max' => 'Choose at most 20 prerequisites.',
+        ])->validate();
+
+        $entry = CurriculumTermSubject::with('CurriculumTerm')->findOrFail($validated['id']);
+        $this->authorizeCurriculumTerm($request, $entry->curriculum_term_id);
+
+        $term = $entry->CurriculumTerm;
+        $requiredIds = array_map('intval', $validated['prerequisite_ids']);
+
+        $allowedIds = CurriculumTermSubject::query()
+            ->join('curriculum_term', 'curriculum_term.id', '=', 'curriculum_term_subjects.curriculum_term_id')
+            ->where('curriculum_term.curriculum_id', $term->curriculum_id)
+            ->where(function ($query) use ($term) {
+                $query->where('curriculum_term.year_level_id', '<', $term->year_level_id)
+                    ->orWhere(function ($query) use ($term) {
+                        $query->where('curriculum_term.year_level_id', $term->year_level_id)
+                            ->where('curriculum_term.semester_id', '<', $term->semester_id);
+                    });
+            })
+            ->whereIn('curriculum_term_subjects.id', $requiredIds ?: [0])
+            ->pluck('curriculum_term_subjects.id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if (count($allowedIds) !== count($requiredIds)) {
+            throw ValidationException::withMessages([
+                'prerequisite_ids' => 'Prerequisites must be subjects from an earlier semester of this curriculum.',
+            ]);
+        }
+
+        $yearStanding = $validated['required_year_level_id'] ?? null;
+        if ($yearStanding !== null && (int) $yearStanding > (int) $term->year_level_id) {
+            throw ValidationException::withMessages([
+                'required_year_level_id' => 'Year standing can’t be higher than this subject’s own year level.',
+            ]);
+        }
+
+        DB::transaction(function () use ($entry, $requiredIds, $yearStanding) {
+            CurriculumTermSubject::whereKey($entry->id)->lockForUpdate()->firstOrFail();
+
+            PreRequisiteSubjects::where('curriculum_term_subjects_id', $entry->id)->delete();
+            foreach ($requiredIds as $requiredId) {
+                PreRequisiteSubjects::create([
+                    'curriculum_term_subjects_id' => $entry->id,
+                    'required_term_subject_id' => $requiredId,
+                ]);
+            }
+
+            $entry->update(['required_year_level_id' => $yearStanding]);
+        });
+
+        return Redirect::back();
+    }
+
     public function searchSubjects(Request $request)
     {
         $validated = Validator::make($request->all(), [
@@ -314,10 +437,39 @@ class CurriculumController extends Controller
         ];
     }
 
-    private function authorizeCurriculumTerm(Request $request, int $termId): void
+    /** The signed-in program head's department, or null. */
+    private function userDepartmentId(Request $request): ?int
     {
         $user = $request->user();
         $departmentId = $user ? Faculty::where('faculty_id', $user->id)->value('department_id') : null;
+
+        return $departmentId === null ? null : (int) $departmentId;
+    }
+
+    /** Only a program head of the course's own department may change its curricula. */
+    private function authorizeCourse(Request $request, int $courseId): void
+    {
+        $departmentId = $this->userDepartmentId($request);
+        $allowed = $departmentId !== null && Course::whereKey($courseId)->where('department_id', $departmentId)->exists();
+
+        if (!$allowed) {
+            throw new AuthorizationException('You cannot change this curriculum.');
+        }
+    }
+
+    private function authorizeCurriculum(Request $request, int $curriculumId): void
+    {
+        $courseId = Curriculum::whereKey($curriculumId)->value('course_id');
+        if ($courseId === null) {
+            throw new AuthorizationException('You cannot change this curriculum.');
+        }
+
+        $this->authorizeCourse($request, (int) $courseId);
+    }
+
+    private function authorizeCurriculumTerm(Request $request, int $termId): void
+    {
+        $departmentId = $this->userDepartmentId($request);
         $allowed = $departmentId !== null && CurriculumTerm::where('curriculum_term.id', $termId)
             ->join('curriculum', 'curriculum.id', '=', 'curriculum_term.curriculum_id')
             ->join('course', 'course.id', '=', 'curriculum.course_id')
@@ -328,10 +480,12 @@ class CurriculumController extends Controller
             throw new AuthorizationException('You cannot change this curriculum.');
         }
     }
-    public function deleteCurrSubject($id)
+    public function deleteCurrSubject(Request $request, $id)
     {
-        CurriculumTermSubject::where('id', '=', $id)
-            ->delete();
+        $entry = CurriculumTermSubject::findOrFail($id);
+        $this->authorizeCurriculumTerm($request, (int) $entry->curriculum_term_id);
+
+        $entry->delete();
 
         return response()->json(['message' => 'success'], 200);
     }

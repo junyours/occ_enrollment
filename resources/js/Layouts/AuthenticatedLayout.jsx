@@ -9,7 +9,10 @@ import { useState } from "react"
 import AttendanceSyncProvider from "@/Pages/InstructorClasses/ClassComponents/AttendancePartials/AttendanceSyncProvider"
 import NotificationBell from "@/Components/NotificationBell"
 
-export default function AuthenticatedLayout({ children, title, headerContent, fullWidth = false }) {
+// stickyContent: lets `position: sticky` inside the page stick to the window while scrolling.
+// overflow-auto on <main> makes it the sticky container (and it never scrolls itself), so
+// pages that opt in get overflow-x-clip instead; their wide tables keep their own scroll.
+export default function AuthenticatedLayout({ children, title, headerContent, fullWidth = false, stickyContent = false }) {
     const { impersonating } = usePage().props.auth
     const [loading, setLoading] = useState(false)
     const { auth } = usePage().props
@@ -75,7 +78,7 @@ export default function AuthenticatedLayout({ children, title, headerContent, fu
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-auto p-4">
+                <main className={`flex-1 p-4 ${stickyContent ? "overflow-x-clip" : "overflow-auto"}`}>
                     <div className={fullWidth ? "mx-auto w-full" : "container mx-auto max-w-7xl"}>
                         <Head title={title} />
 
