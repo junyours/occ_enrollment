@@ -233,7 +233,9 @@ class GuidanceController extends Controller
                     ->on('sa.student_id', '=', 'es.student_id');
             })
             ->where('ys.school_year_id', $schoolYearId)
-            ->groupBy('es.id', 'd.department_name')
+            // Every selected column grouped: MySQL's ONLY_FULL_GROUP_BY (on in
+            // production) refuses one that isn't.
+            ->groupBy('es.id', 'd.department_name_abbreviation')
             ->select(
                 'd.department_name_abbreviation as department',
                 'es.id as student_id',
