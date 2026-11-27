@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import axios from "axios";
 import { useForm } from "@inertiajs/react";
-import { AlertCircle, ArrowLeft, ArrowRight, BookOpen, CalendarDays, Check, ChevronDown, ChevronRight, Files, GraduationCap, Loader2, Plus, RefreshCw, Search, Settings2, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, BookOpen, CalendarDays, Check, ChevronDown, ChevronRight, Files, GitCompare, GraduationCap, Loader2, Plus, RefreshCw, Search, Settings2, X } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -47,7 +47,18 @@ function CourseCurriculumCard({ course, onAdd, onManage }) {
             <div className="flex-1 px-5 pb-5 sm:px-6 sm:pb-6">
                 <div className="mb-2 flex items-center justify-between gap-3">
                     <h4 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Curriculum years</h4>
-                    {versions.length > 1 && <span className="text-xs text-muted-foreground">Newest first</span>}
+                    {versions.length > 1 && (
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground">Newest first</span>
+                            <a
+                                href={`/curriculum-compare/${encodeURIComponent(course.hashed_course_id)}`}
+                                aria-label={`Compare ${abbreviation} curriculum years`}
+                                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                                <GitCompare className="h-3.5 w-3.5" aria-hidden="true" />Compare
+                            </a>
+                        </div>
+                    )}
                 </div>
                 {versions.length === 0 ? (
                     <div className="flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 px-4 py-7 text-center">

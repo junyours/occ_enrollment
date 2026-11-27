@@ -11,6 +11,7 @@ use App\Models\Faculty;
 use App\Models\PreRequisiteSubjects;
 use App\Models\Subject;
 use App\Models\YearLevel;
+use App\Services\CurriculumComparison;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,49 @@ class CurriculumController extends Controller
             'curriculum_id' => $curriculumId,
             'course_info' => $course
         ]);
+    }
+
+    /** Compare page for one program's curriculum years ($courseId is MD5(course.id), as elsewhere). */
+    public function compareView(Request $request, $courseId)
+    {
+        $course = Course::where(DB::raw('MD5(id)'), '=', $courseId)->firstOrFail();
+        $this->authorizeCourse($request, (int) $course->id, 'You can only compare your department’s curricula.');
+
+        $curricula = Curriculum::where('course_id', $course->id)
+            ->orderByDesc('school_year_start')->orderByDesc('school_year_end')
+            ->get(['id', 'school_year_start', 'school_year_end'])
+            ->map(fn ($c) => ['id' => $c->id, 'label' => "{$c->school_year_start}–{$c->school_year_end}"])
+            ->values();
+
+        return Inertia::render('Curriculum/CurriculumCompare', [
+            'course' => [
+                'hashed_id' => $courseId,
+                'name' => $course->course_name,
+                'abbreviation' => $course->course_name_abbreviation,
+            ],
+            'curricula' => $curricula,
+        ]);
+    }
+
+    /** Differences between two curriculum years of the same program, older -> newer. */
+    public function compareData(Request $request, $courseId, CurriculumComparison $comparison)
+    {
+        $course = Course::where(DB::raw('MD5(id)'), '=', $courseId)->firstOrFail();
+        $this->authorizeCourse($request, (int) $course->id, 'You can only compare your department’s curricula.');
+
+        $validated = Validator::make($request->all(), [
+            'from' => ['required', 'integer', 'exists:curriculum,id'],
+            'to' => ['required', 'integer', 'exists:curriculum,id', 'different:from'],
+        ], [
+            'to.different' => 'Choose two different curriculum years.',
+        ])->validate();
+
+        $ownIds = Curriculum::where('course_id', $course->id)->whereIn('id', [$validated['from'], $validated['to']])->count();
+        if ($ownIds !== 2) {
+            throw ValidationException::withMessages(['from' => 'Both curriculum years must belong to this program.']);
+        }
+
+        return response()->json($comparison->compare((int) $validated['from'], (int) $validated['to']));
     }
 
     public function addSemester(Request $request)
@@ -520,13 +564,13 @@ class CurriculumController extends Controller
     }
 
     /** Only a program head of the course's own department may change its curricula. */
-    private function authorizeCourse(Request $request, int $courseId): void
+    private function authorizeCourse(Request $request, int $courseId, string $message = 'You cannot change this curriculum.'): void
     {
         $departmentId = $this->userDepartmentId($request);
         $allowed = $departmentId !== null && Course::whereKey($courseId)->where('department_id', $departmentId)->exists();
 
         if (!$allowed) {
-            throw new AuthorizationException('You cannot change this curriculum.');
+            throw new AuthorizationException($message);
         }
     }
 
