@@ -121,8 +121,8 @@ export default function CoursesCurriculumLists() {
     const searchRef = useRef(null);
     const activeRequest = useRef(0);
     const savingRef = useRef(false);
-    const { data, setData, post, processing, errors, clearErrors } = useForm({
-        course_id: "", school_year_start: "", school_year_end: "",
+    const { data, setData, post, transform, processing, errors, clearErrors } = useForm({
+        course_id: "", school_year_start: "", school_year_end: "", copy_from_curriculum_id: "none",
     });
 
     useEffect(() => {
@@ -179,7 +179,9 @@ export default function CoursesCurriculumLists() {
         openerRef.current = opener;
         const start = new Date().getFullYear();
         clearErrors();
-        setData({ course_id: course.id, school_year_start: String(start), school_year_end: String(start + 1) });
+        // Default to copying the newest curriculum year: a new year is usually the last one with a few changes.
+        const newest = sortCurricula(course.curriculum || [])[0];
+        setData({ course_id: course.id, school_year_start: String(start), school_year_end: String(start + 1), copy_from_curriculum_id: newest ? String(newest.id) : "none" });
         setDialog({ type: "add", course });
     }
 
@@ -253,13 +255,24 @@ export default function CoursesCurriculumLists() {
     const totalCurricula = courses.reduce((count, course) => count + (course.curriculum?.length || 0), 0);
     const emptyPrograms = courses.filter((course) => !course.curriculum?.length).length;
 
+    const copySource = dialog?.type === "add" && data.copy_from_curriculum_id !== "none"
+        ? (dialog.course.curriculum || []).find((curriculum) => String(curriculum.id) === String(data.copy_from_curriculum_id))
+        : null;
+
     function createCurriculum(event) {
         event.preventDefault();
         if (processing || !validYear || duplicateYear) return;
+        const copiedFrom = copySource ? `${copySource.school_year_start}–${copySource.school_year_end}` : null;
+        transform((form) => ({ ...form, copy_from_curriculum_id: form.copy_from_curriculum_id === "none" ? null : Number(form.copy_from_curriculum_id) }));
         post(route("curr.schoolyear"), {
             onSuccess: () => {
                 setDialog(null);
-                toast({ description: "Curriculum created. You can now add its semesters and subjects.", variant: "success" });
+                toast({
+                    description: copiedFrom
+                        ? `Curriculum created from ${copiedFrom}. Review and update what changed.`
+                        : "Curriculum created. You can now add its semesters and subjects.",
+                    variant: "success",
+                });
             },
         });
     }
@@ -342,7 +355,7 @@ export default function CoursesCurriculumLists() {
                         </div>
                     ) : dialog?.type === "add" && (
                         <form onSubmit={createCurriculum} className="space-y-5">
-                            <p className="text-sm leading-relaxed text-muted-foreground">Create a curriculum year for <strong className="font-medium text-foreground">{dialog.course.course_name_abbreviation}</strong>. You can add semesters and subjects after creation.</p>
+                            <p className="text-sm leading-relaxed text-muted-foreground">Create a curriculum year for <strong className="font-medium text-foreground">{dialog.course.course_name_abbreviation}</strong>.</p>
                             <div className="rounded-lg border bg-muted/30 p-4">
                                 <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3">
                                     <div className="space-y-2"><Label htmlFor="curriculum-start-year">Starting year</Label><Input id="curriculum-start-year" name="school_year_start" type="number" inputMode="numeric" min={1900} max={2100} step={1} value={data.school_year_start} onChange={(event) => changeStartYear(event.target.value)} disabled={processing} required className="h-11 text-center text-lg font-medium tabular-nums" aria-invalid={Boolean(errors.school_year || errors.school_year_start || duplicateYear)} aria-describedby="curriculum-year-guidance" /></div>
@@ -352,9 +365,29 @@ export default function CoursesCurriculumLists() {
                                 <div className="mt-4 flex items-center justify-between gap-2"><Button type="button" variant="ghost" size="sm" disabled={processing || !validYear || startYear <= 1900} onClick={() => changeStartYear(String(startYear - 1))} aria-label="Previous starting year"><ArrowLeft aria-hidden="true" />Previous</Button><Button type="button" variant="ghost" size="sm" disabled={processing || !validYear || startYear >= 2100} onClick={() => changeStartYear(String(startYear + 1))} aria-label="Next starting year">Next<ArrowRight aria-hidden="true" /></Button></div>
                             </div>
                             <p id="curriculum-year-guidance" className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><CalendarDays className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />The ending year is calculated automatically from the starting year.</p>
+                            <div className="space-y-2">
+                                <Label htmlFor="curriculum-copy-from">Start from</Label>
+                                <Select value={data.copy_from_curriculum_id} disabled={processing} onValueChange={(value) => { clearErrors("copy_from_curriculum_id"); setData("copy_from_curriculum_id", value); }}>
+                                    <SelectTrigger id="curriculum-copy-from" className="h-11" aria-describedby="curriculum-copy-from-help"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        {sortCurricula(dialog.course.curriculum || []).map((curriculum, index) => (
+                                            <SelectItem key={curriculum.id} value={String(curriculum.id)}>
+                                                Copy of {curriculum.school_year_start}–{curriculum.school_year_end}{index === 0 ? " (newest)" : ""}
+                                            </SelectItem>
+                                        ))}
+                                        <SelectItem value="none">Empty curriculum</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p id="curriculum-copy-from-help" className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                                    <Files className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                                    {copySource
+                                        ? `Copies every semester, subject, year standing and prerequisite from ${copySource.school_year_start}–${copySource.school_year_end}. ${copySource.school_year_start}–${copySource.school_year_end} itself isn't changed, and the copy isn't made active.`
+                                        : "Starts with no semesters or subjects. You can add them after creation."}
+                                </p>
+                            </div>
                             {duplicateYear && <p role="alert" className="text-sm text-amber-800 dark:text-amber-300">This curriculum year already exists. Open it from the program card.</p>}
                             {Object.entries(errors).map(([name, message]) => <p key={name} role="alert" className="text-sm text-red-700 dark:text-red-300">{message}</p>)}
-                            <DialogFooter className="gap-2 sm:gap-0"><Button type="button" variant="outline" disabled={processing} onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={processing || !validYear || duplicateYear}>{processing ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Plus aria-hidden="true" />}{processing ? "Creating…" : "Create curriculum"}</Button></DialogFooter>
+                            <DialogFooter className="gap-2 sm:gap-0"><Button type="button" variant="outline" disabled={processing} onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={processing || !validYear || duplicateYear}>{processing ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Plus aria-hidden="true" />}{processing ? (copySource ? "Copying…" : "Creating…") : (copySource ? "Create copy" : "Create curriculum")}</Button></DialogFooter>
                         </form>
                     )}
                 </DialogContent>

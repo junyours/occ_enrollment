@@ -186,7 +186,16 @@ class CurriculumController extends Controller
             'course_id' => ['required', 'integer', 'exists:course,id'],
             'school_year_start' => ['required', 'integer', 'between:1900,2100'],
             'school_year_end' => ['required', 'integer'],
+            // Optional: start from a copy of another curriculum year of the same program.
+            'copy_from_curriculum_id' => ['nullable', 'integer', 'exists:curriculum,id'],
         ])->validate();
+
+        $copyFromId = isset($validated['copy_from_curriculum_id']) ? (int) $validated['copy_from_curriculum_id'] : null;
+        if ($copyFromId !== null && !Curriculum::whereKey($copyFromId)->where('course_id', $validated['course_id'])->exists()) {
+            throw ValidationException::withMessages([
+                'copy_from_curriculum_id' => 'You can only copy a curriculum of the same program.',
+            ]);
+        }
 
         if ((int) $validated['school_year_end'] !== (int) $validated['school_year_start'] + 1) {
             throw ValidationException::withMessages([
@@ -208,12 +217,18 @@ class CurriculumController extends Controller
             ]);
         }
 
-        // Save the curriculum
-        Curriculum::create([
-            'course_id' => $request->course_id,
-            'school_year_start' => $request->school_year_start,
-            'school_year_end' => $request->school_year_end,
-        ]);
+        // Save the curriculum, copying another year's contents when asked; all or nothing.
+        DB::transaction(function () use ($request, $copyFromId) {
+            $curriculum = Curriculum::create([
+                'course_id' => $request->course_id,
+                'school_year_start' => $request->school_year_start,
+                'school_year_end' => $request->school_year_end,
+            ]);
+
+            if ($copyFromId !== null) {
+                $this->copyCurriculumContents($copyFromId, $curriculum->id);
+            }
+        });
 
         // Format the school year range
         $schoolYear = $request->school_year_start . '-' . $request->school_year_end;
@@ -435,6 +450,64 @@ class CurriculumController extends Controller
             'lecture_hours' => (int) $validated['lecture_hours'],
             'laboratory_hours' => (int) $validated['laboratory_hours'],
         ];
+    }
+
+    /**
+     * Copies semesters, subjects, year standings and prerequisites from one curriculum
+     * into another (empty) one. Subjects are shared, not duplicated: the new entries point
+     * at the same subjects. Prerequisite links are re-pointed at the copied entries.
+     * The copied semesters are not made active; that stays a separate, deliberate step.
+     */
+    private function copyCurriculumContents(int $fromCurriculumId, int $toCurriculumId): void
+    {
+        $entryMap = []; // source curriculum_term_subjects.id => copied id
+
+        $terms = CurriculumTerm::where('curriculum_id', $fromCurriculumId)
+            ->with('CurriculumTermSubject')
+            ->orderBy('year_level_id')
+            ->orderBy('semester_id')
+            ->get();
+
+        foreach ($terms as $term) {
+            $newTerm = CurriculumTerm::create([
+                'curriculum_id' => $toCurriculumId,
+                'year_level_id' => $term->year_level_id,
+                'semester_id' => $term->semester_id,
+                'active' => 0,
+            ]);
+
+            foreach ($term->CurriculumTermSubject as $entry) {
+                $copy = new CurriculumTermSubject([
+                    'curriculum_term_id' => $newTerm->id,
+                    'subject_id' => $entry->subject_id,
+                    'required_year_level_id' => $entry->required_year_level_id,
+                ]);
+                // Older free-text prerequisite, if any (not mass-assignable).
+                $copy->pre_requisite_name = $entry->pre_requisite_name;
+                $copy->save();
+
+                $entryMap[$entry->id] = $copy->id;
+            }
+        }
+
+        if ($entryMap === []) {
+            return;
+        }
+
+        $links = PreRequisiteSubjects::whereIn('curriculum_term_subjects_id', array_keys($entryMap))
+            ->whereNotNull('required_term_subject_id')
+            ->get();
+
+        foreach ($links as $link) {
+            $from = $entryMap[$link->curriculum_term_subjects_id] ?? null;
+            $required = $entryMap[$link->required_term_subject_id] ?? null;
+            if ($from !== null && $required !== null) {
+                PreRequisiteSubjects::create([
+                    'curriculum_term_subjects_id' => $from,
+                    'required_term_subject_id' => $required,
+                ]);
+            }
+        }
     }
 
     /** The signed-in program head's department, or null. */
