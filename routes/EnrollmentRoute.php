@@ -3,6 +3,7 @@
 use App\Http\Controllers\Enrollment\ClassScheduling\EnrollmentClassSchedulingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Enrollment\EnrollmentCourseSectionController;
+use App\Http\Controllers\Enrollment\EnrollmentCheckController;
 use App\Http\Controllers\Enrollment\EnrollmentDashboardController;
 use App\Http\Controllers\SchoolYear\SchoolYearController;
 
@@ -41,6 +42,10 @@ Route::middleware(['auth', 'maintenance', 'role:program_head,registrar,evaluator
     Route::post('/api/enrollment/student-info/{schoolYearId}/{studentID}', [EnrollmentCourseSectionController::class, 'studentInfo'])->name('enrollment.student.info');
 
     Route::post('/enrollment/save-staged-subjects', [EnrollmentCourseSectionController::class, 'saveStageSubjects'])->name('enrollment.save.staged-subjects');
+    // Prerequisites, already passed and the same subject twice (App\Services\EnrollmentCheck).
+    Route::post('/enrollment/check-classes', [EnrollmentCheckController::class, 'check'])->name('enrollment.check');
+    Route::post('/enrollment/student-curriculum', [EnrollmentCheckController::class, 'setCurriculum'])->name('enrollment.student-curriculum');
+    Route::post('/enrollment/student-status', [EnrollmentCheckController::class, 'studentStatus'])->name('enrollment.student-status');
 
     Route::post('/api/subjects-classes', [EnrollmentCourseSectionController::class, 'subjectClasses'])->name('subject.classes');
 

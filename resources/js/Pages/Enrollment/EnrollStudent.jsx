@@ -6,7 +6,7 @@ import { PageTitle } from '@/Components/ui/PageTitle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Select, SelectContent, SelectTrigger, SelectValue, SelectItem } from '@/Components/ui/select';
 import { Label } from '@/Components/ui/label';
-import { Input } from '@/Components/ui/input';
+import StudentSearch from '@/Components/StudentSearch';
 import { cn, convertToAMPM, formatFullName } from '@/Lib/Utils';
 import PreLoader from '@/Components/preloader/PreLoader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
@@ -20,19 +20,20 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/Components/ui/tooltip
 import SearchSubject from './SearchSubject';
 import StudentEnrollmentSkeleton from './Skeleton/StudentEnrollmentSkeleton';
 import HistoryButtons from '@/Components/ui/HistoryButtons';
+import { ChecksSummary, ClassIssues, ConfirmIssuesDialog, StudentCurriculumLine, firstBlock, useEnrollmentCheck } from './EnrollmentChecks';
 
 export default function EnrollStudent({ yearSectionId, courseName, yearlevel, section, schoolYear, departmentId }) {
 
     const [studentType, setstudentType] = useState('');
-    const [studentID, setStudentID] = useState('');
+    const [suggestedType, setSuggestedType] = useState(null); // { type_id, name, reason } from the student's records
+    const [loadingStudent, setLoadingStudent] = useState(false);
+    const [searchKey, setSearchKey] = useState(0); // remounts the search to clear it after enrolling
     const [subjectCode, setSubjectCode] = useState('');
 
     const [studentAlreadyEnrrolled, setStudentAlreadyEnrrolled] = useState(false);
-    const [searchingStudent, setSearchingStudent] = useState(false);
     const [gettingCLasses, setGettingCLasses] = useState(false);
     const [addingSubject, setAddingSubject] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [studentFound, setStudentFound] = useState(true);
     const [loading, setLoading] = useState(true);
 
     const [errors, setErrors] = useState([]);
@@ -46,6 +47,15 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
     const totalUnits = classes.reduce((acc, classInfo) => acc + (classInfo?.credit_units || 0), 0);
 
     const { toast } = useToast();
+
+    // Prerequisites, subjects already passed and the same subject twice, for the chosen student.
+    const check = useEnrollmentCheck({
+        studentIdNo: studentInfo.user_id_no,
+        yearSectionId,
+        classIds: classes.map((cls) => cls.id),
+        enabled: Boolean(studentInfo.id) && !studentAlreadyEnrrolled,
+    });
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const [scheduleType, setScheduleType] = useState('tabular');
 
@@ -92,63 +102,40 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
         getCLasses();
     }, [])
 
-    const [typingTimeout, setTypingTimeout] = useState(null);
-
-    const handleStudentIdChange = (e) => {
-        const value = e.target.value;
+    // The student picked in the search: whether they're already enrolled this term, and the
+    // suggested type (Old, Returnee, ...) from their records, which staff can still change.
+    const studentRequest = useRef(0);
+    const handleStudentSelect = async (student) => {
+        const request = ++studentRequest.current;
         setStudentAlreadyEnrrolled(false);
+        setSuggestedType(null);
 
-        if (value.includes(' ')) return;
-
-        if (value !== "") {
-            setErrors(prevErrors => ({
-                ...prevErrors,
-                studentID: false
-            }));
-        }
-
-        setStudentID(value);
-
-        if (!value) return setStudentInfo([]);
-
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
-
-        const newTimeout = setTimeout(() => {
+        if (!student) {
             setStudentInfo([]);
-            if (value.length < 5) return;
-            getStudentInfo(value);
-        }, 1000);
+            setstudentType('');
+            setLoadingStudent(false);
+            return;
+        }
 
-        setTypingTimeout(newTimeout);
-    }
+        setErrors(prevErrors => ({ ...prevErrors, studentID: false }));
+        setLoadingStudent(true);
+        try {
+            const { data } = await axios.post(route('enrollment.student-status'), { student_id: student.id, year_section_id: yearSectionId });
+            if (request !== studentRequest.current) return;
 
-    const getStudentInfo = async (value) => {
-        setSearchingStudent(true)
-        setStudentFound(true);
-        await axios.post(route('enrollment.student.info', { schoolYearId: schoolYear.id, studentID: value }))
-            .then(response => {
-                if (response.data.message === 'success') {
-                    setStudentFound(true);
-                    setStudentInfo(response.data.student);
-                    setStudentAlreadyEnrrolled(response.data.enrolled);
-                    setStudentID(response.data.student.user_id_no)
-                }
-                if (response.data.enrolled) {
-                    alreadyEnrolledAlert();
-                }
-            })
-            .finally(() => {
-                setSearchingStudent(false);
-            })
-            .catch(error => {
-                if (error.response?.data?.message === 'no student found') {
-                    setStudentFound(false);
-                } else {
-                    console.log(error);
-                }
-            })
+            setStudentInfo(data.student);
+            setStudentAlreadyEnrrolled(data.enrolled);
+            setSuggestedType(data.suggested_type);
+            setstudentType(data.suggested_type?.type_id ?? '');
+            if (data.suggested_type?.type_id) setErrors(prevErrors => ({ ...prevErrors, studentType: false }));
+            if (data.enrolled) alreadyEnrolledAlert();
+        } catch (error) {
+            if (request !== studentRequest.current) return;
+            setStudentInfo([]);
+            toast({ description: error.response?.data?.message || "Couldn't load the student's records.", variant: "destructive" });
+        } finally {
+            if (request === studentRequest.current) setLoadingStudent(false);
+        }
     }
 
     const searchSubjectClasses = async (value) => {
@@ -252,7 +239,8 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                         setClasses(defaultClasses);
                         setstudentType('');
                         setStudentInfo([]);
-                        setStudentID('');
+                        setSuggestedType(null);
+                        setSearchKey((key) => key + 1);
 
                         // Redirect to COR
                         if (!corRedirect) window.location.href = data.redirect;
@@ -281,6 +269,25 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
             });
     }
 
+    // The usual checks (type, ID, already enrolled) run first in enrollStudent; then a repeated
+    // subject stops here, and warnings (prerequisites, already passed) ask before enrolling.
+    const requestEnroll = () => {
+        if (!studentType || !studentInfo.id || studentAlreadyEnrrolled || !check.active) return enrollStudent();
+        if (!check.error && !check.ready) {
+            toast({ description: "Still checking the subjects. Try again in a moment." });
+            return;
+        }
+        if (check.blocked.length > 0) {
+            toast({ description: firstBlock(check), variant: "destructive" });
+            return;
+        }
+        if (check.warned.length > 0) {
+            setConfirmOpen(true);
+            return;
+        }
+        enrollStudent();
+    }
+
     if (loading) return <StudentEnrollmentSkeleton />
 
     return (
@@ -294,8 +301,33 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                 <CardHeader>
                     <CardTitle className='text-3xl'>Student info <span className='text-sm italic font-normal'>(Add student details if freshman or transferee to create ID)</span></CardTitle>
                 </CardHeader>
-                <CardContent className='space-y-2'>
-                    <div>
+                <CardContent className='space-y-4'>
+                    <div className='space-y-1.5'>
+                        <Label>Student</Label>
+                        <div className='flex flex-wrap items-center gap-3'>
+                            <StudentSearch
+                                key={searchKey}
+                                onSelect={handleStudentSelect}
+                                className={`max-w-md ${errors.studentID ? 'border-red-500' : ''}`}
+                            />
+                            {loadingStudent && (
+                                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Checking records…
+                                </span>
+                            )}
+                        </div>
+                        {studentInfo.id && (
+                            <p className="text-sm">
+                                <span className="font-medium">{formatFullName(studentInfo)}</span>
+                                <span className="text-muted-foreground"> · ID {studentInfo.user_id_no}</span>
+                                {studentAlreadyEnrrolled && <span className="ml-2 font-medium text-orange-500">is enrolled already!</span>}
+                            </p>
+                        )}
+                        {studentInfo.id && !studentAlreadyEnrrolled && (
+                            <StudentCurriculumLine check={check} studentIdNo={studentInfo.user_id_no} />
+                        )}
+                    </div>
+                    <div className='space-y-1.5'>
                         <Label>Student type</Label>
                         <Select
                             value={studentType}
@@ -309,7 +341,7 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                 }
                             }}
                         >
-                            <SelectTrigger className={`p-2 rounded-md text-sm w-40 MB-2 ${errors.studentType ? 'border-red-500' : ''}`}>
+                            <SelectTrigger className={`p-2 rounded-md text-sm w-40 ${errors.studentType ? 'border-red-500' : ''}`}>
                                 <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent>
@@ -325,25 +357,12 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div>
-                    <div>
-                        <Label>Student ID no.</Label>
-                        <div className='flex gap-2'>
-                            <Input
-                                value={studentID}
-                                className={`w-40 ${errors.studentID ? 'border-red-500' : ''}`}
-                                onChange={handleStudentIdChange}
-                            />
-                            {searchingStudent && <p className="text-blue-400 text-2xl">Searching Student 🔍</p>}
-                            {studentInfo.user_id ? (
-                                <p className="text-2xl font-semibold">
-                                    Student: <span className="underline font-normal">{formatFullName(studentInfo)}</span> {' '}
-                                    {studentAlreadyEnrrolled && (
-                                        <span className="text-orange-500">is enrolled already!</span>
-                                    )}
-                                </p>
-                            ) : !studentFound && <p className="text-red-500 text-2xl">Student not found!</p>}
-                        </div>
+                        {suggestedType && (
+                            <p className="text-xs text-muted-foreground">
+                                {suggestedType.name && <span className="font-medium text-foreground">Suggested: {suggestedType.name}. </span>}
+                                {suggestedType.reason}
+                            </p>
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -393,9 +412,10 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                     </TableHeader>
                                     <TableBody>
                                         {classes.map((classInfo) => {
+                                            const issues = check.issuesOf(classInfo.id);
                                             return (
                                                 <React.Fragment key={classInfo.id}>
-                                                    <TableRow>
+                                                    <TableRow className={issues.length > 0 ? 'border-b-0' : ''}>
                                                         <TableCell>{classInfo.subject_code}</TableCell>
                                                         <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">{classInfo.descriptive_title}</TableCell>
                                                         <TableCell className='text-center'>{classInfo.students_count}</TableCell>
@@ -434,6 +454,13 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                                                             </button>
                                                         </TableCell>
                                                     </TableRow>
+                                                    {issues.length > 0 && (
+                                                        <TableRow className="hover:bg-transparent">
+                                                            <TableCell colSpan={7} className="whitespace-normal pb-2 pt-0">
+                                                                <ClassIssues issues={issues} />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
                                                 </React.Fragment>
                                             );
                                         })}
@@ -448,10 +475,11 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                             )}
                         </CardContent>
                     </Card>
+                    <ChecksSummary check={check} className="mt-3" />
                     <Button
                         disabled={classes.length < 1 || submitting}
                         className="disabled:cursor-not-allowed mt-2"
-                        onClick={enrollStudent}
+                        onClick={requestEnroll}
                     >
                         Enroll Student
                     </Button>
@@ -599,6 +627,15 @@ export default function EnrollStudent({ yearSectionId, courseName, yearlevel, se
                     </Card>
                 </CardContent>
             </Card>
+            <ConfirmIssuesDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                items={check.warned}
+                title="Enroll with these warnings?"
+                description="You can still enroll the student, for example for an approved petition or a subject credited under another code."
+                confirmLabel="Enroll anyway"
+                onConfirm={() => { setConfirmOpen(false); enrollStudent(); }}
+            />
         </div>
     )
 }

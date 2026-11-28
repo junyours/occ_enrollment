@@ -390,7 +390,9 @@ export default function StudentSearch({ onSelect, className, ...props }) {
 
     // Single derived source of truth for what's shown/navigable.
     // Shared by rendering and keyboard handling so they can't diverge.
-    const results = useCombinedResults({ history, apiStudents: students, query: debouncedQuery });
+    // Recent picks are filtered by what's typed now (not the debounced text), so during the
+    // debounce a quick ArrowDown + Enter can't pick an unrelated recent student.
+    const results = useCombinedResults({ history, apiStudents: students, query });
 
     // Handle student selection
     const handleSelectStudent = useCallback((student) => {

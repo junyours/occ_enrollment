@@ -24,6 +24,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\YearSection;
 use App\Models\YearSectionSubjects;
+use App\Services\EnrollmentCheck;
 use App\Services\FinalRating;
 use DateTime;
 use Illuminate\Support\Facades\Auth;
@@ -672,6 +673,13 @@ class EnrollmentCourseSectionController extends Controller
             ->join('year_section', 'year_section.id', 'enrolled_students.year_section_id')
             ->first();
 
+        // Not the same subject twice in a term, also under another code (Curriculum > Same subjects).
+        $current = StudentSubject::where('enrolled_students_id', $enrolledStudent->id)->pluck('year_section_subjects_id')->all();
+        $duplicates = app(EnrollmentCheck::class)->duplicates([...$current, (int) $classId], [(int) $classId]);
+        if ($duplicates !== []) {
+            return response()->json(['message' => $duplicates[0]], 422);
+        }
+
         $addedClass = StudentSubject::create([
             'enrolled_students_id' => $enrolledStudent->id,
             'year_section_subjects_id' => $classId,
@@ -720,29 +728,42 @@ class EnrollmentCourseSectionController extends Controller
             ['format' => 'LFM']
         );
 
+        // The student's enrollment this school year: removals only touch its own subjects,
+        // and an added class may not repeat a subject still in the list (also under another code).
+        $student = User::where('user_id_no', $studentId)->first();
+        $enrolledStudent = $student ? EnrolledStudent::select('enrolled_students.id')
+            ->where('student_id', $student->id)
+            ->where('school_year_id', $schoolYearId)
+            ->join('year_section', 'year_section.id', 'enrolled_students.year_section_id')
+            ->first() : null;
+        if (!$enrolledStudent) {
+            return response()->json(['message' => 'The student is not enrolled in this school year.'], 404);
+        }
+
+        $removedIds = collect($removedSubjects)->pluck('studentSubjectId')->map(fn ($id) => (int) $id)->all();
+        $addedIds = collect($addedSubjects)->pluck('classId')->map(fn ($id) => (int) $id)->all();
+        if ($addedIds !== []) {
+            $remaining = StudentSubject::where('enrolled_students_id', $enrolledStudent->id)
+                ->whereNotIn('id', $removedIds)
+                ->pluck('year_section_subjects_id')->all();
+            $duplicates = app(EnrollmentCheck::class)->duplicates([...$remaining, ...$addedIds], $addedIds);
+            if ($duplicates !== []) {
+                return response()->json(['message' => $duplicates[0]], 422);
+            }
+        }
+
         DB::beginTransaction();
 
         try {
             // --- PROCESS REMOVALS ---
-            if (!empty($removedSubjects)) {
-                // Collect the IDs passed from your payload
-                $removedIds = collect($removedSubjects)->pluck('studentSubjectId')->toArray();
-
-                StudentSubject::whereIn('id', $removedIds)->delete();
+            if (!empty($removedIds)) {
+                StudentSubject::whereIn('id', $removedIds)
+                    ->where('enrolled_students_id', $enrolledStudent->id)
+                    ->delete();
             }
 
             // --- PROCESS ADDITIONS ---
             if (!empty($addedSubjects)) {
-                // Find the student
-                $student = User::where('user_id_no', $studentId)->firstOrFail();
-
-                // Find the enrolled student record
-                $enrolledStudent = EnrolledStudent::select('enrolled_students.id')
-                    ->where('student_id', $student->id)
-                    ->where('school_year_id', $schoolYearId)
-                    ->join('year_section', 'year_section.id', 'enrolled_students.year_section_id')
-                    ->firstOrFail();
-
                 // Reverted to create() to ensure all your Model defaults/events fire correctly
                 foreach ($addedSubjects as $subject) {
                     StudentSubject::create([
@@ -925,6 +946,16 @@ class EnrollmentCourseSectionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Student is already enrolled in this school year.',
+            ], 400);
+        }
+
+        // Not the same subject twice in a term, also under another code (Curriculum > Same subjects).
+        $classIds = array_map('intval', (array) $request->input('classID', []));
+        $duplicates = app(EnrollmentCheck::class)->duplicates($classIds, $classIds);
+        if ($duplicates !== []) {
+            return response()->json([
+                'success' => false,
+                'message' => $duplicates[0],
             ], 400);
         }
 

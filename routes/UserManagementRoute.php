@@ -51,6 +51,7 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::patch('/set-faculty-role', [UserController::class, 'updateRole']);
 });
 
-Route::middleware(['auth', 'maintenance', 'role:registrar,evaluator,program_head'])->group(function () {
+// Everyone who can open Enroll Student (EnrollmentRoute) can search for the student.
+Route::middleware(['auth', 'maintenance', 'role:registrar,evaluator,program_head,nstp_director'])->group(function () {
     Route::post('/search-student', [UserController::class, 'searchStudent'])->name('search-student');
 });

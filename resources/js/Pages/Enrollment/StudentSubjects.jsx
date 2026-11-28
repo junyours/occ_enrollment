@@ -18,6 +18,8 @@ import { useQuery } from '@tanstack/react-query';
 import { FeedbackModal } from '@/Components/FeedbackModalProvider';
 import StudentSubjectsViewSkeleton from './Skeleton/StudentSubjectsViewSkeleton';
 import HistoryButtons from '@/Components/ui/HistoryButtons';
+import { useToast } from '@/hooks/use-toast';
+import { ChecksSummary, ClassIssues, ConfirmIssuesDialog, StudentCurriculumLine, firstBlock, useEnrollmentCheck } from './EnrollmentChecks';
 
 export default function StudentSubjects() {
     const { courseName, yearlevel, section, student, schoolYear } = usePage().props;
@@ -53,6 +55,17 @@ export default function StudentSubjects() {
             setCurrentSubjects(originalSubjects);
         }
     }, [originalSubjects]);
+
+    // Prerequisites, subjects already passed and the same subject twice, for the classes being added.
+    const { toast } = useToast();
+    const check = useEnrollmentCheck({
+        studentIdNo: student.user_id_no,
+        schoolYearId: schoolYear.id,
+        classIds: currentSubjects.filter((c) => !c.isPendingRemoval).map((c) => c.id),
+        newClassIds: stagedAdds.map((c) => c.id),
+        enabled: !loading,
+    });
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     // Staging Helpers
     const handleStageAdd = (classInfo) => {
@@ -121,6 +134,25 @@ export default function StudentSubjects() {
         }
     };
 
+    // A repeated subject stops the save; warnings (prerequisites, already passed) ask first.
+    const requestSave = () => {
+        if (stagedAdds.length > 0 && check.active) {
+            if (!check.error && !check.ready) {
+                toast({ description: "Still checking the added subjects. Try again in a moment." });
+                return;
+            }
+            if (check.blocked.length > 0) {
+                toast({ description: firstBlock(check), variant: "destructive" });
+                return;
+            }
+            if (check.warned.length > 0) {
+                setConfirmOpen(true);
+                return;
+            }
+        }
+        handleSaveStagedChanges();
+    };
+
     // Conflict Detection (Evaluates strictly against visible staged subjects)
     const detectOwnConflict = (schedule) => {
         if (schedule.day === "TBA" || schedule.start_time === "TBA") return false;
@@ -173,6 +205,7 @@ export default function StudentSubjects() {
                 <HistoryButtons button='back' />
                 <PageTitle align="center" className='w-full'>{formatFullNameFML(student)} | {courseName} - {yearlevel}{section}</PageTitle>
             </div>
+            <StudentCurriculumLine check={check} studentIdNo={student.user_id_no} className="justify-center" />
 
             <div className="flex justify-between items-center">
                 <Tabs className="w-max" value={scheduleType} onValueChange={setScheduleType} defaultValue="tabular">
@@ -222,10 +255,12 @@ export default function StudentSubjects() {
                                         secondHasConflict = detectOwnConflict(classInfo.secondary_schedule);
                                     }
 
+                                    const issues = classInfo.isPendingAdd ? check.issuesOf(classInfo.id) : [];
+
                                     return (
+                                        <React.Fragment key={classInfo.id}>
                                         <TableRow
-                                            key={classInfo.id}
-                                            className={`${classInfo.isPendingRemoval ? 'opacity-50 bg-muted/50' : ''}`}
+                                            className={`${classInfo.isPendingRemoval ? 'opacity-50 bg-muted/50' : ''} ${issues.length > 0 ? 'border-b-0' : ''}`}
                                         >
                                             {/* <TableCell>{classInfo.subject_code}</TableCell> */}
                                             <TableCell className="truncate max-w-48 overflow-hidden whitespace-nowrap">
@@ -284,6 +319,14 @@ export default function StudentSubjects() {
                                                 </TableCell>
                                             )}
                                         </TableRow>
+                                        {issues.length > 0 && (
+                                            <TableRow className="hover:bg-transparent">
+                                                <TableCell colSpan={editing ? 5 : 4} className="whitespace-normal pb-2 pt-0">
+                                                    <ClassIssues issues={issues} />
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                        </React.Fragment>
                                     );
                                 })}
                             </TableBody>
@@ -413,11 +456,14 @@ export default function StudentSubjects() {
                                     <div className="flex flex-col">
                                         <span className="text-sm font-semibold text-muted-foreground">Changes Summary</span>
                                         {hasPendingChanges ? (
-                                            <div className="flex gap-4 mt-1">
-                                                <Badge className="bg-green-600">Added: {stagedAdds.length} ({totalUnitsAdded} Units)</Badge>
-                                                <Badge variant="destructive">Removed: {stagedRemoves.length} ({totalUnitsRemoved} Units)</Badge>
-                                                <Badge variant="outline">Net Units: {(totalUnitsAdded - totalUnitsRemoved) > 0 ? '+' : ''}{totalUnitsAdded - totalUnitsRemoved}</Badge>
-                                            </div>
+                                            <>
+                                                <div className="flex gap-4 mt-1">
+                                                    <Badge className="bg-green-600">Added: {stagedAdds.length} ({totalUnitsAdded} Units)</Badge>
+                                                    <Badge variant="destructive">Removed: {stagedRemoves.length} ({totalUnitsRemoved} Units)</Badge>
+                                                    <Badge variant="outline">Net Units: {(totalUnitsAdded - totalUnitsRemoved) > 0 ? '+' : ''}{totalUnitsAdded - totalUnitsRemoved}</Badge>
+                                                </div>
+                                                {stagedAdds.length > 0 && <ChecksSummary check={check} className="mt-2 max-w-xl" />}
+                                            </>
                                         ) : (
                                             <span className="text-sm text-muted-foreground">No pending changes.</span>
                                         )}
@@ -429,7 +475,7 @@ export default function StudentSubjects() {
                                         <X className="mr-2 h-4 w-4" /> Cancel
                                     </Button>
                                     <Button
-                                        onClick={handleSaveStagedChanges}
+                                        onClick={requestSave}
                                         disabled={!hasPendingChanges || saving || activeSubjectsCount === 0}
                                     >
                                         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
@@ -441,6 +487,15 @@ export default function StudentSubjects() {
                     </div>
                 </>
             )}
+            <ConfirmIssuesDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                items={check.warned}
+                title="Save with these warnings?"
+                description="You can still add these subjects, for example for an approved petition or a subject credited under another code."
+                confirmLabel="Save anyway"
+                onConfirm={() => { setConfirmOpen(false); handleSaveStagedChanges(); }}
+            />
         </div>
     );
 }
