@@ -76,7 +76,7 @@ class StudentTypes
 
         foreach ($old as $row) {
             if (preg_match('/(\d{4})/', (string) $row->school_year, $year)) {
-                $keys[] = self::key((int) $year[1], EnrollmentCheck::semesterNumber((string) $row->semester));
+                $keys[] = self::key((int) $year[1], GradeRecords::semesterNumber((string) $row->semester));
             }
         }
 
