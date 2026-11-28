@@ -13,6 +13,7 @@ use App\Models\Subject;
 use App\Models\YearLevel;
 use App\Services\CurriculumComparison;
 use App\Services\CurriculumExport;
+use App\Services\SubjectGroups;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -450,8 +451,9 @@ class CurriculumController extends Controller
 
         $entry = CurriculumTermSubject::findOrFail($validated['id']);
         $this->authorizeCurriculumTerm($request, $entry->curriculum_term_id);
+        $userId = $request->user()?->id;
 
-        DB::transaction(function () use ($validated, $entry) {
+        DB::transaction(function () use ($validated, $entry, $userId) {
             CurriculumTerm::whereKey($entry->curriculum_term_id)->lockForUpdate()->firstOrFail();
             $entry = CurriculumTermSubject::whereKey($entry->id)->lockForUpdate()->firstOrFail();
             if (isset($validated['subject_id']) && (int) $validated['subject_id'] !== (int) $entry->subject_id) {
@@ -485,6 +487,8 @@ class CurriculumController extends Controller
                 ->first(fn ($version) => self::sameSubjectDetails($version, $fields));
             $revisedSubject = $identical ?? Subject::create(['type' => $subject->type, ...$fields]);
             $entry->update(['subject_id' => $revisedSubject->id]);
+            // The revision is still the same subject: keep it in the old version's "same subject" group.
+            app(SubjectGroups::class)->followRevision((int) $subject->id, (int) $revisedSubject->id, $userId);
         });
 
         return Redirect::back();

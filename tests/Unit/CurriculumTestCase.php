@@ -146,6 +146,7 @@ abstract class CurriculumTestCase extends TestCase
         // The migration under test.
         (require database_path('migrations/2026_11_27_120000_add_curriculum_prerequisite_links.php'))->up();
         (require database_path('migrations/2026_11_28_120000_add_unit_limits_to_course_and_curriculum.php'))->up();
+        (require database_path('migrations/2026_11_28_150000_create_subject_groups.php'))->up();
 
         foreach ([1 => 'First Year', 2 => 'Second Year', 3 => 'Third Year', 4 => 'Fourth Year'] as $id => $name) {
             DB::table('year_level')->insert(['id' => $id, 'year_level_name' => $name]);

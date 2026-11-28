@@ -1,7 +1,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import axios from "axios";
-import { useForm } from "@inertiajs/react";
-import { AlertCircle, ArrowLeft, ArrowRight, BookOpen, CalendarDays, Check, ChevronDown, ChevronRight, Files, GitCompare, GraduationCap, Loader2, Plus, RefreshCw, Search, Settings2, X } from "lucide-react";
+import { Link, useForm } from "@inertiajs/react";
+import { AlertCircle, ArrowLeft, ArrowRight, BookOpen, CalendarDays, Check, ChevronDown, ChevronRight, Files, GitCompare, GraduationCap, Link2, Loader2, Plus, RefreshCw, Search, Settings2, X } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -296,7 +296,10 @@ export default function CoursesCurriculumLists() {
                     <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Curriculum library</h2>
                     <p className="text-sm leading-relaxed text-muted-foreground">Browse curricula by program, create a new curriculum year, and manage active assignments.</p>
                 </div>
-                <Button type="button" variant="outline" disabled={loading} onClick={() => loadCourses()}><RefreshCw className={loading ? "animate-spin" : ""} aria-hidden="true" />Refresh</Button>
+                <div className="flex flex-wrap gap-2">
+                    <Button asChild variant="outline"><Link href={route("curr.subject-groups")}><Link2 aria-hidden="true" />Same subjects</Link></Button>
+                    <Button type="button" variant="outline" disabled={loading} onClick={() => loadCourses()}><RefreshCw className={loading ? "animate-spin" : ""} aria-hidden="true" />Refresh</Button>
+                </div>
             </header>
 
             <div className="grid grid-cols-3 gap-3 sm:gap-4">

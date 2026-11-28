@@ -122,8 +122,15 @@ class CurriculumComparison
     /** @return array{0: list<array{0: array, 1: array}>, 1: list<array>, 2: list<array>} */
     private function match(array $from, array $to): array
     {
+        $groups = (new SubjectGroups())->index();
         $passes = [
             fn ($e) => 'subject:'.$e['subject_id'],
+            // Codes a program head confirmed are the same subject (Curriculum > Same subjects).
+            function ($e) use ($groups) {
+                $group = SubjectGroups::groupIn($groups, $e['subject_id'], $e['code'], $e['title']);
+
+                return $group === null ? null : 'group:'.$group;
+            },
             fn ($e) => 'code+title:'.self::normalizeCode($e['code']).'|'.self::canonicalTitle($e['title']),
             fn ($e) => 'title:'.self::canonicalTitle($e['title']),
             'similar-title', // closest remaining titles, see matchSimilarTitles()
@@ -140,12 +147,16 @@ class CurriculumComparison
                 continue;
             }
 
+            // A null key (e.g. an ungrouped subject in the group pass) matches nothing.
             $index = [];
             foreach ($remainingTo as $id => $t) {
-                $index[$key($t)][] = $id;
+                if (($k = $key($t)) !== null) {
+                    $index[$k][] = $id;
+                }
             }
             foreach ($remainingFrom as $fromId => $f) {
-                $candidates = $index[$key($f)] ?? [];
+                $k = $key($f);
+                $candidates = $k === null ? [] : $index[$k] ?? [];
                 while ($candidates !== [] && !isset($remainingTo[$candidates[0]])) {
                     array_shift($candidates);
                 }
@@ -153,7 +164,7 @@ class CurriculumComparison
                     continue;
                 }
                 $toId = array_shift($candidates);
-                $index[$key($f)] = $candidates;
+                $index[$k] = $candidates;
                 $pairs[] = [$f, $remainingTo[$toId]];
                 unset($remainingFrom[$fromId], $remainingTo[$toId]);
             }
