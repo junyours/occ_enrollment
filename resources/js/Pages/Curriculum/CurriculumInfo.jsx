@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useForm, usePage } from "@inertiajs/react";
-import { AlertCircle, BookOpen, ChevronDown, FileSpreadsheet, Layers3, ListChecks, Loader2, Plus, Printer, RefreshCw, X } from "lucide-react";
+import { AlertCircle, BookOpen, ChevronDown, FileSpreadsheet, Layers3, ListChecks, Loader2, Network, Plus, Printer, RefreshCw, Rows3, X } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -17,6 +17,8 @@ import { Label } from "@/Components/ui/label";
 import { Switch } from "@/Components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import CurriculumTable from "./CurriculumTable";
+import PrerequisiteDialog from "./PrerequisiteDialog";
+import PrerequisiteFlowchart from "./PrerequisiteFlowchart";
 import { CurriculumPageSkeleton } from "./CurriculumSkeletons";
 import UnitChecksPanel from "./UnitChecksPanel";
 import UnitLimitsDialog from "./UnitLimitsDialog";
@@ -57,6 +59,14 @@ const readOpenYears = () => {
     } catch { /* fall through */ }
     return { firstYear: true };
 };
+const VIEW_KEY = "curriculum-view";
+const readView = () => {
+    try { return window.localStorage.getItem(VIEW_KEY) === "flowchart" ? "flowchart" : "table"; } catch { return "table"; }
+};
+const saveView = (view) => {
+    try { window.localStorage.setItem(VIEW_KEY, view); } catch { /* not critical */ }
+};
+
 const saveOpenYears = (openYears) => {
     try { window.localStorage.setItem(openYearsKey(), JSON.stringify(openYears)); } catch { /* not critical */ }
 };
@@ -76,6 +86,9 @@ export default function CurriculumInfo() {
     const [unitLimits, setUnitLimits] = useState(null);
     const [programTotals, setProgramTotals] = useState([]);
     const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
+    const [view, setView] = useState(readView);
+    const [flowEdit, setFlowEdit] = useState(null); // { entry, term } being edited from the flowchart
+    const flowEditOpener = useRef(null);
     const limitsOpener = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedYear, setSelectedYear] = useState(null);
@@ -98,11 +111,12 @@ export default function CurriculumInfo() {
 
     useEffect(() => { saveOpenYears(openYears); }, [openYears]);
 
-    // Escape clears the selected subject (unless a dialog is open; it handles Escape itself).
+    // Escape clears the selected subject, unless an open dialog or menu already used it to close
+    // itself. Check defaultPrevented: by the time this runs, React may have already removed that dialog.
     useEffect(() => {
         if (focusedId === null) return undefined;
         const onKeyDown = (event) => {
-            if (event.key === "Escape" && !document.querySelector("[role=dialog], [role=alertdialog]")) setFocusedId(null);
+            if (event.key === "Escape" && !event.defaultPrevented && !document.querySelector("[role=dialog], [role=alertdialog]")) setFocusedId(null);
         };
         window.addEventListener("keydown", onKeyDown);
         return () => window.removeEventListener("keydown", onKeyDown);
@@ -280,13 +294,28 @@ export default function CurriculumInfo() {
                     onEditLimits={(event) => { limitsOpener.current = event.currentTarget; setLimitsDialogOpen(true); }}
                 />
 
-                <nav aria-label="Curriculum year levels" className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap gap-2">
-                        {YEAR_LEVELS.map(({ key, label }) => (
+                <nav aria-label="Curriculum view and year levels" className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="inline-flex rounded-md border p-0.5" role="group" aria-label="View">
+                            {[{ key: "table", label: "Table", icon: Rows3 }, { key: "flowchart", label: "Flowchart", icon: Network }].map(({ key, label, icon: Icon }) => (
+                                <Button
+                                    key={key}
+                                    type="button"
+                                    size="sm"
+                                    variant={view === key ? "secondary" : "ghost"}
+                                    aria-pressed={view === key}
+                                    className="h-7 px-2.5 text-[13px]"
+                                    onClick={() => { setView(key); saveView(key); }}
+                                >
+                                    <Icon aria-hidden="true" />{label}
+                                </Button>
+                            ))}
+                        </div>
+                        {view === "table" && YEAR_LEVELS.map(({ key, label }) => (
                             <Button key={key} type="button" variant="outline" size="sm" className="text-[13px]" onClick={() => jumpToYear(key)}>{label}</Button>
                         ))}
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    {view === "table" && <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <div className="flex items-center gap-2">
                             <Switch id="only-missing-prerequisites" checked={onlyMissing} onCheckedChange={toggleOnlyMissing} disabled={eligibleSubjects.length === 0} />
                             <Label htmlFor="only-missing-prerequisites" className="cursor-pointer text-[13px] font-normal">
@@ -303,9 +332,9 @@ export default function CurriculumInfo() {
                         >
                             {allExpanded ? "Collapse all" : "Expand all"}
                         </Button>
-                    </div>
+                    </div>}
                 </nav>
-                {onlyMissing && (
+                {view === "table" && onlyMissing && (
                     <p role="status" className="rounded-md bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
                         {missingPrerequisites === 0
                             ? "Every subject that can have prerequisites has at least one. Turn off the filter to see all subjects."
@@ -321,6 +350,9 @@ export default function CurriculumInfo() {
                 </div>
             )}
 
+            {view === "flowchart" ? (
+                <PrerequisiteFlowchart terms={allTerms} onEditPrerequisites={(entry, term, opener) => { flowEditOpener.current = opener; setFlowEdit({ entry, term }); }} />
+            ) : (
             <div className="space-y-5">
                 {YEAR_LEVELS.map((year) => {
                     const terms = curriculumData[year.key];
@@ -372,6 +404,22 @@ export default function CurriculumInfo() {
                     );
                 })}
             </div>
+            )}
+
+            {flowEdit && (
+                <PrerequisiteDialog
+                    open
+                    entry={flowEdit.entry}
+                    term={flowEdit.term}
+                    allTerms={allTerms}
+                    yearlevel={YEAR_LEVELS.find(({ id }) => id === Number(flowEdit.term.year_level_id))?.label ?? ""}
+                    semesterName={SEMESTERS[flowEdit.term.semester_id] ?? "Semester"}
+                    onOpenChange={(open) => { if (!open) setFlowEdit(null); }}
+                    onSaved={getCurriculumInfo}
+                    // No DialogTrigger here, so Radix can't return focus by itself: back to Edit prerequisites (or the pinned card).
+                    onCloseAutoFocus={(event) => { event.preventDefault(); requestAnimationFrame(() => (flowEditOpener.current?.isConnected ? flowEditOpener.current : document.querySelector('[aria-label="Prerequisite flowchart"] [aria-pressed="true"]'))?.focus()); }}
+                />
+            )}
 
             <Dialog open={dialogOpen} onOpenChange={(open) => { if (!semesterProcessing) setDialogOpen(open); }}>
                 <DialogContent onCloseAutoFocus={(event) => { event.preventDefault(); requestAnimationFrame(() => (semesterOpener.current?.isConnected ? semesterOpener.current : document.querySelector(`#curriculum-${selectedYear?.key} h2 button`))?.focus()); }} className="max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto rounded-lg">
