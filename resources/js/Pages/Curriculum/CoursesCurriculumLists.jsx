@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/Components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/Components/ui/card";
+import { ProgramCardSkeleton } from "./CurriculumSkeletons";
 
 const INITIAL_VERSIONS = 4;
 const numericYear = (value) => Number(value) || 0;
@@ -301,7 +302,7 @@ export default function CoursesCurriculumLists() {
             <div className="grid grid-cols-3 gap-3 sm:gap-4">
                 {[{ label: "Programs", value: courses.length, icon: GraduationCap }, { label: "Curricula", value: totalCurricula, icon: Files }, { label: "Without curricula", value: emptyPrograms, icon: BookOpen }].map(({ label, value, icon: Icon }) => (
                     <div key={label} className="rounded-xl bg-muted/50 p-3 sm:p-5">
-                        <div className="flex items-center justify-between gap-2"><span className="text-2xl font-semibold tabular-nums">{loading ? "—" : value}</span><Icon className="hidden h-5 w-5 text-muted-foreground sm:block" aria-hidden="true" /></div>
+                        <div className="flex items-center justify-between gap-2">{loading ? <Skeleton className="h-8 w-10" aria-hidden="true" /> : <span className="text-2xl font-semibold tabular-nums">{value}</span>}<Icon className="hidden h-5 w-5 text-muted-foreground sm:block" aria-hidden="true" /></div>
                         <p className="mt-1 text-[13px] leading-snug text-muted-foreground sm:text-sm">{label}</p>
                     </div>
                 ))}
@@ -319,8 +320,10 @@ export default function CoursesCurriculumLists() {
             {listError && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-500/30 bg-red-500/5 p-4"><p className="flex items-start gap-2 text-sm"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" aria-hidden="true" />{listError}</p><Button type="button" variant="outline" onClick={() => loadCourses()}>Try again</Button></div>}
 
             {loading ? (
-                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2" role="status" aria-label="Loading curricula">
-                    {[0, 1].map((key) => <div key={key} className="space-y-5 rounded-xl border p-6"><Skeleton className="h-11 w-20" /><Skeleton className="h-6 w-4/5" /><div className="space-y-3">{[0, 1, 2].map((row) => <Skeleton key={row} className="h-12 w-full" />)}</div><Skeleton className="h-10 w-full" /></div>)}
+                <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2" role="status" aria-busy="true" aria-label="Loading curricula">
+                    <span className="sr-only">Loading curricula…</span>
+                    <ProgramCardSkeleton versions={3} />
+                    <ProgramCardSkeleton versions={2} />
                 </div>
             ) : courses.length === 0 && !listError ? (
                 <div className="flex flex-col items-center rounded-xl border border-dashed bg-muted/20 px-6 py-16 text-center"><GraduationCap className="mb-4 h-9 w-9 text-muted-foreground" aria-hidden="true" /><h3 className="text-lg font-semibold">No programs available</h3><p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">Programs assigned to your department will appear here.</p></div>

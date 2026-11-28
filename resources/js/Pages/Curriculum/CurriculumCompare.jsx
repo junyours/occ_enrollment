@@ -7,8 +7,8 @@ import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
 import { Label } from "@/Components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
-import { Skeleton } from "@/Components/ui/skeleton";
 import { SemesterLabel, semesterStyle } from "./semesters";
+import { CompareSkeleton } from "./CurriculumSkeletons";
 
 const YEAR_NAMES = { 1: "First Year", 2: "Second Year", 3: "Third Year", 4: "Fourth Year" };
 const ORDINAL = { 1: "1st", 2: "2nd", 3: "3rd", 4: "4th" };
@@ -198,7 +198,7 @@ export default function CurriculumCompare() {
             )}
 
             {loading && !result ? (
-                <div className="space-y-3" aria-busy="true"><Skeleton className="h-20 w-full" /><Skeleton className="h-64 w-full" /></div>
+                <CompareSkeleton />
             ) : result && (
                 <div className={`space-y-5 transition-opacity ${loading ? "opacity-50" : ""}`} aria-busy={loading}>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

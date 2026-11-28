@@ -15,9 +15,9 @@ import {
 } from "@/Components/ui/dialog";
 import { Label } from "@/Components/ui/label";
 import { Switch } from "@/Components/ui/switch";
-import PreLoader from "@/Components/preloader/PreLoader";
 import { useToast } from "@/hooks/use-toast";
 import CurriculumTable from "./CurriculumTable";
+import { CurriculumPageSkeleton } from "./CurriculumSkeletons";
 import { SemesterLabel } from "./semesters";
 import { dependentsByEntryId, hasPrerequisites, linkedPrerequisites, termCanHavePrerequisites, yearStandingLabel } from "./prerequisites";
 
@@ -169,7 +169,8 @@ export default function CurriculumInfo() {
         });
     };
 
-    if (fetching) return <PreLoader title="Curriculum" />;
+    // Shaped like the page (and the years the person keeps open), so nothing jumps when it loads.
+    if (fetching) return <CurriculumPageSkeleton openYears={openYears} />;
 
     const summary = summarizeTerms(Object.values(curriculumData).flat());
     const allExpanded = YEAR_LEVELS.every(({ key }) => openYears[key]);
@@ -231,11 +232,6 @@ export default function CurriculumInfo() {
     return (
         <div className={`min-w-0 space-y-5 py-2 sm:py-3 ${focused ? "pb-36" : ""}`}>
             <header className="space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <p className="min-w-0 text-sm text-muted-foreground">{course_name}</p>
-                    {refreshing && <span role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" />Refreshing…</span>}
-                </div>
-
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {[
                         { label: "Credit units", value: summary.units, icon: BookOpen },

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { SubjectResultsSkeleton } from "./CurriculumSkeletons";
 
 // A code as people mean it: case, spaces and trailing hyphens ignored ("it104-" is IT104). Mirrors the server.
 const codeKey = (code) => String(code ?? "").replace(/\s+/g, "").toUpperCase().replace(/-+$/, "");
@@ -238,7 +239,7 @@ export default function SubjectDialog({ open, onOpenChange, termId, yearlevel, s
                             </div>
                             <div className="max-h-64 overflow-y-auto rounded-md border" aria-label="Subject search results" aria-busy={searching}>
                                 {searching ? (
-                                    <p className="flex items-center justify-center gap-2 p-6 text-sm text-muted-foreground" role="status"><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Loading subjects…</p>
+                                    <SubjectResultsSkeleton />
                                 ) : searchError ? (
                                     <div className="space-y-2 p-4 text-center"><p role="alert" className="text-sm text-red-600 dark:text-red-400">{searchError}</p><Button type="button" variant="outline" onClick={() => setRetrySearch((value) => value + 1)}>Try again</Button></div>
                                 ) : results.length === 0 ? (
