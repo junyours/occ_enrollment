@@ -12,7 +12,10 @@ use App\Models\PreRequisiteSubjects;
 use App\Models\Subject;
 use App\Models\YearLevel;
 use App\Services\CurriculumComparison;
+use App\Services\CurriculumExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
@@ -61,7 +64,8 @@ class CurriculumController extends Controller
         return Inertia::render('Curriculum/CurriculumInfo', [
             'course_name' => $course->course_name,
             'course_name_abbreviation' => $course->course_name_abbreviation,
-            'years' => $years
+            'years' => $years,
+            'course_hash' => $courseId,
         ]);
     }
 
@@ -114,6 +118,44 @@ class CurriculumController extends Controller
             ],
             'program_totals' => $programTotals,
         ]);
+    }
+
+    /**
+     * One curriculum year as a document: "pdf" opens a printable PDF in the browser,
+     * "xlsx" downloads an Excel file. Same content as the curriculum page.
+     */
+    public function exportCurriculum(Request $request, $courseId, $schoolYear, $format, CurriculumExport $export)
+    {
+        abort_unless(in_array($format, ['pdf', 'xlsx'], true), 404);
+
+        $course = Course::where(DB::raw('MD5(id)'), '=', $courseId)->firstOrFail();
+        $this->authorizeCourse($request, (int) $course->id, 'You can only export your department’s curricula.');
+
+        [$start, $end] = array_pad(explode('-', (string) $schoolYear, 2), 2, null);
+        $curriculum = Curriculum::where('course_id', $course->id)
+            ->where('school_year_start', $start)
+            ->where('school_year_end', $end)
+            ->firstOrFail();
+
+        $data = $export->build((int) $curriculum->id);
+        $filename = trim(preg_replace('/[\\\\\/:*?"<>|]+/', ' ', "{$course->course_name_abbreviation} Curriculum {$start}-{$end}"));
+
+        if ($format === 'pdf') {
+            $logoPath = resource_path('images/OCC_LOGO.png');
+
+            // Font subsetting embeds only the characters used: about 76 KB instead of ~930 KB.
+            return Pdf::setOption('isFontSubsettingEnabled', true)->loadView('pdf.curriculum', $data + [
+                'school_name' => CurriculumExport::SCHOOL_NAME,
+                'school_address' => CurriculumExport::SCHOOL_ADDRESS,
+                'printed_at' => now()->format('F j, Y'),
+                'logoSrc' => file_exists($logoPath) ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath)) : null,
+            ])->setPaper('a4', 'portrait')->stream("{$filename}.pdf");
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'curriculum_');
+        (new Xlsx($export->spreadsheet($data)))->save($path);
+
+        return response()->download($path, "{$filename}.xlsx")->deleteFileAfterSend(true);
     }
 
     /** Defaults for the unit-load warnings when a program hasn't set its own limits. */

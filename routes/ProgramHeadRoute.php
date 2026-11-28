@@ -27,6 +27,9 @@ Route::middleware(['auth', 'maintenance', 'program_head'])->group(function () {
     Route::post('/curriculum/subject', [CurriculumController::class, 'addSubject'])->name('curr.addsubject');
     Route::post('/curriculum/subject/edit/subject', [CurriculumController::class, 'editSubject'])->name('curr.editsubject');
     Route::post('/curriculum/unit-limits', [CurriculumController::class, 'setUnitLimits'])->name('curr.unit-limits');
+    Route::get('/curriculum-export/{courseId}/{schoolYear}/{format}', [CurriculumController::class, 'exportCurriculum'])
+        ->where('format', 'pdf|xlsx')
+        ->name('curr.export');
     // Not under /curriculum/{courseId}/…: that would collide with /curriculum/{courseId}/{schoolYear}.
     Route::get('/curriculum-compare/{courseId}', [CurriculumController::class, 'compareView'])->name('curr.compare');
     Route::post('/curriculum-compare/{courseId}', [CurriculumController::class, 'compareData'])->name('curr.compare.data');

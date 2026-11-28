@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useForm, usePage } from "@inertiajs/react";
-import { AlertCircle, BookOpen, ChevronDown, Layers3, ListChecks, Loader2, Plus, RefreshCw, X } from "lucide-react";
+import { AlertCircle, BookOpen, ChevronDown, FileSpreadsheet, Layers3, ListChecks, Loader2, Plus, Printer, RefreshCw, X } from "lucide-react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Badge } from "@/Components/ui/badge";
 import { Button } from "@/Components/ui/button";
@@ -446,9 +446,11 @@ export default function CurriculumInfo() {
 }
 
 CurriculumInfo.layout = (page) => {
-    const { course_name_abbreviation, years } = page.props;
+    const { course_name_abbreviation, years, course_hash } = page.props;
     const schoolYear = Array.isArray(years) ? years.join("–") : years;
     const curriculumTitle = `${course_name_abbreviation} Curriculum`;
+    // Same curriculum as a printable PDF (opens in a new tab) or an Excel download.
+    const exportUrl = (format) => route("curr.export", [course_hash, Array.isArray(years) ? years.join("-") : years, format]);
 
     return (
         <AuthenticatedLayout
@@ -458,6 +460,20 @@ CurriculumInfo.layout = (page) => {
                 <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
                     <h1 className="min-w-0 truncate text-sm font-semibold text-foreground md:text-base">{curriculumTitle}</h1>
                     <Badge variant="secondary" className="shrink-0 text-xs font-medium">{schoolYear}</Badge>
+                    {course_hash && (
+                        <div className="ml-auto flex shrink-0 items-center gap-1">
+                            <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[13px] sm:px-3">
+                                <a href={exportUrl("pdf")} target="_blank" rel="noopener" aria-label={`Print or save ${curriculumTitle} ${schoolYear} as PDF`} title="Print or save as PDF">
+                                    <Printer aria-hidden="true" /><span className="hidden sm:inline">PDF</span>
+                                </a>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[13px] sm:px-3">
+                                <a href={exportUrl("xlsx")} aria-label={`Download ${curriculumTitle} ${schoolYear} as Excel`} title="Download as Excel">
+                                    <FileSpreadsheet aria-hidden="true" /><span className="hidden sm:inline">Excel</span>
+                                </a>
+                            </Button>
+                        </div>
+                    )}
                 </div>
             }
         >
