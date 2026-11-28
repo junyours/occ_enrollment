@@ -94,7 +94,7 @@ const FOCUS_TAG = {
 };
 const compactBadge = "px-1.5 py-0 text-[11px] leading-5";
 
-export default function CurriculumTable({ termId, data, yearlevel, allTerms = [], dependentsById = {}, canHavePrerequisites = true, onlyMissing = false, focus = null, onFocusEntry = () => {}, onHoverEntry = () => {}, getCurriculumInfo }) {
+export default function CurriculumTable({ termId, data, yearlevel, allTerms = [], dependentsById = {}, canHavePrerequisites = true, onlyMissing = false, unitCheck = null, focus = null, onFocusEntry = () => {}, onHoverEntry = () => {}, getCurriculumInfo }) {
     const { toast } = useToast();
     const addSubjectRef = useRef(null);
     const openerRef = useRef(null);
@@ -152,6 +152,11 @@ export default function CurriculumTable({ termId, data, yearlevel, allTerms = []
                     <span className={`text-xs ${semStyle.subtext}`}>
                         {subjects.length} {subjects.length === 1 ? "subject" : "subjects"} · {totals.units} units · {totals.lecture + totals.laboratory} hrs/week
                     </span>
+                    {unitCheck?.over && (
+                        <span className="rounded bg-rose-100 px-1.5 text-[11px] font-medium leading-5 text-rose-800 dark:bg-rose-500/15 dark:text-rose-200">
+                            Over the {unitCheck.max}-unit {unitCheck.isSummer ? "summer " : ""}limit
+                        </span>
+                    )}
                 </div>
                 <Button type="button" variant="outline" size="sm" className="h-7 bg-background/80" ref={addSubjectRef} onClick={(event) => { openerRef.current = event.currentTarget; setSubjectDialog({ entry: null }); }}>
                     <Plus aria-hidden="true" /> Add Subject

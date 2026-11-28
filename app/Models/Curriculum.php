@@ -14,6 +14,7 @@ class Curriculum extends Model
         'course_id',
         'school_year_start',
         'school_year_end',
+        'required_total_units',
     ];
 
     protected $hidden = [

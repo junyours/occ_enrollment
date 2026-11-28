@@ -18,6 +18,9 @@ import { Switch } from "@/Components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import CurriculumTable from "./CurriculumTable";
 import { CurriculumPageSkeleton } from "./CurriculumSkeletons";
+import UnitChecksPanel from "./UnitChecksPanel";
+import UnitLimitsDialog from "./UnitLimitsDialog";
+import { unitChecks } from "./unitLoads";
 import { SemesterLabel } from "./semesters";
 import { dependentsByEntryId, hasPrerequisites, linkedPrerequisites, termCanHavePrerequisites, yearStandingLabel } from "./prerequisites";
 
@@ -59,7 +62,7 @@ const saveOpenYears = (openYears) => {
 };
 
 export default function CurriculumInfo() {
-    const { course_name } = usePage().props;
+    const { course_name, course_name_abbreviation, years } = usePage().props;
     const { toast } = useToast();
     const [curriculumData, setCurriculumData] = useState(emptyCurriculum);
     const allTerms = Object.values(curriculumData).flat();
@@ -70,6 +73,10 @@ export default function CurriculumInfo() {
     const [onlyMissing, setOnlyMissing] = useState(false);
     const [focusedId, setFocusedId] = useState(null);
     const [hoveredId, setHoveredId] = useState(null);
+    const [unitLimits, setUnitLimits] = useState(null);
+    const [programTotals, setProgramTotals] = useState([]);
+    const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
+    const limitsOpener = useRef(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedYear, setSelectedYear] = useState(null);
     const requestSequence = useRef(0);
@@ -120,6 +127,8 @@ export default function CurriculumInfo() {
             });
             setCurriculumData(grouped);
             setSemesterData("curr_id", response.data.curriculum_id);
+            setUnitLimits(response.data.unit_limits ?? null);
+            setProgramTotals(response.data.program_totals ?? []);
         } catch (error) {
             if (sequence !== requestSequence.current) return;
             setFetchError("We couldn't load the curriculum. Your last loaded data is still shown below.");
@@ -200,6 +209,17 @@ export default function CurriculumInfo() {
     } : null;
     const yearKeyOf = (term) => YEAR_LEVELS.find(({ id }) => id === Number(term.year_level_id))?.key;
 
+    // Unit-load warnings (over the limit, empty semesters, total short or incomplete).
+    const checks = unitChecks({ terms: allTerms, limits: unitLimits, programTotals, curriculumId: semesterData.curr_id });
+    const jumpToTerm = (term) => {
+        const yearKey = yearKeyOf(term);
+        if (yearKey) setOpenYears((current) => ({ ...current, [yearKey]: true }));
+        requestAnimationFrame(() => {
+            document.getElementById(`semester-${term.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+    };
+    const yearLabel = Array.isArray(years) ? years.join("–") : String(years ?? "");
+
     const focusEntry = (id) => {
         if (focusedId === id) { setFocusedId(null); return; }
         const target = entryById[id];
@@ -252,6 +272,13 @@ export default function CurriculumInfo() {
                         </div>
                     ))}
                 </div>
+
+                <UnitChecksPanel
+                    checks={checks}
+                    program={course_name_abbreviation}
+                    onJumpToTerm={jumpToTerm}
+                    onEditLimits={(event) => { limitsOpener.current = event.currentTarget; setLimitsDialogOpen(true); }}
+                />
 
                 <nav aria-label="Curriculum year levels" className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap gap-2">
@@ -333,7 +360,7 @@ export default function CurriculumInfo() {
                                         {terms.some((term) => termEligible[term.id]) ? `Every subject in ${year.label.toLowerCase()} has prerequisites.` : "First-semester subjects can't have prerequisites."}
                                     </p>
                                 ) : terms.length > 0 ? terms.map((term) => (
-                                    <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={year.label} semesterId={term.semester_id} allTerms={allTerms} dependentsById={dependentsById} canHavePrerequisites={termEligible[term.id]} onlyMissing={onlyMissing} focus={focus} onFocusEntry={focusEntry} onHoverEntry={setHoveredId} getCurriculumInfo={getCurriculumInfo} />
+                                    <CurriculumTable key={term.id} termId={term.id} data={term} yearlevel={year.label} semesterId={term.semester_id} allTerms={allTerms} dependentsById={dependentsById} canHavePrerequisites={termEligible[term.id]} onlyMissing={onlyMissing} unitCheck={checks.perTerm[term.id]} focus={focus} onFocusEntry={focusEntry} onHoverEntry={setHoveredId} getCurriculumInfo={getCurriculumInfo} />
                                 )) : (
                                     <div className="rounded-lg bg-muted/30 px-5 py-8 text-center">
                                         <p className="text-sm font-medium">No semesters yet</p>
@@ -369,6 +396,19 @@ export default function CurriculumInfo() {
                     </form>
                 </DialogContent>
             </Dialog>
+
+            {limitsDialogOpen && (
+                <UnitLimitsDialog
+                    open
+                    curriculumId={semesterData.curr_id}
+                    limits={unitLimits}
+                    program={course_name_abbreviation}
+                    yearLabel={yearLabel}
+                    onOpenChange={(open) => { if (!open) setLimitsDialogOpen(false); }}
+                    onSaved={getCurriculumInfo}
+                    onCloseAutoFocus={(event) => { event.preventDefault(); requestAnimationFrame(() => limitsOpener.current?.focus()); }}
+                />
+            )}
 
             {focused && (
                 <div role="region" aria-label={`Prerequisite links for ${focused.entry.subject?.subject_code}`} className="fixed inset-x-3 bottom-3 z-40 mx-auto max-w-3xl rounded-xl border bg-background/95 p-3 shadow-lg backdrop-blur sm:inset-x-6">

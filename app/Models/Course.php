@@ -15,6 +15,8 @@ class Course extends Model
         'course_name',
         'major',
         'course_name_abbreviation',
+        'max_semester_units',
+        'max_summer_units',
     ];
     protected $hidden = [
         'created_at',

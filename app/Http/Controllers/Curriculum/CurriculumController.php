@@ -86,12 +86,67 @@ class CurriculumController extends Controller
             ->with('CurriculumTerm.CurriculumTermSubject.Subject')
             ->get();
 
+        // Total units of every curriculum year of this program, so the page can tell when
+        // one looks incomplete next to the others.
+        $programTotals = DB::table('curriculum as c')
+            ->leftJoin('curriculum_term as t', 't.curriculum_id', '=', 'c.id')
+            ->leftJoin('curriculum_term_subjects as e', 'e.curriculum_term_id', '=', 't.id')
+            ->leftJoin('subjects as s', 's.id', '=', 'e.subject_id')
+            ->where('c.course_id', $course->id)
+            ->groupBy('c.id', 'c.school_year_start', 'c.school_year_end')
+            ->orderBy('c.school_year_start')
+            ->selectRaw('c.id, c.school_year_start, c.school_year_end, coalesce(sum(s.credit_units), 0) as units')
+            ->get()
+            ->map(fn ($c) => ['id' => (int) $c->id, 'label' => "{$c->school_year_start}–{$c->school_year_end}", 'units' => (int) $c->units])
+            ->values();
+
         return response([
             'curriculum' => $curData,
             'course_id' => $courseId,
             'curriculum_id' => $curriculumId,
-            'course_info' => $course
+            'course_info' => $course,
+            'unit_limits' => [
+                'max_semester_units' => $course->max_semester_units ?? null,
+                'max_summer_units' => $course->max_summer_units ?? null,
+                'required_total_units' => $curData->first()?->required_total_units,
+                'default_semester_units' => self::DEFAULT_MAX_SEMESTER_UNITS,
+                'default_summer_units' => self::DEFAULT_MAX_SUMMER_UNITS,
+            ],
+            'program_totals' => $programTotals,
         ]);
+    }
+
+    /** Defaults for the unit-load warnings when a program hasn't set its own limits. */
+    public const DEFAULT_MAX_SEMESTER_UNITS = 26;
+    public const DEFAULT_MAX_SUMMER_UNITS = 9;
+
+    /**
+     * Saves the unit-load limits shown as warnings on the curriculum page: the program's
+     * maximum units per regular semester and in summer (blank = default), and this
+     * curriculum year's required total units (blank = no check).
+     */
+    public function setUnitLimits(Request $request)
+    {
+        $validated = Validator::make($request->all(), [
+            'curriculum_id' => ['required', 'integer', 'exists:curriculum,id'],
+            'max_semester_units' => ['nullable', 'integer', 'min:1', 'max:60'],
+            'max_summer_units' => ['nullable', 'integer', 'min:1', 'max:30'],
+            'required_total_units' => ['nullable', 'integer', 'min:1', 'max:400'],
+        ])->validate();
+
+        $curriculum = Curriculum::findOrFail($validated['curriculum_id']);
+        $this->authorizeCourse($request, (int) $curriculum->course_id);
+
+        DB::transaction(function () use ($validated, $curriculum) {
+            // Load limits are the program's policy; the required total belongs to this curriculum year.
+            Course::whereKey($curriculum->course_id)->update([
+                'max_semester_units' => $validated['max_semester_units'] ?? null,
+                'max_summer_units' => $validated['max_summer_units'] ?? null,
+            ]);
+            $curriculum->update(['required_total_units' => $validated['required_total_units'] ?? null]);
+        });
+
+        return Redirect::back();
     }
 
     /** Compare page for one program's curriculum years ($courseId is MD5(course.id), as elsewhere). */
