@@ -134,7 +134,7 @@ export default function PrerequisiteDialog({ open, onOpenChange, entry, term, al
                                     ) : visibleGroups.map((group) => (
                                         <fieldset key={group.id} className="border-b last:border-b-0">
                                             <legend className="sr-only">{group.label}</legend>
-                                            <p aria-hidden="true" className={`sticky top-0 z-10 flex items-center gap-2 border-l-4 px-3 py-1.5 text-xs ${semesterStyle(group.semesterId).strip} ${semesterStyle(group.semesterId).edge}`}>
+                                            <p aria-hidden="true" className={`sticky top-0 z-10 flex items-center gap-2 border-l-2 px-3 py-1.5 text-xs ${semesterStyle(group.semesterId).strip} ${semesterStyle(group.semesterId).edge}`}>
                                                 <span className="font-medium text-muted-foreground">{group.yearName}</span>
                                                 <SemesterLabel semesterId={group.semesterId} />
                                             </p>

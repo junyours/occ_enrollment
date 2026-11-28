@@ -140,7 +140,7 @@ export default function CurriculumTable({ termId, data, yearlevel, allTerms = []
     if (onlyMissing && (!canHavePrerequisites || visibleSubjects.length === 0)) return null;
 
     return (
-        <section className={`min-w-0 border-l-4 ${semStyle.edge}`} aria-labelledby={`semester-${termId}`}>
+        <section className={`min-w-0 border-l-2 ${semStyle.edge}`} aria-labelledby={`semester-${termId}`}>
             {/* Coloured strip per semester; it stays under the app header while you scroll through this semester. */}
             <div className={`sticky top-14 z-20 flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 ${semStyle.strip}`}>
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5">

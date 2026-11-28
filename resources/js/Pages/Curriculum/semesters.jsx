@@ -2,42 +2,44 @@ import React from "react";
 import { Sun } from "lucide-react";
 
 // One look per semester, used everywhere a semester appears on the curriculum page.
-// Never amber: amber means "prerequisite" in the hover/selection highlight.
-// Colour is never the only cue: each semester also has its own mark (1, 2, sun).
+// Deliberately quiet: the strip is neutral gray and the edge is thin and pale, so the
+// prerequisite (amber) and required-for (blue) row highlights are the only strong colours.
+// The semester's colour lives only in its small mark (1, 2, sun), which is also the
+// non-colour cue that tells semesters apart.
 export const SEMESTER_STYLES = {
     1: {
         label: "1st semester",
-        edge: "border-l-blue-500",
-        strip: "bg-blue-50 dark:bg-blue-950",
-        text: "text-blue-800 dark:text-blue-200",
-        subtext: "text-blue-700/80 dark:text-blue-300/80",
-        mark: "bg-blue-600 text-white dark:bg-blue-500",
+        edge: "border-l-blue-200 dark:border-l-blue-900",
+        strip: "bg-muted",
+        text: "text-foreground",
+        subtext: "text-muted-foreground",
+        mark: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
     },
     2: {
         label: "2nd semester",
-        edge: "border-l-violet-500",
-        strip: "bg-violet-50 dark:bg-violet-950",
-        text: "text-violet-800 dark:text-violet-200",
-        subtext: "text-violet-700/80 dark:text-violet-300/80",
-        mark: "bg-violet-600 text-white dark:bg-violet-500",
+        edge: "border-l-violet-200 dark:border-l-violet-900",
+        strip: "bg-muted",
+        text: "text-foreground",
+        subtext: "text-muted-foreground",
+        mark: "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300",
     },
     3: {
         label: "Summer",
-        edge: "border-l-teal-500",
-        strip: "bg-teal-50 dark:bg-teal-950",
-        text: "text-teal-800 dark:text-teal-200",
-        subtext: "text-teal-700/80 dark:text-teal-300/80",
-        mark: "bg-teal-600 text-white dark:bg-teal-500",
+        edge: "border-l-teal-200 dark:border-l-teal-900",
+        strip: "bg-muted",
+        text: "text-foreground",
+        subtext: "text-muted-foreground",
+        mark: "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300",
     },
 };
 
 const FALLBACK = {
     label: "Semester",
-    edge: "border-l-muted-foreground/40",
+    edge: "border-l-border",
     strip: "bg-muted",
     text: "text-foreground",
     subtext: "text-muted-foreground",
-    mark: "bg-muted-foreground text-background",
+    mark: "bg-muted-foreground/15 text-muted-foreground",
 };
 
 export const semesterStyle = (semesterId) => SEMESTER_STYLES[Number(semesterId)] ?? FALLBACK;

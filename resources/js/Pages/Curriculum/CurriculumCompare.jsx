@@ -242,7 +242,7 @@ export default function CurriculumCompare() {
                     ) : groups.map((group) => {
                         const style = semesterStyle(group.semester);
                         return (
-                            <section key={group.key} className={`min-w-0 border-l-4 ${style.edge}`} aria-label={`${YEAR_NAMES[group.year]}, ${style.label}`}>
+                            <section key={group.key} className={`min-w-0 border-l-2 ${style.edge}`} aria-label={`${YEAR_NAMES[group.year]}, ${style.label}`}>
                                 <div className={`flex items-center gap-2 px-3 py-1.5 text-sm ${style.strip}`}>
                                     <span className="font-medium text-muted-foreground">{YEAR_NAMES[group.year] ?? `Year ${group.year}`}</span>
                                     <SemesterLabel semesterId={group.semester} />
