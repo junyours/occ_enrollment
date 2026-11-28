@@ -84,7 +84,12 @@ abstract class CurriculumTestCase extends TestCase
             $table->id();
             $table->unsignedBigInteger('department_id');
             $table->string('course_name')->nullable();
+            $table->string('course_name_abbreviation')->nullable();
             $table->timestamps();
+        });
+        Schema::create('year_section_subjects', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('subject_id');
         });
         Schema::create('curriculum', function (Blueprint $table) {
             $table->id();
@@ -150,8 +155,8 @@ abstract class CurriculumTestCase extends TestCase
 
         $this->programHead = $this->makeUser('program_head', 'PH-1');
         DB::table('faculty')->insert(['faculty_id' => $this->programHead->id, 'department_id' => 1]);
-        DB::table('course')->insert(['id' => 1, 'department_id' => 1, 'course_name' => 'BSIT']);
-        DB::table('course')->insert(['id' => 2, 'department_id' => 2, 'course_name' => 'BEED']);
+        DB::table('course')->insert(['id' => 1, 'department_id' => 1, 'course_name' => 'BSIT', 'course_name_abbreviation' => 'BSIT']);
+        DB::table('course')->insert(['id' => 2, 'department_id' => 2, 'course_name' => 'BEED', 'course_name_abbreviation' => 'BEED']);
         DB::table('curriculum')->insert(['id' => 1, 'course_id' => 1, 'school_year_start' => 2024, 'school_year_end' => 2025]);
         DB::table('curriculum')->insert(['id' => 2, 'course_id' => 1, 'school_year_start' => 2018, 'school_year_end' => 2019]);
         DB::table('curriculum')->insert(['id' => 3, 'course_id' => 2, 'school_year_start' => 2024, 'school_year_end' => 2025]);

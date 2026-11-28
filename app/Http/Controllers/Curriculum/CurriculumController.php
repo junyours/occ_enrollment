@@ -293,32 +293,45 @@ class CurriculumController extends Controller
             'curriculum_term_id' => ['required', 'integer', 'exists:curriculum_term,id'],
             'subject_id' => ['exclude_unless:mode,existing', 'required', 'integer', 'exists:subjects,id'],
             ...$this->subjectRules('exclude_unless:mode,new'),
+            // New mode, code already in the catalog with other details: create another version of it.
+            'create_version' => ['sometimes', 'boolean'],
         ])->validate();
 
         $this->authorizeCurriculumTerm($request, $validated['curriculum_term_id']);
 
         DB::transaction(function () use ($validated) {
             CurriculumTerm::whereKey($validated['curriculum_term_id'])->lockForUpdate()->firstOrFail();
+            $errorField = $validated['mode'] === 'existing' ? 'subject_id' : 'subject_code';
 
             if ($validated['mode'] === 'existing') {
                 $subject = Subject::findOrFail($validated['subject_id']);
+                $code = $subject->subject_code;
             } else {
                 $fields = $this->subjectFields($validated);
-                if (Subject::where('subject_code', $fields['subject_code'])->exists()) {
-                    throw ValidationException::withMessages([
-                        'subject_code' => 'This code already exists. Choose Use existing subject to select its definition.',
-                    ]);
-                }
-                $subject = Subject::create($fields);
+                $code = $fields['subject_code'];
             }
 
-            $duplicate = CurriculumTermSubject::where('curriculum_term_id', $validated['curriculum_term_id'])
-                ->whereHas('Subject', fn ($query) => $query->where('subject_code', $subject->subject_code))
-                ->exists();
-            if ($duplicate) {
-                throw ValidationException::withMessages([
-                    $validated['mode'] === 'existing' ? 'subject_id' : 'subject_code' => 'A subject with this code is already in this semester.',
-                ]);
+            // Each code appears once per curriculum (not just per semester); "IT104-" counts as IT104.
+            $existing = $this->curriculumEntryWithCode((int) $validated['curriculum_term_id'], $code);
+            if ($existing) {
+                throw ValidationException::withMessages([$errorField => $this->alreadyInCurriculumMessage($existing, $code)]);
+            }
+
+            if ($validated['mode'] === 'new') {
+                // A code can have several versions: its title or units can differ between curriculum
+                // years. An identical version is reused; a different one needs an explicit confirmation.
+                $versions = Subject::where('subject_code', $code)->orderByDesc('id')->get();
+                $identical = $versions->first(fn ($version) => self::sameSubjectDetails($version, $fields));
+                if ($identical) {
+                    $subject = $identical;
+                } elseif ($versions->isNotEmpty() && !($validated['create_version'] ?? false)) {
+                    throw ValidationException::withMessages([
+                        'subject_code' => "{$code} already exists with different details. Use one of its versions, or confirm creating a new version for this curriculum.",
+                    ]);
+                } else {
+                    // A new version keeps the kind of subject (type) of the code's latest version.
+                    $subject = Subject::create([...($versions->isNotEmpty() ? ['type' => $versions->first()->type] : []), ...$fields]);
+                }
             }
 
             CurriculumTermSubject::create([
@@ -357,20 +370,23 @@ class CurriculumController extends Controller
                 return;
             }
 
-            $duplicateInTerm = CurriculumTermSubject::where('curriculum_term_id', $entry->curriculum_term_id)
-                ->where('id', '!=', $entry->id)
-                ->whereHas('Subject', fn ($query) => $query->where('subject_code', $fields['subject_code']))
-                ->exists();
-            $changedCodeExists = $fields['subject_code'] !== $subject->subject_code
-                && Subject::where('subject_code', $fields['subject_code'])->exists();
-            if ($duplicateInTerm || $changedCodeExists) {
-                throw ValidationException::withMessages([
-                    'subject_code' => 'This code already exists. Choose a different code or add the existing subject instead.',
-                ]);
+            // A new code must not already be in this curriculum ("IT104-" counts as IT104).
+            // Revisions that keep the code are never blocked, so existing data can still be fixed.
+            if ($fields['subject_code'] !== $subject->subject_code) {
+                $existing = $this->curriculumEntryWithCode((int) $entry->curriculum_term_id, $fields['subject_code'], (int) $entry->id);
+                if ($existing) {
+                    throw ValidationException::withMessages(['subject_code' => $this->alreadyInCurriculumMessage($existing, $fields['subject_code'])]);
+                }
             }
 
-            // A curriculum revision must never rewrite subject details used by past classes.
-            $revisedSubject = Subject::create(['type' => $subject->type, ...$fields]);
+            // A curriculum revision must never rewrite subject details used by past classes:
+            // point this entry at an identical existing version of the code, or at a new version.
+            $identical = Subject::where('subject_code', $fields['subject_code'])
+                ->where('id', '!=', $subject->id)
+                ->orderByDesc('id')
+                ->get()
+                ->first(fn ($version) => self::sameSubjectDetails($version, $fields));
+            $revisedSubject = $identical ?? Subject::create(['type' => $subject->type, ...$fields]);
             $entry->update(['subject_id' => $revisedSubject->id]);
         });
 
@@ -452,9 +468,28 @@ class CurriculumController extends Controller
     {
         $validated = Validator::make($request->all(), [
             'q' => ['nullable', 'string', 'max:100'],
+            // Exact code lookup: every version of a code, plus old hyphenated variants (IT104-, IT104--).
+            'code' => ['nullable', 'string', 'max:255'],
         ])->validate();
+        $columns = ['id', 'subject_code', 'descriptive_title', 'credit_units', 'lecture_hours', 'laboratory_hours'];
+
+        $code = trim($validated['code'] ?? '');
+        if ($code !== '') {
+            $key = self::subjectCodeKey($code);
+            $prefix = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], rtrim($code, '-'));
+            $versions = Subject::select($columns)
+                ->where('subject_code', 'like', $prefix.'%')
+                ->orderByDesc('id')
+                ->limit(200)
+                ->get()
+                ->filter(fn ($subject) => self::subjectCodeKey($subject->subject_code) === $key)
+                ->values();
+
+            return response()->json(['subjects' => $this->withSubjectUsage($versions), 'truncated' => false]);
+        }
+
         $search = trim($validated['q'] ?? '');
-        $subjects = Subject::select('id', 'subject_code', 'descriptive_title', 'credit_units', 'lecture_hours', 'laboratory_hours')
+        $subjects = Subject::select($columns)
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('subject_code', 'like', '%' . $search . '%')
@@ -467,9 +502,90 @@ class CurriculumController extends Controller
             ->get();
 
         return response()->json([
-            'subjects' => $subjects->take(30)->values(),
+            'subjects' => $this->withSubjectUsage($subjects->take(30)->values()),
             'truncated' => $subjects->count() > 30,
         ]);
+    }
+
+    /** Adds where each subject version is used: curriculum years and number of classes. */
+    private function withSubjectUsage($subjects)
+    {
+        $ids = $subjects->pluck('id')->all();
+        if ($ids === []) {
+            return $subjects;
+        }
+
+        $usedIn = DB::table('curriculum_term_subjects as e')
+            ->join('curriculum_term as t', 't.id', '=', 'e.curriculum_term_id')
+            ->join('curriculum as c', 'c.id', '=', 't.curriculum_id')
+            ->join('course as co', 'co.id', '=', 'c.course_id')
+            ->whereIn('e.subject_id', $ids)
+            ->orderBy('c.school_year_start')
+            ->get(['e.subject_id', 'co.course_name_abbreviation', 'c.school_year_start', 'c.school_year_end'])
+            ->groupBy('subject_id')
+            ->map(fn ($rows) => $rows
+                ->map(fn ($r) => trim("{$r->course_name_abbreviation} {$r->school_year_start}–{$r->school_year_end}"))
+                ->unique()->values()->all());
+
+        $classes = DB::table('year_section_subjects')
+            ->whereIn('subject_id', $ids)
+            ->selectRaw('subject_id, count(*) as total')
+            ->groupBy('subject_id')
+            ->pluck('total', 'subject_id');
+
+        return $subjects->map(fn ($subject) => [
+            ...$subject->toArray(),
+            'used_in' => $usedIn[$subject->id] ?? [],
+            'classes' => (int) ($classes[$subject->id] ?? 0),
+        ])->values();
+    }
+
+    private const YEAR_LEVEL_NAMES = [1 => 'First Year', 2 => 'Second Year', 3 => 'Third Year', 4 => 'Fourth Year'];
+    private const SEMESTER_NAMES = [1 => '1st semester', 2 => '2nd semester', 3 => 'Summer'];
+
+    /** A code as people mean it: case, spaces and trailing hyphens ignored ("it104-" is IT104). */
+    private static function subjectCodeKey(string $code): string
+    {
+        return rtrim(strtoupper(preg_replace('/\s+/', '', $code)), '-');
+    }
+
+    /** The same subject: same code, title (ignoring case and spacing), units and hours. */
+    private static function sameSubjectDetails(Subject $subject, array $fields): bool
+    {
+        $title = fn ($value) => strtolower(preg_replace('/\s+/', ' ', trim((string) $value)));
+
+        return strcasecmp(trim((string) $subject->subject_code), $fields['subject_code']) === 0
+            && $title($subject->descriptive_title) === $title($fields['descriptive_title'])
+            && (int) $subject->credit_units === $fields['credit_units']
+            && (int) $subject->lecture_hours === $fields['lecture_hours']
+            && (int) $subject->laboratory_hours === $fields['laboratory_hours'];
+    }
+
+    /** Another entry of the same curriculum with the same code (see subjectCodeKey), or null. */
+    private function curriculumEntryWithCode(int $termId, string $code, ?int $ignoreEntryId = null): ?CurriculumTermSubject
+    {
+        $curriculumId = CurriculumTerm::whereKey($termId)->value('curriculum_id');
+        $key = self::subjectCodeKey($code);
+
+        return CurriculumTermSubject::query()
+            ->whereIn('curriculum_term_id', CurriculumTerm::where('curriculum_id', $curriculumId)->select('id'))
+            ->when($ignoreEntryId !== null, fn ($query) => $query->where('id', '!=', $ignoreEntryId))
+            ->with(['Subject', 'CurriculumTerm'])
+            ->get()
+            ->first(fn ($entry) => $entry->Subject && self::subjectCodeKey($entry->Subject->subject_code) === $key);
+    }
+
+    private function alreadyInCurriculumMessage(CurriculumTermSubject $existing, string $code): string
+    {
+        $term = $existing->CurriculumTerm;
+        $year = self::YEAR_LEVEL_NAMES[(int) ($term?->year_level_id)] ?? null;
+        $semester = self::SEMESTER_NAMES[(int) ($term?->semester_id)] ?? null;
+        $where = $year && $semester ? " ({$year}, {$semester})" : '';
+        $existingCode = $existing->Subject->subject_code;
+
+        return strcasecmp($existingCode, $code) === 0
+            ? "{$existingCode} is already in this curriculum{$where}."
+            : "This curriculum already has {$existingCode}{$where}, which is the same code as {$code}.";
     }
 
     private function subjectRules(?string $condition = null): array
